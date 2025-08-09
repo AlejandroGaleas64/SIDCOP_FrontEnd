@@ -1,1 +1,110 @@
-<p>details works!</p>
+<div class="details-container">
+  
+  <!-- Contenedor de alertas flotantes -->
+  <div class="alert-container">
+    <!-- Alerta de error -->
+    <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+      <strong>¡Error!</strong> {{ mensajeError }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+  </div>
+  
+  <!-- Botón de regresar -->
+  <div class="details-header-button">
+    <button type="button" class="btn btn-primary" (click)="cerrar()">
+      <span class="btn-text">Regresar</span>
+      <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
+    </button>
+  </div>
+  
+  <!-- Contenido de detalles -->
+  <div *ngIf="!cargando && recargaDetalle" class="details-content">
+       <div class="col-md-12">
+      <div class="card h-100 shadow-sm employee-details-card bg-dark-blue">
+  <div class="card-header d-flex align-items-center rounded-top details-header-custom">
+    <i class="ri-truck-line me-2 fs-4"></i>
+     <h5 class="mb-0">Detalles de la recarga</h5>
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-12 col-sm-6">
+        <div class="detail-item">
+          <div class="detail-icon bg-dark-blue text-white"><i class="ri-attachment-line"></i></div>
+          <div class="detail-content">
+            <div class="detail-label">Descripcion</div>
+            <div class="detail-value">{{ recargaDetalle.bode_Descripcion }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6">
+        <div class="detail-item">
+          <div class="detail-icon bg-dark-blue text-white"><i class="ri-article-line"></i></div>
+          <div class="detail-content">
+            <div class="detail-label">VIN</div>
+            <div class="detail-value">{{ recargaDetalle.reca_Observaciones }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6">
+        <div class="detail-item">
+          <div class="detail-icon bg-dark-blue text-white"><i class="ri-barcode-box-line"></i></div>
+          <div class="detail-content">
+            <div class="detail-label">Fecha de la Recarga</div>
+            <div class="detail-value">{{ recargaDetalle.reca_Fecha }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6">
+        <div class="detail-item">
+          <div class="detail-icon bg-dark-blue text-white"><i class="ri-code-line"></i></div>
+          <div class="detail-content">
+            <div class="detail-label">Productos</div>
+            <div class="detail-value">{{ recargaDetalle.detalleProductos }} QQ</div>
+          </div>
+        </div>
+      </div>
+      </div>
+     </div>
+
+      </div>
+    </div>
+  
+
+    <!-- Tabla de auditoría -->
+    <div class="audit-table-container">
+      <div class="audit-table">
+        <div class="audit-header">
+          <div class="audit-col">Acción</div>
+          <div class="audit-col">Usuario</div>
+          <div class="audit-col">Fecha</div>
+        </div>
+      
+      <!-- Fila de creación -->
+      <div class="audit-row">
+        <div class="audit-col">
+          <span class="audit-action">Creador</span>
+        </div>
+        <div class="audit-col">
+          <span class="audit-user">{{ recargaDetalle.usuarioCreacion || 'N/A' }}</span>
+        </div>
+        <div class="audit-col">
+          <span class="audit-date">{{ formatearFecha(recargaDetalle.reca_FechaCreacion || null) }}</span>
+        </div>
+      </div>
+      
+      <!-- Fila de modificación -->
+      <div class="audit-row">
+        <div class="audit-col">
+          <span class="audit-action">Modificación</span>
+        </div>
+        <div class="audit-col">
+          <span class="audit-user">{{ recargaDetalle.usuarioModificacion || 'N/A' }}</span>
+        </div>
+        <div class="audit-col">
+          <span class="audit-date">{{ formatearFecha(recargaDetalle.reca_FechaModificacion || null )  }}</span>
+        </div>
+      </div>
+    </div>
+    </div>
+    

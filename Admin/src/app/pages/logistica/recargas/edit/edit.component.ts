@@ -21,14 +21,7 @@ export class EditRecargaComponent implements OnChanges {
     reca_Id: 0,
     reca_Confirmacion: '',
     reca_Observaciones: '',
-    Usua_Modificacion: 0,
-    reca_FechaModificacion: new Date(),
-    // Campos de solo lectura
-    reca_Monto: 0,
-    reca_Cliente: '',
-    reca_Telefono: '',
-    reca_Estado: '',
-    reca_FechaCreacion: null
+    usua_Modificacion: 0
   };
 
   recargaOriginal: any = {};
@@ -44,59 +37,70 @@ export class EditRecargaComponent implements OnChanges {
   mensajeError = '';
   mensajeWarning = '';
 
+
   constructor(private http: HttpClient) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['recargaData']?.currentValue) {
-      this.recarga = { ...this.recargaData };
-      this.recargaOriginal = { ...this.recargaData };
-      this.mostrarErrores = false;
-      this.cerrarAlerta();
-      
-      // Limpiar campos editables si vienen con datos previos
-      this.recarga.reca_Confirmacion = this.recarga.reca_Confirmacion || '';
-      this.recarga.reca_Observaciones = this.recarga.reca_Observaciones || '';
+      this.recarga = { 
+        ...changes['recargaData'].currentValue,
+        reca_Confirmacion: changes['recargaData'].currentValue.reca_Confirmacion || '',
+        reca_Observaciones: changes['recargaData'].currentValue.reca_Observaciones || ''
+      };
+      this.recargaOriginal = { ...this.recarga };
+      this.resetAlerts();
     }
   }
 
+  private resetAlerts(): void {
+    this.mostrarErrores = false;
+    this.mostrarAlertaExito = false;
+    this.mostrarAlertaError = false;
+    this.mostrarAlertaWarning = false;
+    this.mostrarConfirmacionEditar = false;
+  }
+
   validarConfirmacion(): void {
+    this.resetAlerts();
     this.mostrarErrores = true;
 
-    if (this.validarCampos()) {
-      if (this.hayDiferencias()) {
-        this.mostrarConfirmacionEditar = true;
-      } else {
-        this.mostrarAlertaWarning = true;
-        this.mensajeWarning = 'No se han detectado cambios.';
-        setTimeout(() => this.cerrarAlerta(), 4000);
-      }
+    if (!this.validarCampos()) {
+      setTimeout(() => this.cerrarAlerta(), 4000);
+      return;
+    }
+
+    if (this.hayDiferencias()) {
+      this.mostrarConfirmacionEditar = true;
     } else {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'No se han detectado cambios.';
       setTimeout(() => this.cerrarAlerta(), 4000);
     }
   }
 
-  private validarCampos(): boolean {
+ 
+private validarCampos(): boolean {
     const errores: string[] = [];
+    const confirmacion = this.recarga.reca_Confirmacion?.toUpperCase();
 
-    if (!this.recarga.reca_Confirmacion || this.recarga.reca_Confirmacion.trim() === '') {
-      errores.push('Estado de confirmación');
+    // Validación de confirmación
+    if (!confirmacion || !['P', 'A', 'R'].includes(confirmacion)) {
+      errores.push('Estado de confirmación debe ser P (Pendiente), A (Aprobada) o R (Rechazada)');
     }
 
-    if (this.recarga.reca_Confirmacion === 'Rechazada') {
-      if (!this.recarga.reca_Observaciones || this.recarga.reca_Observaciones.trim() === '') {
-        errores.push('Observaciones (requeridas para rechazo)');
-      }
+    // Validación de observaciones para rechazo
+    if (confirmacion === 'R' && (!this.recarga.reca_Observaciones || this.recarga.reca_Observaciones.trim() === '')) {
+      errores.push('Observaciones son requeridas para rechazo');
     }
 
-    if (this.recarga.reca_Observaciones && this.recarga.reca_Observaciones.length > 500) {
-      errores.push('Las observaciones no pueden exceder 500 caracteres');
+    // Validación de longitud de observaciones
+    if (this.recarga.reca_Observaciones && this.recarga.reca_Observaciones.length > 200) {
+      errores.push('Las observaciones no pueden exceder 200 caracteres');
     }
 
     if (errores.length > 0) {
-      this.mensajeWarning = `Por favor corrija los siguientes campos: ${errores.join(', ')}`;
+      this.mensajeWarning = `Corrija los siguientes campos: ${errores.join(', ')}`;
       this.mostrarAlertaWarning = true;
-      this.mostrarAlertaError = false;
-      this.mostrarAlertaExito = false;
       return false;
     }
 
@@ -104,28 +108,21 @@ export class EditRecargaComponent implements OnChanges {
   }
 
   private hayDiferencias(): boolean {
-    const a = this.recarga;
-    const b = this.recargaOriginal;
-    this.cambiosDetectados = {};
+    if (!this.recarga || !this.recargaOriginal) return false;
 
-    if (a.reca_Confirmacion !== (b.reca_Confirmacion || '')) {
-      this.cambiosDetectados.confirmacion = {
-        anterior: b.reca_Confirmacion || 'No definido',
-        nuevo: a.reca_Confirmacion,
-        label: 'Estado de Confirmación'
-      };
-    }
+    const cambios = {
+      confirmacion: this.recarga.reca_Confirmacion !== this.recargaOriginal.reca_Confirmacion,
+      observaciones: this.recarga.reca_Observaciones !== this.recargaOriginal.reca_Observaciones
+    };
 
-    if (a.reca_Observaciones !== (b.reca_Observaciones || '')) {
-      this.cambiosDetectados.observaciones = {
-        anterior: b.reca_Observaciones || 'Sin observaciones',
-        nuevo: a.reca_Observaciones || 'Sin observaciones',
-        label: 'Observaciones'
-      };
-    }
-
-    return Object.keys(this.cambiosDetectados).length > 0;
+    return cambios.confirmacion || cambios.observaciones;
   }
+
+  confirmarAccion(): void {
+    this.mostrarConfirmacionEditar = false;
+    this.guardar();
+  }
+
 
   obtenerListaCambios(): any[] {
     return Object.values(this.cambiosDetectados);
@@ -135,86 +132,108 @@ export class EditRecargaComponent implements OnChanges {
     this.mostrarConfirmacionEditar = false;
   }
 
-  confirmarAccion(): void {
-    this.mostrarConfirmacionEditar = false;
-    this.guardar();
-  }
+ private guardar(): void {
+    if (!this.validarCampos()) return;
 
-  private guardar(): void {
-    if (!this.validarCampos()) {
-      return;
+    const userId = getUserId();
+    if (!userId || isNaN(userId)) {
+        this.mostrarError('Usuario no válido');
+        return;
     }
 
+    // Asegurar que todos los campos requeridos estén presentes
     const body = {
-      reca_Id: this.recarga.reca_Id,
-      reca_Confirmacion: this.recarga.reca_Confirmacion,
-      reca_Observaciones: this.recarga.reca_Observaciones || '',
-      Usua_Modificacion: getUserId(),
-      reca_FechaModificacion: new Date().toISOString()
+        Reca_Id: Number(this.recarga.reca_Id),
+        Reca_Confirmacion: String(this.recarga.reca_Confirmacion).substring(0, 1).toUpperCase(),
+        Reca_Observaciones: String(this.recarga.reca_Observaciones || '').substring(0, 200),
+        Usua_Modificacion: Number(userId),
+        Recarga : "",
+        detalles :  [], 
+        Reca_FechaModificacion: new Date().toISOString()
     };
 
+    console.log('Datos a enviar:', JSON.stringify(body, null, 2));
+
     this.http.put<any>(`${environment.apiBaseUrl}/Recargas/Confirmar`, body, {
-      headers: {
-        'X-Api-Key': environment.apiKey,
-        'Content-Type': 'application/json',
-        'accept': '*/*'
-      }
+        headers: {
+            'X-Api-Key': environment.apiKey,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
     }).subscribe({
-      cosole.log()
-      next: (response) => {
-        if (response && response.code_Status === 1) {
-          this.mostrarAlertaExito = true;
-          this.mensajeExito = response.message_Status || 'Recarga procesada exitosamente.';
-          this.mostrarErrores = false;
-          
-          this.recarga.reca_Estado = this.recarga.reca_Confirmacion;
-          
-          setTimeout(() => {
-            this.onSave.emit(this.recarga);
-            this.cancelar();
-          }, 3000);
-        } else {
-          this.mostrarAlertaError = true;
-          this.mensajeError = response?.message_Status || 'Error al procesar la recarga.';
-          setTimeout(() => this.cerrarAlerta(), 5000);
+        next: (response) => {
+            console.log('Respuesta del servidor:', response);
+            if (response?.data?.code_Status === 1) {
+                this.mostrarExito(response.data.message_Status);
+                setTimeout(() => this.onSave.emit(this.recarga), 3000);
+            } else {
+                const errorMsg = response?.message || 
+                                response?.data?.message_Status || 
+                                'Error al procesar la recarga';
+                this.mostrarError(errorMsg);
+            }
+        },
+        error: (error) => {
+            console.error('Error completo:', error);
+            let errorMsg = 'Error desconocido';
+            
+            if (error.error) {
+                // Intentar obtener el mensaje de error del backend
+                if (typeof error.error === 'string') {
+                    try {
+                        const parsedError = JSON.parse(error.error);
+                        errorMsg = parsedError.message || parsedError.title || error.error;
+                    } catch {
+                        errorMsg = error.error;
+                    }
+                } else if (typeof error.error === 'object') {
+                    errorMsg = error.error.message || 
+                              error.error.title || 
+                              JSON.stringify(error.error);
+                }
+            } else {
+                errorMsg = error.message || 'Error en la conexión';
+            }
+            
+            this.mostrarError(`Error ${error.status || 'desconocido'}: ${errorMsg}`);
         }
-      },
-      error: (error) => {
-        console.error('Error al confirmar recarga:', error);
-        this.mostrarAlertaError = true;
-        
-        if (error.status === 400 && error.error?.message_Status) {
-          this.mensajeError = error.error.message_Status;
-        } else if (error.status === 500) {
-          this.mensajeError = 'Error interno del servidor. Contacte al administrador.';
-        } else if (error.status === 0) {
-          this.mensajeError = 'No se pudo conectar con el servidor. Verifique su conexión.';
-        } else {
-          this.mensajeError = 'Error inesperado. Intente de nuevo.';
-        }
-        
-        setTimeout(() => this.cerrarAlerta(), 5000);
-      }
     });
+}
+
+  private mostrarExito(mensaje: string): void {
+    this.mostrarAlertaExito = true;
+    this.mensajeExito = mensaje || 'Operación exitosa';
+    this.mostrarErrores = false;
+  }
+
+  private mostrarError(mensaje: string): void {
+    this.mostrarAlertaError = true;
+    this.mensajeError = mensaje || 'Error desconocido';
+    setTimeout(() => this.cerrarAlerta(), 10000);
   }
 
   getEstadoBadgeClass(estado: string): string {
-    switch (estado?.toLowerCase()) {
-      case 'pendiente': return 'bg-warning text-dark';
-      case 'confirmada': return 'bg-success';
-      case 'rechazada': return 'bg-danger';
+    switch (estado?.toUpperCase()) {
+      case 'P': 
+      case 'PENDIENTE': return 'bg-warning text-dark';
+      case 'A': 
+      case 'APROBADA':
+      case 'CONFIRMADA': return 'bg-success';
+      case 'R': 
+      case 'RECHAZADA': return 'bg-danger';
       default: return 'bg-secondary';
     }
   }
 
   onObservacionesChange(): void {
-    if (this.recarga.reca_Observaciones && this.recarga.reca_Observaciones.length > 500) {
-      this.recarga.reca_Observaciones = this.recarga.reca_Observaciones.substring(0, 500);
+    // Cambiar límite de 500 a 200 caracteres según el SP
+    if (this.recarga.reca_Observaciones && this.recarga.reca_Observaciones.length > 200) {
+      this.recarga.reca_Observaciones = this.recarga.reca_Observaciones.substring(0, 200);
     }
   }
 
   onEstadoConfirmacionChange(): void {
-    if (this.recarga.reca_Confirmacion === 'Rechazada') {
+    if (this.recarga.reca_Confirmacion === 'R') {
       setTimeout(() => {
         const textarea = document.querySelector('textarea[ng-reflect-model]') as HTMLTextAreaElement;
         if (textarea) textarea.focus();
