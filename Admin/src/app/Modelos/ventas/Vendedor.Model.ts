@@ -35,6 +35,7 @@ export class Vendedor{
   apellidoAyudante?: string = '';
   code_Status: number = 0;
   message_Status: string ='';
+  rutas?: any[] | string = [];
 
   constructor(init?: Partial<Vendedor>) {
     Object.assign(this, init);
