@@ -176,6 +176,13 @@ export const MENU: MenuItem[] = [
         parentId: 3,
         icon: 'ri-truck-line',
       },
+      {
+        id: 24,
+        label: 'MENUITEMS.INVENTARIO.LIST.INVENTARIOSUCURSAL',
+        link: '/inventario/inventario-sucursal',
+        parentId: 3,
+        icon: 'ri-truck-line',
+      },
       // Puedes añadir más subitems aquí según sea necesario
     ],
   },
