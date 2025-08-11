@@ -36,6 +36,7 @@ export class CreateComponent implements OnInit {
   origenes: any[] = [];
   destinos: any[] = [];
   productos: any[] = [];
+  recargas: any[] = [];
 
   // ========== NUEVAS PROPIEDADES PARA INVENTARIO ==========
   inventarioSucursal: any[] = [];
@@ -47,6 +48,10 @@ export class CreateComponent implements OnInit {
   productosFiltrados: any[] = [];
   paginaActual = 1;
   productosPorPagina = 12;
+
+  // ========== PROPIEDADES PARA RECARGAS ==========
+  cargandoRecargas = false;
+  recargaSeleccionada: any = null;
 
   constructor(private http: HttpClient) {
     this.inicializar();
@@ -68,18 +73,61 @@ export class CreateComponent implements OnInit {
   }
 
   private cargarDatosIniciales(): void {
+    this.cargandoRecargas = true;
     const headers = { 'x-api-key': environment.apiKey };
     
     forkJoin({
       origenes: this.http.get<any>(`${environment.apiBaseUrl}/Sucursales/Listar`, { headers }),
-      destinos: this.http.get<any>(`${environment.apiBaseUrl}/Bodega/Listar`, { headers })
+      destinos: this.http.get<any>(`${environment.apiBaseUrl}/Bodega/Listar`, { headers }),
+      recargas: this.http.get<any>(`${environment.apiBaseUrl}/Recargas/Listar`, { headers })
     }).subscribe({
       next: (data) => {
         this.origenes = data.origenes;
         this.destinos = data.destinos;
+        this.recargas = data.recargas;
+        this.cargandoRecargas = false;
+        
+        // Log para verificar la estructura de los datos
+        console.log('Recargas cargadas:', this.recargas);
       },
-      error: () => this.mostrarError('Error al cargar datos iniciales')
+      error: (error) => {
+        this.mostrarError('Error al cargar datos iniciales');
+        this.cargandoRecargas = false;
+        console.error('Error cargando datos iniciales:', error);
+      }
     });
+  }
+
+  // ========== MÉTODOS PARA MANEJO DE RECARGAS ==========
+
+  /**
+   * Se ejecuta cuando cambia la recarga seleccionada
+   */
+  onRecargaChange(): void {
+    if (this.traslado.reca_Id && this.traslado.reca_Id > 0) {
+      this.recargaSeleccionada = this.recargas.find(r => r.reca_Id === this.traslado.reca_Id);
+      console.log('Recarga seleccionada:', this.recargaSeleccionada);
+    } else {
+      this.recargaSeleccionada = null;
+    }
+  }
+
+  /**
+   * Obtiene el nombre de la recarga seleccionada
+   */
+  getNombreRecarga(): string {
+    if (this.recargaSeleccionada) {
+      return this.recargaSeleccionada.recarga;
+    }
+    const recarga = this.recargas.find(r => r.reca_Id === this.traslado.reca_Id);
+    return recarga ? recarga.recarga : 'No seleccionada';
+  }
+
+  /**
+   * Verifica si hay una recarga seleccionada
+   */
+  tieneRecargaSeleccionada(): boolean {
+    return typeof this.traslado.reca_Id === 'number' && this.traslado.reca_Id > 0;
   }
 
   listarProductos(): void {
@@ -122,32 +170,28 @@ export class CreateComponent implements OnInit {
   /**
    * Carga el inventario de la sucursal seleccionada
    */
-  /**
- * Carga el inventario de la sucursal seleccionada
- */
-private cargarInventarioSucursal(): void {
-  this.cargandoInventario = true;
-  this.limpiarAlertas();
-  
-  const headers = { 'x-api-key': environment.apiKey };
-  
-  // CORRECCIÓN: Agregar tras_Origen después del punto
-  this.http.get<any[]>(`${environment.apiBaseUrl}/InventarioSucursales/Buscar/${this.traslado.tras_Origen}`, { headers })
-    .subscribe({
-      next: (inventario) => {
-        this.inventarioSucursal = inventario;
-        this.actualizarStockProductos();
-        this.validarProductosConStock();
-        this.cargandoInventario = false;
-      },
-      error: (error) => {
-        console.error('Error al cargar inventario:', error);
-        this.mostrarError('Error al cargar el inventario de la sucursal');
-        this.cargandoInventario = false;
-        this.limpiarInventario();
-      }
-    });
-}
+  private cargarInventarioSucursal(): void {
+    this.cargandoInventario = true;
+    this.limpiarAlertas();
+    
+    const headers = { 'x-api-key': environment.apiKey };
+    
+    this.http.get<any[]>(`${environment.apiBaseUrl}/InventarioSucursales/Buscar/${this.traslado.tras_Origen}`, { headers })
+      .subscribe({
+        next: (inventario) => {
+          this.inventarioSucursal = inventario;
+          this.actualizarStockProductos();
+          this.validarProductosConStock();
+          this.cargandoInventario = false;
+        },
+        error: (error) => {
+          console.error('Error al cargar inventario:', error);
+          this.mostrarError('Error al cargar el inventario de la sucursal');
+          this.cargandoInventario = false;
+          this.limpiarInventario();
+        }
+      });
+  }
 
   /**
    * Actualiza el stock disponible de cada producto
@@ -407,6 +451,11 @@ private cargarInventarioSucursal(): void {
       errores.push('Fecha');
     }
     
+    // Validar recarga (si es requerida)
+    if (!this.traslado.reca_Id || this.traslado.reca_Id == 0) {
+      errores.push('Recarga');
+    }
+    
     const productosSeleccionados = this.getProductosSeleccionados();
     if (productosSeleccionados.length === 0) {
       errores.push('Al menos un producto');
@@ -509,9 +558,10 @@ private cargarInventarioSucursal(): void {
     this.paginaActual = 1;
     this.aplicarFiltros();
 
-    // Resetear inventario
+    // Resetear inventario y recargas
     this.inventarioSucursal = [];
     this.origenSeleccionadoAnterior = 0;
+    this.recargaSeleccionada = null;
   }
 
   private limpiarAlertas(): void {
@@ -530,6 +580,7 @@ private cargarInventarioSucursal(): void {
     if (!this.traslado.tras_Origen || this.traslado.tras_Origen == 0) errores.push('Origen');
     if (!this.traslado.tras_Destino || this.traslado.tras_Destino == 0) errores.push('Destino');
     if (!this.traslado.tras_Fecha) errores.push('Fecha');
+    if (!this.traslado.reca_Id || this.traslado.reca_Id == 0) errores.push('Recarga');
     if (productos.length === 0) errores.push('Al menos un producto');
     
     if (errores.length > 0) {
@@ -542,6 +593,7 @@ private cargarInventarioSucursal(): void {
   private crearTraslado(productos: any[]): void {
     const origen = this.origenes.find(o => o.sucu_Id == this.traslado.tras_Origen);
     const destino = this.destinos.find(d => d.bode_Id == this.traslado.tras_Destino);
+    const recarga = this.recargas.find(r => r.reca_Id == this.traslado.reca_Id);
     
     const datos = {
       tras_Id: 0,
@@ -551,6 +603,8 @@ private cargarInventarioSucursal(): void {
       destino: destino?.bode_Descripcion || '',
       tras_Fecha: new Date(this.traslado.tras_Fecha).toISOString(),
       tras_Observaciones: this.traslado.tras_Observaciones || '',
+      reca_Id: Number(this.traslado.reca_Id), // Agregar la recarga al datos
+      recarga: recarga?.recarga || '', // Agregar descripción de la recarga
       usua_Creacion: environment.usua_Id,
       tras_FechaCreacion: new Date().toISOString(),
       usua_Modificacion: 0,

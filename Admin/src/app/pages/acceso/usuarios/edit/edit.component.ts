@@ -54,12 +54,44 @@ export class EditComponent implements OnChanges {
     message_Status: '',
   };
 
-  usuarioOriginal: any = {};
-
   constructor(private http: HttpClient) {
     this.cargarRoles();
     this.cargarEmpleados();
     this.cargarVendedores();
+  }
+
+  usuarioOriginal: any = {};
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['usuarioData'] && changes['usuarioData'].currentValue) {
+      this.usuario = { ...changes['usuarioData'].currentValue };
+      const rolActual = this.roles.find(m => m.role_Id === this.usuario.role_Id);
+      this.usuario.role_Descripcion = rolActual ? rolActual.role_Descripcion : '';
+      const empleadoActual = this.empleados.find(m => m.empl_Id === this.usuario.usua_IdPersona);
+      this.usuario.nombreCompleto = empleadoActual ? empleadoActual.empl_Nombres + ' ' + empleadoActual.empl_Apellidos : '';
+      this.usuarioOriginal = { ...changes['usuarioData'].currentValue };
+      this.mostrarErrores = false;
+      this.cerrarAlerta();
+    }
+  }
+
+  onRolChange(event: any) {
+    const selectedId = +event.target.value;
+    const rolSeleccionado = this.roles.find(rol => rol.role_Id === selectedId);
+    if (rolSeleccionado) {
+      this.usuario.role_Descripcion = rolSeleccionado.role_Descripcion;
+    } else {
+      this.usuario.role_Descripcion = '';
+    }
+  }
+
+  onEmpleadoChange(event: any) {
+    const selectedId = +event.target.value;
+    const empleadoSeleccionado = this.empleados.find(emp => emp.empl_Id === selectedId);
+    if (empleadoSeleccionado) {
+      this.usuario.nombreCompleto = empleadoSeleccionado.empl_Nombres + ' ' + empleadoSeleccionado.empl_Apellidos;
+    } else {
+      this.usuario.nombreCompleto = '';
+    }
   }
 
   cargarRoles() {
@@ -78,18 +110,6 @@ export class EditComponent implements OnChanges {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => this.vendedores = data);
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['usuarioData'] && changes['usuarioData'].currentValue) {
-      this.usuario = { ...changes['usuarioData'].currentValue };
-      this.usuarioOriginal = { ...changes['usuarioData'].currentValue };
-      this.mostrarErrores = false;
-      this.cerrarAlerta();
-      this.cargarRoles();
-      this.cargarVendedores();
-      this.cargarEmpleados();
-    }
   }
 
   cancelar(): void {
@@ -147,16 +167,6 @@ export class EditComponent implements OnChanges {
       };
     }
 
-    if (a.role_Id !== b.role_Id) {
-      const rolAnterior = this.roles.find(c => c.role_Id === b.role_Id);
-      const rolNuevo = this.roles.find(c => c.role_Id === a.role_Id);
-      this.cambiosDetectados.rol = {
-        anterior: rolAnterior ? rolAnterior.role_Descripcion : 'No seleccionado',
-        nuevo: rolNuevo ? rolNuevo.role_Descripcion : 'No seleccionado',
-        label: 'Rol'
-      };
-    }
-
     if (a.usua_EsAdmin !== b.usua_EsAdmin) {
       this.cambiosDetectados.admin = {
         anterior: b.usua_EsAdmin ? 'Sí' : 'No',
@@ -165,6 +175,14 @@ export class EditComponent implements OnChanges {
       };
     }
 
+    if(a.usua_TienePermisos !== b.usua_TienePermisos) {
+      this.cambiosDetectados.permisos = {
+        anterior: b.usua_TienePermisos ? 'Sí' : 'No',
+        nuevo: a.usua_TienePermisos ? 'Sí' : 'No',
+        label: '¿Tiene Permisos?'
+      };
+    }
+    
     if (a.usua_EsVendedor !== b.usua_EsVendedor) {
       this.cambiosDetectados.vendedor = {
         anterior: b.usua_EsVendedor ? 'Sí' : 'No',
@@ -173,46 +191,31 @@ export class EditComponent implements OnChanges {
       };
     }
 
-    if (a.usua_IdPersona !== b.usua_IdPersona || a.usua_EsVendedor !== b.usua_EsVendedor) {
-      let labelAnterior = b.usua_EsVendedor ? 'Vendedor' : 'Empleado';
-      let anterior = 'No seleccionado';
-      if (b.usua_IdPersona) {
-        if (b.usua_EsVendedor) {
-          const vendAnterior = this.vendedores.find(v => v.vend_Id === b.usua_IdPersona);
-          anterior = vendAnterior ? vendAnterior.vend_Nombres : anterior;
-        } else {
-          const empAnterior = this.empleados.find(e => e.empl_Id === b.usua_IdPersona);
-          anterior = empAnterior ? empAnterior.empl_Nombres : anterior;
-        }
-      }
-
-      let labelNuevo = a.usua_EsVendedor ? 'Vendedor' : 'Empleado';
-      let nuevo = 'No seleccionado';
-      if (a.usua_IdPersona) {
-        if (a.usua_EsVendedor) {
-          const vendNuevo = this.vendedores.find(v => v.vend_Id === a.usua_IdPersona);
-          nuevo = vendNuevo ? vendNuevo.vend_Nombres : nuevo;
-        } else {
-          const empNuevo = this.empleados.find(e => e.empl_Id === a.usua_IdPersona);
-          nuevo = empNuevo ? empNuevo.empl_Nombres : nuevo;
-        }
-      }
-
-      if (labelAnterior !== labelNuevo || anterior !== nuevo) {
-        this.cambiosDetectados.persona = {
-          anterior,
-          nuevo,
-          label: labelNuevo
-        };
-      }
-    }
-
     if (a.usua_Imagen !== b.usua_Imagen) {
       this.cambiosDetectados.imagen = {
         anterior: b.usua_Imagen,
         nuevo: a.usua_Imagen,
         label: 'Imagen de Usuario'
       };
+    }
+
+    if(a.role_Id !== b.role_Id) {
+      this.cambiosDetectados.rol = {
+        anterior: b.role_Descripcion,
+        nuevo: a.role_Descripcion,
+        label: 'Rol'
+      };
+    }
+
+    if(a.usua_EsAdmin)
+    {
+      if(a.usua_IdPersona !== b.usua_IdPersona){
+        this.cambiosDetectados.empleado = {
+          anterior: b.nombreCompleto = this.empleados.find(emp => emp.empl_Id === b.usua_IdPersona)?.empl_Nombres + ' ' + this.empleados.find(emp => emp.empl_Id === b.usua_IdPersona)?.empl_Apellidos || '',
+          nuevo: a.nombreCompleto,
+          label: 'Empleado'
+        }
+      }
     }
 
     return Object.keys(this.cambiosDetectados).length > 0;

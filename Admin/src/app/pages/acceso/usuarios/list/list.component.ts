@@ -358,6 +358,7 @@ export class ListComponent {
 
   editar(usuario: Usuario): void {
     this.usuarioEditando = { ...usuario };
+    this.usuarioEditando.usua_IdPersona;
     this.showEditForm = true;
     this.showCreateForm = false;
     this.showDetailsForm = false;
@@ -750,14 +751,24 @@ export class ListComponent {
   filtradorUsuarios(): void {
     const termino = this.busqueda.trim().toLowerCase();
     if (!termino) {
-      this.usuariosFiltrados = this.usuarios;
+      this.usuariosFiltrados = [...this.usuarioGrid];
     } else {
-      this.usuariosFiltrados = this.usuarios.filter((usuario: any) =>
+      this.usuariosFiltrados = this.usuarioGrid.filter((usuario: any) =>
         (usuario.nombreCompleto || '').toLowerCase().includes(termino) ||
         (usuario.usua_Usuario || '').toLowerCase().includes(termino) ||
         (usuario.role_Descripcion || '').toLowerCase().includes(termino)
       );
     }
+
+    this.currentPage = 1;
+
+    this.actualizarUsuariosVisibles();
+  }
+
+  private actualizarUsuariosVisibles(): void {
+    const startItem = (this.currentPage - 1) * this.itemsPerPage;
+    const endItem = this.currentPage * this.itemsPerPage;
+    this.usuarios = this.usuariosFiltrados.slice(startItem, endItem);
   }
 
   private cargarDatos(state: boolean): void {
@@ -767,9 +778,18 @@ export class ListComponent {
     }).subscribe(data => {
       setTimeout(() => {
         this.mostrarOverlayCarga = false;
-        this.usuarioGrid = data || [];
-        this.usuarios = this.usuarioGrid.slice(0, 12);
-        this.filtradorUsuarios();
+        const tienePermisoListar = this.accionPermitida('listar');
+        const userId = getUserId();
+
+        const datosFiltrados = tienePermisoListar
+          ? data
+          : data.filter(u => u.usua_Creacion?.toString() === userId?.toString());
+        this.usuarioGrid = datosFiltrados || [];
+        this.busqueda = '';
+        this.currentPage = 1;
+        this.itemsPerPage = 12;
+        this.usuariosFiltrados = [...this.usuarioGrid];
+        this.actualizarUsuariosVisibles();
       }, 500);
     });
   }
@@ -778,21 +798,18 @@ export class ListComponent {
   itemsPerPage: number = 12;
 
   get startIndex(): number {
-    return this.usuarioGrid?.length ? ((this.currentPage - 1) * this.itemsPerPage) + 1 : 0;
+    return this.usuariosFiltrados?.length ? ((this.currentPage - 1) * this.itemsPerPage) + 1 : 0;
   }
 
   get endIndex(): number {
-    if (!this.usuarioGrid?.length) return 0;
+    if (!this.usuariosFiltrados?.length) return 0;
     const end = this.currentPage * this.itemsPerPage;
-    return end > this.usuarioGrid.length ? this.usuarioGrid.length : end;
+    return end > this.usuariosFiltrados.length ? this.usuariosFiltrados.length : end;
   }
 
   pageChanged(event: any): void {
     this.currentPage = event.page;
-    const startItem = (event.page - 1) * event.itemsPerPage;
-    const endItem = event.page * event.itemsPerPage;
-    this.usuarios = this.usuarioGrid.slice(startItem, endItem);
-    this.filtradorUsuarios();
+    this.actualizarUsuariosVisibles();
   }
 
   trackByUsuarioId(index: number, item: any): any {
