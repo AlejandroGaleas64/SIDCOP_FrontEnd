@@ -14,6 +14,7 @@ import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
 import { EditRecargaComponent } from 'src/app/pages/logistica/recargas/edit/edit.component';
+import { DetailsComponent } from 'src/app/pages/logistica/recargas/details/details.component'; // Agregar este import
 
 @Component({
   selector: 'app-list',
@@ -25,7 +26,8 @@ import { EditRecargaComponent } from 'src/app/pages/logistica/recargas/edit/edit
     BreadcrumbsComponent,
     TableModule,
     PaginationModule,
-    EditRecargaComponent  // Agregado el componente de edición
+    EditRecargaComponent,
+    DetailsComponent  
   ],
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss'],
@@ -108,9 +110,9 @@ export class ListComponent implements OnInit {
   // Control de formularios (crear, editar, detalles)
   showCreateForm = false;
   showEditForm = false;
-  showDetailsForm = false;
+  showDetailsForm = false;  // Ya existía
 
-  // Variable para almacenar la recarga seleccionada para editar
+  // Variable para almacenar la recarga seleccionada para editar/ver
   recargaSeleccionada: Recargas | null = null;
 
   // Sistema de mensajes al usuario
@@ -394,11 +396,19 @@ export class ListComponent implements OnInit {
     console.log('Editando recarga:', this.recargaSeleccionada);
   }
 
+  // MÉTODO DETALLES ACTUALIZADO
   detalles(recargas: Recargas): void {
+    // Crear una copia de la recarga para mostrar detalles
+    this.recargaSeleccionada = { ...recargas };
     this.showDetailsForm = true;
     this.showCreateForm = false;
     this.showEditForm = false;
     this.activeActionRow = null;
+    
+    // Opcional: scroll hacia arriba para ver los detalles
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    console.log('Mostrando detalles de recarga:', this.recargaSeleccionada);
   }
 
   // Métodos para cerrar formularios 
@@ -413,7 +423,16 @@ export class ListComponent implements OnInit {
     this.recargaSeleccionada = null; // Limpiar la selección
   }
   
-  cerrarFormularioDetalles(): void { this.showDetailsForm = false; }
+  // MÉTODO CERRAR DETALLES ACTUALIZADO
+  cerrarDetalles(): void { 
+    this.showDetailsForm = false; 
+    this.recargaSeleccionada = null; // Limpiar la selección
+  }
+
+  // MÉTODO OBSOLETO - mantener por compatibilidad pero usar cerrarDetalles()
+  cerrarFormularioDetalles(): void { 
+    this.cerrarDetalles();
+  }
 
   // cuando se guardan cambios
   guardarRecarga(recargas: Recargas): void {
@@ -422,11 +441,12 @@ export class ListComponent implements OnInit {
     this.mostrarMensaje('success', 'Recarga guardada exitosamente');
   }
 
-actualizarRecarga(recargas: Recargas): void {
-  this.cargardatos(false);
-  this.cerrarFormularioEdicion();
-  this.mostrarMensaje('success', 'Recarga actualizada exitosamente');
-}
+  actualizarRecarga(recargas: Recargas): void {
+    this.cargardatos(false);
+    this.cerrarFormularioEdicion();
+    this.mostrarMensaje('success', 'Recarga actualizada exitosamente');
+  }
+
   // CONTROL DE MENÚ DE ACCIONES
 
   onActionMenuClick(rowIndex: number): void {
@@ -477,6 +497,7 @@ actualizarRecarga(recargas: Recargas): void {
         break;
     }
   }
+  
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';

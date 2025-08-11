@@ -13,7 +13,7 @@
     <div class="card">
       <div class="card-body">
         <!-- Barra de herramientas superior -->
-        <div class="d-flex justify-content-between mb-3 flex-wrap" *ngIf="!showEditForm">
+        <div class="d-flex justify-content-between mb-3 flex-wrap" *ngIf="!showEditForm && !showDetailsForm">
           <!-- Botón Nuevo (si aplica en el futuro) -->
           <!-- <button *ngIf="accionPermitida('crear')" type="button" class="btn btn-primary me-2 mb-2" (click)="crear()">
             <span class="btn-text">Nuevo</span>
@@ -77,12 +77,12 @@
         
         <!-- Tabla de datos -->
         <div class="table-radius-container">
-          <div class="table-responsive" *ngIf="!showEditForm">
+          <div class="table-responsive" *ngIf="!showEditForm && !showDetailsForm">
             <table class="table table-gridjs table-style">
               <thead>
                 <tr>
                   <!-- Columna de acciones -->
-                  <th class="gridjs-th" *ngIf="accionPermitida('editar')">
+                  <th class="gridjs-th" *ngIf="accionPermitida('editar') || accionPermitida('detalle')">
                     Acciones
                   </th>
                   
@@ -157,7 +157,7 @@
               <tbody>
                 <tr *ngFor="let data of table.paginated$ | async; let i = index">
                   <!-- Columna acciones -->
-                  <td class="position-relative" *ngIf="accionPermitida('editar')">
+                  <td class="position-relative" *ngIf="accionPermitida('editar') || accionPermitida('detalle')">
                     <div class="dropdown-action-list">
                       <button type="button"
                               class="dropdown-toggle"
@@ -211,7 +211,7 @@
         </div>
 
         <!-- Paginación -->
-        <div class="row justify-content-md-between align-items-md-center" *ngIf="!showEditForm">
+        <div class="row justify-content-md-between align-items-md-center" *ngIf="!showEditForm && !showDetailsForm">
           <ng-container *ngIf="(table.paginated$ | async) as paginados">
             <div class="col-sm-12 col-md-5">
               <div class="dataTables_info mb-2" role="status" aria-live="polite">
@@ -237,7 +237,7 @@
   </div>
 </div>
 
-<!-- FORMULARIO DE EDICIÓN - NUEVA SECCIÓN -->
+<!-- FORMULARIO DE EDICIÓN -->
 <div *ngIf="showEditForm" [@fadeExpand] class="row mt-4">
   <div class="col-lg-12">
     <div class="card">
@@ -253,19 +253,55 @@
           Cerrar
         </button>
       </div>
-             <app-edit-recarga
-              [recargaData]="recargaSeleccionada"
-              (onSave)="actualizarRecarga($event)"
-              (onCancel)="cerrarFormularioEdicion()"
-              *ngIf="recargaSeleccionada; else noRecargaTemplate">
-            </app-edit-recarga>
+      <div class="card-body">
+        <app-edit-recarga
+          [recargaData]="recargaSeleccionada"
+          (onSave)="actualizarRecarga($event)"
+          (onCancel)="cerrarFormularioEdicion()"
+          *ngIf="recargaSeleccionada; else noRecargaTemplate">
+        </app-edit-recarga>
 
-            <ng-template #noRecargaTemplate>
-              <!-- Contenido que se muestra cuando no hay recarga seleccionada -->
-              <div class="alert alert-info">
-                No se ha seleccionado ninguna recarga para editar.
-              </div>
-            </ng-template>
+        <ng-template #noRecargaTemplate>
+          <div class="alert alert-info">
+            <i class="ri-information-line me-2"></i>
+            No se ha seleccionado ninguna recarga para editar.
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FORMULARIO DE DETALLES -->
+<div *ngIf="showDetailsForm" [@fadeExpand] class="row mt-4">
+  <div class="col-lg-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+          <i class="ri-eye-line me-2"></i>
+          Detalles de Recarga
+        </h5>
+        <button type="button" 
+                class="btn btn-sm btn-outline-secondary" 
+                (click)="cerrarFormularioDetalles()">
+          <i class="ri-close-line"></i>
+          Cerrar
+        </button>
+      </div>
+      <div class="card-body">
+        <app-details
+          [recargaData]="recargaSeleccionada"
+          (onClose)="cerrarFormularioDetalles()"
+          *ngIf="recargaSeleccionada; else noRecargaDetailsTemplate">
+        </app-details>
+
+        <ng-template #noRecargaDetailsTemplate>
+          <div class="alert alert-info">
+            <i class="ri-information-line me-2"></i>
+            No se ha seleccionado ninguna recarga para ver detalles.
+          </div>
+        </ng-template>
+      </div>
     </div>
   </div>
 </div>
@@ -330,7 +366,7 @@
             (click)="editar(floatingMenuService.data); floatingMenuService.close()"
             [attr.aria-label]="'Editar recarga ' + (floatingMenuService.data?.reca_Id || '')">
       <i class="ri-edit-line me-2" aria-hidden="true"></i>
-      Editar
+      Confirmar
     </button>
   </li>
   <li *ngIf="accionPermitida('detalle')" role="none">
