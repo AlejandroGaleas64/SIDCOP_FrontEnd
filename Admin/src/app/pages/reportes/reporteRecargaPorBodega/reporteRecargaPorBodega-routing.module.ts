@@ -15,7 +15,7 @@ const routes: Routes = [
       },
       {
         path: 'list',
-        loadComponent: () => import('./list/list.component').then(m => m.ReporteDevolucionesComponent),
+        loadComponent: () => import('./list/list.component').then(m => m.ReporteRecargasPorBodegaComponent),
         data: {
           title: 'Reporte Devoluciones',
         }
@@ -28,4 +28,4 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
 })
-export class reporteDevolucionesRoutingModule {}
+export class reporteRecargasPorBodegaRoutingModule {}

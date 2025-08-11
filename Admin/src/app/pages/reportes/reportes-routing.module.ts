@@ -31,13 +31,13 @@ const routes: Routes = [
     canActivate: [PermisoGuard],
     data: { pantallaId: 69 } 
   },
-    // {
-  //   path: 'reporteRutas',
-  //   loadChildren: () =>
-  //     import('../reportes/reporteRutas/reporteDevoluciones.module').then(m => m.reporteDevolucionesModule),
-  //   canActivate: [PermisoGuard],
-  //   data: { pantallaId: 69 } 
-  // },
+   {
+   path: 'reporteRutas',
+   loadChildren: () =>
+     import('../reportes/reporteRecargaPorBodega/ReporteRecargasPorBodega.module').then(m => m.reporteRecargasPorBodegaModule),
+   canActivate: [PermisoGuard],
+   data: { pantallaId: 68 } 
+ },
 
 ];
 

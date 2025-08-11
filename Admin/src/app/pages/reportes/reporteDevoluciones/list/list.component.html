@@ -1,7 +1,14 @@
- <h3>Reporte de Devoluciones</h3>
+<app-breadcrumbs
+  [title]="'Reporte de Devoluciones'"
+  [breadcrumbItems]="[
+    { label: 'Reportes' },
+    { label: 'Reporte de Devoluciones', active: true }
+  ]"
+>
+<img class="icon-breadcrumb" style="width: 10vh; height: 10vh;" src="assets/images/svg/Vector.svg" alt="breadcrumb icon" />
+</app-breadcrumbs>
 
-
-<!-- <div class="container">
+ <div class="container">
     <div class="card">
         <div class="card-header">
             <h3>Reporte de Devoluciones</h3>
@@ -29,4 +36,4 @@
     <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Cargando...</span>
     </div>
-</div> -->
+</div> 

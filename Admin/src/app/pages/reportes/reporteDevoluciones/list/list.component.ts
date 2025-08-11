@@ -5,11 +5,12 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PdfReportService, ReportConfig, TableData } from 'src/app/reporteGlobal';
+import { BreadcrumbsComponent } from 'src/app/shared/breadcrumbs/breadcrumbs.component';
 
 @Component({
   selector: 'app-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BreadcrumbsComponent,],
   templateUrl: './list.component.html',
   styleUrl: './list.component.scss'
 })
@@ -45,7 +46,7 @@ export class ReporteDevolucionesComponent {
   async generarPdf() {
     const config: ReportConfig = {
       titulo: 'Reporte de Devoluciones',
-      orientacion: 'landscape',
+      orientacion: 'portrait',
       mostrarResumen: true,
       textoResumen: `Total de devoluciones: ${this.devoluciones.length}`,
       filtros: []
@@ -55,20 +56,20 @@ export class ReporteDevolucionesComponent {
       head: [
         [
           { content: '#', styles: { halign: 'center', cellWidth: 15 } },
-          { content: 'Cliente/Negocio', styles: { cellWidth: 45 } },
-          { content: 'Fecha Devolución', styles: { halign: 'center', cellWidth: 30 } },
-          { content: 'Motivo', styles: { cellWidth: 40 } },
-          { content: 'Productos Devueltos', styles: { cellWidth: 80 } },
-          { content: 'Vendedor', styles: { cellWidth: 30 } }
+          { content: 'Cliente/Negocio', styles: { cellWidth: 30 } },
+          { content: 'Fecha Devolución', styles: { halign: 'center', cellWidth: 25 } },
+          { content: 'Motivo', styles: { cellWidth: 35 } },
+          { content: 'Productos Devueltos', styles: { cellWidth: 65 } },
+       
         ]
       ],
       body: this.devoluciones.map((devolucion, index) => [
-        { content: (index + 1).toString(), styles: { halign: 'center', cellWidth: 15 } },
-        { content: devolucion.clie_NombreNegocio || 'N/A', styles: { cellWidth: 45 } },
-        { content: this.formatearFecha(devolucion.devo_Fecha), styles: { halign: 'center', cellWidth: 30 } },
-        { content: devolucion.devo_Motivo || 'N/A', styles: { cellWidth: 40 } },
-        { content: devolucion.productos_Devueltos || 'N/A', styles: { cellWidth: 80 } },
-        { content: devolucion.nombre_Completo || 'N/A', styles: { cellWidth: 30 } }
+        { content: (index + 1).toString(), styles: { halign: 'center', cellWidth: 10} },
+        { content: devolucion.clie_NombreNegocio || 'N/A', styles: { cellWidth: 25 } },
+        { content: this.formatearFecha(devolucion.devo_Fecha), styles: { halign: 'center', cellWidth: 25 } },
+        { content: devolucion.devo_Motivo || 'N/A', styles: { cellWidth:35 } },
+        { content: devolucion.productos_Devueltos || 'N/A', styles: { cellWidth: 70 } },
+
       ])
     }
     
