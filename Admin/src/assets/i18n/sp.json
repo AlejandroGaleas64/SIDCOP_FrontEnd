@@ -35,7 +35,8 @@
         "SUBCATEGORIAS": "Subcategorias",
         "PRODUCTOS": "Productos",
         "DESCUENTOS": "Descuentos",
-        "PROMOCIONES": "Promociones"
+        "PROMOCIONES": "Promociones",
+        "INVENTARIOSUCURSAL": "Inventario Sucursal"
       }
     },
       "VENTAS": {
