@@ -52,6 +52,52 @@
         
         <!-- Formulario de datos básicos -->
         <div class="row mb-4">
+
+
+ <div class="d-flex align-items-center mb-2">
+                  <label class="form-label mb-0 me-2">¿Es Recarga?</label>
+                  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" 
+                     />
+                  </div>
+                </div>
+
+          <!-- ddl de Recarfas-->
+
+          <!-- Dropdown de Recarga -->
+<div class="col-md-6">
+  <label class="form-label">Recarga<span class="text-danger">*</span></label>
+  <div class="mb-3">
+    <div class="d-flex align-items-center">
+      <i class="ri-refresh-line" [ngStyle]="{
+        border: ((!traslado.reca_Id || traslado.reca_Id == 0) && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+        backgroundColor: ((!traslado.reca_Id || traslado.reca_Id == 0) && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+        padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
+      <select 
+          id="trasRecarga" 
+          name="trasRecarga" 
+          class="form-select"
+          [class.is-invalid]="(!traslado.reca_Id || traslado.reca_Id == 0) && mostrarErrores"
+          [(ngModel)]="traslado.reca_Id"
+          (change)="onRecargaChange()"
+          [disabled]="cargandoRecargas"
+          required>
+              <option value="" disabled selected>
+                {{ cargandoRecargas ? 'Cargando recargas...' : 'Seleccione recarga' }}
+              </option>
+              <option *ngFor="let recarga of recargas" [value]="recarga.reca_Id">
+                  {{ recarga.recarga }}
+              </option>
+      </select>
+      <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+    </div>
+  </div>
+  <div class="text-danger mt-1" *ngIf="(!traslado.reca_Id || traslado.reca_Id == 0) && mostrarErrores">
+    <small>El campo recarga es requerido</small>
+  </div>
+</div>
+          
           <!-- Dropdown de Origen -->
           <div class="col-md-6">
             <label class="form-label">Origen<span class="text-danger">*</span></label>
@@ -102,8 +148,8 @@
                     [(ngModel)]="traslado.tras_Destino"
                     required>
                         <option value="0" disabled selected>Seleccione destino</option>
-                        <option *ngFor="let destino of destinos" [value]="destino.sucu_Id">
-                            {{ destino.sucu_Descripcion }}
+                        <option *ngFor="let destino of destinos" [value]="destino.bode_Id">
+                            {{ destino.bode_Descripcion }}
                         </option>
                 </select>
                 <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>

@@ -7,6 +7,8 @@ $gray-bg: #E8E8E8;
 $gray-color: rgb(135, 135, 135);
 $red-bg: #FFD8D8;
 $red-color: rgb(175, 29, 29);
+$green-bg: #D8FFD8;
+$green-color: rgb(33, 115, 70);
 $white: rgb(255, 255, 255);
 
 // Base button styles
@@ -97,12 +99,24 @@ $white: rgb(255, 255, 255);
       right: 0;
     }
   }
-  
+
+
   &.btn-minw-5 {
     min-width: 5rem;
-
+    
+    border-radius: 0.8rem;
     pointer-events: auto;
     
+    &:hover .btn-icon {
+      color: $white;
+      transform: translateX(-50%) scale(1.3) rotate(-360deg)!important;
+    }
+  }
+  &.btn-minw-5-1 {
+    min-width: 5rem;
+    font-size: 0.8rem;
+    height: 2.1rem !important;
+    pointer-events: auto;
     &:hover .btn-icon {
       color: $white;
       transform: translateX(-50%) scale(1.3) rotate(-360deg)!important;
@@ -143,8 +157,29 @@ $white: rgb(255, 255, 255);
   }
   
   &.gold { @include color-variant($gold-bg, rgb(102, 77, 45), $gold-color); }
+  &.gold:hover {
+    border-color: $gold-color !important;
+    background-color: $gold-color !important;
+    color: $white !important;
+  }
   &.gray { @include color-variant($gray-bg, $gray-color, $gray-color); }
+  &.gray:hover {
+    border-color: $gray-color !important;
+    background-color: $gray-color !important;
+    color: $white !important;
+  }
   &.red { @include color-variant($red-bg, $red-color, $red-color); }
+  &.red:hover {
+    border-color: $red-color !important;
+    background-color: $red-color !important;
+    color: $white !important;
+  }
+  &.green { @include color-variant($green-bg, $green-color, $green-color ); }
+  &.green:hover {
+    border-color: $green-color !important;
+    background-color: $green-color !important;
+    color: $white !important;
+  }
 }
 .btn-primary span:empty + span.icon-dark {
   width: 100%;

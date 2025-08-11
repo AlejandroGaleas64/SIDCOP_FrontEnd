@@ -1,0 +1,112 @@
+<div class="details-container">
+
+  <!-- Contenedor de alertas -->
+  <div class="alert-container">
+    <div *ngIf="mostrarAlertaError"
+         class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert"
+         role="alert">
+      <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+      <strong>¡Error!</strong> {{ mensajeError }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <!-- Botón Regresar -->
+  <div class="details-header-button">
+    <button type="button" class="btn btn-primary" (click)="cerrar()">
+      <span class="btn-text">Regresar</span>
+      <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
+    </button>
+  </div>
+
+  <!-- Contenido de detalles -->
+  <div *ngIf="!cargando && rutaDetalle" class="details-content">
+
+    <!-- FILA PRINCIPAL: Mapa y Detalles -->
+    <div class="row g-4">
+      <!-- Mapa (izquierda) -->
+      <div class="col-md-6">
+        <div class="card h-100 shadow-sm employee-details-card bg-dark-blue">
+          <div class="card h-100 rounded-4">
+            <div class="card-body h-100 p-0">
+              <app-mapa-selector
+                [puntosVista]="puntosVista"
+                [mostrar]="true"
+                [mostrarPuntos]="true">
+              </app-mapa-selector>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detalles (derecha) -->
+      <div class="col-md-6">
+        <div class="card h-100 shadow-sm employee-details-card bg-dark-blue">
+          <div class="card-header d-flex align-items-center rounded-top details-header-custom">
+            <i class="ri-road-map-line me-2 fs-4"></i>
+            <h4 class="mb-0" style="color: #303d7d">Detalles de la Ruta</h4>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-12 col-sm-6" *ngIf="rutaDetalle.ruta_Id">
+                <div class="detail-item">
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-hashtag"></i>
+                  </div>
+                  <div class="detail-content">
+                    <div class="detail-label">Código</div>
+                    <div class="detail-value">{{ rutaDetalle.ruta_Codigo }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="detail-item">
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-file-list-3-line"></i>
+                  </div>
+                  <div class="detail-content">
+                    <div class="detail-label">Descripción</div>
+                    <div class="detail-value">{{ rutaDetalle.ruta_Descripcion || 'N/A' }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="detail-item">
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-file-list-3-line"></i>
+                  </div>
+                  <div class="detail-content">
+                    <div class="detail-label">Observaciones</div>
+                    <div class="detail-value">{{ rutaDetalle.ruta_Observaciones || 'N/A' }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de auditoría (debajo) -->
+    <div class="audit-table-container mt-4">
+      <div class="audit-table">
+        <div class="audit-header">
+          <div class="audit-col">Acción</div>
+          <div class="audit-col">Usuario</div>
+          <div class="audit-col">Fecha</div>
+        </div>
+        <div class="audit-row">
+          <div class="audit-col"><span class="audit-action">Creador</span></div>
+          <div class="audit-col"><span class="audit-user">{{ rutaDetalle.usuarioCreacion }}</span></div>
+          <div class="audit-col"><span class="audit-date">{{ formatearFecha(rutaDetalle.ruta_FechaCreacion) }}</span></div>
+        </div>
+        <div class="audit-row">
+          <div class="audit-col"><span class="audit-action">Modificación</span></div>
+          <div class="audit-col"><span class="audit-user">{{ rutaDetalle.usuarioModificacion || 'N/A' }}</span></div>
+          <div class="audit-col"><span class="audit-date">{{ formatearFecha(rutaDetalle.ruta_FechaModificacion ?? null) }}</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

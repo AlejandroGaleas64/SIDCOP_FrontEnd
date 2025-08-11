@@ -1,1 +1,208 @@
-<p>details works!</p>
+<div class="details-container">
+  
+  <!-- Contenedor de alertas flotantes -->
+  <div class="alert-container">
+    <!-- Alerta de error -->
+    <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+      <strong>¡Error!</strong> {{ mensajeError }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+  </div>
+  
+  <!-- Botón de regresar -->
+  <div class="details-header-button">
+    <button type="button" class="btn btn-primary mb-3" (click)="cerrar()">
+      <span class="btn-text">Regresar</span>
+      <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
+    </button>
+  </div>
+  
+  <!-- Contenido de detalles -->
+  <div *ngIf="!cargando && trasladoDetalle" class="details-content">
+    <div class="row g-4 align-items-stretch">
+        
+      <!-- Card principal: Detalles del Traslado -->
+      <div class="col-md-12">
+        <div class="card h-100 shadow-sm traslado-details-card bg-dark-blue">
+          <div class="card-header d-flex align-items-center rounded-top details-header-custom">
+            <i class="ri-truck-line me-2 fs-4"></i>
+            <h5 class="mb-0">Detalles del Traslado</h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-12 col-sm-6">
+                <div class="detail-item">
+                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-map-pin-line"></i></div>
+                  <div class="detail-content">
+                    <div class="detail-label">Origen</div>
+                    <div class="detail-value">{{ trasladoDetalle.origen || 'N/A' }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="detail-item">
+                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-map-pin-2-line"></i></div>
+                  <div class="detail-content">
+                    <div class="detail-label">Destino</div>
+                    <div class="detail-value">{{ trasladoDetalle.destino || 'N/A' }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="detail-item">
+                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-calendar-line"></i></div>
+                  <div class="detail-content">
+                    <div class="detail-label">Fecha de Traslado</div>
+                    <div class="detail-value">{{ formatearFecha(trasladoDetalle.tras_Fecha) }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="detail-item">
+                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-file-text-line"></i></div>
+                  <div class="detail-content">
+                    <div class="detail-label">Observaciones</div>
+                    <div class="detail-value">{{ trasladoDetalle.tras_Observaciones || 'N/A' }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de Productos del Traslado -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+              <i class="ri-box-3-line me-2 fs-4"></i>
+              <h5 class="mb-0">Productos del Traslado</h5>
+            </div>
+            <span class="badge bg-primary">{{ detallesTraslado.length }} productos</span>
+          </div>
+          <div class="card-body">
+            <!-- Loading state para detalles -->
+            <div *ngIf="cargandoDetalles" class="text-center py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando productos...</span>
+              </div>
+              <p class="mt-2 text-muted">Cargando productos del traslado...</p>
+            </div>
+
+            <!-- Sin productos -->
+            <div *ngIf="!cargandoDetalles && detallesTraslado.length === 0" class="text-center py-5">
+              <i class="ri-inbox-line fs-1 text-muted"></i>
+              <p class="text-muted mt-2">No hay productos en este traslado</p>
+            </div>
+
+            <!-- Grid de productos -->
+            <div *ngIf="!cargandoDetalles && detallesTraslado.length > 0" class="row g-3">
+              <div *ngFor="let detalle of detallesTraslado; trackBy: trackByDetalleId" 
+                   class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="card product-card h-100 shadow-sm">
+                  <!-- Imagen del producto -->
+                  <div class="product-image-container">
+                    <img 
+                      [src]="getImageUrl(detalle.prod_Imagen)" 
+                      [alt]="detalle.prod_Descripcion || 'Producto'"
+                      class="product-image"
+                      (error)="onImageError($event)"
+                      loading="lazy">
+                    
+                    <!-- Badge de cantidad -->
+                    <div class="quantity-badge">
+                      <i class="ri-archive-line me-1"></i>
+                      {{ detalle.trDe_Cantidad || 0 }}
+                    </div>
+                  </div>
+
+                  <!-- Contenido de la tarjeta -->
+                  <div class="card-body d-flex flex-column">
+                    <!-- ID del detalle (opcional) -->
+                    <div class="product-code mb-2">
+                      <small class="text-muted">
+                        <i class="ri-hashtag me-1"></i>
+                        ID: {{ detalle.trDe_Id }}
+                      </small>
+                    </div>
+
+                    <!-- Descripción del producto -->
+                    <h6 class="product-title mb-2" 
+                        [title]="detalle.prod_Descripcion || 'Sin descripción'">
+                      {{ detalle.prod_Descripcion || 'Sin descripción' }}
+                    </h6>
+
+                    <!-- Información adicional -->
+                    <div class="product-info mt-auto">
+                      <!-- Cantidad -->
+                      <div class="info-row">
+                        <span class="info-label">
+                          <i class="ri-stack-line me-1"></i>
+                          Cantidad:
+                        </span>
+                        <span class="info-value fw-bold">{{ detalle.trDe_Cantidad || 0 }}</span>
+                      </div>
+
+                      <!-- Observaciones -->
+                      <div class="info-row mt-2">
+                        <span class="info-label">
+                          <i class="ri-message-3-line me-1"></i>
+                          Observación:
+                        </span>
+                        <span class="info-value" 
+                              [title]="detalle.trDe_Observaciones || 'N/A'">
+                          {{ (detalle.trDe_Observaciones || 'N/A') | slice:0:30 }}{{ (detalle.trDe_Observaciones && detalle.trDe_Observaciones.length > 30) ? '...' : '' }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de auditoría -->
+    <div class="audit-table-container mt-4">
+      <div class="audit-table">
+        <div class="audit-header">
+          <div class="audit-col">Acción</div>
+          <div class="audit-col">Usuario</div>
+          <div class="audit-col">Fecha</div>
+        </div>
+      
+        <!-- Fila de creación -->
+        <div class="audit-row">
+          <div class="audit-col">
+            <span class="audit-action">Creador</span>
+          </div>
+          <div class="audit-col">
+            <span class="audit-user">{{ trasladoDetalle.usuaCreacion }}</span>
+          </div>
+          <div class="audit-col">
+            <span class="audit-date">{{ formatearFecha(trasladoDetalle.tras_FechaCreacion) }}</span>
+          </div>
+        </div>
+        
+        <!-- Fila de modificación -->
+        <div class="audit-row">
+          <div class="audit-col">
+            <span class="audit-action">Modificación</span>
+          </div>
+          <div class="audit-col">
+            <span class="audit-user">{{ trasladoDetalle.usuaModificacion || 'N/A' }}</span>
+          </div>
+          <div class="audit-col">
+            <span class="audit-date">{{ formatearFecha(trasladoDetalle.tras_FechaModificacion ?? null) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

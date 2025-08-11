@@ -173,6 +173,17 @@ export class AuthenticationService {
       .pipe(
         map((response: any) => {
           if (response && response.data) {
+
+            if (response.data.code_Status !== 1) {
+              // Create a structured error object that matches the DataResponse interface
+              const errorResponse = {
+                code_Status: -1,
+                success: false,
+                message: response.data.message_Status
+              };
+              throw errorResponse;
+            }
+
             const userData = response.data;
 
             // Guardar información del usuario en localStorage
@@ -205,19 +216,19 @@ export class AuthenticationService {
 
             // Guardar cualquier otro dato relevante que venga en la respuesta
             if (userData.usua_Email) {
-              localStorage.setItem('usuarioEmail', userData.usua_Email);
+              localStorage.setItem('usuarioEmail', userData.correo);
             }
 
             if (userData.usua_Nombres) {
-              localStorage.setItem('usuarioNombres', userData.usua_Nombres);
+              localStorage.setItem('usuarioNombres', userData.nombres);
             }
 
             if (userData.usua_Apellidos) {
-              localStorage.setItem('usuarioApellidos', userData.usua_Apellidos);
+              localStorage.setItem('usuarioApellidos', userData.apellidos);
             }
 
             if (userData.usua_Rol) {
-              localStorage.setItem('usuarioRol', userData.usua_Rol);
+              localStorage.setItem('usuarioRol', userData.role_Id.toString());
             }
 
             // Actualizar el subject del usuario actual
@@ -230,24 +241,24 @@ export class AuthenticationService {
             throw new Error('Respuesta inválida del servidor');
           }
         }),
-        catchError((error: any) => {
-          let errorMessage = 'Error al iniciar sesión';
+catchError((error: any) => {
+        let errorMessage = error;
 
-          if (error.status === 0) {
-            errorMessage =
-              'No se pudo conectar al servidor. Verifique que el backend esté en ejecución en el puerto correcto.';
-          } else if (error.status === 401) {
-            errorMessage =
-              'Credenciales incorrectas. Verifique su usuario y contraseña.';
-          } else if (error.error && error.error.message) {
-            errorMessage = error.error.message;
-          } else if (error.message) {
-            errorMessage = error.message;
-          }
+        if (error.code_Status === 0) {
+          errorMessage = 'No se pudo conectar al servidor.';
+        } else if (error.code_Status === 401) {
+          errorMessage = 'Credenciales incorrectas.';
+        } else if (error.code_Status === -1) {
+          errorMessage = '' + error.code_Status + error.message; // <- Aquí se captura tu error personalizado
+        } else if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
 
-          this.store.dispatch(loginFailure({ error: errorMessage }));
-          return throwError(() => new Error(errorMessage));
-        })
+        this.store.dispatch(loginFailure({ error: errorMessage }));
+        return throwError(() => new Error(errorMessage));
+      })
       );
   }
 

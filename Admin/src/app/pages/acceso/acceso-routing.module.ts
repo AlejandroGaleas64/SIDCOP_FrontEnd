@@ -8,14 +8,14 @@ const routes: Routes = [
     loadChildren: () =>
       import('./usuarios/usuarios.module').then(m => m.UsuariosModule),
     canActivate: [PermisoGuard],
-    data: { pantallaId: 7 } // ID 7: Usuarios
+    data: { pantallaId: 63 } // ID 7: Usuarios
   },
   {
     path: 'roles',
     loadChildren: () =>
       import('./roles/roles.module').then(m => m.RolesModule),
     canActivate: [PermisoGuard],
-    data: { pantallaId: 6 } // ID 6: Roles
+    data: { pantallaId: 62 } // ID 6: Roles
   },
 ];
 

@@ -64,8 +64,11 @@
 
 /* Estilos para la tabla */
 .table-radius-container {
-  border-radius: 8px;
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(189, 189, 189, 0.10);
+  border: 1.5px solid #cfd8dc;
+  background: #f8fafb;
   margin-bottom: 1rem;
 }
 

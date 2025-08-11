@@ -19,6 +19,7 @@ export class PermisosHelper {
      */
     static tienePantallaPermiso(permisos: Permiso[], idPantalla: number): boolean {
         if (!permisos || permisos.length === 0) return false;
+        // Verificar si la pantalla existe en los permisos, incluso si no tiene acciones definidas
         return permisos.some(p => p.Pant_Id === idPantalla);
     }
 

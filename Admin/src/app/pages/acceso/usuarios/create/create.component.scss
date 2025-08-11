@@ -1,0 +1,15 @@
+.password-strength-bar .progress {
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.password-strength-bar .progress-bar {
+    transition: width 0.3s;
+}
+
+@media (max-width: 576px) {
+    .password-strength-bar small {
+        font-size: 0.85rem;
+    }
+}

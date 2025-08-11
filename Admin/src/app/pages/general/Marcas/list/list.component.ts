@@ -15,6 +15,7 @@ import { EditComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
+import { ExportService, ExportConfig } from 'src/app/shared/export.service';
 
 @Component({
   selector: 'app-list',
@@ -194,12 +195,30 @@ export class ListComponent implements OnInit {
   mostrarConfirmacionEliminar = false;
   marcaAEliminar: Marcas | null = null;
 
+  // Variables para exportación
+  exportando = false;
+  tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
+
+  // Configuración de exportación
+  private exportConfig = {
+    title: 'Listado de Marcas',
+    filename: 'Marcas',
+    columns: [
+      { header: 'No.', key: 'secuencia' },
+      { header: 'Descripción', key: 'marc_Descripcion' },
+      { header: 'Fecha Creación', key: 'marc_FechaCreacion' },
+      { header: 'Estado', key: 'marc_Estado' }
+    ],
+    data: [] as any[]
+  };
+
   constructor(
     public table: ReactiveTableService<Marcas>,
     private http: HttpClient,
     private router: Router,
     private route: ActivatedRoute,
-    public floatingMenuService: FloatingMenuService
+    public floatingMenuService: FloatingMenuService,
+    private exportService: ExportService
   ) {
     this.cargardatos();
   }
@@ -367,6 +386,174 @@ export class ListComponent implements OnInit {
     this.mensajeError = '';
     this.mostrarAlertaWarning = false;
     this.mensajeWarning = '';
+  }
+
+  // Métodos específicos para cada tipo de exportación
+  exportarExcel(): Promise<void> {
+    return this.exportar('excel');
+  }
+
+  exportarPDF(): Promise<void> {
+    return this.exportar('pdf');
+  }
+
+  exportarCSV(): Promise<void> {
+    return this.exportar('csv');
+  }
+
+  // Verifica si se puede exportar un tipo específico
+  puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
+    if (this.exportando) return false;
+    if (!this.table.data$.value || this.table.data$.value.length === 0) return false;
+    return true;
+  }
+
+  /**
+   * Limpia texto para exportación de manera más eficiente
+   */
+  private limpiarTexto(texto: any): string {
+    if (!texto) return '';
+    
+    return String(texto)
+      .replace(/\s+/g, ' ')
+      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
+      .trim()
+      .substring(0, 150);
+  }
+
+  async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
+    if (this.exportando) {
+      this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
+      return;
+    }
+
+    if (!this.validarDatosParaExport()) {
+      return;
+    }
+
+    try {
+      this.exportando = true;
+      this.tipoExportacion = tipo;
+      this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
+      
+      const config = this.crearConfiguracionExport();
+      let resultado;
+      
+      switch (tipo) {
+        case 'excel':
+          resultado = await this.exportService.exportToExcel(config);
+          break;
+        case 'pdf':
+          resultado = await this.exportService.exportToPDF(config);
+          break;
+        case 'csv':
+          resultado = await this.exportService.exportToCSV(config);
+          break;
+      }
+      
+      this.manejarResultadoExport(resultado);
+      
+    } catch (error) {
+      console.error(`Error en exportación ${tipo}:`, error);
+      this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
+    } finally {
+      this.exportando = false;
+      this.tipoExportacion = null;
+    }
+  }
+
+  /**
+   * Crea la configuración de exportación de forma dinámica
+   */
+  private crearConfiguracionExport(): ExportConfig {
+    return {
+      title: this.exportConfig.title,
+      filename: this.exportConfig.filename,
+      data: this.obtenerDatosExport(),
+      columns: this.exportConfig.columns
+    };
+  }
+
+  /**
+   * Obtiene y prepara los datos para exportación
+   */
+  private obtenerDatosExport(): any[] {
+    try {
+      const datos = this.table.data$.value;
+      
+      if (!Array.isArray(datos) || datos.length === 0) {
+        throw new Error('No hay datos disponibles para exportar');
+      }
+      
+      // Usar el mapeo configurado
+      return datos.map((marca, index) => ({
+        secuencia: marca.secuencia,
+        marc_Descripcion: this.limpiarTexto(marca.marc_Descripcion),
+        marc_FechaCreacion: marca.marc_FechaCreacion,
+        marc_Estado: marca.marc_Estado ? 'Activo' : 'Inactivo'
+      }));
+      
+    } catch (error) {
+      console.error('Error obteniendo datos:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Maneja el resultado de las exportaciones
+   */
+  private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
+    if (resultado.success) {
+      this.mostrarMensaje('success', resultado.message);
+    } else {
+      this.mostrarMensaje('error', resultado.message);
+    }
+  }
+
+  /**
+   * Valida datos antes de exportar
+   */
+  private validarDatosParaExport(): boolean {
+    const datos = this.table.data$.value;
+    
+    if (!Array.isArray(datos) || datos.length === 0) {
+      this.mostrarMensaje('warning', 'No hay datos disponibles para exportar');
+      return false;
+    }
+    
+    if (datos.length > 10000) {
+      const continuar = confirm(
+        `Hay ${datos.length.toLocaleString()} registros. ` +
+        'La exportación puede tomar varios minutos. ¿Desea continuar?'
+      );
+      if (!continuar) return false;
+    }
+    
+    return true;
+  }
+
+  private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
+    this.cerrarAlerta();
+    
+    const duracion = tipo === 'error' ? 5000 : 3000;
+    
+    switch (tipo) {
+      case 'success':
+        this.mostrarAlertaExito = true;
+        this.mensajeExito = mensaje;
+        break;
+      case 'error':
+        this.mostrarAlertaError = true;
+        this.mensajeError = mensaje;
+        break;
+      case 'warning':
+      case 'info':
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = mensaje;
+        break;
+    }
+    
+    setTimeout(() => this.cerrarAlerta(), duracion);
   }
 
   private cargardatos(): void {

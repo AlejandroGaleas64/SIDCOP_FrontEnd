@@ -28,6 +28,8 @@ import {
   transition,
   animate
 } from '@angular/animations';
+import { Router, ActivatedRoute } from '@angular/router';
+import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/exportHori.service';
 
 @Component({
   standalone: true,
@@ -50,6 +52,7 @@ import {
     DropzoneModule,
     BreadcrumbsComponent,
     CreateComponent,
+    EditComponent,
     DetailsComponent,
   ],
   animations: [
@@ -89,6 +92,39 @@ import {
 // Grid Component
 
 export class ListComponent {
+  private readonly exportConfig = {
+    // Configuración básica
+    title: 'Listado de Clientes',                    // Título del reporte
+    filename: 'Clientes',                           // Nombre base del archivo
+    department: 'General',                         // Departamento
+    additionalInfo: 'Sistema de Gestión',         // Información adicional
+    
+    // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
+    columns: [
+      { key: 'No', header: 'No.', width: 3, align: 'center' as const },
+      { key: 'Codigo', header: 'Codigo', width: 15, align: 'left' as const },
+      { key: 'RTN', header: 'RTN', width: 30, align: 'left' as const },
+      { key: 'Nombres', header: 'Nombres', width: 50, align: 'left' as const },
+      { key: 'Apellidos', header: 'Apellidos', width: 50, align: 'left' as const },
+      { key: 'Nombre del Negocio', header: 'Nombre del Negocio', width: 50, align: 'left' as const },
+      { key: 'Telefono', header: 'Telefono', width: 30, align: 'left' as const }
+    ] as ExportColumn[],
+    
+    // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
+    dataMapping: (cliente: Cliente, index: number) => ({
+      'No': cliente?.No || (index + 1),
+      'Codigo': this.limpiarTexto(cliente?.clie_Codigo),
+      'RTN': this.limpiarTexto(cliente?.clie_RTN),
+      'Nombres': this.limpiarTexto(cliente?.clie_Nombres),
+      'Apellidos': this.limpiarTexto(cliente?.clie_Apellidos),
+      'Nombre del Negocio': this.limpiarTexto(cliente?.clie_NombreNegocio),
+      'Telefono': this.limpiarTexto(cliente?.clie_Telefono)
+      // Agregar más campos aquí según necesites:
+      // 'Campo': this.limpiarTexto(modelo?.campo),
+    })
+  };
+
+
   busqueda: string = '';
   clientesFiltrados: any[] = [];
 
@@ -118,6 +154,10 @@ export class ListComponent {
   // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
   clienteAEliminar: Cliente | null = null;
+
+  // Estado de exportación
+  exportando = false;
+  tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
 
   onDocumentClick(event: MouseEvent, rowIndex: number) {
     const target = event.target as HTMLElement;
@@ -151,8 +191,6 @@ export class ListComponent {
   @ViewChild('deleteRecordModal', { static: false }) deleteRecordModal?: ModalDirective;
   editData: any = null;
 
-  constructor(private formBuilder: UntypedFormBuilder, private http: HttpClient) { }
-
   ngOnInit(): void {
     /**
      * BreadCrumb
@@ -179,6 +217,211 @@ export class ListComponent {
     this.cargarDatos(true);
     this.contador();
     document.getElementById('elmLoader')?.classList.add('d-none');
+  }
+
+
+
+// ===== MÉTODOS DE EXPORTACIÓN OPTIMIZADOS =====
+
+  /**
+   * Método unificado para todas las exportaciones
+   */
+  async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
+    if (this.exportando) {
+      this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
+      return;
+    }
+
+    if (!this.validarDatosParaExport()) {
+      return;
+    }
+
+    try {
+      this.exportando = true;
+      this.tipoExportacion = tipo;
+      this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
+      
+      const config = this.crearConfiguracionExport();
+      let resultado;
+      
+      switch (tipo) {
+        case 'excel':
+          resultado = await this.exportService.exportToExcel(config);
+          break;
+        case 'pdf':
+          resultado = await this.exportService.exportToPDF(config);
+          break;
+        case 'csv':
+          resultado = await this.exportService.exportToCSV(config);
+          break;
+      }
+      
+      this.manejarResultadoExport(resultado);
+      
+    } catch (error) {
+      console.error(`Error en exportación ${tipo}:`, error);
+      this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
+    } finally {
+      this.exportando = false;
+      this.tipoExportacion = null;
+    }
+  }
+
+  /**
+   * Métodos específicos para cada tipo (para usar en templates)
+   */
+  async exportarExcel(): Promise<void> {
+    await this.exportar('excel');
+  }
+
+  async exportarPDF(): Promise<void> {
+    await this.exportar('pdf');
+  }
+
+  async exportarCSV(): Promise<void> {
+    await this.exportar('csv');
+  }
+
+  /**
+   * Verifica si se puede exportar un tipo específico
+   */
+  puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
+    if (this.exportando) {
+      return tipo ? this.tipoExportacion !== tipo : false;
+    }
+    return this.clientes?.length > 0;
+  }
+
+  // ===== MÉTODOS PRIVADOS DE EXPORTACIÓN =====
+
+  /**
+   * Crea la configuración de exportación de forma dinámica
+   */
+  private crearConfiguracionExport(): ExportConfig {
+    return {
+      title: this.exportConfig.title,
+      filename: this.exportConfig.filename,
+      data: this.obtenerDatosExport(),
+      columns: this.exportConfig.columns,
+      metadata: {
+        department: this.exportConfig.department,
+        additionalInfo: this.exportConfig.additionalInfo
+      }
+    };
+  }
+
+  /**
+   * Obtiene y prepara los datos para exportación
+   */
+ private obtenerDatosExport(): any[] {
+  try {
+    const datos = this.clientes; // Use the array for cards
+
+    if (!Array.isArray(datos) || datos.length === 0) {
+      throw new Error('No hay datos disponibles para exportar');
+    }
+
+    return datos.map((modelo, index) =>
+      this.exportConfig.dataMapping.call(this, modelo, index)
+    );
+  } catch (error) {
+    console.error('Error obteniendo datos:', error);
+    throw error;
+  }
+}
+
+
+  /**
+   * Maneja el resultado de las exportaciones
+   */
+  private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
+    if (resultado.success) {
+      this.mostrarMensaje('success', resultado.message);
+    } else {
+      this.mostrarMensaje('error', resultado.message);
+    }
+  }
+
+  /**
+   * Valida datos antes de exportar
+   */
+  private validarDatosParaExport(): boolean {
+    const datos = this.clientes;
+    
+    if (!Array.isArray(datos) || datos.length === 0) {
+      this.mostrarMensaje('warning', 'No hay datos disponibles para exportar');
+      return false;
+    }
+    
+    if (datos.length > 10000) {
+      const continuar = confirm(
+        `Hay ${datos.length.toLocaleString()} registros. ` +
+        'La exportación puede tomar varios minutos. ¿Desea continuar?'
+      );
+      if (!continuar) return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Limpia texto para exportación de manera más eficiente
+   */
+  private limpiarTexto(texto: any): string {
+    if (!texto) return '';
+    
+    return String(texto)
+      .replace(/\s+/g, ' ')
+      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
+      .trim()
+      .substring(0, 150);
+  }
+
+  /**
+   * Sistema de mensajes mejorado con tipos adicionales
+   */
+  private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
+    this.cerrarAlerta();
+    
+    const duracion = tipo === 'error' ? 5000 : 3000;
+    
+    switch (tipo) {
+      case 'success':
+        this.mostrarAlertaExito = true;
+        this.mensajeExito = mensaje;
+        setTimeout(() => this.mostrarAlertaExito = false, duracion);
+        break;
+        
+      case 'error':
+        this.mostrarAlertaError = true;
+        this.mensajeError = mensaje;
+        setTimeout(() => this.mostrarAlertaError = false, duracion);
+        break;
+        
+      case 'warning':
+      case 'info':
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = mensaje;
+        setTimeout(() => this.mostrarAlertaWarning = false, duracion);
+        break;
+    }
+  }
+
+ cerrarAlerta(): void {
+    this.mostrarAlertaExito = false;
+    this.mensajeExito = '';
+    this.mostrarAlertaError = false;
+    this.mensajeError = '';
+    this.mostrarAlertaWarning = false;
+    this.mensajeWarning = '';
+  }
+
+  // constructor(private formBuilder: UntypedFormBuilder, private http: HttpClient) { }
+  accionesDisponibles: string[] = [];
+    tieneRegistros: boolean = false;
+  // Método robusto para validar si una acción está permitida
+  accionPermitida(accion: string): boolean {
+    return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
   }
 
 
@@ -308,7 +551,7 @@ export class ListComponent {
   filtradorClientes(): void {
     const termino = this.busqueda.trim().toLowerCase();
     if (!termino) {
-      this.clientesFiltrados = this.clientes;
+      this.clientesFiltrados = [...this.clienteGrid];
     } else {
       this.clientesFiltrados = this.clientes.filter((cliente: any) =>
         (cliente.clie_Codigo || '').toLowerCase().includes(termino) ||
@@ -316,23 +559,119 @@ export class ListComponent {
         (cliente.cana_Descripcion || '').toLowerCase().includes(termino)
       );
     }
+
+        // Resetear la página actual a 1 cuando se filtra
+    this.currentPage = 1;
+    
+    // Actualizar los productos visibles basados en la paginación
+    this.actualizarClientesVisibles();
   }
 
+  // Método auxiliar para actualizar los productos visibles
+  private actualizarClientesVisibles(): void {
+    const startItem = (this.currentPage - 1) * this.itemsPerPage;
+    const endItem = this.currentPage * this.itemsPerPage;
+    this.clientes = this.clientesFiltrados.slice(startItem, endItem);
+  }
+
+  
+
+  pageChanged(event: any): void {
+    this.currentPage = event.page;
+    this.actualizarClientesVisibles();
+  }
+
+  // private cargarDatos(state: boolean): void {
+  //   this.clienteGrid = [];
+  //   this.clientes = [];
+  //   this.mostrarOverlayCarga = state;
+  //   this.http.get<Cliente[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
+  //     headers: { 'x-api-key': environment.apiKey }
+  //   }).subscribe(data => {
+  //     setTimeout(() => {
+  //       this.mostrarOverlayCarga = false;
+  //       this.clienteGrid = data || [];
+  //       this.clientes = this.clienteGrid.slice(0, 10);
+  //       this.filtradorClientes();
+  //     },500);
+  //   });
+  // }
+
+  // private cargarDatos(state: boolean): void {
+  //   this.mostrarOverlayCarga = state;
+  
+  //   this.http.get<Cliente[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
+  //     headers: { 'x-api-key': environment.apiKey }
+  //   }).subscribe({
+  //     next: (data) => {
+  //       const tienePermisoListar = this.accionPermitida('listar');
+  //       const userId = getUserId();
+  
+  //       const datosFiltrados = tienePermisoListar
+  //         ? data
+  //         : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
+  
+  //       this.clienteGrid = datosFiltrados;
+  //       this.clientes = this.clienteGrid.slice(0, 10);
+  //       this.filtradorClientes();
+  //       this.tieneRegistros = datosFiltrados.length > 0;
+  //     },
+  //     error: (error) => {
+  //       console.error('Error al cargar los datos:', error);
+  //       this.mostrarOverlayCarga = false;
+  //       this.mostrarAlertaError = true;
+  //       this.mensajeError = 'Error al cargar los datos. Por favor, inténtelo de nuevo más tarde.';
+  //       this.clienteGrid = [];
+  //       this.clientes = [];
+  //       this.tieneRegistros = false; 
+  //     },
+  //     complete: () => {
+  //       setTimeout(() => {
+  //         this.mostrarOverlayCarga = false;
+  //       }, 500);
+  //     }
+  //   });
+  // }
+
   private cargarDatos(state: boolean): void {
-    this.clienteGrid = [];
-    this.clientes = [];
     this.mostrarOverlayCarga = state;
     this.http.get<Cliente[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
+      
       setTimeout(() => {
         this.mostrarOverlayCarga = false;
-        this.clienteGrid = data || [];
-        this.clientes = this.clienteGrid.slice(0, 10);
-        this.filtradorClientes();
-      },500);
+        const tienePermisoListar = this.accionPermitida('listar');
+        const userId = getUserId();
+
+        const datosFiltrados = tienePermisoListar
+          ? data
+          : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
+        
+        this.clienteGrid = datosFiltrados || [];
+        
+        // Resetear filtros y paginación al cargar nuevos datos
+        this.busqueda = '';
+        this.currentPage = 1;
+        this.itemsPerPage = 10; // Asegurar que siempre sean 8 items por página
+        this.clientesFiltrados = [...this.clienteGrid];
+        
+        // IMPORTANTE: NO llamar a filtradorProductos() aquí
+        this.actualizarClientesVisibles();
+        
+      }, 500);
     });
   }
+  
+    constructor(
+      private http: HttpClient,
+      private router: Router,
+      private route: ActivatedRoute,
+      private formBuilder: UntypedFormBuilder,
+      private exportService: ExportService
+    ) {
+      this.cargarDatos(true);
+    }
 
   abrirListado(){
     this.listadoClientesSinConfirmar = true;
@@ -373,14 +712,14 @@ export class ListComponent {
   currentPage: number = 1;
   itemsPerPage: number = 10;
 
-  get startIndex(): number {
-    return this.clienteGrid?.length ? ((this.currentPage - 1) * this.itemsPerPage) + 1 : 0;
+get startIndex(): number {
+    return this.clientesFiltrados?.length ? ((this.currentPage - 1) * this.itemsPerPage) + 1 : 0;
   }
 
   get endIndex(): number {
-    if (!this.clienteGrid?.length) return 0;
+    if (!this.clientesFiltrados?.length) return 0;
     const end = this.currentPage * this.itemsPerPage;
-    return end > this.clienteGrid.length ? this.clienteGrid.length : end;
+    return end > this.clientesFiltrados.length ? this.clientesFiltrados.length : end;
   }
 
   trackByClienteId(index: number, item: any): any {
@@ -469,14 +808,15 @@ export class ListComponent {
     }
   }
 
+  //Borrar
   // Page Changed
-  pageChanged(event: any): void {
-    this.currentPage = event.page;
-    const startItem = (event.page - 1) * event.itemsPerPage;
-    const endItem = event.page * event.itemsPerPage;
-    this.clientes = this.clienteGrid.slice(startItem, endItem);
-    this.filtradorClientes();
-  }
+  // pageChanged(event: any): void {
+  //   this.currentPage = event.page;
+  //   const startItem = (event.page - 1) * event.itemsPerPage;
+  //   const endItem = event.page * event.itemsPerPage;
+  //   this.clientes = this.clienteGrid.slice(startItem, endItem);
+  //   this.filtradorClientes();
+  // }
 
   // Abre/cierra el menú de acciones para la fila seleccionada
   onActionMenuClick(rowIndex: number) {
@@ -610,14 +950,16 @@ export class ListComponent {
   // }
 
 
-
-
+// En  teoría no iríaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
   // editar(cliente: Cliente): void {
   //   console.log('Abriendo formulario de edición para:', cliente);
   //   // Crear una copia profunda asegurando que todos los campos estén presentes y sin sobrescribir
   //   this.clienteEditando = {
-  //     clie_Id: cliente.clie_Id ?? undefined,
+  //     secuencia: cliente.secuencia ?? 0,
+  //     clie_Id: cliente.clie_Id ?? 0,
   //     clie_Codigo: cliente.clie_Codigo || '',
+  //     clie_Nacionalidad: cliente.clie_Nacionalidad || '',
+  //     pais_Descripcion: cliente.pais_Descripcion || '',
   //     clie_DNI: cliente.clie_DNI || '',
   //     clie_RTN: cliente.clie_RTN || '',
   //     clie_Nombres: cliente.clie_Nombres || '',
@@ -628,19 +970,30 @@ export class ListComponent {
   //     clie_Correo: cliente.clie_Correo || '',
   //     clie_Sexo: cliente.clie_Sexo || '',
   //     clie_FechaNacimiento: cliente.clie_FechaNacimiento ? new Date(cliente.clie_FechaNacimiento) : new Date(),
-  //     cana_Id: cliente.cana_Id ?? undefined,
-  //     esCv_Id: cliente.esCv_Id ?? undefined,
-  //     ruta_Id: cliente.ruta_Id ?? undefined,
+  //     tiVi_Id: cliente.tiVi_Id ?? 0,
+  //     tiVi_Descripcion: cliente.tiVi_Descripcion || '',
+  //     cana_Id: cliente.cana_Id ?? 0,
+  //     cana_Descripcion: cliente.cana_Descripcion || '',
+  //     esCv_Id: cliente.esCv_Id ?? 0,
+  //     esCv_Descripcion: cliente.esCv_Descripcion || '',
+  //     ruta_Id: cliente.ruta_Id ?? 0,
+  //     ruta_Descripcion: cliente.ruta_Descripcion || '',
   //     clie_LimiteCredito: cliente.clie_LimiteCredito ?? 0,
   //     clie_DiasCredito: cliente.clie_DiasCredito ?? 0,
   //     clie_Saldo: cliente.clie_Saldo ?? 0,
-  //     clie_Vencido: cliente.clie_Estado ?? 1,
+  //     clie_Vencido: cliente.clie_Vencido ?? true,
   //     clie_Observaciones: cliente.clie_Observaciones || '',
   //     clie_ObservacionRetiro: cliente.clie_ObservacionRetiro || '',
-  //     clie_Confirmacion: cliente.clie_Confirmacion ?? 1,
-  //     clie_Estado: cliente.clie_Estado ?? 1,
+  //     clie_Confirmacion: cliente.clie_Confirmacion ?? true,
+  //     clie_Estado: cliente.clie_Estado ?? true,
   //     usua_Creacion: cliente.usua_Creacion ?? 0,
   //     clie_FechaCreacion: cliente.clie_FechaCreacion ? new Date(cliente.clie_FechaCreacion) : new Date(),
+  //     usua_Modificacion: cliente.usua_Modificacion ?? 0,
+  //     clie_FechaModificacion: cliente.clie_FechaModificacion ? new Date(cliente.clie_FechaModificacion) : new Date(),
+  //     usuaC_Nombre: cliente.usuaC_Nombre || '',
+  //     usuaM_Nombre: cliente.usuaM_Nombre || '',
+  //     code_Status: cliente.code_Status ?? 0,
+  //     message_Status: cliente.message_Status || '',
   //   };
   //   this.showEditForm = true;
   //   this.showCreateForm = false; // Cerrar create si está abierto

@@ -14,6 +14,7 @@ import { CreateComponent } from '../create/create.component';
 import { EditComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
+import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
 
 @Component({
   selector: 'app-list',
@@ -157,8 +158,44 @@ export class ListComponent implements OnInit {
   // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
   marcasVehiculosAEliminar: MarcasVehiculos | null = null;
+formatearNumero(valor: number): string {
+  return Math.floor(valor).toString();
+}
 
-  constructor(public table: ReactiveTableService<MarcasVehiculos>, private http: HttpClient, private router: Router, private route: ActivatedRoute, public floatingMenuService: FloatingMenuService) {
+  private readonly exportConfig = {
+    
+    // Configuración básica
+    title: 'Listado de Marcas de Vehículos',
+    filename: 'MarcasVehiculos',
+    department: 'General',
+    // additionalInfo: 'Sistema de Gestión',
+    
+    // Columnas a exportar
+    columns: [
+      { key: 'No', header: 'No.', width: 8, align: 'center' as const },
+      { key: 'Marca', header: 'Marca', width: 35, align: 'left' as const },
+      // { key: 'FechaCreacion', header: 'Fecha Creación', width: 25, align: 'center' as const },
+      // { key: 'Estado', header: 'Estado', width: 15, align: 'center' as const }
+    ] as ExportColumn[],
+    
+    // Mapeo de datos para la entidad MarcasVehiculos
+    dataMapping: (marca: MarcasVehiculos, index: number) => ({
+      'No': this.formatearNumero(marca?.secuencia || (index + 1)),
+      'Marca': this.limpiarTexto(marca?.maVe_Marca),
+      // 'FechaCreacion': marca?.maVe_FechaCreacion ? new Date(marca.maVe_FechaCreacion).toLocaleDateString() : '',
+      // 'Estado': marca?.maVe_Estado ? 'Activo' : 'Inactivo'
+    })
+  };
+
+  exportando = false;
+  tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
+
+  constructor(public table: ReactiveTableService<MarcasVehiculos>, 
+    private http: HttpClient, 
+    private router: Router, 
+    private route: ActivatedRoute, 
+    private exportService: ExportService,
+    public floatingMenuService: FloatingMenuService) {
     this.cargardatos();
   }
 
@@ -288,11 +325,184 @@ export class ListComponent implements OnInit {
 
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
-    this.mensajeExito = '';
     this.mostrarAlertaError = false;
-    this.mensajeError = '';
     this.mostrarAlertaWarning = false;
-    this.mensajeWarning = '';
+  }
+
+  /**
+   * Limpia texto para exportación de manera más eficiente
+   */
+  private limpiarTexto(texto: any): string {
+    if (!texto) return '';
+    
+    return String(texto)
+      .replace(/\s+/g, ' ')
+      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
+      .trim()
+      .substring(0, 150);
+  }
+
+  /**
+   * Sistema de mensajes mejorado con tipos adicionales
+   */
+  private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
+    this.cerrarAlerta();
+    
+    const duracion = tipo === 'error' ? 5000 : 3000;
+    
+    switch (tipo) {
+      case 'success':
+        this.mostrarAlertaExito = true;
+        this.mensajeExito = mensaje;
+        break;
+      case 'error':
+        this.mostrarAlertaError = true;
+        this.mensajeError = mensaje;
+        break;
+      case 'warning':
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = mensaje;
+        break;
+      case 'info':
+        // Podrías implementar un tipo adicional de alerta si lo necesitas
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = mensaje;
+        break;
+    }
+    
+    setTimeout(() => this.cerrarAlerta(), duracion);
+  }
+
+  async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
+    if (this.exportando) {
+      this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
+      return;
+    }
+
+    if (!this.validarDatosParaExport()) {
+      return;
+    }
+
+    try {
+      this.exportando = true;
+      this.tipoExportacion = tipo;
+      this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
+      
+      const config = this.crearConfiguracionExport();
+      let resultado;
+      
+      switch (tipo) {
+        case 'excel':
+          resultado = await this.exportService.exportToExcel(config);
+          break;
+        case 'pdf':
+          resultado = await this.exportService.exportToPDF(config);
+          break;
+        case 'csv':
+          resultado = await this.exportService.exportToCSV(config);
+          break;
+      }
+      
+      this.manejarResultadoExport(resultado);
+      
+    } catch (error) {
+      console.error(`Error en exportación ${tipo}:`, error);
+      this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
+    } finally {
+      this.exportando = false;
+      this.tipoExportacion = null;
+    }
+  }
+
+  /**
+   * Crea la configuración de exportación de forma dinámica
+   */
+  private crearConfiguracionExport(): ExportConfig {
+    return {
+      title: this.exportConfig.title,
+      filename: this.exportConfig.filename,
+      data: this.obtenerDatosExport(),
+      columns: this.exportConfig.columns,
+      metadata: {
+        department: this.exportConfig.department,
+        // additionalInfo: this.exportConfig.additionalInfo
+      }
+    };
+  }
+
+  /**
+   * Obtiene y prepara los datos para exportación
+   */
+  private obtenerDatosExport(): any[] {
+    try {
+      const datos = this.table.data$.value;
+      
+      if (!Array.isArray(datos) || datos.length === 0) {
+        throw new Error('No hay datos disponibles para exportar');
+      }
+      
+      // Usar el mapeo configurado
+      return datos.map((marca, index) => 
+        this.exportConfig.dataMapping.call(this, marca, index)
+      );
+      
+    } catch (error) {
+      console.error('Error obteniendo datos:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Maneja el resultado de las exportaciones
+   */
+  private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
+    if (resultado.success) {
+      this.mostrarMensaje('success', resultado.message);
+    } else {
+      this.mostrarMensaje('error', resultado.message);
+    }
+  }
+
+  /**
+   * Valida datos antes de exportar
+   */
+  private validarDatosParaExport(): boolean {
+    const datos = this.table.data$.value;
+    
+    if (!Array.isArray(datos) || datos.length === 0) {
+      this.mostrarMensaje('warning', 'No hay datos disponibles para exportar');
+      return false;
+    }
+    
+    if (datos.length > 10000) {
+      const continuar = confirm(
+        `Hay ${datos.length.toLocaleString()} registros. ` +
+        'La exportación puede tomar varios minutos. ¿Desea continuar?'
+      );
+      if (!continuar) return false;
+    }
+    
+    return true;
+  }
+
+  // Métodos específicos para cada tipo de exportación
+  exportarExcel(): Promise<void> {
+    return this.exportar('excel');
+  }
+
+  exportarPDF(): Promise<void> {
+    return this.exportar('pdf');
+  }
+
+  exportarCSV(): Promise<void> {
+    return this.exportar('csv');
+  }
+
+  // Verifica si se puede exportar un tipo específico
+  puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
+    if (this.exportando) return false;
+    if (!this.table.data$.value || this.table.data$.value.length === 0) return false;
+    return true;
   }
 
   private cargardatos(): void {

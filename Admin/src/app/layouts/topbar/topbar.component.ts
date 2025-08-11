@@ -68,21 +68,40 @@ export class TopbarComponent {
     this.userData = this.TokenStorageService.getUser();
     
     // Formatear datos del usuario para mostrar en el topbar
-    if (!this.userData.first_name && !this.userData.last_name) {
-      // Si no hay first_name y last_name, intentar usar otros campos disponibles
-      if (this.userData.usua_Nombres) {
-        this.userData.first_name = this.userData.usua_Nombres;
-      } else if (this.userData.usua_Usuario) {
-        this.userData.first_name = this.userData.usua_Usuario;
-      } else {
-        this.userData.first_name = 'Usuario';
-      }
-      
-      if (this.userData.usua_Apellidos) {
-        this.userData.last_name = this.userData.usua_Apellidos;
-      } else {
-        this.userData.last_name = '';
-      }
+    if (!this.userData) {
+      this.userData = {};
+    }
+    
+    // Normalizar los nombres de campos para facilitar el acceso en la plantilla
+
+    
+    if (this.userData.usua_Apellidos) {
+      this.userData.apellidos = this.userData.usua_Apellidos;
+    } else if (this.userData.last_name) {
+      this.userData.apellidos = this.userData.last_name;
+    } else {
+      this.userData.apellidos = '';
+    }
+    
+    // Normalizar otros campos importantes
+    if (this.userData.usua_Rol) {
+      this.userData.cargo = this.userData.usua_Rol;
+    } else if (this.userData.role_Descripcion) {
+      this.userData.cargo = this.userData.role_Descripcion;
+    }
+    
+    if (this.userData.usua_Correo) {
+      this.userData.correo = this.userData.usua_Correo;
+    } else if (this.userData.email) {
+      this.userData.correo = this.userData.email;
+    }
+    
+    if (!this.userData.sucursal && this.userData.sucu_Nombre) {
+      this.userData.sucursal = this.userData.sucu_Nombre;
+    }
+    
+    if (!this.userData.telefono && this.userData.usua_Telefono) {
+      this.userData.telefono = this.userData.usua_Telefono;
     }
 
     

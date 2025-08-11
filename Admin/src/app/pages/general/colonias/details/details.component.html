@@ -25,19 +25,6 @@
         </div>
         <div class="card-body">
           <div class="row g-3">
-            <div class="col-12 col-sm-4" *ngIf="coloniaDetalle.secuencia">
-              <div class="detail-item">
-                <div class="detail-icon bg-dark-blue text-white">
-                  <i class="ri-number-1"></i>
-                </div>
-                <div class="detail-content">
-                  <div class="detail-label">Registro</div>
-                  <div class="detail-value">
-                    {{ coloniaDetalle.secuencia }}
-                  </div>
-                </div>
-              </div>
-            </div>
             <div class="col-12 col-sm-4">
               <div class="detail-item">
                 <div class="detail-icon bg-dark-blue text-white">
@@ -108,7 +95,7 @@
       </div>
     </div>
 
-    <h4 class="details-title mt-4 mb-3" style="color: black;">Historial de acciones</h4>
+   
     <div class="audit-table-container">
       <div class="audit-table">
         <div class="audit-header">
@@ -125,7 +112,7 @@
             <span class="audit-user">{{ coloniaDetalle.usuarioCreacion || 'N/A' }}</span>
           </div>
           <div class="audit-col">
-            <span class="audit-date">{{ formatearFecha(coloniaDetalle.colo_FechaCreacion) }}</span>
+            <span class="audit-date">{{ formatearFecha(coloniaDetalle.colo_FechaCreacion ?? null)}}</span>
           </div>
         </div>
         <!-- Fila de modificación -->
@@ -137,7 +124,7 @@
             <span class="audit-user">{{ coloniaDetalle.usuarioModificacion || 'N/A' }}</span>
           </div>
           <div class="audit-col">
-            <span class="audit-date">{{ formatearFecha(coloniaDetalle.colo_FechaModificacion) }}</span>
+            <span class="audit-date">{{ formatearFecha(coloniaDetalle.colo_FechaModificacion ?? null) }}</span>
           </div>
         </div>
       </div>

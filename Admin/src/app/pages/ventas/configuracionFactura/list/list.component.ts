@@ -14,7 +14,11 @@ import { CreateComponent } from '../create/create.component';
 import { EditConfigFacturaComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
- import { trigger,  state,  style,  transition,  animate} from '@angular/animations';
+import { trigger, state, style, transition, animate } from '@angular/animations';
+
+// Importar el servicio de exportación optimizado
+import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
+
 @Component({
   selector: 'app-list',
   standalone: true,
@@ -27,12 +31,11 @@ import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
     PaginationModule,
     CreateComponent,
     EditConfigFacturaComponent,
-DetailsComponent
+    DetailsComponent
   ],
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss'],
- 
-animations: [
+  animations: [
     trigger('fadeExpand', [
       transition(':enter', [
         style({
@@ -66,40 +69,292 @@ animations: [
   ]
 })
 export class ListComponent implements OnInit {
+  // ===== CONFIGURACIÓN FÁCIL DE EXPORTACIÓN =====
+  // 🔧 PERSONALIZA AQUÍ TU CONFIGURACIÓN DE EXPORTACIÓN 🔧
+  private readonly exportConfig = {
+    // Configuración básica
+    title: 'Listado de Configuraciones de Factura',     // Título del reporte
+    filename: 'ConfiguracionesFactura',                  // Nombre base del archivo
+    department: 'Ventas',                                // Departamento
+    additionalInfo: 'Sistema de Gestión de Ventas',     // Información adicional
+    
+    // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
+    columns: [
+      { key: 'No', header: 'No.', width: 10, align: 'center' as const },
+      { key: 'NombreEmpresa', header: 'Nombre Empresa', width: 60, align: 'left' as const },
+      { key: 'RTN', header: 'RTN', width: 25, align: 'left' as const },
+      { key: 'Telefono', header: 'Teléfono', width: 20, align: 'left' as const },
+      { key: 'Correo', header: 'Correo', width: 35, align: 'left' as const },
+      { key: 'Direccion', header: 'Dirección', width: 50, align: 'left' as const }
+    ] as ExportColumn[],
+    
+    // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
+    dataMapping: (configuracion: ConfiguracionFactura, index: number) => ({
+      'No': configuracion?.No || (index + 1),
+      'NombreEmpresa': this.limpiarTexto(configuracion?.coFa_NombreEmpresa),
+      'RTN': this.limpiarTexto(configuracion?.coFa_RTN),
+      'Telefono': this.limpiarTexto(configuracion?.coFa_Telefono1),
+      'Correo': this.limpiarTexto(configuracion?.coFa_Correo),
+      'Direccion': this.limpiarTexto(configuracion?.coFa_DireccionEmpresa)
+      // Agregar más campos aquí según necesites:
+      // 'CAI': this.limpiarTexto(configuracion?.coFa_CAI),
+      // 'RangoInicial': configuracion?.coFa_RangoInicial?.toString() || '',
+      // 'RangoFinal': configuracion?.coFa_RangoFinal?.toString() || '',
+    })
+  };
+
+  // Breadcrumb items
   breadCrumbItems!: Array<{}>;
-   // Acciones disponibles para el usuario en esta pantalla
+
+  // Acciones disponibles para el usuario
   accionesDisponibles: string[] = [];
+
+  // Control de menú de acciones
+  activeActionRow: number | null = null;
+
+  // Form controls
+  showCreateForm = false;
+  showEditForm = false;
+  showDetailsForm = false;
+  configuracionEditando: ConfiguracionFactura | null = null;
+  configuracionDetalle: ConfiguracionFactura | null = null;
+
+  // Alertas
+  mostrarAlertaExito = false;
+  mensajeExito = '';
+  mostrarAlertaError = false;
+  mensajeError = '';
+  mostrarAlertaWarning = false;
+  mensajeWarning = '';
+
+  // Confirmación eliminar
   mostrarConfirmacionEliminar = false;
   configuracionAEliminar: ConfiguracionFactura | null = null;
-  tieneRegistros: boolean = false;
-  // Método robusto para validar si una acción está permitida
-  accionPermitida(accion: string): boolean {
-    return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
+
+  // Estado de carga y exportación
+  mostrarOverlayCarga = false;
+  tieneRegistros = false;
+  exportando = false;
+  tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
+
+  constructor(
+    public table: ReactiveTableService<ConfiguracionFactura>,
+    private http: HttpClient,
+    private router: Router,
+    private route: ActivatedRoute,
+    public floatingMenuService: FloatingMenuService,
+    private exportService: ExportService
+  ) {
+    this.cargardatos(true);
   }
+
   ngOnInit(): void {
     this.breadCrumbItems = [
       { label: 'Ventas' },
       { label: 'ConfiguracionFactura', active: true }
     ];
-
-        this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
+    this.cargarAccionesUsuario();
   }
 
-  onDocumentClick(event: MouseEvent, rowIndex: number) {
-    const target = event.target as HTMLElement;
-    const dropdowns = document.querySelectorAll('.dropdown-action-list');
-    let clickedInside = false;
-    dropdowns.forEach((dropdown) => {
-      if (dropdown.contains(target) && this.activeActionRow === rowIndex) {
-        clickedInside = true;
+  // ===== MÉTODOS DE EXPORTACIÓN OPTIMIZADOS =====
+
+  /**
+   * Método unificado para todas las exportaciones
+   */
+  async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
+    if (this.exportando) {
+      this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
+      return;
+    }
+
+    if (!this.validarDatosParaExport()) {
+      return;
+    }
+
+    try {
+      this.exportando = true;
+      this.tipoExportacion = tipo;
+      this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
+      
+      const config = this.crearConfiguracionExport();
+      let resultado;
+      
+      switch (tipo) {
+        case 'excel':
+          resultado = await this.exportService.exportToExcel(config);
+          break;
+        case 'pdf':
+          resultado = await this.exportService.exportToPDF(config);
+          break;
+        case 'csv':
+          resultado = await this.exportService.exportToCSV(config);
+          break;
       }
-    });
-    if (!clickedInside && this.activeActionRow === rowIndex) {
-      this.activeActionRow = null;
+      
+      this.manejarResultadoExport(resultado);
+      
+    } catch (error) {
+      console.error(`Error en exportación ${tipo}:`, error);
+      this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
+    } finally {
+      this.exportando = false;
+      this.tipoExportacion = null;
     }
   }
 
+  /**
+   * Métodos específicos para cada tipo (para usar en templates)
+   */
+  async exportarExcel(): Promise<void> {
+    await this.exportar('excel');
+  }
+
+  async exportarPDF(): Promise<void> {
+    await this.exportar('pdf');
+  }
+
+  async exportarCSV(): Promise<void> {
+    await this.exportar('csv');
+  }
+
+  /**
+   * Verifica si se puede exportar un tipo específico
+   */
+  puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
+    if (this.exportando) {
+      return tipo ? this.tipoExportacion !== tipo : false;
+    }
+    return this.table.data$.value?.length > 0;
+  }
+
+  // ===== MÉTODOS PRIVADOS DE EXPORTACIÓN =====
+
+  /**
+   * Crea la configuración de exportación de forma dinámica
+   */
+  private crearConfiguracionExport(): ExportConfig {
+    return {
+      title: this.exportConfig.title,
+      filename: this.exportConfig.filename,
+      data: this.obtenerDatosExport(),
+      columns: this.exportConfig.columns,
+      metadata: {
+        department: this.exportConfig.department,
+        additionalInfo: this.exportConfig.additionalInfo
+      }
+    };
+  }
+
+  /**
+   * Obtiene y prepara los datos para exportación
+   */
+  private obtenerDatosExport(): any[] {
+    try {
+      const datos = this.table.data$.value;
+      
+      if (!Array.isArray(datos) || datos.length === 0) {
+        throw new Error('No hay datos disponibles para exportar');
+      }
+      
+      // Usar el mapeo configurado
+      return datos.map((configuracion, index) => 
+        this.exportConfig.dataMapping.call(this, configuracion, index)
+      );
+      
+    } catch (error) {
+      console.error('Error obteniendo datos:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Maneja el resultado de las exportaciones
+   */
+  private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
+    if (resultado.success) {
+      this.mostrarMensaje('success', resultado.message);
+    } else {
+      this.mostrarMensaje('error', resultado.message);
+    }
+  }
+
+  /**
+   * Valida datos antes de exportar
+   */
+  private validarDatosParaExport(): boolean {
+    const datos = this.table.data$.value;
+    
+    if (!Array.isArray(datos) || datos.length === 0) {
+      this.mostrarMensaje('warning', 'No hay datos disponibles para exportar');
+      return false;
+    }
+    
+    if (datos.length > 10000) {
+      const continuar = confirm(
+        `Hay ${datos.length.toLocaleString()} registros. ` +
+        'La exportación puede tomar varios minutos. ¿Desea continuar?'
+      );
+      if (!continuar) return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Limpia texto para exportación de manera más eficiente
+   */
+  private limpiarTexto(texto: any): string {
+    if (!texto) return '';
+    
+    return String(texto)
+      .replace(/\s+/g, ' ')
+      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
+      .trim()
+      .substring(0, 150);
+  }
+
+  /**
+   * Sistema de mensajes mejorado con tipos adicionales
+   */
+  private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
+    this.cerrarAlerta();
+    
+    const duracion = tipo === 'error' ? 5000 : 3000;
+    
+    switch (tipo) {
+      case 'success':
+        this.mostrarAlertaExito = true;
+        this.mensajeExito = mensaje;
+        setTimeout(() => this.mostrarAlertaExito = false, duracion);
+        break;
+        
+      case 'error':
+        this.mostrarAlertaError = true;
+        this.mensajeError = mensaje;
+        setTimeout(() => this.mostrarAlertaError = false, duracion);
+        break;
+        
+      case 'warning':
+      case 'info':
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = mensaje;
+        setTimeout(() => this.mostrarAlertaWarning = false, duracion);
+        break;
+    }
+  }
+
+  // ===== MÉTODOS CRUD Y NAVEGACIÓN =====
+
+  /**
+   * Valida si una acción está permitida
+   */
+  accionPermitida(accion: string): boolean {
+    return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
+  }
+
+  /**
+   * Métodos principales de CRUD
+   */
   crear(): void {
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false;
@@ -107,156 +362,123 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null;
   }
 
-  editar(ConfiguracioFactura: ConfiguracionFactura): void {
-    this.ConfiguracioFacturaEditando = { ...ConfiguracioFactura };
+  editar(configuracion: ConfiguracionFactura): void {
+    this.configuracionEditando = { ...configuracion };
     this.showEditForm = true;
     this.showCreateForm = false;
     this.showDetailsForm = false;
     this.activeActionRow = null;
   }
 
-  detalles(ConfiguracioFactura: ConfiguracionFactura): void {
-    this.ConfiguracioFacturaDetalle = { ...ConfiguracioFactura };
+  detalles(configuracion: ConfiguracionFactura): void {
+    this.configuracionDetalle = { ...configuracion };
     this.showDetailsForm = true;
     this.showCreateForm = false;
     this.showEditForm = false;
     this.activeActionRow = null;
   }
 
-  confirmarEliminar(Configuracion: ConfiguracionFactura): void {
-    console.log('Solicitando confirmación para eliminar:', Configuracion);
-    this.configuracionAEliminar = Configuracion;
+  confirmarEliminar(configuracion: ConfiguracionFactura): void {
+    this.configuracionAEliminar = configuracion;
     this.mostrarConfirmacionEliminar = true;
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.activeActionRow = null;
   }
 
-  
-
-  cancelarEliminar(): void {
-    this.mostrarConfirmacionEliminar = false;
-    this.ConfiguracioFacturaAEliminar = null;
-  }
-
-eliminar(): void {
-  if (!this.configuracionAEliminar) return;
-
-  console.log('Eliminando configuración:', this.configuracionAEliminar);
-
-this.http.post(`${environment.apiBaseUrl}/ConfiguracionFactura/Eliminar?id=${this.configuracionAEliminar.coFa_Id}`, 
-  { }, 
-  {
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Api-Key': environment.apiKey,
-      'accept': '*/*'
-    }
-   }).subscribe({
-      next: (response: any) => {
-        setTimeout(() => {
-          this.mostrarOverlayCarga = false;
-          console.log('Respuesta del servidor:', response);
-          const resultado = response.data;
-
-          if (resultado.code_Status === 1) {
-            // Éxito: eliminado correctamente
-            console.log('Configuración eliminada exitosamente');
-            this.mensajeExito = `Configuración "${this.configuracionAEliminar!.coFa_NombreEmpresa}" eliminada exitosamente`;
-            this.mostrarAlertaExito = true;
-
-            setTimeout(() => {
-            
-              this.mostrarAlertaExito = false;
-              this.mensajeExito = '';
-            }, 3000);
-
-            this.cargardatos(true);
-            this.cancelarEliminar();
-          } else if (resultado.code_Status === -1) {
-            // Está siendo utilizada
-            console.log('La configuración de factura está siendo utilizada');
-            this.mostrarAlertaError = true;
-            this.mensajeError = resultado.message_Status || 'No se puede eliminar: la configuración de factura está siendo utilizada.';
-
-            setTimeout(() => {
-              this.mostrarAlertaError = false;
-              this.mensajeError = '';
-            }, 5000);
-
-            this.cancelarEliminar();
-          } else if (resultado.code_Status === 0) {
-            // Error general
-            console.log('Error general al eliminar');
-            this.mostrarAlertaError = true;
-            this.mensajeError = resultado.message_Status || 'Error al eliminar la configuración de factura.';
-
-            setTimeout(() => {
-              this.mostrarAlertaError = false;
-              this.mensajeError = '';
-            }, 5000);
-
-            this.cancelarEliminar();
-          } else {
-            // Código de estado inesperado
-            console.log('Código de estado inesperado:', resultado.code_Status);
-            this.mostrarAlertaError = true;
-            this.mensajeError = 'Código de estado inesperado en la respuesta del servidor.';
-
-            setTimeout(() => {
-              this.mostrarAlertaError = false;
-              this.mensajeError = '';
-            }, 5000);
-
-            this.cancelarEliminar();
-          }
-        }, 500);
-      },
-     
-    error: (error) => {
-      console.error('Error al eliminar:', error);
-      this.mostrarAlertaError = true;
-      this.mensajeError = 'Ocurrió un error al intentar eliminar la configuración de factura.';
-
-      setTimeout(() => {
-        this.mostrarAlertaError = false;
-        this.mensajeError = '';
-      }, 5000);
-
-      this.cancelarEliminar();
-    }
-  });
-}
-
-
-  onImgError(event: Event) {
-    const target = event.target as HTMLImageElement;
-    target.src = 'assets/images/users/32/user-dummy-img.jpg';
-  }
-  guardarConfiguracioFactura(ConfiguracioFactura: ConfiguracionFactura): void {
-    console.log('ConfiguracioFactura guardado exitosamente desde create component:', ConfiguracioFactura);
-    this.cargardatos(false);
-    this.cerrarFormulario();
-  }
-
-  actualizarConfiguracioFactura(ConfiguracioFactura: ConfiguracionFactura): void {
-    console.log('ConfiguracioFactura actualizado exitosamente desde edit component:', ConfiguracioFactura);
-    this.cargardatos(false);
-    this.cerrarFormularioEdicion();
-  }
-
+  /**
+   * Métodos para cerrar formularios
+   */
   cerrarFormulario(): void {
-     
     this.showCreateForm = false;
   }
 
   cerrarFormularioEdicion(): void {
-
     this.showEditForm = false;
-    this.ConfiguracioFacturaEditando = null;
+    this.configuracionEditando = null;
   }
 
   cerrarFormularioDetalles(): void {
     this.showDetailsForm = false;
-    this.ConfiguracioFacturaDetalle = null;
+    this.configuracionDetalle = null;
+  }
+
+  cancelarEliminar(): void {
+    this.mostrarConfirmacionEliminar = false;
+    this.configuracionAEliminar = null;
+  }
+
+  /**
+   * Métodos de respuesta de componentes hijos
+   */
+  guardarConfiguracioFactura(configuracion: ConfiguracionFactura): void {
+    this.cargardatos(false);
+    this.cerrarFormulario();
+    this.mostrarMensaje('success', 'Configuración de factura guardada exitosamente');
+  }
+
+  actualizarConfiguracioFactura(configuracion: ConfiguracionFactura): void {
+    this.cargardatos(false);
+    this.cerrarFormularioEdicion();
+    this.mostrarMensaje('success', 'Configuración de factura actualizada exitosamente');
+  }
+
+  /**
+   * Método de eliminación optimizado
+   */
+  eliminar(): void {
+    if (!this.configuracionAEliminar) return;
+
+    this.http.post(`${environment.apiBaseUrl}/ConfiguracionFactura/Eliminar?id=${this.configuracionAEliminar.coFa_Id}`, {}, {
+      headers: {
+        'X-Api-Key': environment.apiKey,
+        'accept': '*/*'
+      }
+    }).subscribe({
+      next: (response: any) => {
+        const resultado = this.extraerResultadoSP(response);
+        
+        if (resultado.code_Status === 1) {
+          this.mostrarMensaje('success', resultado.message_Status || 'Configuración eliminada correctamente.');
+          this.cargardatos(false);
+          this.cancelarEliminar();
+        } else {
+          this.mostrarMensaje('error', resultado.message_Status || 'Error al eliminar la configuración.');
+          this.cancelarEliminar();
+        }
+      },
+      error: (error) => {
+        console.error('Error al eliminar configuración:', error);
+        this.mostrarMensaje('error', this.obtenerMensajeError(error));
+        this.cancelarEliminar();
+      }
+    });
+  }
+
+  /**
+   * Control de menú de acciones
+   */
+  onActionMenuClick(rowIndex: number): void {
+    this.activeActionRow = this.activeActionRow === rowIndex ? null : rowIndex;
+  }
+
+  onDocumentClick(event: MouseEvent, rowIndex: number): void {
+    const target = event.target as HTMLElement;
+    const dropdowns = document.querySelectorAll('.dropdown-action-list');
+    let clickedInside = false;
+    
+    dropdowns.forEach((dropdown) => {
+      if (dropdown.contains(target) && this.activeActionRow === rowIndex) {
+        clickedInside = true;
+      }
+    });
+    
+    if (!clickedInside && this.activeActionRow === rowIndex) {
+      this.activeActionRow = null;
+    }
+  }
+
+  onImgError(event: Event): void {
+    const target = event.target as HTMLImageElement;
+    target.src = 'assets/images/users/32/user-dummy-img.jpg';
   }
 
   cerrarAlerta(): void {
@@ -268,142 +490,102 @@ this.http.post(`${environment.apiBaseUrl}/ConfiguracionFactura/Eliminar?id=${thi
     this.mensajeWarning = '';
   }
 
-  onActionMenuClick(rowIndex: number) {
-    this.activeActionRow = this.activeActionRow === rowIndex ? null : rowIndex;
+  // ===== MÉTODOS PRIVADOS DE UTILIDAD =====
+
+  /**
+   * Extrae el resultado del stored procedure
+   */
+  private extraerResultadoSP(response: any): any {
+    if (response.data && typeof response.data === 'object') {
+      return response.data;
+    } else if (Array.isArray(response) && response.length > 0) {
+      return response[0];
+    }
+    return response;
   }
 
-/*
-private cargardatos(state: boolean): void {
-  this.mostrarOverlayCarga = state;
-
-  this.http.get<ConfiguracionFactura[]>(`${environment.apiBaseUrl}/ConfiguracionFactura/Listar`, {
-    headers: { 'x-api-key': environment.apiKey }
-  }).subscribe({
-    next: (data) => {
-      const tienePermisoListar = this.accionPermitida('listar');
-      const userId = getUserId();
-
-      const datosFiltrados = tienePermisoListar
-        ? data
-        : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
-
-      this.table.setData(datosFiltrados);
-    },
-    error: (error) => {
-      console.error('Error al cargar los datos:', error);
-      this.mostrarOverlayCarga = false;
-      this.mostrarAlertaError = true;
-      this.mensajeError = 'Error al cargar los datos. Por favor, inténtelo de nuevo más tarde.';
-      this.table.setData([]);
-    },
-    complete: () => {
-      setTimeout(() => {
-        this.mostrarOverlayCarga = false;
-      }, 500);
-    }
-  });
- }
-
-*/
-
-
-private cargardatos(state: boolean): void {
-  this.mostrarOverlayCarga = state;
-
-  this.http.get<ConfiguracionFactura[]>(`${environment.apiBaseUrl}/ConfiguracionFactura/Listar`, {
-    headers: { 'x-api-key': environment.apiKey }
-  }).subscribe({
-    next: (data) => {
-      const tienePermisoListar = this.accionPermitida('listar');
-      const userId = getUserId();
-
-      const datosFiltrados = tienePermisoListar
-        ? data
-        : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
-
-      this.table.setData(datosFiltrados);
-     
-      this.tieneRegistros = datosFiltrados.length > 0;
-    },
-    error: (error) => {
-      console.error('Error al cargar los datos:', error);
-      this.mostrarOverlayCarga = false;
-      this.mostrarAlertaError = true;
-      this.mensajeError = 'Error al cargar los datos. Por favor, inténtelo de nuevo más tarde.';
-      this.table.setData([]);
-      this.tieneRegistros = false; 
-    },
-    complete: () => {
-      setTimeout(() => {
-        this.mostrarOverlayCarga = false;
-      }, 500);
-    }
-  });
-}
-  constructor(
-    public table: ReactiveTableService<ConfiguracionFactura>,
-    private http: HttpClient,
-    private router: Router,
-    private route: ActivatedRoute,
-    public floatingMenuService: FloatingMenuService
-  ) {
-    this.cargardatos(true);
+  /**
+   * Obtiene mensaje de error apropiado
+   */
+  private obtenerMensajeError(error: any): string {
+    if (error.status === 404) return 'El endpoint no fue encontrado.';
+    if (error.status === 401) return 'No autorizado. Verifica tu API Key.';
+    if (error.status === 400) return 'Petición incorrecta.';
+    if (error.status === 500) return 'Error interno del servidor.';
+    if (error.error?.message) return error.error.message;
+    return 'Error de comunicación con el servidor.';
   }
 
-  activeActionRow: number | null = null;
-  showEdit = true;
-  showDetails = true;
-  showDelete = true;
-  showCreateForm = false;
-  showEditForm = false;
-  showDetailsForm = false;
-
-  ConfiguracioFacturaEditando: ConfiguracionFactura | null = null;
-  ConfiguracioFacturaDetalle: ConfiguracionFactura | null = null;
-  ConfiguracioFacturaAEliminar: ConfiguracionFactura | null = null;
-
-  mostrarAlertaExito = false;
-  mensajeExito = '';
-  mostrarAlertaError = false;
-  mensajeError = '';
-  mostrarAlertaWarning = false;
-  mensajeWarning = '';
-
-  mostrarOverlayCarga = false;
-
-  // Método para cargar las acciones disponibles del usuario
+  /**
+   * Carga las acciones disponibles del usuario
+   */
   private cargarAccionesUsuario(): void {
-    // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
+    
     if (permisosRaw) {
       try {
         const permisos = JSON.parse(permisosRaw);
-        // Buscar el módulo (
         let modulo = null;
+        
         if (Array.isArray(permisos)) {
           modulo = permisos.find((m: any) => m.Pant_Id === 33);
         } else if (typeof permisos === 'object' && permisos !== null) {
-          // Si es objeto, buscar por clave
           modulo = permisos['Configuracion de Facturas'] || permisos['configuracion de facturas'] || null;
         }
-        if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
-          // Extraer solo el nombre de la acción
-          accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
+        
+        if (modulo?.Acciones && Array.isArray(modulo.Acciones)) {
+          accionesArray = modulo.Acciones
+            .map((a: any) => a.Accion)
+            .filter((a: any) => typeof a === 'string');
         }
       } catch (e) {
         console.error('Error al parsear permisosJson:', e);
       }
     }
-    this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
+    
+    this.accionesDisponibles = accionesArray
+      .filter(a => typeof a === 'string' && a.length > 0)
+      .map(a => a.trim().toLowerCase());
   }
 
+  /**
+   * Carga los datos desde la API
+   */
+  private cargardatos(state: boolean): void {
+    this.mostrarOverlayCarga = state;
 
+    this.http.get<ConfiguracionFactura[]>(`${environment.apiBaseUrl}/ConfiguracionFactura/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (data) => {
+        const tienePermisoListar = this.accionPermitida('listar');
+        const userId = getUserId();
 
+        const datosFiltrados = tienePermisoListar
+          ? data
+          : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
 
+        // Agregar numeración secuencial
+        datosFiltrados.forEach((configuracion, index) => {
+          configuracion.No = index + 1;
+        });
 
-
-
+        this.table.setData(datosFiltrados);
+        this.tieneRegistros = datosFiltrados.length > 0;
+      },
+      error: (error) => {
+        console.error('Error al cargar los datos:', error);
+        this.mostrarOverlayCarga = false;
+        this.mostrarMensaje('error', 'Error al cargar los datos. Por favor, inténtelo de nuevo más tarde.');
+        this.table.setData([]);
+        this.tieneRegistros = false;
+      },
+      complete: () => {
+        setTimeout(() => {
+          this.mostrarOverlayCarga = false;
+        }, 500);
+      }
+    });
+  }
 }

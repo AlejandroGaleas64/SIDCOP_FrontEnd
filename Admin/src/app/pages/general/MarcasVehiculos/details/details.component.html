@@ -18,61 +18,74 @@
       </button>
     </div>
 
-    <!-- Contenido de detalles -->
     <div *ngIf="!cargando && marcasVehiculosDetalle" class="details-content">
-      
-      <!-- Header con descripción -->
-      <div class="details-header">
-        <div class="details-title">Detalles de Marca de Vehículo</div>
-        <div class="details-id-row">
-          <div class="details-id">
-            <div class="details-id-label">Código</div>
-            <div class="details-id-value">{{ marcasVehiculosDetalle.maVe_Id || 'N/A' }}</div>
-          </div>
-          <div class="details-id">
-            <div class="details-id-label">Marca</div>
-            <div class="details-id-value">{{ marcasVehiculosDetalle.maVe_Marca || 'N/A' }}</div>
+      <div class="details-card">  
+        <div class="details-card-header">
+          <i class="ri-roadster-line"></i> <!-- Icono para marcas de vehiculos -->
+          <span>Detalles de Marca de Vehículo</span>
+        </div>
+        
+        <div class="details-card-body">
+          <div class="detail-row row">
+            <div class="col-4">
+              <div class="detail-box">
+                <div class="detail-icon">
+                  <i class="ri-hashtag"></i>
+                </div>
+                <div class="detail-info">
+                  <div class="detail-label">Código</div>
+                  <div class="detail-value">{{ marcasVehiculosDetalle.maVe_Id }}</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-4">
+              <div class="detail-box">
+                <div class="detail-icon">
+                  <i class="ri-file-list-3-line"></i>
+                </div>
+                <div class="detail-info">
+                  <div class="detail-label">Marca</div>
+                  <div class="detail-value">{{ marcasVehiculosDetalle.maVe_Marca || 'N/A' }}</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+  
       
-      <h4 class="details-title mt-4 mb-3" style="color: black;">Historial de acciones</h4>
-      
-      <!-- Tabla de auditoría -->
-      <div class="audit-table-container">
-        <div class="audit-table">
-          <div class="audit-header">
-            <div class="audit-col">Acción</div>
-            <div class="audit-col">Usuario</div>
-            <div class="audit-col">Fecha</div>
-          </div>
-        
+      <div class="historial-table">
+        <div class="historial-header">
+          <div class="historial-col">Acción</div>
+          <div class="historial-col">Usuario</div>
+          <div class="historial-col">Fecha</div>
+        </div>
         <!-- Fila de creación -->
-        <div class="audit-row">
-          <div class="audit-col">
-            <span class="audit-action">Creador</span>
+        <div class="historial-row">
+          <div class="historial-col">
+            <span>Creador</span>
           </div>
-          <div class="audit-col">
-            <span class="audit-user">{{ marcasVehiculosDetalle.usuarioCreacion || 'N/A' }}</span>
+          <div class="historial-col">
+            <span>{{ marcasVehiculosDetalle.usuarioCreacion || 'N/A' }}</span>
           </div>
-          <div class="audit-col">
-            <span class="audit-date">{{ formatearFecha(marcasVehiculosDetalle.maVe_FechaCreacion) }}</span>
+          <div class="historial-col">
+            <span>{{ formatearFecha(marcasVehiculosDetalle.maVe_FechaCreacion) }}</span>
           </div>
         </div>
-        
         <!-- Fila de modificación -->
-        <div class="audit-row">
-          <div class="audit-col">
-            <span class="audit-action">Modificación</span>
+        <div class="historial-row">
+          <div class="historial-col">
+            <span>Modificación</span>
           </div>
-          <div class="audit-col">
-            <span class="audit-user">{{ marcasVehiculosDetalle.usuarioModificacion || 'N/A' }}</span>
+          <div class="historial-col">
+            <span>{{ marcasVehiculosDetalle.usuarioModificacion || 'N/A' }}</span>
           </div>
-          <div class="audit-col">
-            <span class="audit-date">{{ formatearFecha(marcasVehiculosDetalle.maVe_FechaModificacion) }}</span>
+          <div class="historial-col">
+            <span>{{ formatearFecha(marcasVehiculosDetalle.maVe_FechaModificacion ?? null) }}</span>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+<!-- </div> -->

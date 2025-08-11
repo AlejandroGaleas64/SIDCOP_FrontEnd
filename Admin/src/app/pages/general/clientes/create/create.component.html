@@ -324,13 +324,17 @@
             <div class="d-flex align-items-center">
               <i class="ri-mail-unread-line"
                 [ngStyle]="{
-                border: '1px solid #e9ecf5',
-                backgroundColor: '#f2f3f9',
+                border: (!cliente.clie_Correo.trim() && mostrarErrores || !esCorreoValido(cliente.clie_Correo)) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!cliente.clie_Correo.trim() && mostrarErrores || !esCorreoValido(cliente.clie_Correo)) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
-              <input type="text" class="form-control" id="clienteCorreo" [(ngModel)]="cliente.clie_Correo"
-                placeholder="Ingrese el correo del cliente (opcional)" />
-            </div>
+              <input type="email" class="form-control" id="clienteCorreo" [(ngModel)]="cliente.clie_Correo"
+                placeholder="Ingrese el correo del cliente (opcional)"
+                [class.is-invalid]="cliente.clie_Correo && mostrarErrores || !esCorreoValido(cliente.clie_Correo)"/>
+              </div>
+              <div class="text-danger mt-1" *ngIf="cliente.clie_Correo && mostrarErrores || !esCorreoValido(cliente.clie_Correo)">
+                <small> Ingrese un correo válido. </small>
+              </div>
           </div>
         </div>
       </div>
@@ -473,7 +477,8 @@
             <div class="info">
               <h2 class="direccion-nombre">{{ direccion.diCl_Observaciones }}</h2>
               <p class="detalle"><i class="bx bxs-map-pin"></i> Colonia: {{ direccion.colo_Id }}</p>
-              <p class="detalle"><i class="bx bx-current-location"></i> Lat: {{ direccion.diCl_Latitud }}, Lng: {{direccion.diCl_Longitud }}</p>
+              <p class="detalle"><i class="bx bx-current-location"></i> Lat: {{ direccion.diCl_Latitud }}, Lng:
+                {{direccion.diCl_Longitud }}</p>
               <p class="detalle"><i class="bx bx-map"></i>Municipio: {{ direccion.muni_Descripcion }}</p>
             </div>
 
@@ -522,24 +527,30 @@
           <div class="mb-3">
             <label for="clienteLimiteCredito" class="form-label">Límite de Crédito</label>
             <div class="d-flex align-items-center">
-              <i class="ri-money-euro-circle-line"
+              <span
                 [ngStyle]="{
                 border: '1px solid #e9ecf5',
                 backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
-              <input type="number" class="form-control" id="clienteLimiteCredito" step="0.01"
-                [(ngModel)]="cliente.clie_LimiteCredito" placeholder="Ingrese el límite de crédito" />
+                L.
+              </span>
+              <input type="text" class="form-control" mask="separator.2" thousandSeparator=","
+                [dropSpecialCharacters]="true" [ngModel]="cliente.clie_LimiteCredito"
+                (ngModelChange)="cliente.clie_LimiteCredito = $event" placeholder="0.00" />
+
+
+
             </div>
           </div>
         </div>
+
 
         <!-- Días de Crédito-->
         <div class="col-md-6">
           <div class="mb-3">
             <label for="clienteDiasCredito" class="form-label">Días de Crédito</label>
             <div class="d-flex align-items-center">
-              <i class="ri-calendar-check-line"
+              <i class="ri-calendar-event-line"
                 [ngStyle]="{
                 border: '1px solid #e9ecf5',
                 backgroundColor: '#f2f3f9',
@@ -801,64 +812,6 @@
               </div>
             </div>
           </div>
-          <!-- Departamento -->
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label for="depa_Codigo" class="form-label">Departamento</label>
-              <span class="text-danger" *ngIf="mostrarErrores">*</span>
-              <div class="d-flex align-items-center">
-                <i class="ri-road-map-line" [ngStyle]="{
-                border: (!selectedDepaAval.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!selectedDepaAval.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
-                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-                </i>
-                <select id="depa_Codigo" name="depa_Codigo" class="form-select" [(ngModel)]="selectedDepaAval"
-                  (change)="onDepartamentoAvalChange()" [class.is-invalid]="!selectedDepaAval.trim() && mostrarErrores"
-                  required>
-                  <option value="" disabled selected>Seleccione un Departamento</option>
-                  <option *ngFor="let depa of DepartamentosAval" [value]="depa.depa_Codigo">
-                    {{ depa.depa_Descripcion }}
-                  </option>
-                </select>
-                <div *ngIf="cargando" class="form-text text-muted">
-                  Cargando Departamentos...
-                </div>
-              </div>
-              <div class="text-danger mt-1" *ngIf="!(selectedDepaAval ?? '').trim() && mostrarErrores">
-                <small>El campo Departamento es requerido</small>
-              </div>
-            </div>
-          </div>
-          <!-- Municipio -->
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label for="muni_Codigo" class="form-label">Municipio</label>
-              <span class="text-danger" *ngIf="mostrarErrores">*</span>
-              <div class="d-flex align-items-center">
-                <i class="ri-map-pin-2-line" [ngStyle]="{
-                border: (!nuevaColoniaAval.muni_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!nuevaColoniaAval.muni_Codigo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
-                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-                </i>
-                <select id="muni_Codigo" name="muni_Codigo" class="form-select"
-                  [(ngModel)]="nuevaColoniaAval.muni_Codigo" (change)="cargarColoniasAval(nuevaColoniaAval.muni_Codigo)"
-                  [class.is-invalid]="!nuevaColoniaAval.muni_Codigo.trim() && mostrarErrores" required>
-                  <option value="" disabled selected>Seleccione un Municipio</option>
-                  <option *ngFor="let muni of MunicipiosAval" [value]="muni.muni_Codigo">
-                    {{ muni.muni_Descripcion }}
-                  </option>
-                </select>
-                <div *ngIf="cargandoAval" class="form-text text-muted">
-                  Cargando Municipios...
-                </div>
-              </div>
-              <div class="text-danger mt-1" *ngIf="!(nuevaColoniaAval.muni_Codigo ?? '').trim() && mostrarErrores">
-                <small>El campo Municipio es requerido</small>
-              </div>
-            </div>
-          </div>
           <!-- Colonia -->
           <div class="col-md-6">
             <div class="mb-3">
@@ -874,7 +827,7 @@
                 <select id="colo_Id" name="colo_Id" class="form-select" [(ngModel)]="aval.colo_Id"
                   [class.is-invalid]="!aval.colo_Id && mostrarErrores" required>
                   <option value="0" disabled selected>Seleccione una Colonia</option>
-                  <option *ngFor="let colonia of ColoniasAval" [value]="colonia.colo_Id">
+                  <option *ngFor="let colonia of TodasColoniasAval" [value]="colonia.colo_Id">
                     {{ colonia.colo_Descripcion }}
                   </option>
                 </select>
@@ -1025,7 +978,8 @@
       </div>
       <hr class="custom-modal-divider" />
       <div class="modal-body custom-modal-body">
-        <app-mapa-selector (coordenadasSeleccionadas)="onCoordenadasSeleccionadas($event)"></app-mapa-selector>
+        <app-mapa-selector (coordenadasSeleccionadas)="onCoordenadasSeleccionadas($event)"
+          [mostrar]="mostrarMapa"></app-mapa-selector>
 
         <div class="row mx-lg-4 mt-4">
           <div class="col-md-6">
@@ -1040,15 +994,11 @@
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <input type="text" class="form-control" id="clienteDireccionExacta"
-                  [(ngModel)]="direccionPorCliente.diCl_Latitud" [class.is-invalid]="
-                    !direccionPorCliente.diCl_Latitud &&
-                    mostrarErrores
-                  " placeholder="Latitud" required />
+                  [(ngModel)]="direccionPorCliente.diCl_Latitud"
+                  [class.is-invalid]="!direccionPorCliente.diCl_Latitud && mostrarErrores" placeholder="Latitud"
+                  required />
               </div>
-              <div class="text-danger" *ngIf="
-                  !direccionPorCliente.diCl_Latitud &&
-                  mostrarErrores
-                ">
+              <div class="text-danger" *ngIf="!direccionPorCliente.diCl_Latitud && mostrarErrores">
                 <small>El campo Latitud es requerida</small>
               </div>
             </div>
@@ -1066,21 +1016,17 @@
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <input type="text" class="form-control" id="clienteDireccionExacta"
-                  [(ngModel)]="direccionPorCliente.diCl_Longitud" [class.is-invalid]="
-                    !direccionPorCliente.diCl_Longitud &&
-                    mostrarErrores
-                  " placeholder="Longitud" required />
+                  [(ngModel)]="direccionPorCliente.diCl_Longitud"
+                  [class.is-invalid]="!direccionPorCliente.diCl_Longitud && mostrarErrores" placeholder="Longitud"
+                  required />
               </div>
-              <div class="text-danger" *ngIf="
-                  !direccionPorCliente.diCl_Longitud &&
-                  mostrarErrores
-                ">
+              <div class="text-danger" *ngIf="!direccionPorCliente.diCl_Longitud && mostrarErrores">
                 <small>El Longitud es requerida</small>
               </div>
             </div>
           </div>
 
-          <!-- Dirección Exacta -->
+          <!-- Dirección Descripcion -->
           <div class="col-md-6">
             <div class="mb-3">
               <label for="clienteDescripcionDeDireccion" class="form-label">Descripción</label>
@@ -1093,20 +1039,17 @@
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <input type="text" class="form-control" id="clienteDescripcionDeDireccion"
-                  [(ngModel)]="direccionPorCliente.diCl_Observaciones" [class.is-invalid]="
-                    !direccionPorCliente.diCl_Observaciones.trim() &&
-                    mostrarErrores
-                  " placeholder="Ingrese la descripcion" required />
+                  [(ngModel)]="direccionPorCliente.diCl_Observaciones"
+                  [class.is-invalid]="!direccionPorCliente.diCl_Observaciones.trim() && mostrarErrores"
+                  placeholder="Ingrese la descripcion" required />
               </div>
-              <div class="text-danger" *ngIf="
-                  !direccionPorCliente.diCl_Observaciones.trim() &&
-                  mostrarErrores
-                ">
+              <div class="text-danger" *ngIf="!direccionPorCliente.diCl_Observaciones.trim() && mostrarErrores">
                 <small>El Descripción es requerida</small>
               </div>
             </div>
           </div>
 
+          <!-- Colonia -->
           <div class="col-md-6">
             <div class="mb-3">
               <label for="colo_Id" class="form-label">Colonia</label>
@@ -1125,7 +1068,7 @@
                     Seleccione una Colonia
                   </option>
                   <option *ngFor="let colonia of TodasColonias" [value]="colonia.colo_Id">
-                    {{ colonia.colo_Descripcion }} - {{ colonia.muni_Descripcion }} - {{ colonia.depa_Descripcion }}
+                    {{ colonia.colo_Descripcion }}, {{ colonia.muni_Descripcion }}, {{ colonia.depa_Descripcion }}
                   </option>
                 </select>
                 <div *ngIf="cargandoColonias" class="form-text text-muted">
@@ -1151,15 +1094,11 @@
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <input type="text" class="form-control" id="clienteDireccionExacta"
-                  [(ngModel)]="direccionPorCliente.diCl_DireccionExacta" [class.is-invalid]="
-                    !direccionPorCliente.diCl_DireccionExacta.trim() &&
-                    mostrarErrores
-                  " placeholder="Ingrese la dirección exacta" required />
+                  [(ngModel)]="direccionPorCliente.diCl_DireccionExacta"
+                  [class.is-invalid]="!direccionPorCliente.diCl_DireccionExacta.trim() && mostrarErrores"
+                  placeholder="Ingrese la dirección exacta" required />
               </div>
-              <div class="text-danger" *ngIf="
-                  !direccionPorCliente.diCl_DireccionExacta.trim() &&
-                  mostrarErrores
-                ">
+              <div class="text-danger" *ngIf="!direccionPorCliente.diCl_DireccionExacta.trim() && mostrarErrores">
                 <small>El campo Dirección Exacta es requerido</small>
               </div>
             </div>

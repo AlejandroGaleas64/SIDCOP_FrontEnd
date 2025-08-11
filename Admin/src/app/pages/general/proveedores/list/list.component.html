@@ -12,16 +12,35 @@
   <div class="col-lg-12">
     <div class="card">
       <div class="card-body">
-        <div class="d-flex justify-content-between mb-3 flex-wrap" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
-          <button *ngIf="accionPermitida('crear')" type="button" class="btn btn-primary me-2 mb-2" (click)="crear()">
-            <span class="btn-text">Nuevo</span>
-            <span class="btn-icon"><i class="ri-add-line"></i></span>
-          </button>
-          <div class="search-box mb-2">
-            <input type="text" class="form-control search" placeholder="Buscar..." [(ngModel)]="table.searchTerm" (ngModelChange)="table.setSearchTerm($event)">
-            <i class="ri-search-line search-icon"></i>
-          </div>
-        </div>
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+  <div class="d-flex align-items-center gap-2 mb-2">
+    <button *ngIf="accionPermitida('crear')" type="button" class="btn btn-primary me-2" (click)="crear()">
+      <span class="btn-text">Nuevo</span>
+      <span class="btn-icon"><i class="ri-add-line"></i></span>
+    </button>
+  </div>
+  <div class="d-flex align-items-center gap-2 mb-2 ms-auto">
+   
+    <div class="export-buttons d-flex gap-1">
+      <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarExcel()" title="Exportar a Excel">
+        <span class="btn-text">Excel</span>
+        <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
+      </button>
+      <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarPDF()" title="Exportar a PDF">
+        <span class="btn-text">PDF</span>
+        <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
+      </button>
+      <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarCSV()" title="Exportar a CSV">
+        <span class="btn-text">CSV</span>
+        <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
+      </button>
+    </div>
+     <div class="search-box me-1">
+      <input type="text" class="form-control search" placeholder="Buscar..." [(ngModel)]="table.searchTerm" (ngModelChange)="table.setSearchTerm($event)">
+      <i class="ri-search-line search-icon"></i>
+    </div>
+  </div>
+</div>
 
         <!-- Collapse para el formulario de creación -->
 <div *ngIf="showCreateForm" [@fadeExpand]>

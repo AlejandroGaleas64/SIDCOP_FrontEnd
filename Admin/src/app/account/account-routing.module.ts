@@ -7,13 +7,18 @@ import { LoginComponent } from './login/login/login.component';
 
 const routes: Routes = [
   {
-    path: 'auth', loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule)
+    path: '',
+    redirectTo: 'login',
+    pathMatch: 'full'
   },
   {
     path: 'login',
     component: LoginComponent
   },
-
+  {
+    path: 'auth',
+    loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule)
+  }
 ];
 
 @NgModule({

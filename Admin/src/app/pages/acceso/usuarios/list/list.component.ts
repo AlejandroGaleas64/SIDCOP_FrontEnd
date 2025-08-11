@@ -11,9 +11,10 @@ import { TableModule } from 'src/app/pages/table/table.module';
 import { PaginationModule } from 'ngx-bootstrap/pagination';
 import { Usuario } from 'src/app/Modelos/acceso/usuarios.Model';
 import { CreateComponent as CreateUsuarioComponent } from '../create/create.component';
-import { EditComponent as EditUsuarioComponent} from '../edit/edit.component';
+import { EditComponent as EditUsuarioComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { set } from 'lodash';
+import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
 import {
   trigger,
   state,
@@ -72,11 +73,43 @@ import {
   ]
 })
 export class ListComponent {
+  private readonly exportConfig = {
+    // Configuración básica
+    title: 'Listado de Usuarios',                    // Título del reporte
+    filename: 'Usuarios',                           // Nombre base del archivo
+    department: 'Acceso',                         // Departamento
+    additionalInfo: 'Sistema de Gestión',         // Información adicional
+
+    // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
+    columns: [
+      { key: 'No', header: 'No.', width: 3, align: 'center' as const },
+      { key: 'Usuario', header: 'Usuario', width: 50, align: 'center' as const },
+      { key: 'Rol', header: 'Rol', width: 50, align: 'center' as const },
+      { key: 'Admin', header: 'Admin', width: 40, align: 'center' as const },
+      { key: 'Empleado', header: 'Empleado', width: 40, align: 'center' as const }
+    ] as ExportColumn[],
+
+    // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
+    dataMapping: (usuario: Usuario, index: number) => ({
+      'No': usuario?.No || (index + 1),
+      'Usuario': this.limpiarTexto(usuario?.usua_Usuario),
+      'Rol': this.limpiarTexto(usuario?.role_Descripcion),
+      'Admin': this.limpiarTexto(usuario?.usua_EsAdmin ? 'Si' : 'No'),
+      'Empleado': this.limpiarTexto(usuario?.usua_EsVendedor ? 'Si' : 'No')
+      // Agregar más campos aquí según necesites:
+      // 'Campo': this.limpiarTexto(modelo?.campo),
+    })
+  };
+
   breadCrumbItems!: Array<{}>;
-  accionesDisponibles: string [] = [];
+  accionesDisponibles: string[] = [];
 
   busqueda: string = '';
   usuariosFiltrados: any[] = [];
+
+  // Estado de exportación
+  exportando = false;
+  tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
 
   confirmaciondePassword: string = '';
   usuario: Usuario = {
@@ -88,6 +121,7 @@ export class ListComponent {
     usua_IdPersona: 0,
     usua_EsVendedor: false,
     usua_EsAdmin: false,
+    usua_TienePermisos: false,
     usua_Imagen: 'assets/images/users/32/user-dummy-img.jpg',
     usua_Creacion: 0,
     usua_FechaCreacion: new Date(),
@@ -115,6 +149,192 @@ export class ListComponent {
     this.cargarDatos(true);
   }
 
+  // ===== MÉTODOS DE EXPORTACIÓN OPTIMIZADOS =====
+
+  /**
+   * Método unificado para todas las exportaciones
+   */
+  async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
+    if (this.exportando) {
+      this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
+      return;
+    }
+
+    if (!this.validarDatosParaExport()) {
+      return;
+    }
+
+    try {
+      this.exportando = true;
+      this.tipoExportacion = tipo;
+      this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
+
+      const config = this.crearConfiguracionExport();
+      let resultado;
+
+      switch (tipo) {
+        case 'excel':
+          resultado = await this.exportService.exportToExcel(config);
+          break;
+        case 'pdf':
+          resultado = await this.exportService.exportToPDF(config);
+          break;
+        case 'csv':
+          resultado = await this.exportService.exportToCSV(config);
+          break;
+      }
+
+      this.manejarResultadoExport(resultado);
+
+    } catch (error) {
+      console.error(`Error en exportación ${tipo}:`, error);
+      this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
+    } finally {
+      this.exportando = false;
+      this.tipoExportacion = null;
+    }
+  }
+
+  /**
+   * Métodos específicos para cada tipo (para usar en templates)
+   */
+  async exportarExcel(): Promise<void> {
+    await this.exportar('excel');
+  }
+
+  async exportarPDF(): Promise<void> {
+    await this.exportar('pdf');
+  }
+
+  async exportarCSV(): Promise<void> {
+    await this.exportar('csv');
+  }
+
+  /**
+   * Verifica si se puede exportar un tipo específico
+   */
+  puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
+    if (this.exportando) {
+      return tipo ? this.tipoExportacion !== tipo : false;
+    }
+    return this.usuarioGrid?.length > 0;
+  }
+
+  // ===== MÉTODOS PRIVADOS DE EXPORTACIÓN =====
+
+  /**
+   * Crea la configuración de exportación de forma dinámica
+   */
+  private crearConfiguracionExport(): ExportConfig {
+    return {
+      title: this.exportConfig.title,
+      filename: this.exportConfig.filename,
+      data: this.obtenerDatosExport(),
+      columns: this.exportConfig.columns,
+      metadata: {
+        department: this.exportConfig.department,
+        additionalInfo: this.exportConfig.additionalInfo
+      }
+    };
+  }
+
+  /**
+   * Obtiene y prepara los datos para exportación
+   */
+  private obtenerDatosExport(): any[] {
+    try {
+      const datos = this.usuarioGrid; // Use the array for cards
+
+      if (!Array.isArray(datos) || datos.length === 0) {
+        throw new Error('No hay datos disponibles para exportar');
+      }
+
+      return datos.map((modelo, index) =>
+        this.exportConfig.dataMapping.call(this, modelo, index)
+      );
+    } catch (error) {
+      console.error('Error obteniendo datos:', error);
+      throw error;
+    }
+  }
+
+
+  /**
+   * Maneja el resultado de las exportaciones
+   */
+  private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
+    if (resultado.success) {
+      this.mostrarMensaje('success', resultado.message);
+    } else {
+      this.mostrarMensaje('error', resultado.message);
+    }
+  }
+
+  /**
+   * Valida datos antes de exportar
+   */
+  private validarDatosParaExport(): boolean {
+    const datos = this.usuarioGrid;
+
+    if (!Array.isArray(datos) || datos.length === 0) {
+      this.mostrarMensaje('warning', 'No hay datos disponibles para exportar');
+      return false;
+    }
+
+    if (datos.length > 10000) {
+      const continuar = confirm(
+        `Hay ${datos.length.toLocaleString()} registros. ` +
+        'La exportación puede tomar varios minutos. ¿Desea continuar?'
+      );
+      if (!continuar) return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Limpia texto para exportación de manera más eficiente
+   */
+  private limpiarTexto(texto: any): string {
+    if (!texto) return '';
+
+    return String(texto)
+      .replace(/\s+/g, ' ')
+      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
+      .trim()
+      .substring(0, 150);
+  }
+
+  /**
+   * Sistema de mensajes mejorado con tipos adicionales
+   */
+  private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
+    this.cerrarAlerta();
+
+    const duracion = tipo === 'error' ? 5000 : 3000;
+
+    switch (tipo) {
+      case 'success':
+        this.mostrarAlertaExito = true;
+        this.mensajeExito = mensaje;
+        setTimeout(() => this.mostrarAlertaExito = false, duracion);
+        break;
+
+      case 'error':
+        this.mostrarAlertaError = true;
+        this.mensajeError = mensaje;
+        setTimeout(() => this.mostrarAlertaError = false, duracion);
+        break;
+
+      case 'warning':
+      case 'info':
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = mensaje;
+        setTimeout(() => this.mostrarAlertaWarning = false, duracion);
+        break;
+    }
+  }
+
   onDocumentClick(event: MouseEvent, rowIndex: number) {
     const target = event.target as HTMLElement;
     const dropdowns = document.querySelectorAll('.dropdown-action-list');
@@ -138,6 +358,7 @@ export class ListComponent {
 
   editar(usuario: Usuario): void {
     this.usuarioEditando = { ...usuario };
+    this.usuarioEditando.usua_IdPersona;
     this.showEditForm = true;
     this.showCreateForm = false;
     this.showDetailsForm = false;
@@ -182,7 +403,8 @@ export class ListComponent {
   contrasenaObtenida: string | null = null;
 
 
-  constructor(public table: ReactiveTableService<Usuario>, private http: HttpClient, private router: Router, private route: ActivatedRoute){
+  constructor(public table: ReactiveTableService<Usuario>, private http: HttpClient, private router: Router, private route: ActivatedRoute,
+    private exportService: ExportService) {
     this.cargarDatos(true);
   }
 
@@ -234,7 +456,7 @@ export class ListComponent {
     this.mostrarOverlayCarga = true;
 
     const apiUrl = `${environment.apiBaseUrl}/Usuarios/MostrarContrasena?usuaId=${this.usuarioMostrarClave.usua_Id}&claveSeguridad=${encodeURIComponent(this.claveSeguridad)}`;
-    
+
     this.http.get(apiUrl, {
       headers: {
         'X-Api-Key': environment.apiKey
@@ -242,7 +464,7 @@ export class ListComponent {
     }).subscribe({
       next: (response: any) => {
         this.mostrarOverlayCarga = false;
-        
+
         if (response.success && response.data) {
           if (response.data.code_Status === 1) {
             // Contraseña obtenida correctamente
@@ -293,7 +515,7 @@ export class ListComponent {
         this.mostrarAlertaExito = false;
         this.mensajeExito = '';
       }, 3000);
-    },1000);
+    }, 1000);
   }
 
   actualizarUsuario(usuario: Usuario): void {
@@ -307,15 +529,15 @@ export class ListComponent {
         this.mostrarAlertaExito = false;
         this.mensajeExito = '';
       }, 3000);
-    },1000);
+    }, 1000);
   }
 
-  restablecer(usuario: Usuario): void{
+  restablecer(usuario: Usuario): void {
     this.usuarioRestablecer = usuario;
     this.mostrarConfirmacionRestablecer = true;
     this.activeActionRow = null;
   }
-  
+
   cancelarRestablecer(): void {
     this.mostrarConfirmacionRestablecer = false;
     this.usuarioRestablecer = null;
@@ -336,7 +558,7 @@ export class ListComponent {
   }
 
   restablecerClave(): void {
-    if(!this.usuarioRestablecer) return
+    if (!this.usuarioRestablecer) return
     this.mostrarErrores = true;
     if (!this.usuario.usua_Clave.trim() || !this.confirmaciondePassword.trim()) {
       this.mostrarAlertaError = true;
@@ -360,12 +582,13 @@ export class ListComponent {
       usua_EsVendedor: false,
       usua_EsAdmin: false,
       usua_Imagen: '',
+      usua_TienePermisos: false,
       usua_Creacion: getUserId(),
       usua_FechaCreacion: new Date(),
       usua_Modificacion: getUserId(),
       usua_FechaModificacion: new Date(),
       usua_Estado: true,
-      permisosJson:"",
+      permisosJson: "",
       role_Descripcion: '',
       nombreCompleto: '',
       code_Status: 0,
@@ -413,7 +636,7 @@ export class ListComponent {
   }
 
   eliminar(): void {
-    if(!this.usuarioEliminar) return;
+    if (!this.usuarioEliminar) return;
     const usuarioEliminar: Usuario = {
       secuencia: 0,
       usua_Id: this.usuarioEliminar.usua_Id,
@@ -424,34 +647,35 @@ export class ListComponent {
       usua_EsVendedor: false,
       usua_EsAdmin: false,
       usua_Imagen: '',
+      usua_TienePermisos: false,
       usua_Creacion: getUserId(),
       usua_FechaCreacion: new Date(),
       usua_Modificacion: getUserId(),
       usua_FechaModificacion: new Date(),
       usua_Estado: true,
-      permisosJson:"",
+      permisosJson: "",
       role_Descripcion: '',
       nombreCompleto: '',
       code_Status: 0,
       message_Status: '',
     }
     this.mostrarOverlayCarga = true;
-    this.http.post(`${environment.apiBaseUrl}/Usuarios/CambiarEstado`, usuarioEliminar,{
-      headers:{
+    this.http.post(`${environment.apiBaseUrl}/Usuarios/CambiarEstado`, usuarioEliminar, {
+      headers: {
         'X-Api-Key': environment.apiKey,
         'accept': '*/*'
       }
     }).subscribe({
-      next: (response: any) =>{
-        setTimeout(() =>{
+      next: (response: any) => {
+        setTimeout(() => {
           this.mostrarOverlayCarga = false;
-          if(response.success && response.data){
-            if(response.data.code_Status === 1){
-              if(this.usuarioEliminar!.usua_Estado) {
+          if (response.success && response.data) {
+            if (response.data.code_Status === 1) {
+              if (this.usuarioEliminar!.usua_Estado) {
                 this.mensajeExito = `Usuario "${this.usuarioEliminar!.usua_Usuario}" desactivado exitosamente`;
                 this.mostrarAlertaExito = true;
               }
-              if(!this.usuarioEliminar!.usua_Estado) {
+              if (!this.usuarioEliminar!.usua_Estado) {
                 this.mensajeExito = `Usuario "${this.usuarioEliminar!.usua_Usuario}" activado exitosamente`;
                 this.mostrarAlertaExito = true;
               }
@@ -463,7 +687,7 @@ export class ListComponent {
 
               this.cargarDatos(false);
               this.cancelarEliminar();
-            }else if (response.data.code_Status === -1){
+            } else if (response.data.code_Status === -1) {
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status;
 
@@ -485,12 +709,12 @@ export class ListComponent {
 
             this.cancelarEliminar();
           }
-        },1000)
+        }, 1000)
       }
     })
   }
 
-  cerrarAlerta(): void{
+  cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
     this.mostrarAlertaError = false;
@@ -499,20 +723,20 @@ export class ListComponent {
     this.mensajeWarning = '';
   }
 
-  private cargarAccionesUsuario(): void{
+  private cargarAccionesUsuario(): void {
     const permisosRaw = localStorage.getItem('permisosJson');
     let accionesArray: string[] = [];
     if (permisosRaw) {
-      try{
+      try {
         const permisos = JSON.parse(permisosRaw);
         let modulo = null;
-        if(Array.isArray(permisos)){
-          modulo = permisos.find((m: any) => m.Pant_Id === 7);
+        if (Array.isArray(permisos)) {
+          modulo = permisos.find((m: any) => m.Pant_Id === 63);
         } else if (typeof permisos === 'object' && permisos !== null) {
           modulo = permisos['Usuarios'] || permisos['usuarios'] || null;
         }
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
-          accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a:any) => typeof a === 'string');
+          accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
         }
       } catch (e) {
         console.error('Error al parsear permisosJson:', e);
@@ -527,14 +751,24 @@ export class ListComponent {
   filtradorUsuarios(): void {
     const termino = this.busqueda.trim().toLowerCase();
     if (!termino) {
-      this.usuariosFiltrados = this.usuarios;
+      this.usuariosFiltrados = [...this.usuarioGrid];
     } else {
-      this.usuariosFiltrados = this.usuarios.filter((usuario: any) =>
+      this.usuariosFiltrados = this.usuarioGrid.filter((usuario: any) =>
         (usuario.nombreCompleto || '').toLowerCase().includes(termino) ||
         (usuario.usua_Usuario || '').toLowerCase().includes(termino) ||
         (usuario.role_Descripcion || '').toLowerCase().includes(termino)
       );
     }
+
+    this.currentPage = 1;
+
+    this.actualizarUsuariosVisibles();
+  }
+
+  private actualizarUsuariosVisibles(): void {
+    const startItem = (this.currentPage - 1) * this.itemsPerPage;
+    const endItem = this.currentPage * this.itemsPerPage;
+    this.usuarios = this.usuariosFiltrados.slice(startItem, endItem);
   }
 
   private cargarDatos(state: boolean): void {
@@ -544,10 +778,19 @@ export class ListComponent {
     }).subscribe(data => {
       setTimeout(() => {
         this.mostrarOverlayCarga = false;
-        this.usuarioGrid = data || [];
-        this.usuarios = this.usuarioGrid.slice(0, 12);
-        this.filtradorUsuarios();
-      },500);
+        const tienePermisoListar = this.accionPermitida('listar');
+        const userId = getUserId();
+
+        const datosFiltrados = tienePermisoListar
+          ? data
+          : data.filter(u => u.usua_Creacion?.toString() === userId?.toString());
+        this.usuarioGrid = datosFiltrados || [];
+        this.busqueda = '';
+        this.currentPage = 1;
+        this.itemsPerPage = 12;
+        this.usuariosFiltrados = [...this.usuarioGrid];
+        this.actualizarUsuariosVisibles();
+      }, 500);
     });
   }
 
@@ -555,21 +798,18 @@ export class ListComponent {
   itemsPerPage: number = 12;
 
   get startIndex(): number {
-    return this.usuarioGrid?.length ? ((this.currentPage - 1) * this.itemsPerPage) + 1 : 0;
+    return this.usuariosFiltrados?.length ? ((this.currentPage - 1) * this.itemsPerPage) + 1 : 0;
   }
 
   get endIndex(): number {
-    if (!this.usuarioGrid?.length) return 0;
+    if (!this.usuariosFiltrados?.length) return 0;
     const end = this.currentPage * this.itemsPerPage;
-    return end > this.usuarioGrid.length ? this.usuarioGrid.length : end;
+    return end > this.usuariosFiltrados.length ? this.usuariosFiltrados.length : end;
   }
 
   pageChanged(event: any): void {
     this.currentPage = event.page;
-    const startItem = (event.page - 1) * event.itemsPerPage;
-    const endItem = event.page * event.itemsPerPage;
-    this.usuarios = this.usuarioGrid.slice(startItem, endItem);
-    this.filtradorUsuarios();
+    this.actualizarUsuariosVisibles();
   }
 
   trackByUsuarioId(index: number, item: any): any {

@@ -1,3 +1,32 @@
 <div class="container-fluid">
+  <div class="usuario-info text-center p-4 border rounded shadow-sm bg-white">
 
+    <img
+      [src]="imagen"
+      alt="Foto de perfil"
+      width="120"
+      height="120"
+      class="rounded-circle mb-3"
+    />
+
+    <h2 class="mb-0">{{ nombres }} {{ apellidos }}</h2>
+    <small class="text-muted">{{ usuario }}</small>
+
+    <hr />
+
+    <div class="text-start">
+      <p><strong>Correo:</strong> {{ correo }}</p>
+      <p><strong>Teléfono:</strong> {{ telefono }}</p>
+      <p><strong>Código:</strong> {{ codigo }}</p>
+      <p><strong>Rol:</strong> {{ rol }} (ID: {{ rolId }})</p>
+      <p><strong>Cargo:</strong> {{ cargo }} (ID: {{ cargoId }})</p>
+      <p><strong>Sucursal:</strong> {{ sucursal }} (ID: {{ sucursalId }})</p>
+    </div>
+
+    <div class="mt-3">
+      <span *ngIf="esAdmin" class="badge bg-success me-2">Administrador</span>
+      <span *ngIf="esVendedor" class="badge bg-primary">Vendedor</span>
+    </div>
+
+  </div>
 </div>

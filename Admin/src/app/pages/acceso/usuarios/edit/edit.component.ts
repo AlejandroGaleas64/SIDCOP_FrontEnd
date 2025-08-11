@@ -5,7 +5,6 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Usuario } from 'src/app/Modelos/acceso/usuarios.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
-import { set } from 'lodash';
 
 @Component({
   selector: 'app-edit',
@@ -14,12 +13,11 @@ import { set } from 'lodash';
   templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss'
 })
-export class EditComponent implements OnChanges{
+export class EditComponent implements OnChanges {
   @Input() usuarioData: Usuario | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Usuario>();
 
-  usuarioOriginal = '';
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -43,6 +41,7 @@ export class EditComponent implements OnChanges{
     usua_EsVendedor: false,
     usua_EsAdmin: false,
     usua_Imagen: 'assets/images/users/32/user-dummy-img.jpg',
+    usua_TienePermisos: false,
     usua_Creacion: 0,
     usua_FechaCreacion: new Date(),
     usua_Modificacion: 0,
@@ -61,6 +60,40 @@ export class EditComponent implements OnChanges{
     this.cargarVendedores();
   }
 
+  usuarioOriginal: any = {};
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['usuarioData'] && changes['usuarioData'].currentValue) {
+      this.usuario = { ...changes['usuarioData'].currentValue };
+      const rolActual = this.roles.find(m => m.role_Id === this.usuario.role_Id);
+      this.usuario.role_Descripcion = rolActual ? rolActual.role_Descripcion : '';
+      const empleadoActual = this.empleados.find(m => m.empl_Id === this.usuario.usua_IdPersona);
+      this.usuario.nombreCompleto = empleadoActual ? empleadoActual.empl_Nombres + ' ' + empleadoActual.empl_Apellidos : '';
+      this.usuarioOriginal = { ...changes['usuarioData'].currentValue };
+      this.mostrarErrores = false;
+      this.cerrarAlerta();
+    }
+  }
+
+  onRolChange(event: any) {
+    const selectedId = +event.target.value;
+    const rolSeleccionado = this.roles.find(rol => rol.role_Id === selectedId);
+    if (rolSeleccionado) {
+      this.usuario.role_Descripcion = rolSeleccionado.role_Descripcion;
+    } else {
+      this.usuario.role_Descripcion = '';
+    }
+  }
+
+  onEmpleadoChange(event: any) {
+    const selectedId = +event.target.value;
+    const empleadoSeleccionado = this.empleados.find(emp => emp.empl_Id === selectedId);
+    if (empleadoSeleccionado) {
+      this.usuario.nombreCompleto = empleadoSeleccionado.empl_Nombres + ' ' + empleadoSeleccionado.empl_Apellidos;
+    } else {
+      this.usuario.nombreCompleto = '';
+    }
+  }
+
   cargarRoles() {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Roles/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -77,15 +110,6 @@ export class EditComponent implements OnChanges{
     this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => this.vendedores = data);
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['usuarioData'] && changes['usuarioData'].currentValue) {
-      this.usuario = { ...changes['usuarioData'].currentValue };
-      this.usuarioOriginal = this.usuario.usua_Usuario || '';
-      this.mostrarErrores = false;
-      this.cerrarAlerta();
-    }
   }
 
   cancelar(): void {
@@ -111,10 +135,110 @@ export class EditComponent implements OnChanges{
     this.guardar();
   }
 
+  onAdminToggle(): void {
+    if (this.usuario.usua_EsAdmin) {
+      this.usuario.role_Id = 1;
+      this.usuario.usua_IdPersona = 0;
+      this.usuario.usua_EsVendedor = false;
+    } else {
+      this.usuario.role_Id = 0;
+      this.usuario.usua_IdPersona = 0;
+    }
+  }
+
+  onVendedorToggle(): void {
+    if (!this.usuario.usua_EsVendedor) {
+      this.usuario.usua_IdPersona = 0;
+    }
+  }
+
+  cambiosDetectados: any = {};
+
+  hayDiferencias(): boolean {
+    const a = this.usuario;
+    const b = this.usuarioOriginal;
+    this.cambiosDetectados = {};
+
+    if (a.usua_Usuario !== b.usua_Usuario) {
+      this.cambiosDetectados.nombreUsuario = {
+        anterior: b.usua_Usuario,
+        nuevo: a.usua_Usuario,
+        label: 'Usuario'
+      };
+    }
+
+    if (a.usua_EsAdmin !== b.usua_EsAdmin) {
+      this.cambiosDetectados.admin = {
+        anterior: b.usua_EsAdmin ? 'Sí' : 'No',
+        nuevo: a.usua_EsAdmin ? 'Sí' : 'No',
+        label: '¿Es Administrador?'
+      };
+    }
+
+    if(a.usua_TienePermisos !== b.usua_TienePermisos) {
+      this.cambiosDetectados.permisos = {
+        anterior: b.usua_TienePermisos ? 'Sí' : 'No',
+        nuevo: a.usua_TienePermisos ? 'Sí' : 'No',
+        label: '¿Tiene Permisos?'
+      };
+    }
+    
+    if (a.usua_EsVendedor !== b.usua_EsVendedor) {
+      this.cambiosDetectados.vendedor = {
+        anterior: b.usua_EsVendedor ? 'Sí' : 'No',
+        nuevo: a.usua_EsVendedor ? 'Sí' : 'No',
+        label: '¿Es Vendedor?'
+      };
+    }
+
+    if (a.usua_Imagen !== b.usua_Imagen) {
+      this.cambiosDetectados.imagen = {
+        anterior: b.usua_Imagen,
+        nuevo: a.usua_Imagen,
+        label: 'Imagen de Usuario'
+      };
+    }
+
+    if(a.role_Id !== b.role_Id) {
+      this.cambiosDetectados.rol = {
+        anterior: b.role_Descripcion,
+        nuevo: a.role_Descripcion,
+        label: 'Rol'
+      };
+    }
+
+    if(a.usua_EsAdmin)
+    {
+      if(a.usua_IdPersona !== b.usua_IdPersona){
+        this.cambiosDetectados.empleado = {
+          anterior: b.nombreCompleto = this.empleados.find(emp => emp.empl_Id === b.usua_IdPersona)?.empl_Nombres + ' ' + this.empleados.find(emp => emp.empl_Id === b.usua_IdPersona)?.empl_Apellidos || '',
+          nuevo: a.nombreCompleto,
+          label: 'Empleado'
+        }
+      }
+    }
+
+    return Object.keys(this.cambiosDetectados).length > 0;
+  }
+
+  validarEdicion(): void {
+    this.mostrarErrores = true;
+    if (this.hayDiferencias()) {
+      this.mostrarConfirmacionEditar = true;
+    } else {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'No se han detectado cambios.';
+      setTimeout(() => this.cerrarAlerta(), 4000);
+    }
+  }
+
+  obtenerListaCambios(): any[] {
+    return Object.values(this.cambiosDetectados);
+  }
+
   guardar(): void {
     this.mostrarErrores = true;
-    if (this.usuario.usua_Usuario.trim() && this.usuario.role_Id && this.usuario.usua_IdPersona) 
-    {
+    if (this.usuario.usua_Usuario.trim() && this.usuario.role_Id && this.usuario.usua_IdPersona) {
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
 
@@ -128,25 +252,26 @@ export class EditComponent implements OnChanges{
         usua_EsVendedor: this.usuario.usua_EsVendedor,
         usua_EsAdmin: this.usuario.usua_EsAdmin,
         usua_Imagen: this.usuario.usua_Imagen,
+        usua_TienePermisos: this.usuario.usua_TienePermisos,
         usua_Creacion: getUserId(),
         usua_FechaCreacion: new Date().toISOString(),
         usua_Modificacion: getUserId(),
         usua_FechaModificacion: new Date().toISOString(),
         usua_Estado: true,
-        permisosJson:"",
+        permisosJson: "",
         role_Descripcion: '',
         nombreCompleto: '',
         code_Status: 0,
         message_Status: '',
       };
-      this.http.put<any>(`${environment.apiBaseUrl}/Usuarios/Actualizar`, usuarioGuardar,{
-        headers:{
+      this.http.put<any>(`${environment.apiBaseUrl}/Usuarios/Actualizar`, usuarioGuardar, {
+        headers: {
           'X-Api-Key': environment.apiKey,
           'Content-Type': 'application/json',
           'accept': '*/*'
         }
       }).subscribe({
-        next: (response) =>{
+        next: (response) => {
           if (response.data.code_Status === 1) {
             this.mostrarErrores = false;
             this.onSave.emit(this.usuario);
@@ -185,7 +310,6 @@ export class EditComponent implements OnChanges{
   }
 
   onImagenSeleccionada(event: any) {
-    // Obtenemos el archivo seleccionado desde el input tipo file
     const file = event.target.files[0];
 
     if (file) {
@@ -193,22 +317,20 @@ export class EditComponent implements OnChanges{
       const formData = new FormData();
       formData.append('file', file);
       formData.append('upload_preset', 'subidas_usuarios');
-      //Subidas usuarios Carpeta identificadora en Cloudinary
-      //dwiprwtmo es el nombre de la cuenta de Cloudinary
       const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
 
-      
+
       fetch(url, {
         method: 'POST',
         body: formData
       })
-      .then(response => response.json())
-      .then(data => {
-        this.usuario.usua_Imagen = data.secure_url;
-      })
-      .catch(error => {
-        console.error('Error al subir la imagen a Cloudinary:', error);
-      });
+        .then(response => response.json())
+        .then(data => {
+          this.usuario.usua_Imagen = data.secure_url;
+        })
+        .catch(error => {
+          console.error('Error al subir la imagen a Cloudinary:', error);
+        });
     }
   }
 

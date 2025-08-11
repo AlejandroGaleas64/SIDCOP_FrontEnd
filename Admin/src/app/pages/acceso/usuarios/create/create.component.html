@@ -24,6 +24,8 @@
 
   <div class="container-fluid">
     <div class="row align-items-center">
+
+      <!-- Imagen de Usuario -->
       <div class="col-12 col-md-4 d-flex justify-content-center align-items-center mb-4 mb-md-0"
         style="min-height: 220px;">
         <div
@@ -33,10 +35,9 @@
             style="opacity: 0; position: absolute; width: 100%; height: 100%; left: 0; top: 0; cursor: pointer; z-index: 2;" />
           <div *ngIf="!usuario.usua_Imagen"
             style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1;">
-            <i class="ri-camera-line" style="font-size: 2rem; color: #878c9c;"></i>
           </div>
           <img *ngIf="usuario.usua_Imagen" [src]="usuario.usua_Imagen" alt="Previsualización"
-            style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; padding: 1em;" />
+            style="width: 100%; height: 100%; object-fit: cover; z-index: 0;" />
         </div>
       </div>
 
@@ -78,8 +79,29 @@
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <input type="password" class="form-control" id="usua_Clave" [(ngModel)]="usuario.usua_Clave"
+                  (input)="corroborarClave(usuario.usua_Clave)"
+                  (keydown.space)="$event.preventDefault()"
                   [class.is-invalid]="!usuario.usua_Clave.trim() && mostrarErrores" placeholder="Ingrese la contraseña"
                   required />
+              </div>
+              <div class="password-strength-bar mt-2" *ngIf="usuario.usua_Clave">
+                <div class="progress" style="height: 8px;">
+                  <div class="progress-bar"
+                    [ngClass]="{
+                      'bg-danger': claveDatos === 1,
+                      'bg-warning': claveDatos === 2,
+                      'bg-success': claveDatos === 3
+                    }"
+                    [style.width.%]="claveDatos * 33.33">
+                  </div>
+                </div>
+                <small class="d-block mt-1 text-muted text-end" [ngClass]="{
+                  'text-danger': claveDatos === 1,
+                  'text-warning': claveDatos === 2,
+                  'text-success': claveDatos === 3
+                }">
+                  {{ claveMensaje }}
+                </small>
               </div>
               <div class="text-danger mt-1" *ngIf="!usuario.usua_Clave.trim() && mostrarErrores">
                 <small>El campo Contraseña es requerido</small>
@@ -100,7 +122,9 @@
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <ng-container *ngIf="usuario.usua_EsAdmin; else selectRol">
-                  <div class="form-control-plaintext ps-3" style="border-radius: 0.50rem;border: 1px solid #dde1ef;background-color: #f2f3f9d9;">Administrador</div>
+                  <div class="form-control-plaintext ps-3"
+                    style="border-radius: 0.50rem;border: 1px solid #dde1ef;background-color: #f2f3f9d9;">Administrador
+                  </div>
                 </ng-container>
 
                 <ng-template #selectRol>
@@ -171,6 +195,7 @@
 
               <ng-template #adminEmpleado>
                 <label class="form-label">Empleado</label>
+                <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
                 <div class="d-flex align-items-center">
                   <i class="ri-user-settings-line"
                     [ngStyle]="{
@@ -196,9 +221,23 @@
             <div class="mb-3">
               <label class="form-label">¿Es Administrador?</label>
               <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="usua_EsAdmin" [(ngModel)]="usuario.usua_EsAdmin" (change)="onAdminToggle()" />
+                <input class="form-check-input" type="checkbox" id="usua_EsAdmin" [(ngModel)]="usuario.usua_EsAdmin"
+                  (change)="onAdminToggle()" />
                 <label class="form-check-label" for="usua_EsAdmin">
                   {{ usuario.usua_EsAdmin ? 'Sí' : 'No' }}
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tiene Permisos -->
+          <div class="col-12 col-md-6">
+            <div class="mb-3">
+              <label class="form-label">¿Tiene Permisos?</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="usua_TienePermisos" [(ngModel)]="usuario.usua_TienePermisos"/>
+                <label class="form-check-label" for="usua_TienePermisos">
+                  {{ usuario.usua_TienePermisos ? 'Sí' : 'No' }}
                 </label>
               </div>
             </div>

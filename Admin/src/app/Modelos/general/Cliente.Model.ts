@@ -45,6 +45,7 @@ export class Cliente{
     message_Status: string = '';
     // usuarioCreacion: string = '';
     // usuarioModificacion: string = '';
+    No?: number = 0;
     
     constructor(init?: Partial<Cliente>) {
     Object.assign(this, init);

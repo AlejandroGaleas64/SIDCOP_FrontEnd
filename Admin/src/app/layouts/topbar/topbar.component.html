@@ -28,21 +28,21 @@
                 <div dropdown class="dropdown ms-sm-3 header-item topbar-user">
                     <button dropdownToggle type="button" class="btn shadow-none" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="d-flex align-items-center">
-                            <img class="rounded-circle header-profile-user" src="assets/images/users/32/avatar-1.jpg" alt="Header Avatar">
+                            <img class="rounded-circle header-profile-user" [src]="userData?.usua_Imagen || 'assets/images/users/32/avatar-1.jpg'" alt="Avatar de Usuario">
                             <span class="text-start ms-xl-2">
-                                <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">{{userData?.first_name}} {{userData?.last_name}}</span>
-                                <span class="d-none d-xl-block ms-1 fs-sm user-name-sub-text">{{userData?.usua_Rol || 'Usuario'}}</span>
+                                <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">{{userData?.usua_Usuario}}</span>
+                                <span class="d-none d-xl-block ms-1 fs-sm user-name-sub-text">{{userData?.cargo || userData?.role_Descripcion || ''}}</span>
                             </span>
                         </span>
                     </button>
                     <div *dropdownMenu class="dropdown-menu dropdown-menu-end">
                         <!-- item-->
-                        <h6 class="dropdown-header"> Bienvenido</h6>
-                        <a class="dropdown-item" routerLink="/pages/profile"><i class="mdi mdi-account-circle text-muted fs-lg align-middle me-1"></i> <span class="align-middle"> Profile</span></a>
-                        <a class="dropdown-item" routerLink="/pages/faqs"><i class="mdi mdi-lifebuoy text-muted fs-lg align-middle me-1"></i> <span class="align-middle"> Help</span></a>
+                        <h6 class="dropdown-header">Bienvenido</h6>
+                        <a class="dropdown-item" routerLink="/profile"><i class="ri-user-line text-muted fs-lg align-middle me-1"></i> <span class="align-middle">Mi Perfil</span></a>
+                        <a class="dropdown-item" routerLink="/faqs"><i class="ri-question-line text-muted fs-lg align-middle me-1"></i> <span class="align-middle">Ayuda</span></a>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" routerLink="/pages/profile-settings"><i class="mdi mdi-cog-outline text-muted fs-lg align-middle me-1"></i> <span class="align-middle"> Settings</span></a>
-                        <a class="dropdown-item" href="javascript: void(0);" (click)="logout()"><i class="mdi mdi-logout text-muted fs-lg align-middle me-1"></i> <span class="align-middle" data-key="t-logout"> Logout</span></a>
+                        <a class="dropdown-item" routerLink="/profile-settings"><i class="ri-settings-3-line text-muted fs-lg align-middle me-1"></i> <span class="align-middle">Configuración</span></a>
+                        <a class="dropdown-item" href="javascript: void(0);" (click)="logout()"><i class="ri-logout-box-line text-muted fs-lg align-middle me-1"></i> <span class="align-middle">Cerrar Sesión</span></a>
                     </div>
                 </div>
             </div>
@@ -63,13 +63,16 @@
                         <i class="bi bi-trash display-4"></i>
                     </div>
                     <div class="mt-4 fs-base">
-                        <h4 class="mb-1">Are you sure ?</h4>
-                        <p class="text-muted mx-4 mb-0">Are you sure you want to remove this Notification ?</p>
+                        <h4 class="mb-1">¿Está seguro?</h4>
+                        <p class="text-muted mx-4 mb-0">¿Está seguro que desea eliminar esta notificación?</p>
                     </div>
                 </div>
                 <div class="d-flex gap-2 justify-content-center mt-4 mb-2">
-                    <button type="button" class="btn w-sm btn-light" (click)="removeNotificationModal.hide()">Close</button>
-                    <button type="button" class="btn w-sm btn-danger" id="delete-notification" (click)="notificationDelete()">Yes, Delete It!</button>
+                    <button type="button" class="btn w-sm btn-light" (click)="removeNotificationModal.hide()">Cancelar</button>
+                    <button type="button" class="btn w-sm btn-danger" id="delete-notification" (click)="notificationDelete()">
+                        <span class="btn-text">Sí, eliminar</span>
+                        <span class="btn-icon"><i class="ri-delete-bin-line"></i></span>
+                    </button>
                 </div>
             </div>
 
@@ -90,13 +93,18 @@
                         <i class="bi bi-trash display-5"></i>
                     </div>
                     <div class="mt-4">
-                        <h4>Are you sure ?</h4>
-                        <p class="text-muted mx-4 mb-0">Are you sure you want to remove this product ?</p>
+                        <h4>¿Está seguro?</h4>
+                        <p class="text-muted mx-4 mb-0">¿Está seguro que desea eliminar este producto?</p>
                     </div>
                 </div>
                 <div class="d-flex gap-2 justify-content-center mt-4 mb-2">
-                    <button type="button" class="btn w-sm btn-light" (click)="removeCartModal.hide()">Close</button>
-                    <button type="button" class="btn w-sm btn-danger" id="remove-cartproduct" (click)="confirmDelete()">Yes, Delete It!</button>
+                    <button type="button" class="btn w-sm btn-light" (click)="removeCartModal.hide()">
+                        <span class="btn-text">Cancelar</span>
+                    </button>
+                    <button type="button" class="btn w-sm btn-danger" id="remove-cartproduct" (click)="confirmDelete()">
+                        <span class="btn-text">Sí, eliminar</span>
+                        <span class="btn-icon"><i class="ri-delete-bin-line"></i></span>
+                    </button>
                 </div>
             </div>
 

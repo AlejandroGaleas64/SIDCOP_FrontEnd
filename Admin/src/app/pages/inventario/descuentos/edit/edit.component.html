@@ -332,26 +332,64 @@
   
   
         <div *ngIf="activeTab === 3">
-      <div class="row mx-lg-4">
-                <div class="col-md-12">
-                  <label  class="form-label">Aplicar para:</label>
-                  <div class="mb-3">
-                    <div *ngFor="let grupo of clientesAgrupados">
-            <!-- Checkbox principal por canal -->
-                      <div class="form-check canal-checkbox mb-2">
-                        <input
-                          type="checkbox"
-                          class="form-check-input"
-                          [id]="'canal-' + grupo.canal"
-                          [checked]="estanTodosSeleccionados(grupo)"
-                          (change)="seleccionarTodosClientes(grupo, $any($event.target).checked)"
+          <div class="row mx-lg-4">
+            <div class="col-md-12">
+              <label  class="form-label">Aplicar para:</label>
+              <div class="mb-3">
+                <div *ngFor="let grupo of clientesAgrupados" class="canal-section mb-4">
+                  <!-- Encabezado del canal con checkbox y botón de colapso -->
+                  <div class="canal-header d-flex align-items-center justify-content-between p-3 bg-light border rounded">
+                    <div class="d-flex align-items-center">
+                      <input
+                        type="checkbox"
+                        class="form-check-input me-2"
+                        [id]="'canal-' + grupo.canal"
+                        [checked]="estanTodosSeleccionados(grupo)"
+                        (change)="seleccionarTodosClientes(grupo, $any($event.target).checked)"
+                      />
+                      <label class="form-check-label fw-bold mb-0" [for]="'canal-' + grupo.canal">
+                        {{ grupo.canal }} ({{ grupo.clientes.length }} clientes)
+                      </label>
+                    </div>
+                    <button 
+                      type="button" 
+                      class="btn btn-sm "
+                      (click)="toggleCanal(grupo)"
+                      [attr.aria-expanded]="!grupo.collapsed"
+                    >
+                      <i class="ri-arrow-down-s-line" [class.rotate-180]="!grupo.collapsed"></i>
+                      
+                    </button>
+                  </div>
+
+                  <!-- Contenido colapsable del canal -->
+                  <div class="canal-content" [class.d-none]="grupo.collapsed">
+                    <!-- Buscador individual por canal -->
+                    <div class="p-3 border-start border-end">
+                      <div class="input-group input-group-sm mb-3">
+                        <span class="input-group-text">
+                          <i class="ri-search-line"></i>
+                        </span>
+                        <input 
+                          type="text" 
+                          class="form-control" 
+                          placeholder="Buscar clientes en {{ grupo.canal }}..."
+                          [(ngModel)]="grupo.filtro"
                         />
-                        <label class="form-check-label fw-bold" [for]="'canal-' + grupo.canal">
-                          {{ grupo.canal }}
-                        </label>
+                        <button 
+                          class="btn btn-outline-secondary" 
+                          type="button"
+                          (click)="grupo.filtro = ''"
+                          [disabled]="!grupo.filtro"
+                        >
+                          <i class="ri-close-line"></i>
+                        </button>
                       </div>
-            <!-- Checkboxes de clientes -->
-                      <div class="d-flex flex-wrap gap-3 mb-4">
+                    </div>
+
+                    <!-- Lista de clientes -->
+                    <div class="p-3 border-start border-end border-bottom rounded-bottom">
+                      <div class="d-flex flex-wrap gap-3" *ngIf="getClientesFiltrados(grupo).length > 0; else noClientes">
                         <div
                           class="form-check me-3"
                           *ngFor="let cliente of getClientesFiltrados(grupo)"
@@ -368,9 +406,17 @@
                           </label>
                         </div>
                       </div>
+                      <ng-template #noClientes>
+                        <div class="text-muted text-center py-3">
+                          <i class="ri-search-line me-2"></i>
+                          No se encontraron clientes que coincidan con "{{ grupo.filtro }}"
+                        </div>
+                      </ng-template>
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
            
                <div class="row mx-lg-4 gap-3">
         <div class="d-flex justify-content-between">
@@ -464,34 +510,44 @@
 
                 <div class="col-md-3">
                   <label class="form-label">Valor<span class="text-danger">*</span></label>
+                  <div class="mb-2" *ngIf="descuento.desc_Tipo !== null">
+                    <small class="text-muted">
+                      <i class="ri-information-line me-1"></i>
+                      Máximo permitido: {{ valorMaximoPermitido }}
+                    </small>
+                  </div>
                   <div class="mb-3">
                 <div class="d-flex align-items-center">
-                   <i class="ri-money-dollar-circle-line" [ngStyle]="{
-                border: '1px solid #e9ecf5',
-                backgroundColor: '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
-                  <input type="number" 
-                  class="form-control" 
-                  [(ngModel)]="escala.deEs_Valor" 
-                  name="valor{{i}}" 
-                  required 
-                  (ngModelChange)="limitarValor($event, escala)"
-                  [class.is-invalid]="validado == false || i > 0 && escala.deEs_Valor <= escalas[i - 1].deEs_Valor" 
-                  [max]="999"
-                  >
+                  <i class="ri-coin-fill" [ngStyle]="{
+                    border: (!escala.deEs_Valor) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                    backgroundColor: (!escala.deEs_Valor) ? '#fff5f6' : '#f2f3f9',
+                    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                  </i>
+                   <input type="text" class="form-control"
+                      currencyMask [options]="{ prefix: 'L. ', thousands: ',', decimal: '.', precision: 2 }"
+                       [(ngModel)]="escala.deEs_Valor" name="valor{{i}}" 
+                       required 
+                       (ngModelChange)="limitarValor($event, escala)"
+                       [class.is-invalid]="validado == false || i > 0 && escala.deEs_Valor <= escalas[i - 1].deEs_Valor" 
+                       [max]="999"  />
                   
                 </div>
                 
               </div>
-              <div class="text-danger mt-0 error-message-container" >
+                   <div class="text-danger mt-0 error-message-container" >
                     <small *ngIf="i > 0 && escala.deEs_Valor <= escalas[i - 1].deEs_Valor">El valor debe ser mayor al valor anterior</small>
+                    <small *ngIf="escala.deEs_Valor >= this.valorMaximoNumerico">El valor no puede ser mayor a ({{ valorMaximoPermitido }})</small>
                 </div>
+                
               </div>
+
+              
 
               <div *ngIf="!validado" class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
                 <i class="ri-alert-line me-3 align-middle fs-lg"></i>
-                <strong>¡Atención!</strong> No se puede poner un valor arriba de 100 si es por porcentaje
+                <strong>¡Atención!</strong> 
+                <span *ngIf="descuento.desc_Tipo === false">No se puede poner un valor arriba de 100% para descuentos por porcentaje</span>
+                <span *ngIf="descuento.desc_Tipo === true">El valor no puede ser mayor al precio más bajo de los items seleccionados ({{ valorMaximoPermitido }})</span>
                 <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
               </div>
 
@@ -539,7 +595,7 @@
           class="btn btn-primary  
           right ms-auto nexttab
             nexttab" data-nexttab="steparrow-description-info-tab" 
-            [disabled]="!validado"
+             [disabled]="!validado || !puedeAgregarNuevaEscala()"
             >
              <span class="btn-text">Guardar</span>
             <span class="btn-icon"><i class="ri-save-line label-icon align-middle fs-16 ms-2"></i></span>

@@ -92,14 +92,14 @@ export class LoginComponent {
         this.isLoading = false;
         
         // Manejar diferentes tipos de errores usando la interfaz DataResponse
-        if (error && error.error) {
+        if (error) {
           // Mapear la respuesta de error usando la interfaz DataResponse
-          const errorResponse: DataResponse = error.error;
+          const errorResponse: DataResponse = error;
           
-          if (errorResponse.code_Status === -1) {
+          if (error && error.message && typeof error.message === 'string' && error.message.includes('-1')) {
             // Usuario inexistente o inactivo
             this.alertType = 'warning';
-            this.alertMessage = errorResponse.message_Status || 'Usuario inexistente o inactivo.';
+            this.alertMessage = 'Usuario inexistente o inactivo.';
           } else if (errorResponse.code_Status === 0) {
             // Error general al iniciar sesión
             this.alertType = 'danger';
@@ -112,7 +112,7 @@ export class LoginComponent {
         } else {
           // Error genérico si no hay estructura de error esperada
           this.alertType = 'danger';
-          this.alertMessage = error.message || 'Error al iniciar sesión';
+          this.alertMessage = 'Error al iniciar sesión';
         }
         
         this.showAlert = true;

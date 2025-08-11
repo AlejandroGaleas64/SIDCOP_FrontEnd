@@ -49,7 +49,7 @@ export function createTranslateLoader(http: HttpClient): any {
         AuthlayoutComponent
     ],
     bootstrap: [AppComponent], imports: [TranslateModule.forRoot({
-            defaultLanguage: 'es',
+            defaultLanguage: 'sp',
             loader: {
                 provide: TranslateLoader,
                 useFactory: (createTranslateLoader),

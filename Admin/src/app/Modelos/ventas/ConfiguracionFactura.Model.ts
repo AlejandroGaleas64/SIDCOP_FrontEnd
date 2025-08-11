@@ -17,6 +17,8 @@ export class ConfiguracionFactura {
 
   //not mapped
   secuencia?: number;
+  no?: number;
+  No?: number;
   colo_Descripcion: string = '';
   muni_Codigo: string = '';
   muni_Descripcion: string = '';

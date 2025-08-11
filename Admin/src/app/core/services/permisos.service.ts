@@ -66,7 +66,7 @@ export class PermisosService {
     
     // Verificar si es un módulo padre (IDs 1-5 según la tabla de pantallas)
     // Los módulos padres se permiten si el usuario tiene acceso a cualquier pantalla hija
-    if (idPantalla >= 1 && idPantalla <= 5) {
+    if (idPantalla >= 1 && idPantalla <= 7) {
       const permisos = this.obtenerPermisos();
       if (!permisos) return false;
       
@@ -92,6 +92,8 @@ export class PermisosService {
     }
     
     // Verificar si tiene el permiso exacto para esta pantalla
+    // Incluso si la pantalla no tiene acciones definidas, debe permitir el acceso
+    // si el ID de la pantalla está en la lista de permisos
     const tienePermiso = PermisosHelper.tienePantallaPermiso(permisos, idPantalla);
     return tienePermiso;
   }
@@ -117,11 +119,13 @@ export class PermisosService {
   private getPantallasHijas(idModuloPadre: number): number[] {
     // Mapa de módulos padres y sus pantallas hijas según la tabla de pantallas
     const mapaPantallas: Record<number, number[]> = {
-      1: [6, 7],                                // Acceso: Roles, Usuarios
+      1: [62, 63],                                // Acceso: Roles, Usuarios
       2: [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 45], // General
-      3: [21, 22, 23, 24, 25, 26, 27],        // Inventario
+      3: [21, 22, 23, 24, 25, 26, 27,61],        // Inventario
       4: [28, 29, 30, 31],                     // Logística
-      5: [32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43] // Ventas
+      5: [32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43], // Ventas
+      6: [],
+      7: [61]
     };
     
     return mapaPantallas[idModuloPadre] || [];

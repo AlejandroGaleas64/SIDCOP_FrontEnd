@@ -21,12 +21,13 @@
   <div *ngIf="!cargando && clienteDetalle" class="details-content">
     <div class="row g-4 align-items-stretch">
       <!-- Card izquierda: Imagen negocio + nombre -->
-      <div class="col-8 mx-auto">
-        <div class="card customer-photo-card-modern">
+       <span style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; font-size: 38px; text-align: center; color: #303d7d"> Información del Negocio </span>
+      <div class="col-5">
+        <div class="card-image-customer customer-photo-card-modern">
           <ng-container *ngIf="clienteDetalle?.clie_ImagenDelNegocio;">
             <div class="customer-img-container">
               <img [src]="clienteDetalle.clie_ImagenDelNegocio" alt="Imagen del negocio"
-                class="customer-img-modern customer-img-zoomout" (load)="imgLoaded = true" [class.loaded]="imgLoaded" />
+                class="customer-img-modern" (load)="imgLoaded = true" [class.loaded]="imgLoaded" />
             </div>
           </ng-container>
           <ng-template #noImage>
@@ -41,6 +42,13 @@
             {{ clienteDetalle.clie_NombreNegocio }}
           </div>
         </div>
+      </div>
+      <div class="col-6 mapa-derecha card-mapa-card-custom">
+        <div class="card h-100 rounded-4"> 
+          <div class="card-body h-100 p-0">
+            <app-mapa-selector [puntosVista]="puntosVista" [mostrar]="true" [mostrarPuntos]="true"></app-mapa-selector>
+          </div>
+        </div> 
       </div>
 
       <!-- Card derecha: Detalles del cliente -->
@@ -248,9 +256,9 @@
 
     <div class="row g-3">
       <div [ngClass]="{
-      'col-12': direcciones.length === 1,
-      'col-12 col-lg-6': direcciones.length > 1
-    }" *ngFor="let direccion of direcciones">
+          'col-12': direcciones.length === 1,
+          'col-12 col-lg-6': direcciones.length > 1
+        }" *ngFor="let direccion of direcciones">
         <div class="card h-100 shadow-sm employee-details-card">
           <div class="card-header d-flex align-items-center rounded-top details-header-custom">
             <i class="ri-user-3-line me-2 fs-4"></i>
@@ -333,119 +341,143 @@
 
     <br>
     <!-- Avales -->
-    <div class="row g-3">
-      <div [ngClass]="{
-      'col-12': avales.length === 1,
-      'col-12 col-lg-6': avales.length > 1
-    }" *ngFor="let aval of avales">
-        <div class="card h-100 shadow-sm employee-details-card">
+    <!-- Avales dentro de la card de Crédito Solicitado y Avales-->
+    <div class="row g-3"
+      *ngIf="clienteDetalle.clie_Saldo && clienteDetalle.clie_LimiteCredito && clienteDetalle.clie_DiasCredito">
+      <div class="col-12">
+        <div class="card shadow-sm employee-details-card">
           <div class="card-header d-flex align-items-center rounded-top details-header-custom">
-            <i class="ri-parent-line me-2 fs-4"></i>
-            <h4 class="mb-0" style="color: #303d7d">
-              {{ avales.length > 1 ? 'Avales Asociados' : 'Aval Asociado' }}
-            </h4>
+            <i class="ri-bank-card-line me-2 fs-4"></i>
+            <h4 class="mb-0" style="color: #303d7d">Crédito Solicitado y Avales</h4>
           </div>
           <div class="card-body position-relative">
-            <div class="col-12 mb-3">
-              <div class="d-flex align-items-center">
-                <div class="detail-icon bg-dark-blue text-white me-2">
-                  <i class="ri-hashtag"></i>
+            <div class="row text-center g-4 col-12 mb-4">
+              <div class="col-4">
+                <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
+                  <span> L. </span>
                 </div>
-                <div>
-                  <div class="detail-label">Nombre Completo</div>
-                  <div class="detail-value fw-bold text-muted" style="font-size: 1.2em">
-                    {{ aval.aval_Nombres }} {{ aval.aval_Apellidos }}
-                  </div>
+                <div class="detail-label">Saldo</div>
+                <div class="detail-value fw-bold text-break small">
+                  {{ clienteDetalle.clie_Saldo | currency:'L. ':'symbol':'1.2-2' }}
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
+                  <i class="ri-bank-card-line"></i>
+                </div>
+                <div class="detail-label">Límite de Crédito</div>
+                <div class="detail-value fw-bold text-break small">
+                  {{ clienteDetalle.clie_LimiteCredito | currency:'L. ':'symbol':'1.2-2' }}
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
+                  <i class=" ri-calendar-event-line"></i>
+                </div>
+                <div class="detail-label">Días de Crédito</div>
+                <div class="detail-value fw-bold text-break small">
+                  {{ clienteDetalle.clie_DiasCredito }} días
                 </div>
               </div>
             </div>
-            <hr />
-            <div class="row text-center g-4 col-12">
-              <div class="col-4">
-                <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
-                  <i class="ri-parent-line"></i>
-                </div>
-                <div class="detail-label">Parentesco</div>
-                <div class="detail-value fw-bold text-break small">
-                  {{ aval.pare_Descripcion }}
-                </div>
+            <!-- Avales Asociados sin card propia -->
+            <div class="avales-section-bordered mt-4" style="border:none; box-shadow:none;">
+              <div class="align-items-center rounded-top details-header-custom" style="border-bottom:none;">
+                <i class="ri-parent-line me-2 fs-4"></i>
+                <h4 class="mb-0" style="color: #303d7d">
+                  {{ avales.length > 1 ? 'Avales Asociados' : 'Aval Asociado' }}
+                </h4>
               </div>
-
-              <div class="col-4">
-                <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
-                  <i class="ri-passport-line"></i>
-                </div>
-                <div class="detail-label">DNI</div>
-                <div class="detail-value fw-bold text-break small">
-                  {{ aval.aval_DNI }}
-                </div>
-              </div>
-              <div class="col-4">
-                <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
-                  <i class="ri-map-pin-line"></i>
-                </div>
-                <div class="detail-label">Dirección Exacta</div>
-                <div class="detail-value fw-bold text-break small">
-                  {{ aval.aval_DireccionExacta }}
-                </div>
-              </div>
-              <div class="col-4">
-                <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
-                  <i class="ri-community-line"></i>
-                </div>
-                <div class="detail-label">Colonia</div>
-                <div class="detail-value fw-bold text-break small">
-                  {{ aval.colo_Descripcion }}
-                </div>
-              </div>
-
-              <div class="col-4">
-                <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
-                  <i class="ri-road-map-line"></i>
-                </div>
-                <div class="detail-label">Municipio</div>
-                <div class="detail-value fw-bold text-break small">
-                  {{ aval.muni_Descripcion }}
-                </div>
-              </div>
-
-              <div class="col-4">
-                <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
-                  <i class="ri-road-map-line"></i>
-                </div>
-                <div class="detail-label">Departamento</div>
-                <div class="detail-value fw-bold text-break small">
-                  {{ aval.depa_Descripcion }}
-                </div>
-              </div>
-
-              <div class="col-4">
-                <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
-                  <i class="ri-phone-line"></i>
-                </div>
-                <div class="detail-label">Teléfono</div>
-                <div class="detail-value fw-bold text-break small">
-                  {{ aval.aval_Telefono }}
-                </div>
-              </div>
-
-              <div class="col-4">
-                <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
-                  <i class="ri-community-line"></i>
-                </div>
-                <div class="detail-label">Tipo de Vivienda</div>
-                <div class="detail-value fw-bold text-break small">
-                  {{ aval.tiVi_Descripcion }}
-                </div>
-              </div>
-
-              <div class="col-4">
-                <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
-                  <i class="ri-hand-heart-line"></i>
-                </div>
-                <div class="detail-label">Estado Civil</div>
-                <div class="detail-value fw-bold text-break small">
-                  {{ aval.esCv_Descripcion }}
+              <div class="aval-divider-high"></div>
+              <div class="avales-section-body position-relative">
+                <div class="row g-3">
+                  <ng-container *ngFor="let aval of avales; let last = last">
+                    <div class="col-12 col-lg-6">
+                      <div class="avales-datos p-3">
+                        <div class="col-12 mb-3">
+                          <div class="d-flex align-items-center">
+                            <div class="detail-icon bg-dark-blue text-white me-2">
+                              <i class="ri-hashtag"></i>
+                            </div>
+                            <div>
+                              <div class="detail-label">Nombre Completo</div>
+                              <div class="detail-value fw-bold text-muted" style="font-size: 1.2em">
+                                {{ aval.aval_Nombres }} {{ aval.aval_Apellidos }}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <hr />
+                        <div class="row text-center g-4 col-12">
+                          <div class="col-4">
+                            <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
+                              <i class="ri-parent-line"></i>
+                            </div>
+                            <div class="detail-label">Parentesco</div>
+                            <div class="detail-value fw-bold text-break small">
+                              {{ aval.pare_Descripcion }}
+                            </div>
+                          </div>
+                          <div class="col-4">
+                            <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
+                              <i class="ri-passport-line"></i>
+                            </div>
+                            <div class="detail-label">DNI</div>
+                            <div class="detail-value fw-bold text-break small">
+                              {{ aval.aval_DNI }}
+                            </div>
+                          </div>
+                          <div class="col-4">
+                            <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
+                              <i class="ri-map-pin-line"></i>
+                            </div>
+                            <div class="detail-label">Dirección Exacta</div>
+                            <div class="detail-value fw-bold text-break small">
+                              {{ aval.aval_DireccionExacta }}
+                            </div>
+                          </div>
+                          <div class="col-4">
+                            <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
+                              <i class="ri-community-line"></i>
+                            </div>
+                            <div class="detail-label">Colonia</div>
+                            <div class="detail-value fw-bold text-break small">
+                              {{ aval.colo_Descripcion }}
+                            </div>
+                          </div>
+                          <div class="col-4">
+                            <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
+                              <i class="ri-phone-line"></i>
+                            </div>
+                            <div class="detail-label">Teléfono</div>
+                            <div class="detail-value fw-bold text-break small">
+                              {{ aval.aval_Telefono }}
+                            </div>
+                          </div>
+                          <div class="col-4">
+                            <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
+                              <i class="ri-community-line"></i>
+                            </div>
+                            <div class="detail-label">Tipo de Vivienda</div>
+                            <div class="detail-value fw-bold text-break small">
+                              {{ aval.tiVi_Descripcion }}
+                            </div>
+                          </div>
+                          <div class="col-4">
+                            <div class="detail-icon bg-dark-blue text-white mb-2 mx-auto">
+                              <i class="ri-hand-heart-line"></i>
+                            </div>
+                            <div class="detail-label">Estado Civil</div>
+                            <div class="detail-value fw-bold text-break small">
+                              {{ aval.esCv_Descripcion }}
+                            </div>
+                          </div>
+                        </div>
+                        <!-- Línea divisoria alta entre avales -->
+                        <div *ngIf="!last" class="aval-divider-high"></div>
+                      </div>
+                    </div>
+                  </ng-container>
                 </div>
               </div>
             </div>
@@ -453,6 +485,8 @@
         </div>
       </div>
     </div>
+
+    <!-- <app-mapa-selector [puntosVista]="puntosVista" [mostrar]="true"></app-mapa-selector> -->
 
     <!-- Historial de auditoría -->
     <h4 class="details-title mt-4 mb-3" style="color: black">

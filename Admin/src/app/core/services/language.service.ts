@@ -20,7 +20,7 @@ export class LanguageService {
     else {
       browserLang = translate.getBrowserLang();
     }
-    translate.use(browserLang.match(/ar|ch|en|fr|gr|it|ru|sp/) ? browserLang : 'en');
+    translate.use(browserLang.match(/ar|ch|en|fr|gr|it|ru|sp/) ? browserLang : 'sp');
   }
 
   /***

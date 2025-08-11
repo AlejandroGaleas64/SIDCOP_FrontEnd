@@ -1,0 +1,159 @@
+<div class="container-fluid">
+  <!-- Overlay de carga -->
+  <div *ngIf="mostrarOverlayCarga" class="overlay-carga">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+
+  <!-- Alerta de error -->
+  <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-triangle"></i>
+    {{ mensajeError }}
+    <button type="button" class="btn-close" (click)="mostrarAlertaError = false"></button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-filter"></i> Filtros de Búsqueda
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3">
+              <label for="fechaInicio" class="form-label">Fecha Inicio</label>
+              <input 
+                type="date" 
+                id="fechaInicio" 
+                class="form-control" 
+                [(ngModel)]="filtros.fechaInicio">
+            </div>
+            <div class="col-md-3">
+              <label for="fechaFin" class="form-label">Fecha Fin</label>
+              <input 
+                type="date" 
+                id="fechaFin" 
+                class="form-control" 
+                [(ngModel)]="filtros.fechaFin">
+            </div>
+            <div class="col-md-3">
+              <label for="marca" class="form-label">Marca</label>
+              <select 
+                id="marca" 
+                class="form-select" 
+                [(ngModel)]="filtros.marcaId">
+                <option [value]="null">Todas las marcas</option>
+                <option *ngFor="let marca of marcas" [value]="marca.marc_Id">
+                  {{ marca.marc_Descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label for="categoria" class="form-label">Categoría</label>
+              <select 
+                id="categoria" 
+                class="form-select" 
+                [(ngModel)]="filtros.categoriaId">
+                <option [value]="null">Todas las categorías</option>
+                <option *ngFor="let categoria of categorias" [value]="categoria.cate_Id">
+                  {{ categoria.cate_Descripcion }}
+                </option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Botones de acción mejorados -->
+          <div class="row mt-4">
+            <div class="col-12">
+              <div class="d-flex flex-wrap align-items-center justify-content-start" style="gap: 12px;">
+                
+                <button 
+                  type="button" 
+                  class="btn btn-primary btn-lg d-flex align-items-center justify-content-center px-4" 
+                  style="min-width: 180px; height: 45px; font-weight: 500;"
+                  (click)="generarReporte()"
+                  [disabled]="mostrarOverlayCarga">
+                  <i class="fas fa-chart-line me-2" *ngIf="!mostrarOverlayCarga" style="font-size: 16px;"></i>
+                  <span class="spinner-border spinner-border-sm me-2" *ngIf="mostrarOverlayCarga"></span>
+                  <span class="text-nowrap">{{ mostrarOverlayCarga ? 'Generando...' : 'Generar Reporte' }}</span>
+                </button>
+                
+                <button 
+                  type="button" 
+                  class="btn btn-outline-secondary btn-lg d-flex align-items-center justify-content-center px-4"
+                  style="min-width: 130px; height: 45px; font-weight: 500;"
+                  (click)="limpiarFiltros()">
+                  <i class="fas fa-eraser me-2" style="font-size: 16px;"></i>
+                  <span class="text-nowrap">Limpiar</span>
+                </button>
+                
+                <button 
+                  type="button" 
+                  class="btn btn-success btn-lg d-flex align-items-center justify-content-center px-4"
+                  style="min-width: 160px; height: 45px; font-weight: 500;"
+                  (click)="exportarPDF()" 
+                  [disabled]="productos.length === 0 || cargandoPDF">
+                  <i class="fas fa-file-export me-2" *ngIf="!cargandoPDF" style="font-size: 16px;"></i>
+                  <span class="spinner-border spinner-border-sm me-2" *ngIf="cargandoPDF"></span>
+                  <span class="text-nowrap">{{ cargandoPDF ? 'Exportando...' : 'Exportar PDF' }}</span>
+                </button>
+                
+              </div>
+            </div>
+          </div>
+
+          <!-- Información de filtros aplicados -->
+          <div class="row mt-3" *ngIf="hayFiltrosAplicados()">
+            <div class="col-12">
+              <div class="alert alert-info">
+                <h6 class="alert-heading">
+                  <i class="fas fa-info-circle"></i> Filtros aplicados:
+                </h6>
+                <ul class="mb-0">
+                  <li *ngIf="filtros.fechaInicio">
+                    <strong>Fecha inicio:</strong> {{ filtros.fechaInicio | date:'dd/MM/yyyy' }}
+                  </li>
+                  <li *ngIf="filtros.fechaFin">
+                    <strong>Fecha fin:</strong> {{ filtros.fechaFin | date:'dd/MM/yyyy' }}
+                  </li>
+                  <li *ngIf="filtros.marcaId">
+                    <strong>Marca:</strong> {{ getMarcaDescripcion(filtros.marcaId) }}
+                  </li>
+                  <li *ngIf="filtros.categoriaId">
+                    <strong>Categoría:</strong> {{ getCategoriaDescripcion(filtros.categoriaId) }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje cuando no hay datos -->
+  <div *ngIf="productos.length === 0 && !mostrarOverlayCarga" class="text-center">
+    <div class="card">
+      <div class="card-body">
+        <div class="py-5">
+          <i class="fas fa-search fa-3x text-muted mb-3"></i>
+          <h4 class="text-muted">No se encontraron productos</h4>
+          <p class="text-muted">
+            No se encontraron productos con los filtros especificados. 
+            Intente modificar los criterios de búsqueda.
+          </p>
+          <button 
+            type="button" 
+            class="btn btn-primary" 
+            (click)="limpiarFiltros()">
+            <i class="fas fa-refresh"></i> Limpiar Filtros
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

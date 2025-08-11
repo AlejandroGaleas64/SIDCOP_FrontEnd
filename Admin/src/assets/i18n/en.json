@@ -57,7 +57,15 @@
       "LIST": {
         "BODEGAS": "Bodegas",
         "TRASLADOS": "Traslados",
-        "RECARGAS": "Recargas"
+        "RECARGAS": "Recargas",
+        "RUTAS": "Rutas"
+      }
+    },
+     "REPORTES": {
+      "TEXT": "Reportes",
+      "LIST": {
+        "REPORTEPRODUCTOS": "ReporteProductos"
+        
       }
     },
     "DASHBOARD": {

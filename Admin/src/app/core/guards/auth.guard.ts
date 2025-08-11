@@ -4,7 +4,6 @@ import { Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/ro
 // Auth Services
 import { AuthenticationService } from '../services/auth.service';
 import { AuthfakeauthenticationService } from '../services/authfake.service';
-import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuard  {

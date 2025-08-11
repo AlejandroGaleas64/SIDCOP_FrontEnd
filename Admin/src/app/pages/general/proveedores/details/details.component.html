@@ -1,52 +1,123 @@
 <div class="details-container">
+  
+  <!-- Contenedor de alertas flotantes -->
   <div class="alert-container">
+    <!-- Alerta de error -->
     <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
       <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
       <strong>¡Error!</strong> {{ mensajeError }}
       <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
     </div>
   </div>
+  
+  <!-- Botón de regresar -->
   <div class="details-header-button">
     <button type="button" class="btn btn-primary" (click)="cerrar()">
       <span class="btn-text">Regresar</span>
       <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
     </button>
   </div>
+  <!-- Contenido de detalles -->
   <div *ngIf="!cargando && proveedorDetalle" class="details-content">
-    <div class="details-header">
-      <div class="details-title">Detalles del Proveedor</div>
-      <div class="details-id-row">
-        <div class="details-id">
-          <div class="details-id-label">Código</div>
-          <div class="details-id-value">{{ proveedorDetalle.prov_Codigo || 'N/A' }}</div>
+    <div class="col-md-12">
+      <div class="card h-100 shadow-sm employee-details-card bg-dark-blue">
+        <div class="card-header d-flex align-items-center rounded-top details-header-custom">
+          <i class="ri-user-3-line me-2 fs-4"></i>
+          <h4 class="mb-0" style="color: #303d7d">Detalles de Proveedor</h4>
         </div>
-        <div class="details-id">
-          <div class="details-id-label">Empresa</div>
-          <div class="details-id-value">{{ proveedorDetalle.prov_NombreEmpresa || 'N/A' }}</div>
-        </div>
-        <div class="details-id">
-          <div class="details-id-label">Contacto</div>
-          <div class="details-id-value">{{ proveedorDetalle.prov_NombreContacto || 'N/A' }}</div>
-        </div>
-        <div class="details-id">
-          <div class="details-id-label">Teléfono</div>
-          <div class="details-id-value">{{ proveedorDetalle.prov_Telefono || 'N/A' }}</div>
-        </div>
-        <div class="details-id">
-          <div class="details-id-label">Correo</div>
-          <div class="details-id-value">{{ proveedorDetalle.prov_Correo || 'N/A' }}</div>
-        </div>
-        <div class="details-id">
-          <div class="details-id-label">Dirección</div>
-          <div class="details-id-value">{{ proveedorDetalle.prov_DireccionExacta || 'N/A' }}</div>
-        </div>
-        <div class="details-id">
-          <div class="details-id-label">Observaciones</div>
-          <div class="details-id-value">{{ proveedorDetalle.prov_Observaciones || 'N/A' }}</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12 col-sm-4" *ngIf="proveedorDetalle.prov_Codigo">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white">
+                  <i class="ri-hashtag"></i>
+                </div>
+                <div class="detail-content">
+                  <div class="detail-label">Código</div>
+                  <div class="detail-value">
+                    {{ proveedorDetalle.prov_Codigo }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-4">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white">
+                  <i class="ri-file-list-3-line"></i>
+                </div>
+                <div class="detail-content">
+                  <div class="detail-label">Descripción</div>
+                  <div class="detail-value">
+                    {{ proveedorDetalle.prov_NombreEmpresa || 'N/A' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+           
+            <div class="col-12 col-sm-4">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white">
+                  <i class="ri-phone-line"></i>
+                </div>
+                <div class="detail-content">
+                  <div class="detail-label">Contacto</div>
+                  <div class="detail-value">
+                    {{ proveedorDetalle.prov_Telefono || 'N/A' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            <div class="col-12 col-sm-4">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white">
+                  <i class="ri-mail-line"></i>
+                </div>
+                <div class="detail-content">
+                  <div class="detail-label">Correo</div>
+                  <div class="detail-value">
+                    {{ proveedorDetalle.prov_Correo || 'N/A' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+
+            <div class="col-12 col-sm-4">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white">
+                  <i class="ri-map-pin-line"></i>
+                </div>
+                <div class="detail-content">
+                  <div class="detail-label">Dirección</div>
+                  <div class="detail-value">
+                    {{ proveedorDetalle.prov_DireccionExacta|| 'N/A' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            <div class="col-12 col-sm-12">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white">
+                  <i class="ri-edit-line"></i>
+                </div>
+                <div class="detail-content">
+                  <div class="detail-label">Observaciones</div>
+                  <div class="detail-value">
+                    {{ proveedorDetalle.prov_Observaciones|| 'N/A' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <h4 class="details-title mt-4 mb-3" style="color: black;">Historial de acciones</h4>
+     
+    <!-- Tabla de auditoría -->
     <div class="audit-table-container">
       <div class="audit-table">
         <div class="audit-header">
@@ -54,29 +125,34 @@
           <div class="audit-col">Usuario</div>
           <div class="audit-col">Fecha</div>
         </div>
-        <div class="audit-row">
-          <div class="audit-col">
-            <span class="audit-action">Creador</span>
-          </div>
-          <div class="audit-col">
-            <span class="audit-user">{{ proveedorDetalle.usuarioCreacion }}</span>
-          </div>
-          <div class="audit-col">
-            <span class="audit-date">{{ formatearFecha(proveedorDetalle.fechaCreacion) }}</span>
-          </div>
+      
+      <!-- Fila de creación -->
+      <div class="audit-row">
+        <div class="audit-col">
+          <span class="audit-action"> Creador</span>
         </div>
-        <div class="audit-row">
-          <div class="audit-col">
-            <span class="audit-action">Modificación</span>
-          </div>
-          <div class="audit-col">
-            <span class="audit-user">{{ proveedorDetalle.usuarioModificacion || 'N/A' }}</span>
-          </div>
-          <div class="audit-col">
-            <span class="audit-date">{{ formatearFecha(proveedorDetalle.fechaModificacion ?? null) }}</span>
-          </div>
+        <div class="audit-col">
+          <span class="audit-user">{{ proveedorDetalle.usuarioCreacion}}</span>
+        </div>
+        <div class="audit-col">
+          <span class="audit-date"> {{ formatearFecha(proveedorDetalle.prov_FechaCreacion) }}</span>
+        </div>
+      </div>
+      
+      <!-- Fila de modificación -->
+      <div class="audit-row">
+        <div class="audit-col">
+          <span class="audit-action"> Modificación</span>
+        </div>
+        <div class="audit-col">
+          <span class="audit-user"> {{ proveedorDetalle.usuarioModificacion || 'N/A' }}</span>
+        </div>
+        <div class="audit-col">
+          <span class="audit-date"> {{ formatearFecha(proveedorDetalle.prov_FechaModificacion ?? null) }}</span>
         </div>
       </div>
     </div>
+    </div>
+    
   </div>
 </div>

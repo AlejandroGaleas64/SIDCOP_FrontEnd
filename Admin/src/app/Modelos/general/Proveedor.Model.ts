@@ -16,11 +16,11 @@ depa_Codigo: string = '';
   No: number = 0;
 
   usua_Creacion: number = 0;
-  fechaCreacion: Date = new Date();
+  prov_FechaCreacion: Date = new Date();
   usua_Modificacion?: number;
 
 
-  fechaModificacion?: Date;
+  prov_FechaModificacion?: Date;
   usuarioCreacion: string = '';
   usuarioModificacion: string = '';
 

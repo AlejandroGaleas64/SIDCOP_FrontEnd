@@ -4,11 +4,12 @@ import { Cliente } from 'src/app/Modelos/general/Cliente.Model';
 import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente.Model';
 import { environment } from 'src/environments/environment.prod';
 import { HttpClient } from '@angular/common/http';
+import { MapaSelectorComponent } from '../mapa-selector/mapa-selector.component';
 
 @Component({
   selector: 'app-details',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MapaSelectorComponent],
   templateUrl: './details.component.html',
   styleUrl: './details.component.scss'
 })
@@ -28,19 +29,18 @@ export class DetailsComponent implements OnChanges {
   departamentosAval: any[] = [];
   municipiosAval: any[] = [];
 
+  puntosVista: { lat: number; lng: number; nombre?: string }[] = [];
+
   public imgLoaded: boolean = false;
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['clienteData'] && changes['clienteData'].currentValue) {
       this.cargarDetallesSimulado(changes['clienteData'].currentValue);
     }
-
     this.cargarColonias();
     this.cargarMunicipios();
     this.cargarDepartamentos();
   }
 
-
-  
   // Simulación de carga
   cargarDetallesSimulado(data: Cliente): void {
     this.cargando = true;
@@ -64,6 +64,7 @@ export class DetailsComponent implements OnChanges {
 
   cerrar(): void {
     this.onClose.emit();
+    this.puntosVista=[];
   }
 
   cerrarAlerta(): void {
@@ -73,78 +74,70 @@ export class DetailsComponent implements OnChanges {
 
   formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
-    try {
-      const date = new Date(fecha);
-      return date.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      });
-    } catch {
-      return String(fecha);
-    }
+    const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
+    if (isNaN(dateObj.getTime())) return 'N/A';
+    return dateObj.toLocaleString('es-HN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
-  constructor(private http: HttpClient){}
-  direcciones: any = [];
+  constructor(private http: HttpClient) { }
+  direcciones: DireccionPorCliente[] = [];
   avales: any = [];
-  // cargarDirecciones(): void {
-  //   this.http.get<DireccionPorCliente[]>(`${environment.apiBaseUrl}/DireccionesPorCliente/Listar`, {
-  //     headers:{ 'x-api-key': environment.apiKey }
-  //   }).subscribe(data=>{
-  //     this.direcciones=data||[];
-  //     if(this.direcciones){
-  //       this.clienteDetalle?.clie_Id
-  //     }
-  //   })
-  // }
 
   cargarDirecciones(): void {
-  this.http.get<DireccionPorCliente[]>(`${environment.apiBaseUrl}/DireccionesPorCliente/Listar`, {
-    headers: { 'x-api-key': environment.apiKey }
+    if (!this.clienteDetalle?.clie_Id) {
+      this.direcciones = [];
+      this.puntosVista = [];
+      return;
+    }
+    this.http.get<DireccionPorCliente[]>(`${environment.apiBaseUrl}/DireccionesPorCliente/Buscar/${this.clienteDetalle.clie_Id}`, {
+      headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
-      const todasLasDirecciones = data || [];
-      if (this.clienteDetalle?.clie_Id != null) {
-        this.direcciones = todasLasDirecciones
-          .filter(d => d.clie_Id === this.clienteDetalle?.clie_Id)
-          .sort((a, b) => new Date(a.diCl_FechaCreacion).getTime() - new Date(b.diCl_FechaCreacion).getTime());
-      } else {
-        this.direcciones = [];
-      }
+      this.direcciones = data || [];
+      this.puntosVista = this.direcciones.map(d => ({
+        lat: d.diCl_Latitud,
+        lng: d.diCl_Longitud,
+        nombre: d.diCl_Observaciones
+      }));
     });
   }
 
   cargarAvales(): void {
-  this.http.get<any[]>(`${environment.apiBaseUrl}/Aval/Listar`, {
-    headers: { 'x-api-key': environment.apiKey }
-  }).subscribe(data => {
-    if (this.clienteDetalle?.clie_Id != null) {
-      this.avales = (data || []).filter(a => a.clie_Id === this.clienteDetalle?.clie_Id);
-    } else {
-      this.avales = [];
-    }
-  });
-}
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Aval/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(data => {
+      if (this.clienteDetalle?.clie_Id != null) {
+        this.avales = (data || []).filter(a => a.clie_Id === this.clienteDetalle?.clie_Id);
+      } else {
+        this.avales = [];
+      }
+    });
+  }
 
   cargarColonias(): void {
-  this.http.get<any[]>(`${environment.apiBaseUrl}/Colonia/Listar`, {
-    headers: { 'x-api-key': environment.apiKey }
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Colonia/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
       this.colonias = data || [];
     });
   }
 
   cargarMunicipios(): void {
-  this.http.get<any[]>(`${environment.apiBaseUrl}/Municipios/Listar`, {
-    headers: { 'x-api-key': environment.apiKey }
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Municipios/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
       this.municipios = data || [];
     });
   }
 
   cargarDepartamentos(): void {
-  this.http.get<any[]>(`${environment.apiBaseUrl}/Departamentos/Listar`, {
-    headers: { 'x-api-key': environment.apiKey }
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Departamentos/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
       this.departamentos = data || [];
     });
@@ -156,14 +149,12 @@ export class DetailsComponent implements OnChanges {
   }
 
   obtenerDescripcionMunicipioAval(muni_Codigo: any): string {
-  const municipioAval = this.municipiosAval.find(m => String(m.muni_Codigo) === String(muni_Codigo));
-  return municipioAval?.muni_Descripcion || 'Municipio no encontrado';
-}
+    const municipioAval = this.municipiosAval.find(m => String(m.muni_Codigo) === String(muni_Codigo));
+    return municipioAval?.muni_Descripcion || 'Municipio no encontrado';
+  }
 
-obtenerDescripcionDepartamento(depa_Codigo: any): string {
-  const departamento = this.departamentos.find(d => String(d.depa_Codigo) === String(depa_Codigo));
-  return departamento?.depa_Descripcion || 'Departamento no encontrado';
-}
-
-
+  obtenerDescripcionDepartamento(depa_Codigo: any): string {
+    const departamento = this.departamentos.find(d => String(d.depa_Codigo) === String(depa_Codigo));
+    return departamento?.depa_Descripcion || 'Departamento no encontrado';
+  }
 }

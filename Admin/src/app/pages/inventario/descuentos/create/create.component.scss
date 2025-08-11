@@ -48,6 +48,47 @@
 .nav-tabs .nav-link {
   color: #d5b58a;
   background: transparent;
+}
+
+// Estilos para las secciones colapsables de canales
+.canal-section {
+  .canal-header {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background-color: #f8f9fa !important;
+    }
+    
+    .ri-arrow-down-s-line {
+      transition: transform 0.3s ease;
+      
+      &.rotate-180 {
+        transform: rotate(180deg);
+      }
+    }
+  }
+  
+  .canal-content {
+    transition: all 0.3s ease;
+  }
+  
+  .input-group {
+    .input-group-text {
+      background-color: #f8f9fa;
+      border-color: #dee2e6;
+    }
+    
+    .form-control {
+      &:focus {
+        border-color: #d5b58a;
+        box-shadow: 0 0 0 0.2rem rgba(213, 181, 138, 0.25);
+      }
+    }
+  }
+}
+
+.nav-tabs .nav-link {
   border: none;
   border-radius: 0.5rem 0.5rem 0 0;
   margin-right: 0.25rem;

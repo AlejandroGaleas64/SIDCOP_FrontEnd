@@ -14,13 +14,14 @@ import { CdkStepperModule } from '@angular/cdk/stepper';
 import { NgStepperModule } from 'angular-ng-stepper';
 import { ViewChild } from '@angular/core';
 import { CdkStepper } from '@angular/cdk/stepper';
+import { CurrencyMaskModule } from "ng2-currency-mask";
 
 
 
 @Component({
   selector: 'app-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule,  NgxMaskDirective, NgSelectModule,CdkStepperModule,  NgStepperModule],
+  imports: [CommonModule, FormsModule, HttpClientModule,  NgxMaskDirective, NgSelectModule,CdkStepperModule,  NgStepperModule,CurrencyMaskModule],
    providers: [provideNgxMask()],
   templateUrl: './create.component.html',
   styleUrl: './create.component.scss'
@@ -43,7 +44,7 @@ export class CreateComponent   {
   seccionVisible: string | null = null;
   filtro: string = '';
   seleccionados: number[] = [];
-  clientesAgrupados: { canal: string, clientes: any[] }[] = [];
+  clientesAgrupados: { canal: string, clientes: any[], filtro: string, collapsed: boolean }[] = [];
 clientesSeleccionados: number[] = [];
 descuentosExistentes: any[] = [];
 activeTab: number = 1;
@@ -303,7 +304,8 @@ hoy: string;
     this.clientesAgrupados = Object.keys(agrupados).map(canal => ({
       canal,
       filtro: '', // Se agrega filtro para el buscador individual
-      clientes: agrupados[canal]
+      clientes: agrupados[canal],
+      collapsed: true // Inicialmente todos los canales están expandidos
     }));
   });
 }
@@ -337,11 +339,15 @@ eliminarEscala(index: number) {
 
 getClientesFiltrados(grupo: any): any[] {
   if (!grupo.filtro) return grupo.clientes;
-  return grupo.clientes.filter((c: any) =>
-    (c.clie_NombreComercial || c.clie_NombreCompleto || '')
-      .toLowerCase()
-      .includes(grupo.filtro.toLowerCase())
-  );
+  return grupo.clientes.filter((c: any) => {
+    const searchText = (
+      c.clie_NombreNegocio || 
+      c.clie_NombreComercial || 
+      c.clie_NombreCompleto || 
+      ''
+    ).toLowerCase();
+    return searchText.includes(grupo.filtro.toLowerCase());
+  });
 }
 
 alternarCliente(clienteId: number, checked: boolean): void {
@@ -448,6 +454,85 @@ seleccionarTodosClientes(grupo: any, seleccionar: boolean): void {
   grupo.clientes.forEach((cliente: { clie_Id: number; }) => {
     this.alternarCliente(cliente.clie_Id, seleccionar);
   });
+}
+
+// Alternar el estado colapsado/expandido de un canal
+toggleCanal(grupo: any): void {
+  grupo.collapsed = !grupo.collapsed;
+}
+
+// Obtener el precio más bajo de todos los items seleccionados
+getPrecioMinimoSeleccionados(): number {
+  if (!this.descuento.desc_Tipo) { // Si es porcentaje, no hay límite de precio
+    return Infinity;
+  }
+
+  let precios: number[] = [];
+
+  switch (this.descuento.desc_Aplicar) {
+    case 'P': // Productos
+      precios = this.productos
+        .filter(p => this.seleccionados.includes(p.prod_Id))
+        .map(p => p.prod_PrecioUnitario || 0)
+        .filter(precio => precio > 0);
+      break;
+
+    case 'C': // Categorías
+      const productosDeCategoriasSeleccionadas = this.productos
+        .filter(p => this.seleccionados.includes(p.cate_Id))
+        .map(p => p.prod_PrecioUnitario || 0)
+        .filter(precio => precio > 0);
+      precios = productosDeCategoriasSeleccionadas;
+      break;
+
+    case 'S': // Subcategorías
+      const productosDeSubcategoriasSeleccionadas = this.productos
+        .filter(p => this.seleccionados.includes(p.subc_Id))
+        .map(p => p.prod_PrecioUnitario || 0)
+        .filter(precio => precio > 0);
+      precios = productosDeSubcategoriasSeleccionadas;
+      break;
+
+    case 'M': // Marcas
+      const productosDeMarcasSeleccionadas = this.productos
+        .filter(p => this.seleccionados.includes(p.marc_Id))
+        .map(p => p.prod_PrecioUnitario || 0)
+        .filter(precio => precio > 0);
+      precios = productosDeMarcasSeleccionadas;
+      break;
+
+    default:
+      return Infinity;
+  }
+
+  if (precios.length === 0) {
+    return Infinity; // No hay precios válidos
+  }
+
+  return Math.min(...precios);
+}
+
+// Obtener el valor máximo permitido para mostrar en la UI
+get valorMaximoPermitido(): string {
+  if (!this.descuento.desc_Tipo) {
+    return '100%'; // Para porcentajes
+  }
+  
+  const precioMinimo = this.getPrecioMinimoSeleccionados();
+  if (precioMinimo === Infinity) {
+    return 'Sin límite (seleccione items primero)';
+  }
+  
+  return `L. ${precioMinimo.toFixed(2)}`;
+}
+
+// Obtener el valor máximo permitido como número para comparaciones
+get valorMaximoNumerico(): number {
+  if (!this.descuento.desc_Tipo) {
+    return 100; // Para porcentajes
+  }
+  
+  return this.getPrecioMinimoSeleccionados();
 }
 
 get fechaInicioFormato(): string {
@@ -666,7 +751,9 @@ irAlSiguientePaso() {
 
   if (this.validarPasoActual()) {
     this.mostrarErrores = false;
+   
     this.activeTab ++;
+    
   } else {
     this.mostrarAlertaWarning = true;
     this.mensajeWarning= 'Debe Completar todos los campos'
@@ -679,15 +766,95 @@ irAlSiguientePaso() {
   }
 }
 
+// Nueva función para navegación inteligente de tabs
+navegar(tabDestino: number) {
+  // Si intenta ir hacia atrás, permitir siempre
+  if (tabDestino < this.activeTab) {
+    this.activeTab = tabDestino;
+    this.mostrarErrores = false;
+    return;
+  }
+  
+  // Si intenta ir hacia adelante, validar todos los pasos intermedios
+  if (tabDestino > this.activeTab) {
+    // Validar todos los pasos desde el actual hasta el destino
+    for (let paso = this.activeTab; paso < tabDestino; paso++) {
+      if (!this.validarPaso(paso)) {
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = `Debe completar todos los campos del paso ${this.getNombrePaso(paso)} antes de continuar.`;
+        
+        setTimeout(() => {
+          this.mostrarAlertaWarning = false;
+          this.mensajeWarning = '';
+        }, 3000);
+        return;
+      }
+    }
+    
+    // Si todos los pasos intermedios están válidos, navegar
+    this.activeTab = tabDestino;
+    this.mostrarErrores = false;
+    return;
+  }
+  
+  // Si es el mismo tab, no hacer nada
+  if (tabDestino === this.activeTab) {
+    return;
+  }
+}
+
+// Función auxiliar para validar un paso específico
+validarPaso(paso: number): boolean {
+  switch (paso) {
+    case 1: // Información general
+      return this.validarPasoInformacionGeneral();
+    case 2: // Aplica para
+      return this.seleccionados.length > 0;
+    case 3: // Clientes
+      return this.clientesSeleccionados.length > 0;
+    case 4: // Escalas
+      return this.validarEscalas();
+    default:
+      return false;
+  }
+}
+
+// Función auxiliar para obtener el nombre del paso
+getNombrePaso(paso: number): string {
+  switch (paso) {
+    case 1: return 'Información General';
+    case 2: return 'Aplicar para';
+    case 3: return 'Clientes';
+    case 4: return 'Escalas';
+    default: return 'Paso ' + paso;
+  }
+}
+
 validado = true;
 
 limitarValor(valor: number, escala: any): void {
   if (this.descuento.desc_Tipo === false && valor > 100) {
+    // Porcentaje no puede ser mayor a 100%
     this.validado = false;
+  } else if (this.descuento.desc_Tipo === true) {
+    // Monto fijo: validar contra el precio más bajo
+    const precioMinimo = this.getPrecioMinimoSeleccionados();
+    if (precioMinimo !== Infinity && valor > precioMinimo) {
+      this.validado = false;
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = `El valor no puede ser mayor al precio más bajo de los items seleccionados (L. ${precioMinimo.toFixed(2)})`;
+      
+      setTimeout(() => {
+        this.mostrarAlertaWarning = false;
+        this.mensajeWarning = '';
+      }, 4000);
+    } else {
+      escala.deEs_Valor = valor;
+      this.validado = true;
+    }
   } else {
     escala.deEs_Valor = valor;
     this.validado = true;
-
   }
 }
 
@@ -701,7 +868,8 @@ puedeAgregarNuevaEscala(): boolean {
       escala.deEs_FinEscala == null ||
       escala.deEs_Valor == null ||
       escala.deEs_FinEscala <= escala.deEs_InicioEscala ||
-        escala.deEs_Valor == 0
+        escala.deEs_Valor == 0 ||
+        escala.deEs_Valor >= this.valorMaximoNumerico
 
     ) {
       return false;
@@ -712,7 +880,8 @@ puedeAgregarNuevaEscala(): boolean {
       if (
         escala.deEs_InicioEscala <= anterior.deEs_FinEscala ||
         escala.deEs_Valor <= anterior.deEs_Valor ||
-        escala.deEs_Valor == 0
+        escala.deEs_Valor == 0 ||
+        escala.deEs_Valor >= this.valorMaximoNumerico
       ) {
         return false;
       }
@@ -721,8 +890,6 @@ puedeAgregarNuevaEscala(): boolean {
 
   return true;
 }
-
-
 
 
 

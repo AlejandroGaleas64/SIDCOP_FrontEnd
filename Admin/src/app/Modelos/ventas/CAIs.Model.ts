@@ -8,6 +8,7 @@ export class CAIs{
   nCai_FechaModificacion?: Date;
   usuarioCreacion: string = '';
   usuarioModificacion: string = '';
+  No?: number = 0;
   
   code_Status: number = 0;
   message_Status: string ='';

@@ -1,1 +1,1114 @@
-<p>edit works!</p>
+<div class="d-flex flex-column" style="height: 100%; min-height: 250px">
+  <h5 class="card-title mb-4">Editar Cliente</h5>
+
+  <div class="alert-container" style="position: relative; z-index: 10000;">
+    <div *ngIf="mostrarAlertaExito"
+      class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+      <strong>¡Éxito!</strong> {{ mensajeExito }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+
+    <div *ngIf="mostrarAlertaWarning"
+      class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+      <strong>¡Atención!</strong> {{ mensajeWarning }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+
+    <div *ngIf="mostrarAlertaError"
+      class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+      <strong>¡Error!</strong> {{ mensajeError }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <div class="flex-grow-1">
+    <ul class="nav nav-tabs mb-3" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="activeTab === 1" (click)="tabDeArriba(1)" type="button" role="tab">
+          Datos Personales
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="activeTab === 2" (click)="tabDeArriba(2)" type="button" role="tab">
+          Datos Del Negocio
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="activeTab === 3" (click)="tabDeArriba(3)" type="button" role="tab">
+          Datos Politicos o Del Credito
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="activeTab === 4" (click)="tabDeArriba(4)" type="button" role="tab">
+          Aval
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="activeTab === 5" (click)="tabDeArriba(5)" type="button" role="tab">
+          Estado del Cliente
+        </button>
+      </li>
+    </ul>
+
+    <!--=======================================-->
+    <!--            Datos Personales           -->
+    <!--=======================================-->
+    <div *ngIf="activeTab === 1">
+      <div class="row mx-lg-4">
+        <!-- Código -->
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="clienteCodigo" class="form-label">Código</label>
+            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <div class="d-flex align-items-center">
+              <i class="ri-attachment-line"
+                [ngStyle]="{
+                border: (!cliente.clie_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!cliente.clie_Codigo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <input type="text" class="form-control" [class.is-invalid]="
+                  !cliente.clie_Codigo.trim() && mostrarErrores
+                " id="clienteCodigo" [(ngModel)]="cliente.clie_Codigo" placeholder="Ingrese el código del cliente"
+                required />
+            </div>
+            <div class="text-danger mt-1" *ngIf="!cliente.clie_Codigo.trim() && mostrarErrores">
+              <small>El campo Código del Cliente es requerido</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nacionalidad -->
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="clie_Nacionalidad" class="form-label">Nacionalidad</label>
+            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <div class="d-flex align-items-center">
+              <i class="ri-flag-line"
+                [ngStyle]="{
+                border: (!cliente.clie_Nacionalidad.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!cliente.clie_Nacionalidad.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <select id="clie_Nacionalidad" class="form-select" [(ngModel)]="cliente.clie_Nacionalidad"
+                [class.is-invalid]="
+                  !cliente.clie_Nacionalidad && mostrarErrores
+                " required>
+                <option value="" disabled>Seleccione un país</option>
+                <option *ngFor="let nacionalidad of paises" [value]="nacionalidad.pais_Codigo">
+                  {{ nacionalidad.pais_Descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="text-danger mt-1" *ngIf="!cliente.clie_Nacionalidad && mostrarErrores">
+              <small>El campo País de Nacimiento es requerido</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- DNI -->
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="clienteDNI" class="form-label">DNI</label>
+            <div class="d-flex align-items-center">
+              <i class="ri-polaroid-2-line"
+                [ngStyle]="{
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <input type="text" class="form-control" id="clienteDNI" [(ngModel)]="cliente.clie_DNI"
+                placeholder="Ingrese el DNI del cliente" mask="0000-0000-00000" />
+            </div>
+          </div>
+        </div>
+
+        <!-- RTN -->
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="clienteRTN" class="form-label">RTN</label>
+            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <div class="d-flex align-items-center">
+              <i class="ri-newspaper-line"
+                [ngStyle]="{
+                border: (!cliente.clie_RTN.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!cliente.clie_RTN.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <input type="text" class="form-control" [class.is-invalid]="!cliente.clie_RTN.trim() && mostrarErrores"
+                id="clienteRTN" [(ngModel)]="cliente.clie_RTN" placeholder="Ingrese el RTN del cliente"
+                mask="00000000000000" required />
+            </div>
+            <div class="text-danger mt-1" *ngIf="!cliente.clie_RTN.trim() && mostrarErrores">
+              <small>El campo RTN es requerido</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nombres -->
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="clienteNombres" class="form-label">Nombres</label>
+            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <div class="d-flex align-items-center">
+              <i class="ri-user-4-line"
+                [ngStyle]="{
+                border: (!cliente.clie_Nombres.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!cliente.clie_Nombres.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <input type="text" class="form-control" id="clienteNombres" [(ngModel)]="cliente.clie_Nombres"
+                [class.is-invalid]="
+                  !cliente.clie_Nombres.trim() && mostrarErrores
+                " placeholder="Ingrese el nombre del cliente" required />
+            </div>
+            <div class="text-danger mt-1" *ngIf="!cliente.clie_Nombres.trim() && mostrarErrores">
+              <small>El campo Nombres es requerido</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Apellidos -->
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="clienteApellidos" class="form-label">Apellidos</label>
+            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <div class="d-flex align-items-center">
+              <i class="ri-user-4-line"
+                [ngStyle]="{
+                border: (!cliente.clie_Apellidos.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!cliente.clie_Apellidos.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <input type="text" class="form-control" id="clienteApellidos" [(ngModel)]="cliente.clie_Apellidos"
+                [class.is-invalid]="
+                  !cliente.clie_Apellidos.trim() && mostrarErrores
+                " placeholder="Ingrese los apellidos del cliente" required />
+            </div>
+            <div class="text-danger mt-1" *ngIf="!cliente.clie_Apellidos.trim() && mostrarErrores">
+              <small>El campo Apellidos es requerido</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sexo -->
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Sexo</label>
+            <div class="sexo-toggle d-flex">
+              <label class="sexo-option me-2" [class.selected]="cliente.clie_Sexo === 'M'">
+                <input type="radio" name="sexo" value="M" [(ngModel)]="cliente.clie_Sexo" required />
+                <i class="ri-men-line sexo-icon"></i>
+                <span>Masculino</span>
+              </label>
+              <label class="sexo-option" [class.selected]="cliente.clie_Sexo === 'F'">
+                <input type="radio" name="sexo" value="F" [(ngModel)]="cliente.clie_Sexo" />
+                <i class="ri-women-line sexo-icon"></i>
+                <span>Femenino</span>
+              </label>
+            </div>
+            <div class="text-danger mt-1" *ngIf="!cliente.clie_Sexo && mostrarErrores">
+              <small>El campo Sexo del Cliente es requerido</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Localidad -->
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="esCv_Id" class="form-label">Localidad</label>
+            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <div class="d-flex align-items-center">
+              <i class="ri-home-4-line"
+                [ngStyle]="{
+                border: (!cliente.tiVi_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!cliente.tiVi_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <select id="esCv_Id" class="form-select" [(ngModel)]="cliente.tiVi_Id"
+                [class.is-invalid]="!cliente.tiVi_Id && mostrarErrores" required>
+                <option value="0" disabled>Seleccione una localidad</option>
+                <option *ngFor="let tipoVivienda of tiposDeVivienda" [value]="tipoVivienda.tiVi_Id">
+                  {{ tipoVivienda.tiVi_Descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="text-danger mt-1" *ngIf="!cliente.tiVi_Id && mostrarErrores">
+              <small>El campo Localidad es requerido</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estado Civil -->
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="esCv_Id" class="form-label">Estado Civil</label>
+            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <div class="d-flex align-items-center">
+              <i class="ri-hand-heart-line"
+                [ngStyle]="{
+                border: (!cliente.esCv_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!cliente.esCv_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <select id="esCv_Id" class="form-select" [(ngModel)]="cliente.esCv_Id"
+                [class.is-invalid]="!cliente.esCv_Id && mostrarErrores" required>
+                <option value="0" disabled>Seleccione un estado civil</option>
+                <option *ngFor="let estadoCivil of estadosCiviles" [value]="estadoCivil.esCv_Id">
+                  {{ estadoCivil.esCv_Descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="text-danger mt-1" *ngIf="!cliente.esCv_Id && mostrarErrores">
+              <small>El campo Estado Civil es requerido</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fecha de Nacimiento -->
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="clienteFechaNacimiento" class="form-label">Fecha de Nacimiento</label>
+            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <div class="d-flex align-items-center">
+              <i class="ri-calendar-todo-line"
+                [ngStyle]="{
+                border: (!cliente.clie_FechaNacimiento && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!cliente.clie_FechaNacimiento && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <input type="date" id="clienteFechaNacimiento" class="form-control"
+                [class.is-invalid]="!cliente.clie_FechaNacimiento && mostrarErrores"
+                [value]="cliente.clie_FechaNacimiento ? (cliente.clie_FechaNacimiento | date:'yyyy-MM-dd') : ''"
+                (change)="actualizarFechaNacimiento($event)" required />
+            </div>
+            <div class="text-danger mt-1" *ngIf="!cliente.clie_FechaNacimiento && mostrarErrores">
+              <small>El campo Fecha Nacimiento es requerido</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Teléfono -->
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="clienteTelefono" class="form-label">Teléfono</label>
+            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <div class="d-flex align-items-center">
+              <i class="ri-phone-line"
+                [ngStyle]="{
+                border: (!cliente.clie_Telefono.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!cliente.clie_Telefono.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <input type="text" class="form-control" [class.is-invalid]="
+                  !cliente.clie_Telefono.trim() && mostrarErrores
+                " id="clienteTelefono" [(ngModel)]="cliente.clie_Telefono"
+                placeholder="Ingrese el teléfono del cliente" mask="0000-0000" required />
+            </div>
+            <div class="text-danger mt-1" *ngIf="!cliente.clie_Telefono.trim() && mostrarErrores">
+              <small>El campo Teléfono del Cliente es requerido</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Correo -->
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="clienteCorreo" class="form-label">Correo</label>
+            <div class="d-flex align-items-center">
+              <i class="ri-mail-unread-line"
+                [ngStyle]="{
+                border: (!cliente.clie_Correo.trim() && mostrarErrores || !esCorreoValido(cliente.clie_Correo)) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!cliente.clie_Correo.trim() && mostrarErrores || !esCorreoValido(cliente.clie_Correo)) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <input type="email" class="form-control" id="clienteCorreo" [(ngModel)]="cliente.clie_Correo"
+                placeholder="Ingrese el correo del cliente (opcional)"
+                [class.is-invalid]="cliente.clie_Correo && mostrarErrores || !esCorreoValido(cliente.clie_Correo)"/>
+              </div>
+              <div class="text-danger mt-1" *ngIf="cliente.clie_Correo && mostrarErrores || !esCorreoValido(cliente.clie_Correo)">
+                <small> Ingrese un correo válido. </small>
+              </div>
+          </div>
+        </div>
+      </div>
+      <!-- Botones de navegación -->
+      <div class="row mx-lg-4">
+        <div class="col-md-12 d-flex justify-content-between gap-2">
+          <button type="button" class="btn btn-primary gold" style="height: 100%; transform: rotate(180deg);"
+            (click)="cancelar()">
+            <span class="btn-text" style="transform: rotate(180deg);">Cerrar</span>
+            <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+          </button>
+          <button *ngIf="activeTab < 5" type="button" class="btn btn-primary" style="height: 100%;"
+            (click)="tabuladores(1)">
+            <span class="btn-text">Siguiente</span>
+            <span class="btn-icon"><i class="ri-arrow-right-line"></i></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!--=======================================-->
+    <!--          Datos Del Negocio            -->
+    <!--=======================================-->
+    <div *ngIf="activeTab === 2">
+      <div class="row mx-lg-4">
+        <div class="col-lg-6">
+          <div class="mb-3">
+            <label class="form-label">Imagen del negocio</label>
+            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <div
+              [ngStyle]="{ border: '2px dashed ' + (!cliente.clie_ImagenDelNegocio.trim() && mostrarErrores ? '#f9bcc4' : '#dde1ef'),
+            borderRadius: '10px', position: 'relative', overflow: 'hidden', width: '100%', height: '235px', backgroundColor: '#ffffff'}">
+              <input type="file" accept="image/*" (change)="onImagenSeleccionada($event)"
+                style="opacity: 0; position: absolute; width: 100%; height: 100%; left: 0; top: 0; cursor: pointer; z-index: 2;" />
+              <div *ngIf="!cliente.clie_ImagenDelNegocio"
+                style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1;">
+                <i class="ri-camera-line"
+                  style=" margin-right: 10px; font-size: 20px; font-weight: 200; color: #878c9c; margin-bottom: 0.3em;"></i>
+                <h5 class="text-muted">Seleccionar imagen</h5>
+              </div>
+              <img *ngIf="cliente.clie_ImagenDelNegocio" [src]="cliente.clie_ImagenDelNegocio" alt="Previsualización"
+                style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;" />
+            </div>
+            <div class="text-danger mt-1" *ngIf="!cliente.clie_ImagenDelNegocio.trim() && mostrarErrores">
+              <small>La Imagen del negocio es requerida</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="mb-2 col-12">
+            <label for="clienteNombreNegocio" class="form-label">Nombre del Negocio</label>
+            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <div class="d-flex align-items-center">
+              <i class="ri-attachment-line"
+                [ngStyle]="{
+                border: (!cliente.clie_NombreNegocio.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!cliente.clie_NombreNegocio.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <input type="text" class="form-control" [class.is-invalid]="
+                  !cliente.clie_NombreNegocio.trim() && mostrarErrores
+                " id="clienteNegocio" [(ngModel)]="cliente.clie_NombreNegocio"
+                placeholder="Ingrese el nombre del negocio" required />
+            </div>
+            <div class="text-danger mt-1" *ngIf="!cliente.clie_NombreNegocio.trim() && mostrarErrores">
+              <small>El campo Nombre del Negocio del Cliente es requerido</small>
+            </div>
+          </div>
+
+          <div class="mb-2 col-12">
+            <label for="cana_Id" class="form-label">Canal</label>
+            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <div class="d-flex align-items-center">
+              <i class="ri-team-line"
+                [ngStyle]="{
+                border: (!cliente.cana_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!cliente.cana_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <select id="cana_Id" class="form-select" [(ngModel)]="cliente.cana_Id"
+                [class.is-invalid]="!cliente.cana_Id && mostrarErrores" required>
+                <option value="0" disabled>Seleccione un canal</option>
+                <option *ngFor="let canal of canales" [value]="canal.cana_Id">
+                  {{ canal.cana_Descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="text-danger mt-1" *ngIf="!cliente.cana_Id && mostrarErrores">
+              <small>El campo Canal es requerido</small>
+            </div>
+          </div>
+
+          <div class="mb-2 col-12">
+            <label for="ruta_Id" class="form-label">Ruta</label>
+            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <div class="d-flex align-items-center">
+              <i class="ri-pin-distance-line"
+                [ngStyle]="{
+                border: (!cliente.ruta_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!cliente.ruta_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <select id="ruta_Id" class="form-select" [(ngModel)]="cliente.ruta_Id"
+                [class.is-invalid]="!cliente.ruta_Id && mostrarErrores" required>
+                <option value="0" disabled>Seleccione una ruta</option>
+                <option *ngFor="let ruta of rutas" [value]="ruta.ruta_Id">
+                  {{ ruta.ruta_Descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="text-danger mt-1" *ngIf="!cliente.ruta_Id && mostrarErrores">
+              <small>El campo Ruta es requerido</small>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between;" class="mb-2 mt-4">
+          <h4 class="text-muted">Direcciones</h4>
+          <div>
+            <button class="btn btn-primary me-2" (click)="limpiarDireccionModal(); abrirMapa()">
+              <span class="btn-text">Agregar</span>
+              <span class="btn-icon"><i class="ri-map-pin-2-line"></i></span>
+            </button>
+          </div>
+        </div>
+        <hr class="mb-4" />
+
+        <div class="card-red" *ngIf="validarDireccion">
+          <h4 style="color: #f1a3a3; margin-top: 0.5rem; font-weight: 600;">Agrega una direccion para poder continuar el
+            fomulario</h4>
+        </div>
+
+        <div *ngFor="let direccion of direccionesPorCliente; let i = index" class="ubicacion-card">
+          <div class="card-actions">
+            <button class="icon-button delete" (click)="eliminarDireccion(i)"><i class="bx bxs-trash"></i></button>
+          </div>
+
+          <div class="card-content">
+            <div class="info">
+              <h2 class="direccion-nombre">{{ direccion.diCl_Observaciones }}</h2>
+              <p class="detalle"><i class="bx bxs-map-pin"></i> Colonia: {{ direccion.colo_Id }}</p>
+              <p class="detalle"><i class="bx bx-current-location"></i> Lat: {{ direccion.diCl_Latitud }}, Lng:
+                {{direccion.diCl_Longitud }}</p>
+              <p class="detalle"><i class="bx bx-map"></i>Municipio: {{ direccion.muni_Descripcion }}</p>
+            </div>
+
+            <div class="ver-ubicacion">
+              <button class="btn btn-primary" (click)="editarDireccion(i)">
+                <span class="btn-text">Ver</span>
+                <span class="btn-icon"><i class="ri-road-map-line"></i></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Botones de navegación -->
+      <div class="row mx-lg-4">
+        <div class="col-md-12 d-flex justify-content-between gap-2">
+          <button type="button" class="btn btn-primary gold" style="height: 100%; transform: rotate(180deg);"
+            (click)="cancelar()">
+            <span class="btn-text" style="transform: rotate(180deg);">Cerrar</span>
+            <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+          </button>
+          <div class="col-6 d-flex justify-content-end gap-2">
+            <button *ngIf="activeTab > 1" type="button" class="btn btn-primary"
+              style="height: 100%; transform: rotate(180deg);" (click)="activeTab = activeTab - 1">
+              <span class="btn-text" style="transform: rotate(180deg);">Anterior</span>
+              <span class="btn-icon"><i class="ri-arrow-right-line"></i></span>
+            </button>
+            <button *ngIf="activeTab < 5" type="button" class="btn btn-primary" style="height: 100%;"
+              (click)="tabuladores(2)">
+              <span class="btn-text">Siguiente</span>
+              <span class="btn-icon"><i class="ri-arrow-right-line"></i></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--=======================================-->
+    <!--    Datos Politicos o Del Credito      -->
+    <!--=======================================-->
+    <div *ngIf="activeTab === 3">
+      <div class="row mx-lg-4">
+        <!-- Limite de Crédito-->
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="clienteLimiteCredito" class="form-label">Límite de Crédito</label>
+            <div class="d-flex align-items-center">
+              <span [ngStyle]="{
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', 
+                borderBottomLeftRadius: '8px'}"> L.
+              </span>
+              <input type="text" class="form-control" mask="separator.2" thousandSeparator=","
+                [dropSpecialCharacters]="true" [ngModel]="cliente.clie_LimiteCredito"
+                (ngModelChange)="cliente.clie_LimiteCredito = $event" placeholder="0.00" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Días de Crédito-->
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="clienteDiasCredito" class="form-label">Días de Crédito</label>
+            <div class="d-flex align-items-center">
+              <i class="ri-calendar-check-line"
+                [ngStyle]="{
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <input type="number" class="form-control" id="clienteDiasCredito" [(ngModel)]="cliente.clie_DiasCredito"
+                placeholder="Ingrese los días de crédito" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="col-md-12">
+          <div class="mb-3">
+            <label for="clienteObservaciones" class="form-label">Observaciones</label>
+            <div class="d-flex align-items-center">
+              <textarea type="text" class="form-control" id="clienteObservaciones"
+                [(ngModel)]="cliente.clie_Observaciones" placeholder="Ingrese las observaciones del cliente" rows="4">
+              </textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de navegación -->
+      <div class="row mx-lg-4">
+        <div class="col-md-12 d-flex justify-content-between gap-2">
+          <button type="button" class="btn btn-primary gold" style="height: 100%; transform: rotate(180deg);"
+            (click)="cancelar()">
+            <span class="btn-text" style="transform: rotate(180deg);">Cerrar</span>
+            <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+          </button>
+          <div class="col-6 d-flex justify-content-end gap-2">
+            <button *ngIf="activeTab > 1" type="button" class="btn btn-primary"
+              style="height: 100%; transform: rotate(180deg);" (click)="activeTab = activeTab - 1">
+              <span class="btn-text" style="transform: rotate(180deg);">Anterior</span>
+              <span class="btn-icon"><i class="ri-arrow-right-line"></i></span>
+            </button>
+            <button *ngIf="activeTab < 5" type="button" class="btn btn-primary" style="height: 100%;"
+              (click)="tabuladores(3)">
+              <span class="btn-text">Siguiente</span>
+              <span class="btn-icon"><i class="ri-arrow-right-line"></i></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--=======================================-->
+    <!--                  AVAL                 -->
+    <!--=======================================-->
+    <div *ngIf="activeTab === 4">
+      <div class="aval-tabs-nav mb-3 mx-lg-4">
+        <button class="btn-aval-nav" (click)="cambiarAval(-1)" [disabled]="avalActivoIndex === 0"
+          *ngIf="avales.length > 1">
+          <i class="ri-arrow-left-s-line"></i>
+        </button>
+        <div class="aval-tabs-scroll" #tabsScroll>
+          <div class="aval-tab" *ngFor="let aval of avales; let i = index" [class.active]="i === avalActivoIndex"
+            (click)="seleccionarAval(i)">
+            Registro {{ i + 1 }}
+            <button *ngIf="avales.length > 1" class="btn-aval-delete"
+              (click)="eliminarAval(i); $event.stopPropagation();" title="Eliminar aval">
+              <i class="ri-delete-bin-6-fill"></i>
+            </button>
+          </div>
+        </div>
+        <button class="btn-aval-nav" (click)="cambiarAval(1)" [disabled]="avalActivoIndex === avales.length - 1"
+          *ngIf="avales.length > 1">
+          <i class="ri-arrow-right-s-line"></i>
+        </button>
+        <button class="btn btn-primary" (click)="agregarAval()" title="Agregar aval">
+          <span class="btn-text">Agregar</span>
+          <span class="btn-icon"><i class="ri-add-line"></i></span>
+        </button>
+      </div>
+
+      <div class="row mx-lg-4" *ngIf="avales.length">
+        <ng-container *ngIf="avales[avalActivoIndex] as aval">
+          <!-- DNI -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="avalDNI" class="form-label">DNI</label>
+              <div class="d-flex align-items-center">
+                <i class="ri-polaroid-2-line" [ngStyle]="{
+                border: (!aval.aval_DNI.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!aval.aval_DNI.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input type="text" class="form-control" id="avalDNI" [(ngModel)]="aval.aval_DNI"
+                  placeholder="Ingrese el DNI del aval" mask="0000-0000-00000"
+                  [class.is-invalid]="!aval.aval_DNI.trim() && mostrarErrores" required />
+              </div>
+              <div class="text-danger mt-1" *ngIf="!aval.aval_DNI.trim() && mostrarErrores">
+                <small>El campo DNI es requerido</small>
+              </div>
+            </div>
+          </div>
+          <!-- Parentesco -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="pare_Id" class="form-label">Parentesco</label>
+              <div class="d-flex align-items-center">
+                <i class="ri-parent-line" [ngStyle]="{
+                border: (!aval.pare_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!aval.pare_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <select id="pare_Id" class="form-select" [(ngModel)]="aval.pare_Id"
+                  [class.is-invalid]="!aval.pare_Id && mostrarErrores" required>
+                  <option value="0" disabled>Seleccione un parentesco</option>
+                  <option *ngFor="let parentesco of parentescos" [value]="parentesco.pare_Id">
+                    {{ parentesco.pare_Descripcion }}
+                  </option>
+                </select>
+              </div>
+              <div class="text-danger mt-1" *ngIf="!aval.pare_Id && mostrarErrores">
+                <small>El campo Parentesco es requerido</small>
+              </div>
+            </div>
+          </div>
+          <!-- Nombres -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="avalNombres" class="form-label">Nombres</label>
+              <div class="d-flex align-items-center">
+                <i class="ri-contacts-line" [ngStyle]="{
+                border: (!aval.aval_Nombres.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!aval.aval_Nombres.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input type="text" class="form-control" id="avalNombres" [(ngModel)]="aval.aval_Nombres"
+                  placeholder="Ingrese el nombre del aval"
+                  [class.is-invalid]="!aval.aval_Nombres.trim() && mostrarErrores" required />
+              </div>
+              <div class="text-danger mt-1" *ngIf="!aval.aval_Nombres.trim() && mostrarErrores">
+                <small>El campo Nombres es requerido</small>
+              </div>
+            </div>
+          </div>
+          <!-- Apellidos -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="avalApellidos" class="form-label">Apellidos</label>
+              <div class="d-flex align-items-center">
+                <i class="ri-contacts-line" [ngStyle]="{
+                border: (!aval.aval_Apellidos.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!aval.aval_Apellidos.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input type="text" class="form-control" id="avalApellidos" [(ngModel)]="aval.aval_Apellidos"
+                  placeholder="Ingrese los apellidos del aval"
+                  [class.is-invalid]="!aval.aval_Apellidos.trim() && mostrarErrores" required />
+              </div>
+              <div class="text-danger mt-1" *ngIf="!aval.aval_Apellidos.trim() && mostrarErrores">
+                <small>El campo Apellidos es requerido</small>
+              </div>
+            </div>
+          </div>
+          <!-- Sexo -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">Sexo</label>
+              <div class="sexo-toggle d-flex">
+                <label style="width:45%" class="sexo-option me-2" [class.selected]="aval.aval_Sexo === 'M'">
+                  <input type="radio" name="avalSexo{{avalActivoIndex}}" value="M" [(ngModel)]="aval.aval_Sexo"
+                    required />
+                  <i class="ri-men-line sexo-icon"></i>
+                  <span>Masculino</span>
+                </label>
+                <label style="width:45%" class="sexo-option" [class.selected]="aval.aval_Sexo === 'F'">
+                  <input type="radio" name="avalSexo{{avalActivoIndex}}" value="F" [(ngModel)]="aval.aval_Sexo" />
+                  <i class="ri-women-line sexo-icon"></i>
+                  <span>Femenino</span>
+                </label>
+              </div>
+              <div class="text-danger mt-1" *ngIf="!aval.aval_Sexo.trim() && mostrarErrores">
+                <small>El campo Sexo del Aval es requerido</small>
+              </div>
+            </div>
+          </div>
+          <!-- Estado Civil -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="esCv_Id" class="form-label">Estado Civil</label>
+              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-hand-heart-line" [ngStyle]="{
+                border: (!aval.esCv_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!aval.esCv_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <select id="esCv_Id" class="form-select" [(ngModel)]="aval.esCv_Id"
+                  [class.is-invalid]="!aval.esCv_Id && mostrarErrores" required>
+                  <option value="0" disabled>Seleccione un estado civil</option>
+                  <option *ngFor="let estadoCivil of estadosCiviles" [value]="estadoCivil.esCv_Id">
+                    {{ estadoCivil.esCv_Descripcion }}
+                  </option>
+                </select>
+              </div>
+              <div class="text-danger mt-1" *ngIf="!aval.esCv_Id && mostrarErrores">
+                <small>El campo Estado Civil es requerido</small>
+              </div>
+            </div>
+          </div>
+          <!-- Teléfono -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="avalTelefono" class="form-label">Teléfono</label>
+              <div class="d-flex align-items-center">
+                <i class="ri-phone-line" [ngStyle]="{
+                border: (!aval.aval_Telefono.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!aval.aval_Telefono.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input type="text" class="form-control"
+                  [class.is-invalid]="!aval.aval_Telefono.trim() && mostrarErrores" id="avalTelefono"
+                  [(ngModel)]="aval.aval_Telefono" placeholder="Ingrese el teléfono del aval" mask="0000-0000"
+                  required />
+              </div>
+              <div class="text-danger mt-1" *ngIf="!aval.aval_Telefono.trim() && mostrarErrores">
+                <small>El campo Teléfono del Aval es requerido</small>
+              </div>
+            </div>
+          </div>
+          <!-- Tipos de Vivienda -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="tiVi_Id" class="form-label">Tipo de Vivienda</label>
+              <div class="d-flex align-items-center">
+                <i class="ri-home-4-line" [ngStyle]="{
+                border: (!aval.tiVi_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!aval.tiVi_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <select id="tiVi_Id" class="form-select" [(ngModel)]="aval.tiVi_Id"
+                  [class.is-invalid]="!aval.tiVi_Id && mostrarErrores" required>
+                  <option value="0" disabled>Seleccione un tipo de vivienda</option>
+                  <option *ngFor="let tipoVivienda of tiposDeVivienda" [value]="tipoVivienda.tiVi_Id">
+                    {{ tipoVivienda.tiVi_Descripcion }}
+                  </option>
+                </select>
+              </div>
+              <div class="text-danger mt-1" *ngIf="!aval.tiVi_Id && mostrarErrores">
+                <small>El campo Tipo de Vivienda es requerido</small>
+              </div>
+            </div>
+          </div>
+          <!-- Colonia -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="colo_Id" class="form-label">Colonia</label>
+              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-community-line" [ngStyle]="{
+                border: (!aval.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!aval.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <select id="colo_Id" name="colo_Id" class="form-select" [(ngModel)]="aval.colo_Id"
+                  [class.is-invalid]="!aval.colo_Id && mostrarErrores" required>
+                  <option value="0" disabled>Seleccione una Colonia</option>
+                  <option *ngFor="let colonia of TodasColoniasAval" [value]="colonia.colo_Id">
+                    {{ colonia.colo_Descripcion }}
+                  </option>
+                </select>
+                <div *ngIf="cargandoColoniasAval" class="form-text text-muted">
+                  Cargando Colonias...
+                </div>
+              </div>
+              <div class="text-danger mt-1" *ngIf="!aval.colo_Id && mostrarErrores">
+                <small>El campo Colonias es requerido</small>
+              </div>
+            </div>
+          </div>
+          <!-- Dirección Exacta -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="avalDireccionExacta" class="form-label">Dirección Exacta</label>
+              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-direction-line" [ngStyle]="{
+                border: (!aval.aval_DireccionExacta.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!aval.aval_DireccionExacta.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input type="text" class="form-control" id="avalDireccionExacta" [(ngModel)]="aval.aval_DireccionExacta"
+                  [class.is-invalid]="!aval.aval_DireccionExacta.trim() && mostrarErrores"
+                  placeholder="Ingrese la dirección exacta" required />
+              </div>
+              <div class="text-danger mt-1" *ngIf="!aval.aval_DireccionExacta.trim() && mostrarErrores">
+                <small>El campo Dirección Exacta es requerido</small>
+              </div>
+            </div>
+          </div>
+          <!-- Fecha de Nacimiento -->
+          <div class="col-md-6">
+          <div class="mb-3">
+            <label for="avalFechaNacimiento" class="form-label">Fecha de Nacimiento</label>
+            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <div class="d-flex align-items-center">
+              <i class="ri-calendar-todo-line"
+                [ngStyle]="{
+                border: (!aval.aval_FechaNacimiento && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!aval.aval_FechaNacimiento && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <input type="date" id="avalFechaNacimiento" class="form-control"
+                [class.is-invalid]="!aval.aval_FechaNacimiento && mostrarErrores"
+                [value]="aval.aval_FechaNacimiento ? (aval.aval_FechaNacimiento | date:'yyyy-MM-dd') : ''"
+                 required />
+                 <!-- (change)="actualizarFechaNacimientoAval($event)" -->
+            </div>
+            <div class="text-danger mt-1" *ngIf="!aval.aval_FechaNacimiento && mostrarErrores">
+              <small>El campo Fecha Nacimiento es requerido</small>
+            </div>
+          </div>
+        </div>
+        </ng-container>
+      </div>
+
+      <!-- Botones de navegación -->
+      <div class="row mx-lg-4">
+        <div class="col-md-12 d-flex justify-content-between gap-2">
+          <button type="button" class="btn btn-primary gold" style="height: 100%; transform: rotate(180deg);"
+            (click)="cancelar()">
+            <span class="btn-text" style="transform: rotate(180deg);">Cerrar</span>
+            <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+          </button>
+          <div class="col-6 d-flex justify-content-end gap-2">
+            <button *ngIf="activeTab > 1" type="button" class="btn btn-primary"
+              style="height: 100%; transform: rotate(180deg);" (click)="activeTab = activeTab - 1">
+              <span class="btn-text" style="transform: rotate(180deg);">Anterior</span>
+              <span class="btn-icon"><i class="ri-arrow-right-line"></i></span>
+            </button>
+            <button *ngIf="activeTab < 5" type="button" class="btn btn-primary" style="height: 100%;"
+              (click)="tabuladores(4)">
+              <span class="btn-text">Siguiente</span>
+              <span class="btn-icon"><i class="ri-arrow-right-line"></i></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--=======================================-->
+    <!--                Estado                 -->
+    <!--=======================================-->
+    <div *ngIf="activeTab === 5">
+      <div class="row mx-lg-4">
+        <div class="col-md-12">
+          <div class="mb-3" style="display: flex">
+            <label class="form-label" style="margin-right: 10px">¿Cliente confirmado?</label>
+            <div class="checkbox-wrapper-10">
+              <input checked="" type="checkbox" id="cb5" class="tgl tgl-flip" [(ngModel)]="cliente.clie_Confirmacion" />
+              <label for="cb5" data-tg-on="Si" data-tg-off="No" class="tgl-btn"></label>
+            </div>
+          </div>
+        </div>
+        <!-- Observaciones de Retiro-->
+        <div class="col-md-12">
+          <div class="mb-3">
+            <label for="clienteObservacionesRetiro" class="form-label">Observaciones de Inactividad (En caso del Cliente
+              se desactive, explicar la razon aquí.)</label>
+            <div class="d-flex align-items-center">
+              <textarea type="text" class="form-control" id="clienteObservacionesRetiro"
+                [(ngModel)]="cliente.clie_ObservacionRetiro" placeholder="Ingrese las observaciones del cliente"
+                rows="4">
+              </textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de navegación -->
+      <div class="row mx-lg-4">
+        <div class="col-md-12 d-flex justify-content-between gap-2">
+          <button type="button" class="btn btn-primary gold" style="height: 100%; transform: rotate(180deg);"
+            (click)="cancelar()">
+            <span class="btn-text" style="transform: rotate(180deg);">Cerrar</span>
+            <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+          </button>
+          <div class="col-6 d-flex justify-content-end gap-2">
+            <button *ngIf="activeTab > 1" type="button" class="btn btn-primary"
+              style="height: 100%; transform: rotate(180deg);" (click)="activeTab = activeTab - 1">
+              <span class="btn-text" style="transform: rotate(180deg);">Anterior</span>
+              <span class="btn-icon"><i class="ri-arrow-right-line"></i></span>
+            </button>
+            <button type="button" class="btn btn-primary" style="height: 100%;" (click)="guardarCliente()">
+              <span class="btn-text">Actualizar</span>
+              <span class="btn-icon"><i class="ri-save-line"></i></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!----------------------------------->
+<!--     MODAL PARA DIRECCIONES    -->
+<!----------------------------------->
+<div class="modal-backdrop fade" [ngClass]="{ show: mostrarMapa }" *ngIf="mostrarMapa"></div>
+
+<div class="modal fade custom-modal" [ngClass]="{ show: mostrarMapa }" [style.display]="mostrarMapa ? 'block' : 'none'"
+  tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
+        <h3 class="text-muted">Seleccionar una ubicación</h3>
+        <i class="ri-close-line custom-modal-close" (click)="cerrarMapa()"></i>
+      </div>
+      <hr class="custom-modal-divider" />
+      <div class="modal-body custom-modal-body">
+        <app-mapa-selector (coordenadasSeleccionadas)="onCoordenadasSeleccionadas($event)"
+          [mostrar]="mostrarMapa"></app-mapa-selector>
+
+        <div class="row mx-lg-4 mt-4">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="clienteDireccionExacta" class="form-label">Latitud</label>
+              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-pushpin-2-line"
+                  [ngStyle]="{
+                  border: (!direccionPorCliente.diCl_Latitud && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!direccionPorCliente.diCl_Latitud && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input type="text" class="form-control" id="clienteDireccionExacta"
+                  [(ngModel)]="direccionPorCliente.diCl_Latitud" [class.is-invalid]="
+                    !direccionPorCliente.diCl_Latitud &&
+                    mostrarErrores
+                  " placeholder="Latitud" required />
+              </div>
+              <div class="text-danger" *ngIf="
+                  !direccionPorCliente.diCl_Latitud &&
+                  mostrarErrores
+                ">
+                <small>El campo Latitud es requerida</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="clienteDireccionExacta" class="form-label">Longitud</label>
+              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-pushpin-2-line"
+                  [ngStyle]="{
+                  border: (!direccionPorCliente.diCl_Longitud && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!direccionPorCliente.diCl_Longitud && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input type="text" class="form-control" id="clienteDireccionExacta"
+                  [(ngModel)]="direccionPorCliente.diCl_Longitud" [class.is-invalid]="
+                    !direccionPorCliente.diCl_Longitud &&
+                    mostrarErrores
+                  " placeholder="Longitud" required />
+              </div>
+              <div class="text-danger" *ngIf="
+                  !direccionPorCliente.diCl_Longitud &&
+                  mostrarErrores
+                ">
+                <small>El Longitud es requerida</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dirección Exacta -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="clienteDescripcionDeDireccion" class="form-label">Descripción</label>
+              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-attachment-line"
+                  [ngStyle]="{
+                  border: (!direccionPorCliente.diCl_Observaciones.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!direccionPorCliente.diCl_Observaciones.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input type="text" class="form-control" id="clienteDescripcionDeDireccion"
+                  [(ngModel)]="direccionPorCliente.diCl_Observaciones" [class.is-invalid]="
+                    !direccionPorCliente.diCl_Observaciones.trim() &&
+                    mostrarErrores
+                  " placeholder="Ingrese la descripcion" required />
+              </div>
+              <div class="text-danger" *ngIf="
+                  !direccionPorCliente.diCl_Observaciones.trim() &&
+                  mostrarErrores
+                ">
+                <small>El Descripción es requerida</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="colo_Id" class="form-label">Colonia</label>
+              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-community-line"
+                  [ngStyle]="{
+                  border: (!direccionPorCliente.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!direccionPorCliente.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <select id="colo_Id" name="colo_Id" class="form-select" [(ngModel)]="direccionPorCliente.colo_Id"
+                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores" required
+                  (change)="cargarColoniasCliente()">
+                  <option value="0" disabled>Seleccione una Colonia</option>
+                  <option *ngFor="let colonia of TodasColonias" [value]="colonia.colo_Id">
+                    {{ colonia.colo_Descripcion }}, {{ colonia.muni_Descripcion }}, {{ colonia.depa_Descripcion }}
+                  </option>
+                </select>
+                <div *ngIf="cargandoColonias" class="form-text text-muted">
+                  Cargando Colonias...
+                </div>
+              </div>
+              <div class="text-danger mt-1" *ngIf="!direccionPorCliente.colo_Id && mostrarErrores">
+                <small>El campo Colonias es requerido</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dirección Exacta -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="clienteDireccionExacta" class="form-label">Dirección Exacta</label>
+              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-direction-line"
+                  [ngStyle]="{
+                  border: (!direccionPorCliente.diCl_DireccionExacta.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!direccionPorCliente.diCl_DireccionExacta.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input type="text" class="form-control" id="clienteDireccionExacta"
+                  [(ngModel)]="direccionPorCliente.diCl_DireccionExacta" [class.is-invalid]="
+                    !direccionPorCliente.diCl_DireccionExacta.trim() &&
+                    mostrarErrores
+                  " placeholder="Ingrese la dirección exacta" required />
+              </div>
+              <div class="text-danger" *ngIf="
+                  !direccionPorCliente.diCl_DireccionExacta.trim() &&
+                  mostrarErrores
+                ">
+                <small>El campo Dirección Exacta es requerido</small>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary" (click)="agregarDireccion()">
+            {{ direccionEditandoIndex !== null ? 'Actualizar' : 'Guardar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -29,6 +29,9 @@ export class CreateComponent {
   empleados: any[] = [];
   vendedores: any[] = [];
 
+  claveDatos: number = 0;
+  claveMensaje: string = '';
+
   usuario: Usuario = {
     secuencia: 0,
     usua_Id: 0,
@@ -39,6 +42,7 @@ export class CreateComponent {
     usua_EsVendedor: false,
     usua_EsAdmin: false,
     usua_Imagen: 'assets/images/users/32/user-svg.svg',
+    usua_TienePermisos: false,
     usua_Creacion: 0,
     usua_FechaCreacion: new Date(),
     usua_Modificacion: 0,
@@ -75,6 +79,36 @@ export class CreateComponent {
     }).subscribe(data => this.vendedores = data);
   }
 
+  corroborarClave(clave: string) {
+    if (clave.length === 0) {
+      this.claveDatos = 0;
+      this.claveMensaje = '';
+      return;
+    }
+
+    if (clave.length < 8) {
+      this.claveDatos = 1;
+      this.claveMensaje = 'Débil';
+      return;
+    }
+    
+    const tieneLetra = /[a-zA-Z]/.test(clave);
+    const tieneNumero = /\d/.test(clave);
+    const tieneEspecial = /[^a-zA-Z\d]/.test(clave);
+    const tipos = [tieneLetra, tieneNumero, tieneEspecial].filter(Boolean).length;
+
+    if (tipos === 1) {
+      this.claveDatos = 1;
+      this.claveMensaje = 'Débil';
+    } else if (tipos === 2) {
+      this.claveDatos = 2;
+      this.claveMensaje = 'Media';
+    } else if (tipos === 3) {
+      this.claveDatos = 3;
+      this.claveMensaje = 'Fuerte';
+    }
+  }
+
   cancelar(): void {
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
@@ -93,12 +127,13 @@ export class CreateComponent {
       usua_EsVendedor: false,
       usua_EsAdmin: false,
       usua_Imagen: 'assets/images/users/32/user-dummy-img.jpg',
+      usua_TienePermisos: false,
       usua_Creacion: 0,
       usua_FechaCreacion: new Date(),
       usua_Modificacion: 0,
       usua_FechaModificacion: new Date(),
       usua_Estado: true,
-      permisosJson:"",
+      permisosJson: "",
       role_Descripcion: '',
       nombreCompleto: '',
       code_Status: 0,
@@ -125,8 +160,19 @@ export class CreateComponent {
 
   guardar(): void {
     this.mostrarErrores = true;
-    if (this.usuario.usua_Usuario.trim() && this.usuario.usua_Clave.trim() && this.usuario.role_Id && this.usuario.usua_IdPersona) 
-    {
+
+    if (this.claveDatos < 2) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'La contraseña debe ser al menos de seguridad media (letras y números o letras y caracteres especiales).';
+      this.mostrarAlertaError = false;
+      this.mostrarAlertaExito = false;
+      setTimeout(() => {
+        this.mostrarAlertaWarning = false;
+        this.mensajeWarning = '';
+      }, 4000);
+      return;
+    }
+    if (this.usuario.usua_Usuario.trim() && this.usuario.usua_Clave.trim() && this.usuario.role_Id && this.usuario.usua_IdPersona) {
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
       const usuarioGuardar = {
@@ -139,12 +185,13 @@ export class CreateComponent {
         usua_EsVendedor: this.usuario.usua_EsVendedor,
         usua_EsAdmin: this.usuario.usua_EsAdmin,
         usua_Imagen: this.usuario.usua_Imagen,
+        usua_TienePermisos: this.usuario.usua_TienePermisos,
         usua_Creacion: getUserId(),
         usua_FechaCreacion: new Date().toISOString(),
         usua_Modificacion: getUserId(),
         usua_FechaModificacion: new Date().toISOString(),
         usua_Estado: true,
-        permisosJson:"",
+        permisosJson: "",
         role_Descripcion: '',
         nombreCompleto: '',
         code_Status: 0,
@@ -207,18 +254,18 @@ export class CreateComponent {
       //dwiprwtmo es el nombre de la cuenta de Cloudinary
       const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
 
-      
+
       fetch(url, {
         method: 'POST',
         body: formData
       })
-      .then(response => response.json())
-      .then(data => {
-        this.usuario.usua_Imagen = data.secure_url;
-      })
-      .catch(error => {
-        console.error('Error al subir la imagen a Cloudinary:', error);
-      });
+        .then(response => response.json())
+        .then(data => {
+          this.usuario.usua_Imagen = data.secure_url;
+        })
+        .catch(error => {
+          console.error('Error al subir la imagen a Cloudinary:', error);
+        });
     }
   }
 }

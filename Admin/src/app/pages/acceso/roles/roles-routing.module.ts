@@ -20,7 +20,7 @@ const routes: Routes = [
         canActivate: [PermisoGuard],
         data: {
           title: 'Listado de Roles',
-          pantallaId: 6  // ID 6: Roles según la tabla de pantallas
+          pantallaId: 62  // ID 6: Roles según la tabla de pantallas
         }
       },
     ]

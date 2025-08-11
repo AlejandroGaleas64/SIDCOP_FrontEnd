@@ -5,7 +5,7 @@ import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 export class ReactiveTableService<T> {
   sortField: keyof T | null = null;
   sortDirection: 'asc' | 'desc' = 'asc';
-  private data$ = new BehaviorSubject<T[]>([]);
+  public data$ = new BehaviorSubject<T[]>([]);
   private searchTerm$ = new BehaviorSubject<string>('');
   private page$ = new BehaviorSubject<number>(1);
   private pageSize = 10;
