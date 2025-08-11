@@ -399,6 +399,27 @@ export const MENU: MenuItem[] = [
         link: '/reportes/reporteProductosPorRuta',
         parentId: 7,
         icon: 'ri-truck-line',
+      },
+      {
+        id: 68,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTERECARGASPORBODEGA',
+        link: '/reportes/reporteRecargasPorBodega',
+        parentId: 7,
+        icon: 'ri-truck-line',
+      },
+      {
+        id: 69,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTEDEVOLUCIONES',
+        link: '/reportes/reporteDevoluciones',
+        parentId: 7,
+        icon: 'ri-truck-line',
+      },
+      {
+        id: 70,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTERUTAS',
+        link: '/reportes/reporteRutas',
+        parentId: 7,
+        icon: 'ri-truck-line',
       }
     ],
   },
