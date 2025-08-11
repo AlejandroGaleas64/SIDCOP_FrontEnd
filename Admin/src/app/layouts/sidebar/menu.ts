@@ -402,7 +402,7 @@ export const MENU: MenuItem[] = [
       },
       {
         id: 68,
-        label: 'MENUITEMS.REPORTES.LIST.REPORTERECARGASPORBODEGA',
+             label: 'MENUITEMS.REPORTES.LIST.REPORTERECARGAPORSBODEGA',
         link: '/reportes/reporteRecargasPorBodega',
         parentId: 7,
         icon: 'ri-truck-line',
