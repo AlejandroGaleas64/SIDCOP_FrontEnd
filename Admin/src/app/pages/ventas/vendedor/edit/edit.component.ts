@@ -45,7 +45,8 @@ export class EditComponent implements OnChanges {
     code_Status: 0,
     message_Status: '',
     usuarioCreacion: '',
-    usuarioModificacion: ''
+    usuarioModificacion: '',
+    rutas: [],
     
   };
 
@@ -86,17 +87,37 @@ ordenarPorMunicipioYDepartamento(colonias: any[]): any[] {
   });
 }
 
+listarRutas(): void {
+  this.http.get<any>(`${environment.apiBaseUrl}/Rutas/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe((data) => {
+      this.rutasTodas = data;
+      // Recalcular opciones cuando llegan las rutas
+      this.recomputarOpciones();
+    });
+  }
+
+listarRutasDisponibles(): void {
+    this.http.get<any>(`${environment.apiBaseUrl}/Rutas/ListarDisponibles`, {
+        headers: { 'x-api-key': environment.apiKey }
+      }).subscribe((data) => {
+        this.rutasDisponibles = data;
+        // Recalcular opciones cuando llegan las rutas
+        this.recomputarOpciones();
+      });
+    }
+
  listarSucursales(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Sucursales/Listar`, {
         headers: { 'x-api-key': environment.apiKey }
       }).subscribe((data) => this.sucursales = this.ordenarPorMunicipioYDepartamento(data));
-    };
+    }
 
   listarColonias(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Colonia/Listar`, {
         headers: { 'x-api-key': environment.apiKey }
       }).subscribe((data) => this.colonia = this.ordenarPorMunicipioYDepartamento(data));
-    };
+    }
 
   listarEmpleados(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Empleado/Listar`, {
@@ -120,7 +141,7 @@ ordenarPorMunicipioYDepartamento(colonias: any[]): any[] {
       this.ayudantes = [];
     }
   });
-    };
+    }
 
 
 
@@ -162,6 +183,8 @@ tieneAyudante: boolean = false;
     this.listarSucursales();
     this.listarEmpleados();
     this.listarColonias();
+    this.listarRutas();
+    this.listarRutasDisponibles();
   }
 
 
@@ -175,6 +198,46 @@ tieneAyudante: boolean = false;
       this.vendedor = { ...changes['vendedorData'].currentValue };
       this.vendedorOriginal = this.vendedor.vend_Codigo || '';
       this.mostrarErrores = false;
+
+      // Normaliza rutas: puede venir como arreglo o como JSON string
+      const rutasRaw: any = this.vendedor.rutas as any;
+      let rutasApi: any[] = [];
+      if (Array.isArray(rutasRaw)) {
+        rutasApi = rutasRaw;
+      } else if (typeof rutasRaw === 'string' && rutasRaw.trim().length > 0) {
+        try {
+          const parsed = JSON.parse(rutasRaw);
+          rutasApi = Array.isArray(parsed) ? parsed : [];
+        } catch {
+          rutasApi = [];
+        }
+      } else {
+        rutasApi = [];
+      }
+
+      if (rutasApi.length > 0) {
+        this.rutasVendedor = rutasApi.map((r: any) => {
+          const diasSel = (r.dias ?? '')
+            .split(',')
+            .map((s: string) => s.trim())
+            .filter((s: string) => s !== '')
+            .map((n: string) => Number(n));
+
+          return {
+            ruta_Id: (r.ruta_Id ?? r.id) != null ? Number(r.ruta_Id ?? r.id) : null,                  // aceptar ambos nombres de campo y normalizar a número
+            diasSeleccionados: diasSel,     // para el ng-select de días
+            veRu_Dias: diasSel.join(',')    // para enviar al backend
+          };
+        });
+      } else {
+        // si no trae rutas, deja al menos una fila vacía
+        this.rutasVendedor = [{ ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' }];
+      }
+
+// Recalcula listas filtradas para que no aparezcan duplicadas
+      this.recomputarOpciones();
+      // Guardar snapshot inicial de rutas para detección de cambios
+      this.rutasVendedorSnapshot = this.serializeRutas(this.rutasVendedor);
       if(this.vendedor.vend_Ayudante != null && this.vendedor.vend_Ayudante > 0  )
       {
           this.tieneAyudante = true;
@@ -214,6 +277,7 @@ tieneAyudante: boolean = false;
     !this.vendedor.vend_Tipo.trim() ||
     !this.vendedor.vend_Supervisor ||
     (this.tieneAyudante && !this.vendedor.vend_Ayudante) 
+    || this.rutasVendedor.length === 0
   ) {
     this.mostrarAlertaWarning = true;
     this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
@@ -222,6 +286,7 @@ tieneAyudante: boolean = false;
   }
 
   // Detectar cambios en los campos principales
+  const rutasHanCambiado = this.serializeRutas(this.rutasVendedor) !== this.rutasVendedorSnapshot;
   const cambios =
     this.vendedor.vend_Codigo.trim() !== (this.vendedorData?.vend_Codigo?.trim() ?? '') ||
   this.vendedor.vend_DNI.trim() !== (this.vendedorData?.vend_DNI?.trim() ?? '') ||
@@ -236,7 +301,8 @@ tieneAyudante: boolean = false;
   this.vendedor.vend_Tipo.trim() !== (this.vendedorData?.vend_Tipo?.trim() ?? '') ||
   this.vendedor.vend_Supervisor !== (this.vendedorData?.vend_Supervisor ?? 0) ||
   (this.tieneAyudante && this.vendedor.vend_Ayudante !== (this.vendedorData?.vend_Ayudante ?? 0)) ||
-  this.vendedor.vend_EsExterno !== (this.vendedorData?.vend_EsExterno ?? false);
+  this.vendedor.vend_EsExterno !== (this.vendedorData?.vend_EsExterno ?? false) ||
+  rutasHanCambiado
 
   if (cambios) {
     this.mostrarConfirmacionEditar = true;
@@ -260,6 +326,10 @@ tieneAyudante: boolean = false;
     this.mostrarErrores = true;
 
    if (this.vendedor.vend_Nombres.trim()) {
+
+    const rutasParaEnviar = this.rutasVendedor
+      .filter(rv => rv.ruta_Id != null && rv.veRu_Dias !== '')
+      .map(rv => ({ ruta_Id: rv.ruta_Id as number, veRu_Dias: rv.veRu_Dias }));
   const VendedorActualizar: any = {
     vend_Id: this.vendedor.vend_Id,
     vend_Codigo: this.vendedor.vend_Codigo.trim(),
@@ -275,12 +345,10 @@ tieneAyudante: boolean = false;
     colo_Id: this.vendedor.colo_Id,
     vend_Supervisor: this.vendedor.vend_Supervisor || 0,
     vend_EsExterno: this.vendedor.vend_EsExterno || false,
-    usua_Creacion: this.vendedor.usua_Creacion,
-    vend_FechaCreacion: this.vendedor.vend_FechaCreacion,
     usua_Modificacion: getUserId(),
     vend_FechaModificacion: new Date().toISOString(),
-    usuarioCreacion: '',
-    usuarioModificacion: ''
+    usuarioModificacion: '',
+    rutas_Json: rutasParaEnviar
   };
 
   // Solo agregar vend_Ayudante si tieneAyudante es true
@@ -319,4 +387,137 @@ tieneAyudante: boolean = false;
       setTimeout(() => this.cerrarAlerta(), 4000);
     }
   }
+
+  rutasDisponibles: any[] = [];
+  rutasTodas: any[] = [];
+rutasVendedor: { ruta_Id: number | null, diasSeleccionados: number[], veRu_Dias: string }[] = [
+  { ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' }
+];
+// Snapshot serializado de rutas para detectar cambios
+private rutasVendedorSnapshot: string = '';
+// Listas precalculadas por índice para evitar funciones en el template
+rutasDisponiblesFiltradas: any[][] = [[]];
+diasDisponiblesFiltradas: any[][] = [[]];
+
+diasSemana = [
+  { id: 1, nombre: 'Lunes' },
+  { id: 2, nombre: 'Martes' },
+  { id: 3, nombre: 'Miércoles' },
+  { id: 4, nombre: 'Jueves' },
+  { id: 5, nombre: 'Viernes' },
+  { id: 6, nombre: 'Sábado' },
+  { id: 7, nombre: 'Domingo' }
+];
+
+agregarRuta() {
+  this.rutasVendedor.push({ ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' });
+  // Expandir arreglos filtrados para el nuevo índice
+  this.rutasDisponiblesFiltradas.push([]);
+  this.diasDisponiblesFiltradas.push([]);
+  this.recomputarOpciones();
+}
+
+eliminarRuta(idx: number) {
+  this.rutasVendedor.splice(idx, 1);
+  this.rutasDisponiblesFiltradas.splice(idx, 1);
+  this.diasDisponiblesFiltradas.splice(idx, 1);
+  this.recomputarOpciones();
+}
+
+actualizarDias(idx: number, dias: number[]) {
+  this.rutasVendedor[idx].veRu_Dias = dias.join(',');
+  // Recalcular días disponibles para todos los índices
+  this.recomputarOpciones();
+  console.log('rutasVendedor actualizadas:', this.rutasVendedor);
+}
+
+// Reaccionar al cambio de ruta en un índice
+onRutaChange(idx: number): void {
+  this.recomputarOpciones();
+}
+
+// Recalcular listas filtradas por índice para rutas y días
+recomputarOpciones(): void {
+  // Asegurar longitud de arreglos filtrados
+  if (this.rutasDisponiblesFiltradas.length !== this.rutasVendedor.length) {
+    this.rutasDisponiblesFiltradas = new Array(this.rutasVendedor.length).fill(0).map(() => []);
+  }
+  if (this.diasDisponiblesFiltradas.length !== this.rutasVendedor.length) {
+    this.diasDisponiblesFiltradas = new Array(this.rutasVendedor.length).fill(0).map(() => []);
+  }
+
+  // Asegurar que rutasDisponibles incluya las rutas actualmente asignadas al vendedor
+  // aunque no estén disponibles globalmente (para edición)
+  if (Array.isArray(this.rutasTodas) && Array.isArray(this.rutasDisponibles) && Array.isArray(this.rutasVendedor)) {
+    const seleccionadas = new Set(
+      this.rutasVendedor
+        .map(rv => rv.ruta_Id)
+        .filter((id): id is number => id != null)
+    );
+
+    const faltantesSeleccionadas = this.rutasTodas
+      .map((r: any) => ({
+        id: Number(r?.ruta_Id ?? r?.id),
+        ruta_Descripcion: r?.ruta_Descripcion ?? `Ruta ${r?.ruta_Id ?? r?.id}`
+      }))
+      .filter((r: any) => seleccionadas.has(r.id))
+      .filter((r: any) => !this.rutasDisponibles.some((d: any) => Number(d.ruta_Id) === r.id))
+      .map((r: any) => ({ ruta_Id: r.id, ruta_Descripcion: r.ruta_Descripcion }));
+
+    if (faltantesSeleccionadas.length > 0) {
+      this.rutasDisponibles = [
+        ...this.rutasDisponibles,
+        ...faltantesSeleccionadas
+      ];
+    }
+  }
+
+  const totalRutasSeleccionadas = this.rutasVendedor.map(rv => rv.ruta_Id);
+  const totalDiasSeleccionadosPorIndice = this.rutasVendedor.map(rv => rv.diasSeleccionados);
+
+  for (let i = 0; i < this.rutasVendedor.length; i++) {
+    // Rutas disponibles: excluir seleccionadas en otros índices
+    const rutasSeleccionadasOtros = totalRutasSeleccionadas.filter((_, idx) => idx !== i && totalRutasSeleccionadas[idx] != null);
+    this.rutasDisponiblesFiltradas[i] = (this.rutasDisponibles || []).filter(r => !rutasSeleccionadasOtros.includes(r.ruta_Id));
+
+    // Días disponibles: excluir días elegidos en otros índices
+    const diasOtros = totalDiasSeleccionadosPorIndice
+      .filter((_, idx) => idx !== i)
+      .flatMap(arr => arr || []);
+    this.diasDisponiblesFiltradas[i] = this.diasSemana.filter(d => !diasOtros.includes(d.id));
+  }
+}
+
+// Validar si una ruta ya está seleccionada
+esRutaYaSeleccionada(rutaId: number, indiceActual: number): boolean {
+  return this.rutasVendedor.some((rv, index) => 
+    index !== indiceActual && rv.ruta_Id === rutaId
+  );
+}
+
+// Validar si un día ya está seleccionado en otra ruta
+esDiaYaSeleccionado(diaId: number, indiceActual: number): boolean {
+  return this.rutasVendedor.some((rv, index) => 
+    index !== indiceActual && rv.diasSeleccionados.includes(diaId)
+  );
+}
+
+
+  // Serializar rutas para detección de cambios (orden estable y días ordenados)
+  private serializeRutas(arr: { ruta_Id: number | null, diasSeleccionados: number[], veRu_Dias: string }[]): string {
+    const norm = (arr || [])
+      .map(it => ({
+        ruta_Id: it.ruta_Id != null ? Number(it.ruta_Id) : null,
+        dias: [...(it.diasSeleccionados || [])].map(Number).sort((a, b) => a - b)
+      }))
+      .sort((a, b) => {
+        if (a.ruta_Id === b.ruta_Id) return 0;
+        if (a.ruta_Id == null) return 1;
+        if (b.ruta_Id == null) return -1;
+        return (a.ruta_Id as number) - (b.ruta_Id as number);
+      })
+      .map(x => `${x.ruta_Id}|${x.dias.join(',')}`);
+    return norm.join(';');
+  }
+
 }
