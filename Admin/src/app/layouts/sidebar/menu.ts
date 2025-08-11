@@ -176,6 +176,13 @@ export const MENU: MenuItem[] = [
         parentId: 3,
         icon: 'ri-truck-line',
       },
+      {
+        id: 24,
+        label: 'MENUITEMS.INVENTARIO.LIST.INVENTARIOSUCURSAL',
+        link: '/inventario/inventario-sucursal',
+        parentId: 3,
+        icon: 'ri-truck-line',
+      },
       // Puedes añadir más subitems aquí según sea necesario
     ],
   },
@@ -295,6 +302,20 @@ export const MENU: MenuItem[] = [
         id: 61,
         label: 'MENUITEMS.REPORTES.LIST.REPORTEPRODUCTOS',
         link: '/reportes/reporteproductos',
+        parentId: 7,
+        icon: 'ri-truck-line',
+      },
+      {
+        id: 66,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTECLIENTESMASFACTURADOS',
+        link: '/reportes/reporteclientesMasFacturados',
+        parentId: 7,
+        icon: 'ri-truck-line',
+      },
+      {
+        id: 67,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTEPRODUCTOSPORRUTA',
+        link: '/reportes/reporteProductosPorRuta',
         parentId: 7,
         icon: 'ri-truck-line',
       }
