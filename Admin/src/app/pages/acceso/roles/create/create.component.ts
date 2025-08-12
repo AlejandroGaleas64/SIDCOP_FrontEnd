@@ -32,12 +32,6 @@ interface Accion {
   Accion: string;
 }
 
-// Constante quedaría igual, la mantienes para la relación AcPa_Id
-const accionesPorPantalla = [
-  { AcPa_Id: 1, Pant_Id: 62, Acci_Id: 1 }, { AcPa_Id: 2, Pant_Id: 62, Acci_Id: 2 }, /* ... resto igual ... */
-  { AcPa_Id: 251, Pant_Id: 67, Acci_Id: 4 }
-];
-
 @Component({
   selector: 'app-create',
   standalone: true,
@@ -51,6 +45,9 @@ export class CreateComponent {
 
   treeData: TreeItem[] = [];
   selectedItems: TreeItem[] = [];
+
+  // Propiedad para almacenar las acciones por pantalla
+  accionesPorPantalla: { AcPa_Id: number, Pant_Id: number, Acci_Id: number }[] = [];
 
   rol: Rol = {
     role_Id: 0,
@@ -81,6 +78,27 @@ export class CreateComponent {
 
   ngOnInit(): void {
     this.inicializarFormulario();
+    this.cargarAccionesPorPantalla();
+  }
+
+  private cargarAccionesPorPantalla(): void {
+    this.http.get<{ acPa_Id: number, pant_Id: number, acci_Id: number }[]>(`${environment.apiBaseUrl}/Roles/ListarAccionesPorPantalla`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (data) => {
+        this.accionesPorPantalla = data.map(item => ({
+          AcPa_Id: item.acPa_Id,
+          Pant_Id: item.pant_Id,
+          Acci_Id: item.acci_Id
+        }));
+        this.cargarPantallas();
+      },
+      error: (err) => {
+        console.error('Error cargando acciones por pantalla:', err);
+        this.accionesPorPantalla = [];
+        this.cargarPantallas();
+      }
+    });
   }
 
   inicializarFormulario(): void {
@@ -283,30 +301,7 @@ export class CreateComponent {
           next: (roles) => {
             const ultimoRol = roles[0];
 
-            const permisos = this.selectedItems
-              .filter(item => item.type === 'accion')
-              .map(item => {
-                const pantallaId = item.parent ? Number(item.parent.id.split('_').pop()) : undefined;
-                const accionId = Number(item.id.split('_').pop());
-
-                if (!pantallaId || !accionId) {
-                  console.warn(`No se pudo obtener Pant_Id o Accion_Id para item:`, item);
-                  return null;
-                }
-
-                const acPa = accionesPorPantalla.find(ap => ap.Pant_Id === pantallaId && ap.Acci_Id === accionId);
-                if (!acPa) {
-                  console.warn(`No existe AcPa_Id para Pant_Id=${pantallaId} y Acci_Id=${accionId}`);
-                  return null;
-                }
-                return {
-                  acPa_Id: acPa.AcPa_Id,
-                  role_Id: ultimoRol.role_Id,
-                  usua_Creacion: getUserId(),
-                  perm_FechaCreacion: new Date().toISOString()
-                };
-              })
-              .filter(permiso => permiso !== null);
+            const permisos = this.getPermisosSeleccionados(ultimoRol.role_Id);
 
             // Insertar permisos en paralelo
             Promise.all(permisos.map(permiso =>
@@ -388,5 +383,36 @@ export class CreateComponent {
 
   toggleExpand(item: TreeItem): void {
     item.expanded = !item.expanded;
+  }
+
+  private getPermisosSeleccionados(roleId: number): Array<{acPa_Id: number, role_Id: number, usua_Creacion: number, perm_FechaCreacion: string}> {
+    return this.selectedItems
+      .filter((item: TreeItem) => item.type === 'accion')
+      .map((item: TreeItem) => {
+        const pantallaId = item.parent ? Number(item.parent.id.split('_').pop()) : undefined;
+        const accionId = Number(item.id.split('_').pop());
+
+        if (!pantallaId || !accionId) {
+          console.warn(`No se pudo obtener Pant_Id o Accion_Id para item:`, item);
+          return null;
+        }
+
+        const acPa = this.accionesPorPantalla.find((ap: {Pant_Id: number, Acci_Id: number}) => 
+          ap.Pant_Id === pantallaId && ap.Acci_Id === accionId
+        );
+        
+        if (!acPa) {
+          console.warn(`No existe AcPa_Id para Pant_Id=${pantallaId} y Acci_Id=${accionId}`);
+          return null;
+        }
+
+        return {
+          acPa_Id: acPa.AcPa_Id,
+          role_Id: roleId,
+          usua_Creacion: getUserId(),
+          perm_FechaCreacion: new Date().toISOString()
+        };
+      })
+      .filter((permiso): permiso is {acPa_Id: number, role_Id: number, usua_Creacion: number, perm_FechaCreacion: string} => permiso !== null);
   }
 }

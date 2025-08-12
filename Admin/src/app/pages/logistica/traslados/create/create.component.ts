@@ -98,6 +98,15 @@ export class CreateComponent implements OnInit {
     });
   }
 
+  //para el swtich de recarga
+  onEsRecargaChange(): void {
+  if (!this.traslado.tras_EsRecarga) {
+    // Si se desactiva el switch, limpiar la recarga seleccionada
+    this.traslado.reca_Id = 0;
+    this.recargaSeleccionada = null;
+  }
+}
+
   // ========== MÉTODOS PARA MANEJO DE RECARGAS ==========
 
   /**
@@ -451,10 +460,10 @@ export class CreateComponent implements OnInit {
       errores.push('Fecha');
     }
     
-    // Validar recarga (si es requerida)
-    if (!this.traslado.reca_Id || this.traslado.reca_Id == 0) {
-      errores.push('Recarga');
-    }
+   // Validar recarga (solo si tras_EsRecarga es true)
+if (this.traslado.tras_EsRecarga && (!this.traslado.reca_Id || this.traslado.reca_Id == 0)) {
+  errores.push('Recarga');
+}
     
     const productosSeleccionados = this.getProductosSeleccionados();
     if (productosSeleccionados.length === 0) {
@@ -575,20 +584,25 @@ export class CreateComponent implements OnInit {
   }
 
   private validarFormularioCompleto(productos: any[]): boolean {
-    const errores = [];
-    
-    if (!this.traslado.tras_Origen || this.traslado.tras_Origen == 0) errores.push('Origen');
-    if (!this.traslado.tras_Destino || this.traslado.tras_Destino == 0) errores.push('Destino');
-    if (!this.traslado.tras_Fecha) errores.push('Fecha');
-    if (!this.traslado.reca_Id || this.traslado.reca_Id == 0) errores.push('Recarga');
-    if (productos.length === 0) errores.push('Al menos un producto');
-    
-    if (errores.length > 0) {
-      this.mostrarWarning(`Complete los campos: ${errores.join(', ')}`);
-      return false;
-    }
-    return true;
+  const errores = [];
+  
+  if (!this.traslado.tras_Origen || this.traslado.tras_Origen == 0) errores.push('Origen');
+  if (!this.traslado.tras_Destino || this.traslado.tras_Destino == 0) errores.push('Destino');
+  if (!this.traslado.tras_Fecha) errores.push('Fecha');
+  
+  // Solo validar recarga si tras_EsRecarga es true
+  if (this.traslado.tras_EsRecarga && (!this.traslado.reca_Id || this.traslado.reca_Id == 0)) {
+    errores.push('Recarga');
   }
+  
+  if (productos.length === 0) errores.push('Al menos un producto');
+  
+  if (errores.length > 0) {
+    this.mostrarWarning(`Complete los campos: ${errores.join(', ')}`);
+    return false;
+  }
+  return true;
+}
 
   private crearTraslado(productos: any[]): void {
     const origen = this.origenes.find(o => o.sucu_Id == this.traslado.tras_Origen);
@@ -603,15 +617,18 @@ export class CreateComponent implements OnInit {
       destino: destino?.bode_Descripcion || '',
       tras_Fecha: new Date(this.traslado.tras_Fecha).toISOString(),
       tras_Observaciones: this.traslado.tras_Observaciones || '',
-      reca_Id: Number(this.traslado.reca_Id), // Agregar la recarga al datos
+      reca_Id: this.traslado.tras_EsRecarga ? 
+             (this.traslado.reca_Id && this.traslado.reca_Id > 0 ? Number(this.traslado.reca_Id) : null) : 
+             null,
       recarga: recarga?.recarga || '', // Agregar descripción de la recarga
+      tras_EsRecarga: this.traslado.tras_EsRecarga || false,
       usua_Creacion: environment.usua_Id,
       tras_FechaCreacion: new Date().toISOString(),
       usua_Modificacion: 0,
       tras_FechaModificacion: new Date().toISOString(),
       tras_Estado: true,
       usuaCreacion: '',
-      usuaModificacion: ''
+      usuaModificacion: '',
     };
 
     this.http.post<any>(`${environment.apiBaseUrl}/Traslado/Insertar`, datos, {
