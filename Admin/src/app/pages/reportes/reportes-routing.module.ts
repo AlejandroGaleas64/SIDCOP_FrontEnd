@@ -24,21 +24,27 @@ const routes: Routes = [
     canActivate: [PermisoGuard],
     data: { pantallaId: 67 } // ID 61: Reporte Productos
   },
-    {
+  {
     path: 'reporteDevoluciones',
     loadChildren: () =>
       import('../reportes/reporteDevoluciones/reporteDevoluciones.module').then(m => m.reporteDevolucionesModule),
     canActivate: [PermisoGuard],
     data: { pantallaId: 69 } 
   },
-   {
+  {
    path: 'reporteRutas',
    loadChildren: () =>
      import('../reportes/reporteRecargaPorBodega/ReporteRecargasPorBodega.module').then(m => m.reporteRecargasPorBodegaModule),
    canActivate: [PermisoGuard],
    data: { pantallaId: 68 } 
- },
-
+  },
+  {
+   path: 'reporteProductosVendidos',
+   loadChildren: () =>
+     import('../reportes/reporteProductosVendidos/reporteProductosVendidos.module').then(m => m.ReporteProductosVendidosModule),
+   canActivate: [PermisoGuard],
+   data: { pantallaId: 72 } 
+  },
 ];
 
 @NgModule({
