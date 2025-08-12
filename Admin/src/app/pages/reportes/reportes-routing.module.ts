@@ -1,6 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { PermisoGuard } from '../../core/guards/permiso.guard';
+import { ReportePedidosPorFechaComponent } from './pedidosPorFecha/list/list.component';
+import { ReporteClientesPorCanalYFechaComponent } from './clientesPorCanalYFecha/list/list.component';
+import { ReporteVendedoresPorRutaComponent } from './vendedoresPorRuta/list/list.component';
 
 const routes: Routes = [
   {
@@ -25,6 +28,23 @@ const routes: Routes = [
     data: { pantallaId: 67 } // ID 61: Reporte Productos
   },
   {
+      path: "reportePedidosPorFecha",
+      component: ReportePedidosPorFechaComponent
+  },
+  {
+      path: "reporteClientesPorCanalYFecha",
+      component: ReporteClientesPorCanalYFechaComponent
+  },
+  {
+      path: "reporteVendedoresPorRuta",
+      component: ReporteVendedoresPorRutaComponent
+  },
+  //  ,{
+  //   path: 'traslados',
+  //   loadChildren: () =>
+  //     import('./traslados/traslado.module').then(m => m.TrasladoModule)
+  // },
+    {
     path: 'reporteDevoluciones',
     loadChildren: () =>
       import('../reportes/reporteDevoluciones/reporteDevoluciones.module').then(m => m.reporteDevolucionesModule),
