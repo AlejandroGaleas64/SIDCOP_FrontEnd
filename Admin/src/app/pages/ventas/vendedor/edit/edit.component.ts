@@ -346,6 +346,7 @@ tieneAyudante: boolean = false;
     colo_Id: this.vendedor.colo_Id,
     vend_Supervisor: this.vendedor.vend_Supervisor || 0,
     vend_EsExterno: this.vendedor.vend_EsExterno || false,
+    vend_Imagen: this.vendedor.vend_Imagen || 'assets/images/users/32/user-svg.svg',
     usua_Modificacion: getUserId(),
     vend_FechaModificacion: new Date().toISOString(),
     usuarioModificacion: '',
@@ -520,5 +521,36 @@ esDiaYaSeleccionado(diaId: number, indiceActual: number): boolean {
       .map(x => `${x.ruta_Id}|${x.dias.join(',')}`);
     return norm.join(';');
   }
+onImagenSeleccionada(event: any) {
+    // Obtenemos el archivo seleccionado desde el input tipo file
+    const file = event.target.files[0];
 
+    if (file) {
+      // para enviar la imagen a Cloudinary
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'empleados');
+      //Subidas usuarios Carpeta identificadora en Cloudinary
+      //dwiprwtmo es el nombre de la cuenta de Cloudinary
+      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
+
+
+      fetch(url, {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(data => {
+          this.vendedor.vend_Imagen = data.secure_url;
+        })
+        .catch(error => {
+          console.error('Error al subir la imagen a Cloudinary:', error);
+        });
+    }
+  }
+
+  onImgError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    target.src = 'assets/images/users/32/user-dummy-img.jpg';
+  }
 }
