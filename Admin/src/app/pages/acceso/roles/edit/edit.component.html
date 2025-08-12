@@ -133,36 +133,66 @@
     </div>
   </form>
 
-  <!-- Modal de confirmación para editar -->
   <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }"
-       [style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog"
-       aria-modal="true" [attr.aria-hidden]="!mostrarConfirmacionEditar">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
-          <span>Confirmación</span>
-          <i class="ri-close-line custom-modal-close" (click)="cancelarEdicion()" style="cursor:pointer"></i>
+  [style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
+        <span>Confirmación</span>
+        <i class="ri-close-line custom-modal-close" (click)="cancelarEdicion()"></i>
+      </div>
+      <hr class="custom-modal-divider">
+      <div class="modal-body custom-modal-body">
+        <div class="text-center mb-3">
+          <p class="mt-2 custom-modal-text">
+            <i class="ri-edit-line me-2 custom-modal-alert-icon"></i>
+            ¿Estás seguro que deseas guardar los siguientes cambios en la configuración?
+          </p>
         </div>
-        <hr class="custom-modal-divider">
-        <div class="modal-body custom-modal-body">
-          <div class="text-center">
-            <p class="mt-2 custom-modal-text text-center">
-              <i class="ri-edit-line me-2 custom-modal-alert-icon"></i>
-              {{ mensajeWarning }}
-            </p>
+        
+        <!-- Lista de cambios detectados -->
+        <div *ngFor="let cambio of obtenerListaCambios()" class="change-item mb-3 p-3"
+            style="border: 1px solid #e9ecef; border-radius: 8px; background-color: #f8f9fa;">
+          <div *ngIf="cambio.label !== 'Se modificaron los permisos.'" class="d-flex align-items-center mb-2">
+            <i class="ri-arrow-right-circle-line me-2 text-primary"></i>
+            <strong class="text-primary">{{ cambio.label }}</strong>
+          </div>
+
+          <!-- Para descripción -->
+          <div *ngIf="cambio.anterior !== undefined && cambio.nuevo !== undefined" class="row">
+            <div class="col-6">
+              <small class="text-muted d-block">Original :</small>
+              <div class="p-2" style="background-color: #fff2f2; border-left: 3px solid #dc3545; border-radius: 4px;">
+                <span class="text-dark">{{ cambio.anterior }}</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block">Nuevo:</small>
+              <div class="p-2" style="background-color: #f0fff4; border-left: 3px solid #28a745; border-radius: 4px;">
+                <span class="text-dark">{{ cambio.nuevo }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Para permisos -->
+          <div *ngIf="cambio.label === 'Se modificaron los permisos.'" class="d-flex align-items-center">
+            <i class="ri-lock-unlock-line me-2 text-primary"></i>
+            <span class="text-dark">{{ cambio.label }}</span>
           </div>
         </div>
-        <div class="modal-footer custom-modal-footer">
-          <button type="button" class="btn btn-primary btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
-            <span class="btn-text">No</span><span class="btn-icon"><i class="ri-close-circle-line"></i></span>
-          </button>
-          <button type="button" class="btn btn-primary btn-minw-5 btn-sm" (click)="confirmarEdicion()">
-            <span class="btn-text">Sí</span><span class="btn-icon"><i class="ri-save-line"></i></span>
-          </button>
-        </div>
+      </div>
+      <div class="modal-footer custom-modal-footer">
+        <button type="button" class="btn btn-primary btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
+          <span class="btn-text">No</span>
+          <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+        </button>
+        <button type="button" class="btn btn-primary btn-minw-5 btn-sm" (click)="confirmarEdicion()">
+          <span class="btn-text">Sí</span>
+          <span class="btn-icon"><i class="ri-save-line"></i></span>
+        </button>
       </div>
     </div>
   </div>
-  <div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEditar }"
-       *ngIf="mostrarConfirmacionEditar"></div>
 </div>
+<!-- Overlay modal -->
+<div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEditar }" *ngIf="mostrarConfirmacionEditar"></div>

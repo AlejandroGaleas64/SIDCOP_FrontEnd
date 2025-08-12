@@ -89,7 +89,7 @@ export class EditComponent implements OnChanges {
     role_Estado: true
   };
 
-  rolOriginal = '';
+  rolOriginal: any = {};
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -110,9 +110,9 @@ export class EditComponent implements OnChanges {
   constructor(private http: HttpClient) {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['rolData']?.currentValue) {
+    if (changes['rolData'] && changes['rolData'].currentValue) {
       this.rol = { ...changes['rolData'].currentValue };
-      this.rolOriginal = this.rol.role_Descripcion || '';
+      this.rolOriginal = { ...this.rolData };
       this.mostrarErrores = false;
       this.cerrarAlerta();
       this.cargarAccionesPorPantalla();
@@ -331,11 +331,57 @@ export class EditComponent implements OnChanges {
     cambiarExpansion(this.treeData, expandir);
   }
 
-  validarEdicion(): void {
-    this.mostrarErrores = true;
-    const nuevaDescripcion = this.rol.role_Descripcion.trim();
-    const descripcionCambiada = nuevaDescripcion !== this.rolOriginal;
+  // validarEdicion(): void {
+  //   this.mostrarErrores = true;
+  //   const nuevaDescripcion = this.rol.role_Descripcion.trim();
+  //   const descripcionCambiada = nuevaDescripcion !== this.rolOriginal;
 
+  //   const permisosActuales = this.selectedItems
+  //     .filter(item => item.type === 'accion')
+  //     .map(item => {
+  //       const pantallaId = item.parent ? Number(item.parent.id.split('_').pop()) : undefined;
+  //       const accionId = Number(item.id.split('_').pop());
+  //       return `${pantallaId}_${accionId}`;
+  //     });
+
+  //   const permisosCambiados = JSON.stringify(this.permisosDelRol.sort()) !== JSON.stringify(permisosActuales.sort());
+  //   this.hayCambiosPermisos = permisosCambiados;
+
+  //   if (nuevaDescripcion && (descripcionCambiada || permisosCambiados)) {
+  //     if (descripcionCambiada && permisosCambiados) {
+  //       this.mensajeWarning = '¿Estás seguro que deseas modificar la descripción y los permisos de este rol?';
+  //     } else if (descripcionCambiada) {
+  //       this.mensajeWarning = '¿Estás seguro que deseas modificar la descripción de este rol?';
+  //     } else {
+  //       this.mensajeWarning = '¿Estás seguro que deseas modificar los permisos de este rol?';
+  //     }
+  //     this.mostrarConfirmacionEditar = true;
+  //   } else if (!nuevaDescripcion) {
+  //     this.mostrarAlertaWarning = true;
+  //     this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
+  //     setTimeout(() => this.cerrarAlerta(), 4000);
+  //   } else {
+  //     this.mostrarAlertaWarning = true;
+  //     this.mensajeWarning = 'No se han detectado cambios.';
+  //     setTimeout(() => this.cerrarAlerta(), 4000);
+  //   }
+  // }
+
+  hayDiferencias(): boolean {
+    const a = this.rol;
+    const b = this.rolOriginal;
+    this.cambiosDetectados = {};
+
+    // Descripción del rol
+    if (a.role_Descripcion !== b.role_Descripcion) {
+      this.cambiosDetectados.descripcion = {
+        anterior: b.role_Descripcion,
+        nuevo: a.role_Descripcion,
+        label: 'Descripción del rol'
+      };
+    }
+
+    // Comparar permisos
     const permisosActuales = this.selectedItems
       .filter(item => item.type === 'accion')
       .map(item => {
@@ -344,28 +390,43 @@ export class EditComponent implements OnChanges {
         return `${pantallaId}_${accionId}`;
       });
 
-    const permisosCambiados = JSON.stringify(this.permisosDelRol.sort()) !== JSON.stringify(permisosActuales.sort());
-    this.hayCambiosPermisos = permisosCambiados;
+    const permisosOriginales = [...this.permisosDelRol];
 
-    if (nuevaDescripcion && (descripcionCambiada || permisosCambiados)) {
-      if (descripcionCambiada && permisosCambiados) {
-        this.mensajeWarning = '¿Estás seguro que deseas modificar la descripción y los permisos de este rol?';
-      } else if (descripcionCambiada) {
-        this.mensajeWarning = '¿Estás seguro que deseas modificar la descripción de este rol?';
+    // Ordenar para evitar falsos negativos
+    const cambiosPermisos = JSON.stringify(permisosActuales.sort()) !== JSON.stringify(permisosOriginales.sort());
+
+    if (cambiosPermisos) {
+      this.cambiosDetectados.permisos = {
+        label: 'Se modificaron los permisos.'
+      };
+    }
+
+    return Object.keys(this.cambiosDetectados).length > 0;
+  }
+
+  validarEdicion(): void {
+    this.mostrarErrores = true;
+
+    if (this.rol.role_Descripcion.trim()) {
+      if (this.hayDiferencias()) {
+        this.mostrarConfirmacionEditar = true;
       } else {
-        this.mensajeWarning = '¿Estás seguro que deseas modificar los permisos de este rol?';
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = 'No se han detectado cambios.';
+        setTimeout(() => this.cerrarAlerta(), 4000);
       }
-      this.mostrarConfirmacionEditar = true;
-    } else if (!nuevaDescripcion) {
+    } else {
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
       setTimeout(() => this.cerrarAlerta(), 4000);
-    } else {
-      this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'No se han detectado cambios.';
-      setTimeout(() => this.cerrarAlerta(), 4000);
     }
   }
+
+  obtenerListaCambios(): any[] {
+    return Object.values(this.cambiosDetectados);
+  }
+
+  cambiosDetectados: any = {};
 
   cancelarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
