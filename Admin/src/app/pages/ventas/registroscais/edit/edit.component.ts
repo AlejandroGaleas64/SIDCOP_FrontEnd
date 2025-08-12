@@ -1,4 +1,11 @@
-import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  Output,
+  EventEmitter,
+  Input,
+  OnChanges,
+  SimpleChanges,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -12,7 +19,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
   standalone: true,
   imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule],
   templateUrl: './edit.component.html',
-  styleUrl: './edit.component.scss'
+  styleUrl: './edit.component.scss',
 })
 export class EditComponent implements OnChanges {
   @Input() RegistroCaiData: RegistroCAI | null = null;
@@ -32,7 +39,7 @@ export class EditComponent implements OnChanges {
 
     usua_Creacion: 0,
     usua_Modificacion: 0,
-   
+
     regC_FechaCreacion: new Date(),
     regC_FechaModificacion: new Date(),
     code_Status: 0,
@@ -48,8 +55,6 @@ export class EditComponent implements OnChanges {
     puEm_Descripcion: '',
   };
 
-
-  PEOriginal = '';
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -58,15 +63,15 @@ export class EditComponent implements OnChanges {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
+  RCOriginal: any = {};
 
- CAI: any[] = []; 
+  CAI: any[] = [];
   PE: any[] = [];
   searchCAI = (term: string, item: any) => {
     term = term.toLowerCase();
     return (
       item.nCai_Codigo?.toLowerCase().includes(term) ||
-      item.nCai_Descripcion?.toLowerCase().includes(term) 
-    
+      item.nCai_Descripcion?.toLowerCase().includes(term)
     );
   };
 
@@ -93,6 +98,8 @@ export class EditComponent implements OnChanges {
         headers: { 'x-api-key': environment.apiKey },
       })
       .subscribe((data) => (this.PE = data));
+
+    console.log('Puntos Emision', this.PE);
   }
 
   ordenarPorMunicipioYDepartamento(sucursales: any[]): any[] {
@@ -128,8 +135,7 @@ export class EditComponent implements OnChanges {
   }
 
   constructor(private http: HttpClient) {
-
-        this.cargarCAI();
+    this.cargarCAI();
     this.cargarSucursales();
     this.cargarPE();
   }
@@ -137,7 +143,7 @@ export class EditComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['RegistroCaiData'] && changes['RegistroCaiData'].currentValue) {
       this.registroCai = { ...changes['RegistroCaiData'].currentValue };
-      this.PEOriginal = this.registroCai.regC_Descripcion || '';
+      this.RCOriginal = { ...this.RegistroCaiData };
       this.mostrarErrores = false;
       this.cerrarAlerta();
     }
@@ -160,8 +166,17 @@ export class EditComponent implements OnChanges {
   validarEdicion(): void {
     this.mostrarErrores = true;
 
-    if (this.registroCai.regC_Descripcion.trim()) {
-      if (this.registroCai.regC_Descripcion.trim() !== this.PEOriginal) {
+    if (
+      this.registroCai.regC_Descripcion.trim() &&
+      this.registroCai.sucu_Id &&
+      this.registroCai.nCai_Id &&
+      this.registroCai.puEm_Id &&
+      this.registroCai.regC_RangoInicial.trim() &&
+      this.registroCai.regC_RangoFinal.trim() &&
+      this.registroCai.regC_FechaInicialEmision &&
+      this.registroCai.regC_FechaFinalEmision
+    ) {
+      if (this.hayDiferencias()) {
         this.mostrarConfirmacionEditar = true;
       } else {
         this.mostrarAlertaWarning = true;
@@ -170,9 +185,114 @@ export class EditComponent implements OnChanges {
       }
     } else {
       this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
+      this.mensajeWarning =
+        'Por favor complete todos los campos requeridos antes de guardar.';
       setTimeout(() => this.cerrarAlerta(), 4000);
     }
+  }
+
+  obtenerListaCambios(): any[] {
+    return Object.values(this.cambiosDetectados);
+  }
+
+  cambiosDetectados: any = {};
+
+  hayDiferencias(): boolean {
+    const a = this.registroCai;
+    const b = this.RCOriginal;
+    this.cambiosDetectados = {};
+
+    // Verificar cada campo y almacenar los cambios
+    if (a.regC_Descripcion !== b.regC_Descripcion) {
+      this.cambiosDetectados.Descripción = {
+        anterior: b.regC_Descripcion,
+        nuevo: a.regC_Descripcion,
+        label: 'Descripción',
+      };
+    }
+
+    if (a.sucu_Id !== b.sucu_Id) {
+      const sucursalAnterior = this.Sucursales.find(
+        (c) => c.sucu_Id === b.sucu_Id
+      );
+      const sucursalNueva = this.Sucursales.find(
+        (c) => c.sucu_Id === a.sucu_Id
+      );
+
+      this.cambiosDetectados.Observaciones = {
+        anterior: sucursalAnterior
+          ? `${sucursalAnterior.sucu_Descripcion} - ${sucursalAnterior.muni_Descripcion} - ${sucursalAnterior.depa_Descripcion}`
+          : 'No seleccionada',
+        nuevo: sucursalNueva
+          ? `${sucursalNueva.sucu_Descripcion} - ${sucursalNueva.muni_Descripcion} - ${sucursalNueva.depa_Descripcion}`
+          : 'No seleccionada',
+        label: 'Sucursal',
+      };
+    }
+
+    if (a.nCai_Id !== b.nCai_Id) {
+      const caiAnterior = this.CAI.find((c) => c.nCai_Id === b.nCai_Id);
+      const caiNueva = this.CAI.find((c) => c.nCai_Id === a.nCai_Id);
+
+      this.cambiosDetectados.Observaciones = {
+        anterior: caiAnterior
+          ? `${caiAnterior.nCai_Codigo} - ${caiAnterior.nCai_Descripcion}`
+          : 'No seleccionada',
+        nuevo: caiNueva
+          ? `${caiNueva.nCai_Codigo} - ${caiNueva.nCai_Descripcion}`
+          : 'No seleccionada',
+        label: 'CAI',
+      };
+    }
+
+    if (a.puEm_Id !== b.puEm_Id) {
+      const peAnterior = this.PE.find((c) => c.puEm_Id === b.puEm_Id);
+      const peNueva = this.PE.find((c) => c.puEm_Id === a.puEm_Id);
+
+      this.cambiosDetectados.Observaciones = {
+        anterior: peAnterior
+          ? `${peAnterior.puEm_Codigo} - ${peAnterior.puEm_Descripcion} - ${peAnterior.sucu_Descripcion}`
+          : 'No seleccionada',
+        nuevo: peNueva
+          ? `${peNueva.puEm_Codigo} - ${peNueva.puEm_Descripcion} - ${peNueva.sucu_Descripcion}`
+          : 'No seleccionada',
+        label: 'Punto de Emision',
+      };
+    }
+
+    if (a.regC_RangoInicial !== b.regC_RangoInicial) {
+      this.cambiosDetectados.RangoInicial = {
+        anterior: b.regC_RangoInicial,
+        nuevo: a.regC_RangoInicial,
+        label: 'Rango Inicial',
+      };
+    }
+
+    if (a.regC_RangoFinal !== b.regC_RangoFinal) {
+      this.cambiosDetectados.RangoFinal = {
+        anterior: b.regC_RangoFinal,
+        nuevo: a.regC_RangoFinal,
+        label: 'Rango Final',
+      };
+    }
+
+    if (a.regC_FechaInicialEmision !== b.regC_FechaInicialEmision) {
+      this.cambiosDetectados.FechaInical = {
+        anterior: b.regC_FechaInicialEmision,
+        nuevo: a.regC_FechaInicialEmision,
+        label: 'Fecha Inicial',
+      };
+    }
+
+    if (a.regC_FechaFinalEmision !== b.regC_FechaFinalEmision) {
+      this.cambiosDetectados.FechaFinal = {
+        anterior: b.regC_FechaFinalEmision,
+        nuevo: a.regC_FechaFinalEmision,
+        label: 'Fecha Final',
+      };
+    }
+
+    return Object.keys(this.cambiosDetectados).length > 0;
   }
 
   cancelarEdicion(): void {
@@ -185,73 +305,105 @@ export class EditComponent implements OnChanges {
   }
 
   get fechaInicioFormato(): string {
-  return new Date(this.registroCai.regC_FechaInicialEmision).toISOString().split('T')[0];
-}
+    return new Date(this.registroCai.regC_FechaInicialEmision)
+      .toISOString()
+      .split('T')[0];
+  }
 
-set fechaInicioFormato(value: string) {
-  this.registroCai.regC_FechaInicialEmision = new Date(value);
-}
+  set fechaInicioFormato(value: string) {
+    this.registroCai.regC_FechaInicialEmision = new Date(value);
+  }
 
-get fechaFinFormato(): string {
-  return new Date(this.registroCai.regC_FechaFinalEmision).toISOString().split('T')[0];
-}
+  get fechaFinFormato(): string {
+    return new Date(this.registroCai.regC_FechaFinalEmision)
+      .toISOString()
+      .split('T')[0];
+  }
 
-set fechaFinFormato(value: string) {
-  this.registroCai.regC_FechaFinalEmision = new Date(value);
-}
+  set fechaFinFormato(value: string) {
+    this.registroCai.regC_FechaFinalEmision = new Date(value);
+  }
+
+  
 
   private guardar(): void {
     this.mostrarErrores = true;
 
-    if (this.registroCai.regC_Descripcion.trim()) {
-      const RegistroCAIActualizar = {
+    if (this.registroCai.regC_Descripcion.trim() &&
+        this.registroCai.sucu_Id && 
+        this.registroCai.nCai_Id && 
+        this.registroCai.puEm_Id &&
+        this.registroCai.regC_RangoInicial.trim() &&
+        this.registroCai.regC_RangoFinal.trim() &&
+        this.registroCai.regC_FechaInicialEmision &&
+        this.registroCai.regC_FechaFinalEmision) {
+      const registroCAIActualizar = {
         regC_Id: this.registroCai.regC_Id,
-        regC_Descripcion: this.registroCai.regC_Descripcion.trim(),
+        regC_Descripcion: this.registroCai.regC_Descripcion,
         sucu_Id: this.registroCai.sucu_Id,
-         sucu_Descripcion: "",
         puEm_Id: this.registroCai.puEm_Id,
-          puEm_Descripcion: "",
         nCai_Id: this.registroCai.nCai_Id,
-          nCai_Descripcion: "",
-        regC_RangoInicial: this.registroCai.regC_RangoInicial.trim(),
-        regC_RangoFinal: this.registroCai.regC_RangoFinal.trim(),
+        regC_RangoInicial: this.registroCai.regC_RangoInicial,
+        regC_RangoFinal: this.registroCai.regC_RangoFinal,
         regC_FechaInicialEmision: this.registroCai.regC_FechaInicialEmision,
         regC_FechaFinalEmision: this.registroCai.regC_FechaFinalEmision,
-        
-secuencia: 0,
-        estado: "",
-        code_Status: 0,
-        message_Status: '',
-        regC_Estado: false,
+        regC_Estado: true,
         usua_Modificacion: getUserId(),
-        regC_FechaModificacion: new Date().toISOString(),
-          usuarioCreacion: "", 
-        usuarioModificacion: "" 
-       
+        regC_FechaModificacion: new Date(),
+        secuencia: 0,
+        estado: '',
+        usuarioCreacion: '',
+        usuarioModificacion: '',
+        sucu_Descripcion: '',
+        puEm_Descripcion: '',
+        nCai_Descripcion: '',
+        puEm_Codigo: '',
+        nCai_Codigo: '',
       };
 
-      this.http.put<any>(`${environment.apiBaseUrl}/RegistrosCaiS/Modificar`, RegistroCAIActualizar, {
-        headers: {
-          'X-Api-Key': environment.apiKey,
-          'Content-Type': 'application/json',
-          'accept': '*/*'
-        }
-      }).subscribe({
-        next: (response) => {
-            this.mostrarErrores = false;
-            this.onSave.emit(this.registroCai);
-            this.cancelar();
-        },
-        error: (error) => {
-          console.error('Error al actualizar el Registro CAI:', error);
-          this.mostrarAlertaError = true;
-          this.mensajeError = 'Por favor, intente nuevamente.';
-          setTimeout(() => this.cerrarAlerta(), 5000);
-        }
-      });
+      this.http
+        .put<any>(
+          `${environment.apiBaseUrl}/RegistrosCaiS/Modificar`,
+          registroCAIActualizar,
+          {
+            headers: {
+              'X-Api-Key': environment.apiKey,
+              'Content-Type': 'application/json',
+              accept: '*/*',
+            },
+          }
+        )
+        .subscribe({
+          next: (response) => {
+            if (response.data.code_Status === 1) {
+              this.mostrarErrores = false;
+              this.onSave.emit(this.registroCai);
+              this.cancelar();
+            } else {
+            
+              this.mostrarAlertaError = true;
+              this.mensajeError = response.data.message_Status;
+              this.mostrarAlertaExito = false;
+
+              // Ocultar la alerta de error después de 5 segundos
+              setTimeout(() => {
+                this.mostrarAlertaError = false;
+                this.mensajeError = '';
+              }, 5000);
+            }
+          },
+          error: (error) => {
+            console.error('Error al actualizar el Registro CAI:', error);
+            //console.log('Atualizar el Registro CAI:', RegistroCAIActualizar);
+            this.mostrarAlertaError = true;
+            this.mensajeError = 'Por favor, intente nuevamente.';
+            setTimeout(() => this.cerrarAlerta(), 5000);
+          },
+        });
     } else {
       this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
+      this.mensajeWarning =
+        'Por favor complete todos los campos requeridos antes de guardar.';
       setTimeout(() => this.cerrarAlerta(), 4000);
     }
   }
