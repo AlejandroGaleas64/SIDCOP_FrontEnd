@@ -1,6 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { PermisoGuard } from '../../core/guards/permiso.guard';
+import { ReportePedidosPorFechaComponent } from './pedidosPorFecha/list/list.component';
+import { ReporteClientesPorCanalYFechaComponent } from './clientesPorCanalYFecha/list/list.component';
+import { ReporteVendedoresPorRutaComponent } from './vendedoresPorRuta/list/list.component';
 
 const routes: Routes = [
   {
@@ -24,6 +27,23 @@ const routes: Routes = [
     canActivate: [PermisoGuard],
     data: { pantallaId: 67 } // ID 61: Reporte Productos
   },
+  {
+      path: "reportePedidosPorFecha",
+      component: ReportePedidosPorFechaComponent
+  },
+  {
+      path: "reporteClientesPorCanalYFecha",
+      component: ReporteClientesPorCanalYFechaComponent
+  },
+  {
+      path: "reporteVendedoresPorRuta",
+      component: ReporteVendedoresPorRutaComponent
+  },
+  //  ,{
+  //   path: 'traslados',
+  //   loadChildren: () =>
+  //     import('./traslados/traslado.module').then(m => m.TrasladoModule)
+  // },
     {
     path: 'reporteDevoluciones',
     loadChildren: () =>
@@ -37,8 +57,28 @@ const routes: Routes = [
      import('../reportes/reporteRecargaPorBodega/ReporteRecargasPorBodega.module').then(m => m.reporteRecargasPorBodegaModule),
    canActivate: [PermisoGuard],
    data: { pantallaId: 68 } 
- },
-
+  },
+  {
+   path: 'reporteProductosVendidos',
+   loadChildren: () =>
+     import('../reportes/reporteProductosVendidos/reporteProductosVendidos.module').then(m => m.ReporteProductosVendidosModule),
+   canActivate: [PermisoGuard],
+   data: { pantallaId: 72 } 
+  },
+  {
+   path: 'reporteVendedoresVentas',
+   loadChildren: () =>
+     import('../reportes/reporteVendedoresVentas/reporteVendedoresVentas.module').then(m => m.ReporteVendedoresVentasModule),
+   canActivate: [PermisoGuard],
+   data: { pantallaId: 73 } 
+  },
+  {
+   path: 'reporteCuentasClientes',
+   loadChildren: () =>
+     import('../reportes/reporteCuentasClientes/reporteCuentasClientes.module').then(m => m.ReporteCuentasClientesModule),
+   canActivate: [PermisoGuard],
+   data: { pantallaId: 74 } 
+  },
 ];
 
 @NgModule({

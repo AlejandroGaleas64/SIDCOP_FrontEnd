@@ -25,7 +25,8 @@
         "CARGOS": "Cargos",
          "CLIENTES": "Clientes",
         "PROVEEDORES": "Proveedores",
-         "EMPLEADOS": "Empleados"
+         "EMPLEADOS": "Empleados",
+         "VISITASCLIENTES": "Visitas Clientes"
       }
     },
     "INVENTARIO": {
@@ -68,7 +69,11 @@
         "REPORTECLIENTESMASFACTURADOS": "Reporte Clientes Más Facturados",
         "REPORTEPRODUCTOSPORRUTA": "Reporte Productos por Ruta",
         "REPORTERECARGAPORSBODEGA": "Reporte Recargas Por Bodega",
-        "REPORTEDEVOLUCIONES": "Reporte Devoluciones"
+        "REPORTEDEVOLUCIONES": "Reporte Devoluciones",
+        "REPORTERUTAS": "Reporte Rutas",
+        "REPORTEPRODUCTOSVENDIDOS": "Reporte Total de Productos Vendidos",
+        "REPORTEVENDEDORESVENTAS": "Reporte Total de Ventas por Vendedor",
+        "REPORTECUENTASCLIENTES": "Reporte Cuentas Por Cliente"
       }
     },
     "DASHBOARD": {
