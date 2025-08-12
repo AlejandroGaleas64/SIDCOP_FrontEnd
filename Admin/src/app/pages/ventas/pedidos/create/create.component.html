@@ -208,8 +208,16 @@
 
                     <!-- Nombre del producto -->
                     <h6 class="producto-titulo-premium mb-3">
-                      {{ producto.prod_Descripcion }}
+                      {{ producto.prod_DescripcionCorta }}
                     </h6>
+
+                    <!-- Precio dinámico -->
+                    <div class="precio-producto mb-3">
+                      <span class="text-muted">Precio:</span>
+                      <span class="fw-bold text-dark">
+                        L {{ getPrecioPorCantidad(producto, producto.cantidad).toFixed(2) }}
+                      </span>
+                    </div>
 
                     <!-- Controles de cantidad -->
                     <div class="cantidad-controls-premium">
