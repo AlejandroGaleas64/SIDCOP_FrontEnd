@@ -17,12 +17,14 @@ import { Colonias } from 'src/app/Modelos/general/Colonias.Model';
   styleUrl: './create.component.scss'
 })
 export class CreateComponent implements OnInit {
-  onTelefonoInput(event: Event, campo: 'sucu_Telefono1' | 'sucu_Telefono2') {
-    const input = event.target as HTMLInputElement;
-    if (input && input.value !== undefined) {
-      this.sucursal[campo] = this.aplicarMascaraTelefono(input.value);
-    }
+
+  validarCorreo(correo: string): boolean {
+    if (!correo) return false;
+
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(correo.trim());
   }
+
   aplicarMascaraTelefono(valor: string): string {
     valor = valor.replace(/[^\d]/g, '').slice(0, 8);
     let resultado = '';
@@ -31,6 +33,34 @@ export class CreateComponent implements OnInit {
       resultado += valor.substring(i, i + 4);
     }
     return resultado;
+  }
+
+  onTelefonoInput(event: Event, campo: 'sucu_Telefono1' | 'sucu_Telefono2') {
+    const input = event.target as HTMLInputElement;
+    if (input && input.value !== undefined) {
+      let valor = input.value.replace(/[^\d]/g, '');
+      if (valor.length > 8) {
+        valor = valor.slice(0, 8);
+        input.value = valor;
+      }
+      this.sucursal[campo] = this.aplicarMascaraTelefono(valor);
+    }
+  }
+
+  aplicarmascaracodigo(valor: string): string {
+    return valor.replace(/[^\d]/g, '').slice(0, 3);
+  }
+
+  oncodigoinput(event: Event, campo: 'sucu_Codigo') {
+    const input = event.target as HTMLInputElement;
+    if (input && input.value !== undefined) {
+      let valor = input.value.replace(/[^\d]/g, '');
+      if (valor.length > 3) {
+        valor = valor.slice(0, 3);
+        input.value = valor;
+      }
+      this.sucursal[campo] = valor;
+    }
   }
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Sucursales>();
@@ -61,6 +91,7 @@ colonias: Colonias[] = [];
     sucu_Telefono1: '',
     sucu_Telefono2: '',
     sucu_Correo: '',
+    sucu_Codigo: '',
     usua_Creacion: getUserId(),
     sucu_FechaCreacion: new Date(),
     sucu_Estado: true
@@ -140,6 +171,7 @@ colonias: Colonias[] = [];
         sucu_DireccionExacta: '',
         sucu_Telefono1: '',
         sucu_Telefono2: '',
+        sucu_Codigo: '',
         sucu_Correo: '',
         usua_Creacion: getUserId(),
         sucu_FechaCreacion: new Date(),
@@ -169,6 +201,8 @@ colonias: Colonias[] = [];
       this.sucursal.sucu_Descripcion.trim() &&
       this.sucursal.colo_Id &&
       this.sucursal.sucu_DireccionExacta.trim() &&
+      this.sucursal.sucu_Codigo &&
+      this.sucursal.sucu_Codigo.trim() &&
       this.sucursal.sucu_Telefono1.trim() &&
       this.sucursal.sucu_Correo.trim()
     ) {
