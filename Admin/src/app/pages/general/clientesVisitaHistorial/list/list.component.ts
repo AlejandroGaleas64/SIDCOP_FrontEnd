@@ -17,6 +17,7 @@ import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { isTrustedHtml } from 'ngx-editor/lib/trustedTypesUtil';
 import { ClientesVisitaHistorial } from 'src/app/Modelos/general/ClientesVisitaHistorial.Model';
+import { DetailsComponent } from '../details/details.component';
 
 // import { CreateComponent } from '../create/create.component';
 // import { DetailsComponent } from '../details/details.component';
@@ -55,7 +56,7 @@ import { Vendedor } from 'src/app/Modelos/ventas/Vendedor.Model';
     BreadcrumbsComponent,
     // CreateComponent,
     // EditComponent,
-    // DetailsComponent,
+    DetailsComponent,
   ],
   animations: [
     trigger('fadeExpand', [
@@ -100,7 +101,7 @@ export class ListComponent {
     filename: 'Visita de Clientes',                           // Nombre base del archivo
     department: 'General',                         // Departamento
     additionalInfo: 'Sistema de Gestión',         // Información adicional
-    
+
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
       { key: 'No', header: 'No.', width: 3, align: 'center' as const },
@@ -111,7 +112,7 @@ export class ListComponent {
       { key: 'Nombre del Negocio', header: 'Nombre del Negocio', width: 50, align: 'left' as const },
       { key: 'Telefono', header: 'Telefono', width: 30, align: 'left' as const }
     ] as ExportColumn[],
-    
+
     // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
     // dataMapping: (visita: ClientesVisitaHistorial, index: number) => ({
     //   'No': visita?.No || (index + 1),
@@ -121,8 +122,8 @@ export class ListComponent {
     //   'Apellidos': this.limpiarTexto(cliente?.clie_Apellidos),
     //   'Nombre del Negocio': this.limpiarTexto(cliente?.clie_NombreNegocio),
     //   'Telefono': this.limpiarTexto(cliente?.clie_Telefono)
-      // Agregar más campos aquí según necesites:
-      // 'Campo': this.limpiarTexto(modelo?.campo),
+    // Agregar más campos aquí según necesites:
+    // 'Campo': this.limpiarTexto(modelo?.campo),
     // })
   };
 
@@ -222,7 +223,7 @@ export class ListComponent {
 
 
 
-// ===== MÉTODOS DE EXPORTACIÓN OPTIMIZADOS =====
+  // ===== MÉTODOS DE EXPORTACIÓN OPTIMIZADOS =====
 
   /**
    * Método unificado para todas las exportaciones
@@ -241,10 +242,10 @@ export class ListComponent {
   //     this.exportando = true;
   //     this.tipoExportacion = tipo;
   //     this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
-      
+
   //     const config = this.crearConfiguracionExport();
   //     let resultado;
-      
+
   //     switch (tipo) {
   //       case 'excel':
   //         resultado = await this.exportService.exportToExcel(config);
@@ -256,9 +257,9 @@ export class ListComponent {
   //         resultado = await this.exportService.exportToCSV(config);
   //         break;
   //     }
-      
+
   //     this.manejarResultadoExport(resultado);
-      
+
   //   } catch (error) {
   //     console.error(`Error en exportación ${tipo}:`, error);
   //     this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
@@ -314,22 +315,22 @@ export class ListComponent {
   /**
    * Obtiene y prepara los datos para exportación
    */
-//  private obtenerDatosExport(): any[] {
-//   try {
-//     const datos = this.vendedores; // Use the array for cards
+  //  private obtenerDatosExport(): any[] {
+  //   try {
+  //     const datos = this.vendedores; // Use the array for cards
 
-//     if (!Array.isArray(datos) || datos.length === 0) {
-//       throw new Error('No hay datos disponibles para exportar');
-//     }
+  //     if (!Array.isArray(datos) || datos.length === 0) {
+  //       throw new Error('No hay datos disponibles para exportar');
+  //     }
 
-//     return datos.map((modelo, index) =>
-//       this.exportConfig.dataMapping.call(this, modelo, index)
-//     );
-//   } catch (error) {
-//     console.error('Error obteniendo datos:', error);
-//     throw error;
-//   }
-// }
+  //     return datos.map((modelo, index) =>
+  //       this.exportConfig.dataMapping.call(this, modelo, index)
+  //     );
+  //   } catch (error) {
+  //     console.error('Error obteniendo datos:', error);
+  //     throw error;
+  //   }
+  // }
 
 
   /**
@@ -348,12 +349,12 @@ export class ListComponent {
    */
   private validarDatosParaExport(): boolean {
     const datos = this.vendedores;
-    
+
     if (!Array.isArray(datos) || datos.length === 0) {
       this.mostrarMensaje('warning', 'No hay datos disponibles para exportar');
       return false;
     }
-    
+
     if (datos.length > 10000) {
       const continuar = confirm(
         `Hay ${datos.length.toLocaleString()} registros. ` +
@@ -361,7 +362,7 @@ export class ListComponent {
       );
       if (!continuar) return false;
     }
-    
+
     return true;
   }
 
@@ -370,7 +371,7 @@ export class ListComponent {
    */
   private limpiarTexto(texto: any): string {
     if (!texto) return '';
-    
+
     return String(texto)
       .replace(/\s+/g, ' ')
       .replace(/[^\w\s\-.,;:()\[\]]/g, '')
@@ -383,22 +384,22 @@ export class ListComponent {
    */
   private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
     this.cerrarAlerta();
-    
+
     const duracion = tipo === 'error' ? 5000 : 3000;
-    
+
     switch (tipo) {
       case 'success':
         this.mostrarAlertaExito = true;
         this.mensajeExito = mensaje;
         setTimeout(() => this.mostrarAlertaExito = false, duracion);
         break;
-        
+
       case 'error':
         this.mostrarAlertaError = true;
         this.mensajeError = mensaje;
         setTimeout(() => this.mostrarAlertaError = false, duracion);
         break;
-        
+
       case 'warning':
       case 'info':
         this.mostrarAlertaWarning = true;
@@ -408,7 +409,7 @@ export class ListComponent {
     }
   }
 
- cerrarAlerta(): void {
+  cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
     this.mostrarAlertaError = false;
@@ -419,7 +420,7 @@ export class ListComponent {
 
   // constructor(private formBuilder: UntypedFormBuilder, private http: HttpClient) { }
   accionesDisponibles: string[] = [];
-    tieneRegistros: boolean = false;
+  tieneRegistros: boolean = false;
   // Método robusto para validar si una acción está permitida
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
@@ -427,17 +428,41 @@ export class ListComponent {
 
 
   crear(): void {
-      this.showCreateForm = !this.showCreateForm;
-      this.showEditForm = false;
-      this.showDetailsForm = false;
-      this.activeActionRow = null;
-    }
-  
-    detalles(visita: VisitaClientePorVendedorDto): void {
-      this.visitaDetalle = { ...visita };
-      this.showDetailsForm = true;
-      this.activeActionRow = null;
-    }
+    this.showCreateForm = !this.showCreateForm;
+    this.showEditForm = false;
+    this.showDetailsForm = false;
+    this.activeActionRow = null;
+  }
+
+  detalles(vendedor: Vendedor): void {
+    this.http.get<any>(`${environment.apiBaseUrl}/ClientesVisitaHistorial/ListarVisitasPorVendedor`,
+      {
+        headers: { 'x-api-key': environment.apiKey },
+        params: { vend_Id: 1 }
+      }
+    ).subscribe({
+      next: (data) => {
+        if (data && Array.isArray(data) && data.length > 0) {
+          this.visitaDetalle = data[0];
+          this.showDetailsForm = true;
+          this.showCreateForm = false;
+          this.activeActionRow = null;
+          console.log('Visita Detalle cargado:', this.visitaDetalle);
+          console.log('show:', this.showDetailsForm);
+        } else {
+          this.visitaDetalle = null;
+          this.showDetailsForm = false;
+          this.mostrarMensaje('warning', 'No se encontraron visitas para este vendedor.');
+        }
+      },
+      error: (err) => {
+        console.error('Error al cargar visitas:', err);
+        this.visitaDetalle = null;
+        this.showDetailsForm = false;
+        this.mostrarMensaje('error', 'No se pudo cargar el historial de visitas.');
+      }
+    });
+  }
 
   filtradorVendedores(): void {
     const termino = this.busqueda.trim().toLowerCase();
@@ -451,9 +476,9 @@ export class ListComponent {
       );
     }
 
-        // Resetear la página actual a 1 cuando se filtra
+    // Resetear la página actual a 1 cuando se filtra
     this.currentPage = 1;
-    
+
     // Actualizar los productos visibles basados en la paginación
     this.actualizarVendedoresVisibles();
   }
@@ -476,47 +501,40 @@ export class ListComponent {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
       setTimeout(() => {
-        
         this.mostrarOverlayCarga = false;
         const tienePermisoListar = this.accionPermitida('listar');
         const userId = getUserId();
-
         const datosFiltrados = tienePermisoListar
           ? data
           : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
-        
+
         this.vendedorGrid = datosFiltrados || [];
-        
-        // Resetear filtros y paginación al cargar nuevos datos
         this.busqueda = '';
         this.currentPage = 1;
-        this.itemsPerPage = 10; // Asegurar que siempre sean 8 items por página
+        this.itemsPerPage = 10;
         this.vendedoresFiltrados = [...this.vendedorGrid];
-        console.log('vendedoresFiltrados',this.vendedoresFiltrados);
-        
-        // IMPORTANTE: NO llamar a filtradorProductos() aquí
+        console.log('vendedoresFiltrados', this.vendedoresFiltrados);
         this.actualizarVendedoresVisibles();
-        
       }, 500);
     });
   }
-  
-    constructor(
-      private http: HttpClient,
-      private router: Router,
-      private route: ActivatedRoute,
-      private formBuilder: UntypedFormBuilder,
-      private exportService: ExportService
-    ) {
-      this.cargarDatos(true);
-      // this.cargarVendedores();
-    }
+
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private route: ActivatedRoute,
+    private formBuilder: UntypedFormBuilder,
+    private exportService: ExportService
+  ) {
+    this.cargarDatos(true);
+    // this.cargarVendedores();
+  }
 
 
   currentPage: number = 1;
   itemsPerPage: number = 10;
 
-get startIndex(): number {
+  get startIndex(): number {
     return this.vendedoresFiltrados?.length ? ((this.currentPage - 1) * this.itemsPerPage) + 1 : 0;
   }
 

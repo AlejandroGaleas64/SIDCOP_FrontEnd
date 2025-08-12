@@ -1,177 +1,138 @@
 <div class="details-container">
-	<!-- Contenedor de alertas flotantes -->
-	<div class="alert-container">
-		<div *ngIf="mostrarAlertaError"
-			class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
-			<i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
-			<strong>¡Error!</strong> {{ mensajeError }}
-			<button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
-		</div>
-	</div>
+    <!-- Contenedor de alertas flotantes -->
+    <div class="alert-container">
+        <div *ngIf="mostrarAlertaError"
+            class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+            <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+            <strong>¡Error!</strong> {{ mensajeError }}
+            <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+        </div>
+    </div>
 
-	<!-- Botón de regresar -->
-	<div class="details-header-button">
-		<button type="button" class="btn btn-primary mb-3" (click)="cerrar()">
-			<span class="btn-text">Regresar</span>
-			<span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
-		</button>
-	</div>
+    <!-- Botón de regresar -->
+    <div class="details-header-button">
+        <button type="button" class="btn btn-primary mb-3" (click)="cerrar()">
+            <span class="btn-text">Regresar</span>
+            <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
+        </button>
+    </div>
 
-	<!-- Contenido de detalles -->
-	<div *ngIf="!cargando && visitaDetalle" class="details-content">
-		<div class="row g-4 align-items-stretch">
-			<span style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; font-size: 38px; text-align: center; color: #303d7d">
-				Información de la Visita
-			</span>
-			<div class="col-5">
-				<div class="card-image-customer customer-photo-card-modern">
-					<ng-container *ngIf="visitaDetalle?.hCVi_Foto && visitaDetalle?.hCVi_Observaciones">
-						<div class="customer-img-container">
-							<img [src]="visitaDetalle.hCVi_Foto" alt="Foto de la visita" class="customer-img-modern"
-								(load)="imgLoaded = true" [class.loaded]="imgLoaded" />
-						</div>
-					</ng-container>
-					<ng-template #noImage>
-						<div class="customer-img-container">
-							<div class="customer-img-placeholder d-flex flex-column justify-content-center align-items-center h-100">
-								<i class="ri-store-2-line display-1"></i>
-							</div>
-						</div>
-					</ng-template>
-					<div class="customer-img-name-modern">
-						{{ visitaDetalle.clie_NombreNegocio }}
-					</div>
-				</div>
-			</div>
-			<div class="col-md-12">
-				<div class="card h-100 shadow-sm employee-details-card bg-dark-blue">
-					<div class="card-header d-flex align-items-center rounded-top details-header-custom">
-						<i class="ri-user-3-line me-2 fs-4"></i>
-						<h4 class="mb-0" style="color: #303d7d">Detalles de la Visita</h4>
-					</div>
-					<div class="card-body">
-						<div class="row g-3">
-							<div class="col-12 col-sm-4">
-								<div class="detail-item">
-									<div class="detail-icon bg-dark-blue text-white">
-										<i class="ri-user-line"></i>
-									</div>
-									<div class="detail-content">
-										<div class="detail-label">Vendedor</div>
-										<div class="detail-value">
-											{{ visitaDetalle.vend_Nombres }} {{ visitaDetalle.vend_Apellidos }}
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="col-12 col-sm-4">
-								<div class="detail-item">
-									<div class="detail-icon bg-dark-blue text-white">
-										<i class="ri-phone-line"></i>
-									</div>
-									<div class="detail-content">
-										<div class="detail-label">Teléfono Vendedor</div>
-										<div class="detail-value">
-											{{ visitaDetalle.vend_Telefono }}
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="col-12 col-sm-4">
-								<div class="detail-item">
-									<div class="detail-icon bg-dark-blue text-white">
-										<i class="ri-calendar-event-line"></i>
-									</div>
-									<div class="detail-content">
-										<div class="detail-label">Días de Visita</div>
-										<div class="detail-value">
-											{{ visitaDetalle.veRu_Dias }}
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="col-12 col-sm-4">
-								<div class="detail-item">
-									<div class="detail-icon bg-dark-blue text-white">
-										<i class="ri-user-3-line"></i>
-									</div>
-									<div class="detail-content">
-										<div class="detail-label">Cliente</div>
-										<div class="detail-value">
-											{{ visitaDetalle.clie_Nombres }} {{ visitaDetalle.clie_Apellidos }}
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="col-12 col-sm-4">
-								<div class="detail-item">
-									<div class="detail-icon bg-dark-blue text-white">
-										<i class="ri-hashtag"></i>
-									</div>
-									<div class="detail-content">
-										<div class="detail-label">Código Cliente</div>
-										<div class="detail-value">
-											{{ visitaDetalle.clie_Codigo }}
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="col-12 col-sm-4">
-								<div class="detail-item">
-									<div class="detail-icon bg-dark-blue text-white">
-										<i class="ri-store-2-line"></i>
-									</div>
-									<div class="detail-content">
-										<div class="detail-label">Latitud</div>
-										<div class="detail-value">
-											{{ visitaDetalle.hCVi_Latitud }}
-										</div>
-									</div>
-								</div>
-							</div>
-                            <div class="col-12 col-sm-4">
-								<div class="detail-item">
-									<div class="detail-icon bg-dark-blue text-white">
-										<i class="ri-store-2-line"></i>
-									</div>
-									<div class="detail-content">
-										<div class="detail-label">Longitud</div>
-										<div class="detail-value">
-											{{ visitaDetalle.hCVi_Longitud }}
-										</div>
-									</div>
-								</div>
-							</div>
-                            <div class="col-12 col-sm-4">
-								<div class="detail-item">
-									<div class="detail-icon bg-dark-blue text-white">
-										<i class="ri-store-2-line"></i>
-									</div>
-									<div class="detail-content">
-										<div class="detail-label">Negocio</div>
-										<div class="detail-value">
-											{{ visitaDetalle.clie_NombreNegocio }}
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="col-12 col-sm-4" *ngIf="visitaDetalle.hCVi_Observaciones">
-								<div class="detail-item">
-									<div class="detail-icon bg-dark-blue text-white">
-										<i class="ri-chat-3-line"></i>
-									</div>
-									<div class="detail-content">
-										<div class="detail-label">Observaciones</div>
-										<div class="detail-value">
-											{{ visitaDetalle.hCVi_Observaciones }}
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+    <!-- Contenido de detalles -->
+    <div *ngIf="!cargando && visitaDetalle" class="details-content">
+        <div class="row g-4 align-items-stretch">
+            <span
+                style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; font-size: 38px; text-align: center; color: #303d7d">
+                Información de la Visita
+            </span>
+            <div class="col-lg-4 col-md-5 col-12 d-flex align-items-stretch">
+                <div class="card-image-customer customer-photo-card-modern w-100">
+                    <ng-container *ngIf="visitaDetalle?.hCVi_Foto && visitaDetalle?.hCVi_Observaciones">
+                        <div class="customer-img-container">
+                            <img [src]="visitaDetalle.hCVi_Foto" alt="Foto de la visita" class="customer-img-modern"
+                                (load)="imgLoaded = true" [class.loaded]="imgLoaded" />
+                        </div>
+                    </ng-container>
+                    <ng-template #noImage>
+                        <div class="customer-img-container">
+                            <div
+                                class="customer-img-placeholder d-flex flex-column justify-content-center align-items-center h-100">
+                                <i class="ri-store-2-line display-1"></i>
+                            </div>
+                        </div>
+                    </ng-template>
+                    <div class="customer-img-name-modern text-center">
+                        {{ visitaDetalle.clie_NombreNegocio }}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8 col-md-7 col-12">
+                <div class="card h-100 shadow-sm employee-details-card bg-dark-blue">
+                    <div class="card-header d-flex align-items-center rounded-top details-header-custom">
+                        <i class="ri-user-3-line me-2 fs-4"></i>
+                        <h4 class="mb-0" style="color: #303d7d">Detalles de la Visita</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 row-cols-1 row-cols-md-2">
+                            <div class="col">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white">
+                                        <i class="ri-phone-line"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Código Vendedor</div>
+                                        <div class="detail-value">
+                                            {{ visitaDetalle.vend_Codigo }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white">
+                                        <i class="ri-user-line"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Vendedor</div>
+                                        <div class="detail-value">
+                                            {{ visitaDetalle.vend_Nombres }} {{ visitaDetalle.vend_Apellidos }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Ruta Designada -->
+                            <div class="col-12">
+                                <div class="mt-3 mb-2" style="font-weight:bold; color:#d6b58d; font-size:1.1em;">Ruta Designada</div>
+                                <hr style="margin-top:0;margin-bottom:0.5rem; border-color:#d6b58d;">
+                                <div class="mb-2">
+                                    <span style="font-weight:600; color:#000000;">{{ visitaDetalle.ruta_Descripcion }}</span>
+                                    <span style="color:#000000;"> ({{ visitaDetalle.veRu_Dias | diasSemana }})</span>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white">
+                                        <i class="ri-hashtag"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Código Cliente</div>
+                                        <div class="detail-value">
+                                            {{ visitaDetalle.clie_Codigo }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white">
+                                        <i class="ri-user-3-line"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Cliente</div>
+                                        <div class="detail-value">
+                                            {{ visitaDetalle.clie_Nombres }} {{ visitaDetalle.clie_Apellidos }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="col-12">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white">
+                                        <i class="ri-chat-3-line"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <div class="detail-label" style="font-weight:600; color:#000000;">Observaciones</div>
+                                        <div class="detail-value">
+                                            Estaba cerrado
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

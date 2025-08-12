@@ -9,6 +9,8 @@ export class VisitaClientePorVendedorDto {
     vend_Tipo: string = '';
     veRu_Id: number = 0;
     veRu_Dias: string = '';
+    ruta_Id: number = 0;
+    ruta_Descripcion: string = '';
     clie_Id: number = 0;
     clie_Codigo: string = '';
     clie_Nombres: string = '';

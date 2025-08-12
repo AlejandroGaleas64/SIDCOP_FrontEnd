@@ -2,10 +2,35 @@ import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { VisitaClientePorVendedorDto } from 'src/app/Modelos/general/VisitaClientePorVendedorDto.Model';
+import { Pipe, PipeTransform } from '@angular/core';
+
+@Pipe({
+  name: 'diasSemana',
+  standalone: true
+})
+export class DiasSemanaPipe implements PipeTransform {
+  private dias: { [key: string]: string } = {
+    '1': 'Lunes',
+    '2': 'Martes',
+    '3': 'Miércoles',
+    '4': 'Jueves',
+    '5': 'Viernes',
+    '6': 'Sábado',
+    '7': 'Domingo'
+  };
+
+  transform(value: string | null | undefined): string {
+    if (!value) return '';
+    return value.split(',')
+      .map(v => this.dias[v.trim()] || v.trim())
+      .join(', ');
+  }
+}
+
 @Component({
   selector: 'app-details',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DiasSemanaPipe],
   templateUrl: './details.component.html',
   styleUrl: './details.component.scss'
 })
@@ -18,7 +43,7 @@ export class DetailsComponent implements OnChanges {
   mostrarAlertaError = false;
   mensajeError = '';
   public imgLoaded: boolean = false;
-  showDetailsForm = false; 
+  showDetailsForm = false;
   activeActionRow: number | null = null;
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -27,11 +52,11 @@ export class DetailsComponent implements OnChanges {
     }
   }
 
-   detalles(visita: VisitaClientePorVendedorDto): void {
-        this.visitaDetalle = { ...visita };
-        this.showDetailsForm = true;
-        this.activeActionRow = null;
-      }
+  detalles(visita: VisitaClientePorVendedorDto): void {
+    this.visitaDetalle = { ...visita };
+    this.showDetailsForm = true;
+    this.activeActionRow = null;
+  }
 
   cargarDetallesSimulado(data: any): void {
     this.cargando = true;
