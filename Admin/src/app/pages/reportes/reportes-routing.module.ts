@@ -1,6 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { PermisoGuard } from '../../core/guards/permiso.guard';
+import { ReportePedidosPorFechaComponent } from './pedidosPorFecha/list/list.component';
+import { ReporteClientesPorCanalYFechaComponent } from './clientesPorCanalYFecha/list/list.component';
+import { ReporteVendedoresPorRutaComponent } from './vendedoresPorRuta/list/list.component';
 
 const routes: Routes = [
   {
@@ -23,6 +26,18 @@ const routes: Routes = [
       import('../reportes/reporteProductosPorRuta/reporteProductosPorRuta.module').then(m => m.ReporteProductosPorRutaModule),
     canActivate: [PermisoGuard],
     data: { pantallaId: 67 } // ID 61: Reporte Productos
+  },
+  {
+      path: "reportePedidosPorFecha",
+      component: ReportePedidosPorFechaComponent
+  },
+  {
+      path: "reporteClientesPorCanalYFecha",
+      component: ReporteClientesPorCanalYFechaComponent
+  },
+  {
+      path: "reporteVendedoresPorRuta",
+      component: ReporteVendedoresPorRutaComponent
   }
   //  ,{
   //   path: 'traslados',
