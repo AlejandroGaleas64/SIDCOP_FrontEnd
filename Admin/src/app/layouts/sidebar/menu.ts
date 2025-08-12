@@ -111,6 +111,7 @@ export const MENU: MenuItem[] = [
       { id: 69, label: 'MENUITEMS.REPORTES.LIST.REPORTEDEVOLUCIONES',            link: '/reportes/reporteDevoluciones',            parentId: 7, icon: 'ri-truck-line' },
       { id: 72, label: 'MENUITEMS.REPORTES.LIST.REPORTEPRODUCTOSVENDIDOS',       link: '/reportes/reporteProductosVendidos',       parentId: 7, icon: 'ri-truck-line' },
       { id: 73, label: 'MENUITEMS.REPORTES.LIST.REPORTEVENDEDORESVENTAS',        link: '/reportes/reporteVendedoresVentas',        parentId: 7, icon: 'ri-truck-line' },
+     { id: 74, label: 'MENUITEMS.REPORTES.LIST.REPORTECUENTASCLIENTES',         link: '/reportes/reporteCuentasClientes',         parentId: 7, icon: 'ri-truck-line' },
       { id: 75, label: 'MENUITEMS.REPORTES.LIST.REPORTEPEDIDOSPORFECHA',    link: '/reportes/reportePedidosPorFecha',     parentId: 7, icon: 'ri-truck-line' },
 
       { id: 76, label: 'MENUITEMS.REPORTES.LIST.REPORTEVENDEDORESPORRUTA',        link: '/reportes/reporteVendedoresPorRuta',        parentId: 7, icon: 'ri-truck-line' },

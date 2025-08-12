@@ -44,7 +44,7 @@
       "TEXT": "Ventas",
       "LIST": {
         "IMPUESTOS": "Impuestos",
-        "CONFIGURACIONFACTURA": "Configuración de Factura",
+        "CONFIGURACIONFACTURA": "Configuración de la Empresa",
         "CAIS": "CAIS",
         "VENDEDORES": "Vendedores",
         "REGISTROCAIS": "Registros CAI",
