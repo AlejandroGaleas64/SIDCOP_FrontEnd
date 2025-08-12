@@ -23,13 +23,42 @@ const routes: Routes = [
       import('../reportes/reporteProductosPorRuta/reporteProductosPorRuta.module').then(m => m.ReporteProductosPorRutaModule),
     canActivate: [PermisoGuard],
     data: { pantallaId: 67 } // ID 61: Reporte Productos
-  }
-  //  ,{
-  //   path: 'traslados',
-  //   loadChildren: () =>
-  //     import('./traslados/traslado.module').then(m => m.TrasladoModule)
-  // },
-
+  },
+  {
+    path: 'reporteDevoluciones',
+    loadChildren: () =>
+      import('../reportes/reporteDevoluciones/reporteDevoluciones.module').then(m => m.reporteDevolucionesModule),
+    canActivate: [PermisoGuard],
+    data: { pantallaId: 69 } 
+  },
+  {
+   path: 'reporteRutas',
+   loadChildren: () =>
+     import('../reportes/reporteRecargaPorBodega/ReporteRecargasPorBodega.module').then(m => m.reporteRecargasPorBodegaModule),
+   canActivate: [PermisoGuard],
+   data: { pantallaId: 68 } 
+  },
+  {
+   path: 'reporteProductosVendidos',
+   loadChildren: () =>
+     import('../reportes/reporteProductosVendidos/reporteProductosVendidos.module').then(m => m.ReporteProductosVendidosModule),
+   canActivate: [PermisoGuard],
+   data: { pantallaId: 72 } 
+  },
+  {
+   path: 'reporteVendedoresVentas',
+   loadChildren: () =>
+     import('../reportes/reporteVendedoresVentas/reporteVendedoresVentas.module').then(m => m.ReporteVendedoresVentasModule),
+   canActivate: [PermisoGuard],
+   data: { pantallaId: 73 } 
+  },
+  {
+   path: 'reporteCuentasClientes',
+   loadChildren: () =>
+     import('../reportes/reporteCuentasClientes/reporteCuentasClientes.module').then(m => m.ReporteCuentasClientesModule),
+   canActivate: [PermisoGuard],
+   data: { pantallaId: 74 } 
+  },
 ];
 
 @NgModule({
