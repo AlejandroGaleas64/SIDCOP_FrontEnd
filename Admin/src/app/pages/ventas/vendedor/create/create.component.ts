@@ -34,6 +34,7 @@ export class CreateComponent  {
     this.listarEmpleados();
     this.listarModelos();
     this.listarRutasDisponibles();
+    this.cargarVendedores();
   }
 
   vendedor: Vendedor = {
@@ -69,6 +70,7 @@ export class CreateComponent  {
     supervisores: any[] = [];
     ayudantes: any[] = [];
     modelos: any[] = [];
+    vendedores: any[] = [];
 
 
     searchSucursal = (term: string, item: any) => {
@@ -110,6 +112,16 @@ listarRutasDisponibles(): void {
         this.recomputarOpciones();
       });
     }
+
+   cargarVendedores() {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(data => {this.vendedores = data; this.vendedor.vend_Codigo = this.generarSiguienteCodigo();},
+      error => {
+        console.error('Error al cargar las Vendedores:', error);
+      }
+    );
+  }
 
  listarSucursales(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Sucursales/Listar`, {
@@ -212,6 +224,7 @@ tieneAyudante: boolean = false;
     usuarioCreacion: '',
     usuarioModificacion: ''
     };
+    this.vendedor.vend_Codigo = this.generarSiguienteCodigo();
     this.onCancel.emit();
   }
 
@@ -404,6 +417,20 @@ esDiaYaSeleccionado(diaId: number, indiceActual: number): boolean {
   return this.rutasVendedor.some((rv, index) => 
     index !== indiceActual && rv.diasSeleccionados.includes(diaId)
   );
+}
+
+generarSiguienteCodigo(): string {
+  
+  // Supón que tienes un array de promociones existentes llamado promociones
+  const codigos = this.vendedores
+    .map(p => p.vend_Codigo)
+    .filter(c => /^VEND-\d{5}$/.test(c));
+  if (codigos.length === 0) return 'VEND-00001';
+
+  // Ordena y toma el mayor
+  const ultimoCodigo = codigos.sort().pop()!;
+  const numero = parseInt(ultimoCodigo.split('-')[1], 10) + 1;
+  return `VEND-${numero.toString().padStart(5, '0')}`;
 }
 
 }
