@@ -58,7 +58,7 @@
                     </div>
                     <div class="card-body">
                         <ng-container *ngIf="sucursalSeleccionada; else sinSeleccion">
-                            <h5 class="fw-bold" style="color: #d6b68a;">{{ sucursalSeleccionada.sucu_Descripcion }}</h5>
+                            <h4 class="fw-bold" style="color: #d6b68a;">{{ sucursalSeleccionada.sucu_Descripcion }}</h4>
                             <p class="mb-1 small">
                                 <i class="ri-map-pin-2-line me-2 text-muted"></i>
                                 {{ sucursalSeleccionada.depa_Descripcion }},
@@ -288,7 +288,7 @@
                 <div class="alert alert-info mt-4 shadow-sm border-0"
                     style="font-size: 0.95em; background: #f0f7ff; color: #0c5460;">
                     <i class="ri-information-line me-2"></i>
-                    <b>Tip:</b> Verifica que las nuevas cantidades sean correctas antes de confirmar.
+                    <b>Nota:</b> Verifica que las nuevas cantidades sean correctas antes de confirmar.
                     Los cambios no se pueden deshacer.
                 </div>
             </div>
