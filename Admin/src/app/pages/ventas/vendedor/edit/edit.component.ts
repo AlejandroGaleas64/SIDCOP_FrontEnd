@@ -38,6 +38,7 @@ export class EditComponent implements OnChanges {
     colo_Id: 0,
     sucu_Id: 0,
     vend_Estado:'',
+    vend_Imagen:'',
     vend_FechaCreacion: new Date(),
     vend_FechaModificacion: new Date(),
     usua_Creacion: 0,

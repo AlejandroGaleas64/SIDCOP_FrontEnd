@@ -18,6 +18,7 @@ export class Vendedor{
   usua_Creacion: number = 0;
   vend_FechaCreacion: Date = new Date();
   usua_Modificacion?: number;
+  vend_Imagen: string = '';
   secuencia?: number;
   sucu_Descripcion?: string = '';
   colo_Descripcion?: string = '';
