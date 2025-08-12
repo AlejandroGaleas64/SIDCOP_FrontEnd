@@ -438,7 +438,7 @@ export class ListComponent {
     this.http.get<any>(`${environment.apiBaseUrl}/ClientesVisitaHistorial/ListarVisitasPorVendedor`,
       {
         headers: { 'x-api-key': environment.apiKey },
-        params: { vend_Id: 1 }
+        params: { vend_Id: vendedor.vend_Id }
       }
     ).subscribe({
       next: (data) => {
