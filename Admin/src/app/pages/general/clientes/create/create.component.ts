@@ -106,7 +106,6 @@ export class CreateComponent {
     if (no === 1) {
       this.mostrarErrores = true;
       if (
-        this.cliente.clie_Codigo.trim() &&
         this.cliente.clie_Nacionalidad.trim() &&
         this.cliente.clie_RTN.trim() &&
         this.cliente.clie_Nombres.trim() &&
@@ -234,7 +233,7 @@ export class CreateComponent {
   tabuladores(no: number) {
     if (no == 1) {
       this.mostrarErrores = true
-      if (this.cliente.clie_Codigo.trim() && this.cliente.clie_Nacionalidad.trim() &&
+      if (this.cliente.clie_Nacionalidad.trim() &&
         this.cliente.clie_RTN.trim() && this.cliente.clie_Nombres.trim() &&
         this.cliente.clie_Apellidos.trim() && this.cliente.esCv_Id &&
         this.cliente.clie_FechaNacimiento && this.cliente.tiVi_Id &&
@@ -631,32 +630,18 @@ export class CreateComponent {
     }
   }
 
-  onRutaSeleccionada(ruta_Id: number) {
-    this.cliente.ruta_Id = ruta_Id;
-    this.generarCodigoClientePorRuta(ruta_Id);
-  }
-
   generarCodigoClientePorRuta(ruta_Id: number): void {
-    // Busca la ruta seleccionada
-    const ruta = this.rutas.find(r => r.ruta_Id === ruta_Id);
-    if (!ruta) {
-      this.cliente.clie_Codigo = '';
-      return;
-    }
-    // Usa el código de la ruta o el ID con 3 dígitos
-    const codigoRuta = ruta.ruta_Codigo ? ruta.ruta_Codigo : ruta.ruta_Id.toString().padStart(3, '0');
+    const ruta = this.rutas.find(r => r.ruta_Id === +ruta_Id);
+    const codigoRuta = ruta?.ruta_Codigo
+      ? ruta.ruta_Codigo.padStart(3, '0')
+      : ruta_Id.toString().padStart(3, '0');
 
-    // Trae todos los clientes de esa ruta
     this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(clientes => {
-      // Filtra los clientes de la ruta seleccionada
-      const clientesRuta = clientes.filter(c => c.ruta_Id === ruta_Id);
-
-      // Busca el mayor correlativo
+      const clientesRuta = clientes.filter(c => c.ruta_Id === +ruta_Id);
       let maxCorrelativo = 0;
       clientesRuta.forEach(c => {
-        // Extrae el correlativo del código (ej: CLIE-RT504-000000123)
         const match = c.clie_Codigo?.match(/CLIE-RT\d{3}-(\d{9})/);
         if (match) {
           const num = parseInt(match[1], 10);
@@ -664,7 +649,6 @@ export class CreateComponent {
         }
       });
 
-      // Siguiente correlativo
       const siguiente = (maxCorrelativo + 1).toString().padStart(9, '0');
       this.cliente.clie_Codigo = `CLIE-RT${codigoRuta}-${siguiente}`;
     });
