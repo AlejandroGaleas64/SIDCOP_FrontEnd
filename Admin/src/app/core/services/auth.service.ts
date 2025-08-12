@@ -205,6 +205,9 @@ export class AuthenticationService {
             if (userData.usua_Usuario) {
               localStorage.setItem('usuarioNombre', userData.usua_Usuario);
             }
+           if (userData.sucu_Id) {
+              localStorage.setItem('sucu_Id', userData.sucu_Id);
+            }
 
             // Guardar permisos JSON
             if (userData.permisosJson) {
@@ -244,12 +247,12 @@ export class AuthenticationService {
 catchError((error: any) => {
         let errorMessage = error;
 
-        if (error.data === 0) {
+        if (error.code_Status === 0) {
           errorMessage = 'No se pudo conectar al servidor.';
-        } else if (error.status === 401) {
+        } else if (error.code_Status === 401) {
           errorMessage = 'Credenciales incorrectas.';
-        } else if (error.error?.message_Status) {
-          errorMessage = error.error.message_Status; // <- Aquí se captura tu error personalizado
+        } else if (error.code_Status === -1) {
+          errorMessage = '' + error.code_Status + error.message; // <- Aquí se captura tu error personalizado
         } else if (error.error?.message) {
           errorMessage = error.error.message;
         } else if (error.message) {

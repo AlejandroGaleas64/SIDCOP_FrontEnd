@@ -57,7 +57,9 @@ private readonly exportConfig = {
       'Origen': this.limpiarTexto(traslados?.origen),
       'Destino': this.limpiarTexto(traslados?.destino),
       'Fecha': this.limpiarTexto(traslados?.tras_Fecha),
-      'Observaciones': this.limpiarTexto(traslados?.tras_Observaciones),
+        'Observaciones': (traslados?.tras_Observaciones == null || this.limpiarTexto(traslados?.tras_Observaciones) === '')
+    ? 'N/A'
+    : this.limpiarTexto(traslados?.tras_Observaciones),
       // Agregar más campos aquí según necesites:
       // 'Campo': this.limpiarTexto(modelo?.campo),
     })
@@ -570,6 +572,11 @@ private cargardatos(): void {
       // Asignar numeración de filas
       datosFiltrados.forEach((traslado, index) => {
         traslado.No = index + 1;
+        traslado.tras_Observaciones =
+    traslado.tras_Observaciones == null ||
+    this.limpiarTexto(traslado.tras_Observaciones) === ''
+      ? 'N/A'
+      : traslado.tras_Observaciones;
       });
 
       setTimeout(() => {

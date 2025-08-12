@@ -16,6 +16,10 @@ export class Usuario {
     usua_Modificacion?: number;
     usua_FechaModificacion?: Date;
     usua_Estado: boolean = false;
+
+    usuarioCreacion?: string;
+    usuarioModificacion?: string;
+
     permisosJson?: string;
     nombreCompleto: string = '';
     code_Status: number = 0;

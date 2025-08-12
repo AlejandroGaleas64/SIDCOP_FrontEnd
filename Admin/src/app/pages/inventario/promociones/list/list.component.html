@@ -1,6 +1,6 @@
-<app-breadcrumbs [title]="'Productos'" [breadcrumbItems]="[
+<app-breadcrumbs [title]="'Promociones'" [breadcrumbItems]="[
         { label: 'Inventario' },
-        { label: 'Productos', active: true }
+        { label: 'Promociones', active: true }
     ]">
     <img class="breadcrumbs-icon ms-2 icon-breadcrumb" style="width: 10vh; height: 10vh;" src="assets/images/svg/Productos.svg" alt="icono breadcrumb" />
 </app-breadcrumbs>
@@ -14,16 +14,37 @@
                     <span class="btn-icon"><i class="ri-add-line"></i></span>
                 </button>           
             </div>
-            <div class="col-2 ms-auto position-relative">
-                <input
-                    type="text"
-                    class="form-control ps-5"
-                    placeholder="Buscar..."
-                    [(ngModel)]="busqueda"
-                    (ngModelChange)="filtradorProductos()"
-                />
-                <i class="ri-search-line search-icon" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #aaa;"></i>
-            </div>
+             <div class="col-lg-9 ms-auto">
+    <div class="d-flex align-items-center justify-content-end gap-2">
+     
+      <!-- Botones de exportación -->
+      <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarExcel()" title="Exportar a Excel">
+        <span class="btn-text">Excel</span>
+        <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
+      </button>
+      <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarPDF()" title="Exportar a PDF">
+        <span class="btn-text">PDF</span>
+        <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
+      </button>
+      <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarCSV()" title="Exportar a CSV">
+        <span class="btn-text">CSV</span>
+        <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
+      </button>
+
+       <!-- Campo de búsqueda -->
+      <div class="search-box mb-0" style="position: relative; min-width: 220px;">
+        <input
+          type="text"
+          class="form-control ps-5"
+          placeholder="Buscar..."
+          [(ngModel)]="busqueda"
+          (ngModelChange)="filtradorProductos()"
+        />
+        <i class="ri-search-line search-icon"
+           style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #aaa;"></i>
+      </div>
+    </div>
+  </div>
         </div>
     
         <!-- Collapse para el formulario de creación -->
@@ -35,7 +56,7 @@
             </div>
         </div>
         <!-- Collapse para el formulario de edición -->
-        <!-- <div class="collapse" [ngClass]="{ 'show': showEditForm }" id="editFormCollapse">
+        <div class="collapse" [ngClass]="{ 'show': showEditForm }" id="editFormCollapse">
             <div class="card card-body mb-3 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
                 <div class="container-fluid flex-grow-1">
                     <app-edit 
@@ -45,7 +66,7 @@
                     </app-edit>
                 </div>
             </div>
-        </div> -->
+        </div>
         <!-- Collapse para el formulario de detalles -->
         <div class="collapse" [ngClass]="{ 'show': showDetailsForm }" id="detailsFormCollapse">
             <div class="card card-body mb-3 d-flex flex-column" style="min-height: 400px; padding: 0.5rem;">
@@ -62,7 +83,7 @@
         <div class="row row-cols-xxl-4 row-cols-lg-3 row-cols-md-2 row-cols-1 g-4 mx-2 mb-4">
             <ng-container *ngFor="let data of productosFiltrados; trackBy: trackByProductoId">
                 <div class="col">
-                    <div class="card card-empleado position-relative">
+                    <div class="card card-empleado position-relative" style="min-height: 420px;">
                         <div class="card-body cb1 p-2 position-relative">
                             <div style="position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; background: #d6b68a; border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem;"></div>
                             
@@ -87,11 +108,20 @@
                                             <button class="dropdown-action-btn" (click)="editar(data)">Editar
                                                 <i class="ri-edit-line"></i></button>
                                         </li>
+                                        @if(data.prod_Estado){
                                         <li *ngIf="accionPermitida('eliminar')">
                                             <button class="dropdown-action-btn"
-                                            (click)="confirmarEliminar(data)">Eliminar
-                                            <i class="ri-delete-bin-line"></i></button>
+                                                (click)="confirmarEliminar(data)">Desactivar
+                                                <i class="ri-user-unfollow-fill"></i></button>
                                         </li>
+                                        }
+                                        @else{
+                                        <li *ngIf="accionPermitida('eliminar')">
+                                            <button class="dropdown-action-btn"
+                                                (click)="confirmarEliminar(data)">Activar
+                                                <i class="ri-user-follow-fill"></i></button>
+                                        </li>
+                                        }
                                         <li *ngIf="accionPermitida('detalle')">
                                             <button class="dropdown-action-btn" (click)="detalles(data)">Detalles
                                                 <i class="ri-error-warning-fill"></i></button>
@@ -104,32 +134,44 @@
 
                         <div class="card-body p-3">
                             <a (click)="detalles(data)" *ngIf="accionPermitida('detalle')" >
+                                 @if (data.prod_Estado) {
+                                    <span class="badge fw-semibold mb-1 px-3 py-1 border"
+                                        style="font-size: 0.8rem; background-color: #CEE9C6; color: #365506">
+                                        <i class="ri-checkbox-blank-circle-fill" style="font-size: 0.6rem;"></i>
+                                        Activa
+                                    </span>
+                                    }
+                                    @else {
+                                    <span class="badge fw-semibold mb-1 px-3 py-1 border"
+                                        style="font-size: 0.8rem; background-color: #FBCFD4; color: #4E1212">
+                                        <i class="ri-close-fill" style="font-size: 0.6rem;"></i>
+                                        Inactiva
+                                    </span>
+                                    }
                                 <h6 class="fs-md text-truncate text-dark mt-3">{{ data.prod_Codigo }}</h6>
                                 <h4 class="fs-lg mb-3">L. {{ data.prod_PrecioUnitario | number: '1.2-2' }}</h4>
                                 <h6 class="fw-bold mb-2 text-dark" style="font-size: 1.125rem;">{{ data.prod_DescripcionCorta }}</h6>
-                                <p class="mb-2">{{ data.marc_Descripcion }}</p>
-                                <ul class="list-unstyled ps-0">
-                                    <li class="d-flex" style="gap: 4px;">
-                                        <span class="text-muted text-break">Categoria:</span><span>{{ data.cate_Descripcion }}</span>
-                                    </li>
-                                    <li class="d-flex" style="gap: 4px;">
-                                        <span class="text-muted text-break">Subcategoria:</span><span>{{ data.subc_Descripcion }}</span>
-                                    </li>
-                                </ul>
+                               
                             </a>
                             <a *ngIf="!accionPermitida('detalle')" >
+                                @if (data.prod_Estado) {
+                                    <span class="badge fw-semibold mb-1 px-3 py-1 border"
+                                        style="font-size: 0.8rem; background-color: #CEE9C6; color: #365506">
+                                        <i class="ri-checkbox-blank-circle-fill" style="font-size: 0.6rem;"></i>
+                                        Activa
+                                    </span>
+                                    }
+                                    @else {
+                                    <span class="badge fw-semibold mb-1 px-3 py-1 border"
+                                        style="font-size: 0.8rem; background-color: #FBCFD4; color: #4E1212">
+                                        <i class="ri-close-fill" style="font-size: 0.6rem;"></i>
+                                        Inactiva
+                                    </span>
+                                    }
                                 <h6 class="fs-md text-truncate text-dark mt-3">{{ data.prod_Codigo }}</h6>
                                 <h4 class="fs-lg mb-3">L. {{ data.prod_PrecioUnitario | number: '1.2-2' }}</h4>
                                 <h6 class="fw-bold mb-2 text-dark" style="font-size: 1.125rem;">{{ data.prod_DescripcionCorta }}</h6>
-                                <p class="mb-2">{{ data.marc_Descripcion }}</p>
-                                <ul class="list-unstyled ps-0">
-                                    <li class="d-flex" style="gap: 4px;">
-                                        <span class="text-muted text-break">Categoria:</span><span>{{ data.cate_Descripcion }}</span>
-                                    </li>
-                                    <li class="d-flex" style="gap: 4px;">
-                                        <span class="text-muted text-break">Subcategoria:</span><span>{{ data.subc_Descripcion }}</span>
-                                    </li>
-                                </ul>
+                                
                             </a>
                         </div>
                         <div style="margin-left: 93%; margin-bottom: 2%;">{{ data.secuencia }}</div>
@@ -177,31 +219,61 @@
 </div>
 
 <!-- Modal de confirmación para eliminar -->
-<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEliminar }" [style.display]="mostrarConfirmacionEliminar ? 'block' : 'none'" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
-                <span>Confirmación</span>
-                <i class="ri-close-line custom-modal-close" (click)="cancelarEliminar()"></i>
-            </div>
-            <hr class="custom-modal-divider">
-            <div class="modal-body custom-modal-body">
-                <div class="text-center"> 
-                <p class="mt-2 custom-modal-text">
-                    <i class="ri-alert-line me-2 custom-modal-alert-icon" (click)="cancelarEliminar()"></i>¿Está seguro(a) que desea eliminar el producto <strong>{{ productoAEliminar?.prod_DescripcionCorta }}</strong>?
-                </p>
+<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEliminar }"
+            [style.display]="mostrarConfirmacionEliminar ? 'block' : 'none'" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="text-center mt-3 mb-3">
+                        @if (productoAEliminar?.prod_Estado) {
+                        <i class="ri-user-unfollow-fill" style="font-size: 3rem; color: #AF1D1D;"></i>
+                        }
+                        @else {
+                        <i class="ri-user-follow-fill" style="font-size: 3rem; color: #7DE477;"></i>
+                        }
+                    </div>
+                    <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
+                        <i class=""></i>
+                        <h4>Confirmación</h4>
+                        <i class="ri-close-line custom-modal-close" (click)="cancelarEliminar()"></i>
+                    </div>
+                    <div class="modal-body custom-modal-body">
+                        @if(productoAEliminar?.prod_Estado){
+                        <div class="text-center">
+                            <p class="mt-2 custom-modal-text">
+                                ¿Estás seguro(a) que deseas desactivar la promocion: <strong>{{
+                                    productoAEliminar?.prod_DescripcionCorta }}</strong>?
+                            </p>
+                        </div>
+                        }
+                        @else if(!productoAEliminar?.prod_Estado){
+                        <div class="text-center">
+                            <p class="mt-2 custom-modal-text">
+                                ¿Estás seguro(a) que deseas activar la promocion: <strong>{{ productoAEliminar?.prod_DescripcionCorta
+                                    }}</strong>?
+                            </p>
+                        </div>
+                        }
+                    </div>
+                    <div class="modal-footer custom-modal-footer">
+                        <button type="button" class="btn btn-primary btn-sm btn-minw-5"
+                            (click)="cancelarEliminar()"><span class="btn-text">No</span><span class="btn-icon"><i
+                                    class="ri-close-circle-line"></i></span></button>
+                        @if(productoAEliminar?.prod_Estado){
+                        <button type="button" class="btn btn-primary green btn-sm btn-minw-5" (click)="eliminar()">
+                            <span class="btn-text">Si</span>
+                            <span class="btn-icon"><i class="ri-check-line"></i></span>
+                        </button>
+                        }
+                        @else if (!productoAEliminar?.prod_Estado) {
+                        <button type="button" class="btn btn-primary green btn-sm btn-minw-5" (click)="eliminar()">
+                            <span class="btn-text">Si</span>
+                            <span class="btn-icon"><i class="ri-check-line"></i></span>
+                        </button>
+                        }
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer custom-modal-footer">
-                <button type="button" class="btn btn-primary gray btn-sm btn-minw-5" (click)="cancelarEliminar()"><span class="btn-text">No</span><span class="btn-icon"><i class="ri-close-circle-line"></i></span></button>
-                <button type="button" class="btn btn-primary red btn-sm btn-minw-5" (click)="eliminar()">
-                <span class="btn-text">Si</span>
-                <span class="btn-icon"><i class="ri-delete-bin-line"></i></span>
-                </button>
-            </div>
         </div>
-    </div>
-</div>
 
 <!-- Overlay para el modal -->
 <div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEliminar }" *ngIf="mostrarConfirmacionEliminar"></div>

@@ -131,6 +131,7 @@ export class EditComponent implements OnChanges {
       !this.bodega.mode_Id ||
       !this.bodega.regC_Id
     ) {
+      
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
       setTimeout(() => this.cerrarAlerta(), 4000);
@@ -139,7 +140,7 @@ export class EditComponent implements OnChanges {
 
     // Detectar cambios en los campos principales
     const cambios =
-      this.bodega.bode_Descripcion.trim() !== (this.bodegaData?.bode_Descripcion?.trim() ?? '') ||
+      (this.bodega.bode_Descripcion.trim() !== (this.bodegaData?.bode_Descripcion?.trim() ?? '') ||
       this.bodega.bode_VIN.trim() !== (this.bodegaData?.bode_VIN?.trim() ?? '') ||
       this.bodega.bode_Placa.trim() !== (this.bodegaData?.bode_Placa?.trim() ?? '') ||
       this.bodega.bode_TipoCamion.trim() !== (this.bodegaData?.bode_TipoCamion?.trim() ?? '') ||
@@ -147,13 +148,25 @@ export class EditComponent implements OnChanges {
       this.bodega.sucu_Id !== (this.bodegaData?.sucu_Id ?? 0) ||
       this.bodega.vend_Id !== (this.bodegaData?.vend_Id ?? 0) ||
       this.bodega.mode_Id !== (this.bodegaData?.mode_Id ?? 0) ||
-      this.bodega.regC_Id !== (this.bodegaData?.regC_Id ?? 0);
+      this.bodega.regC_Id !== (this.bodegaData?.regC_Id ?? 0) ) &&
+      this.bodega.bode_Capacidad > 0;
 
     if (cambios) {
       this.mostrarConfirmacionEditar = true;
     } else {
-      this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'No se han detectado cambios.';
+      if(this.bodega.bode_Capacidad <= 0) {
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = 'La capacidad de la bodega debe ser mayor a 0.';
+        this.mostrarAlertaError = false;
+        this.mostrarAlertaExito = false;
+        return;
+       }
+       else
+       {
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = 'No se han detectado cambios.';
+       }
+      
       setTimeout(() => this.cerrarAlerta(), 4000);
     }
   }
@@ -190,6 +203,8 @@ export class EditComponent implements OnChanges {
         usuarioCreacion: '',
         usuarioModificacion: ''
       };
+       
+       
       this.http.put<any>(`${environment.apiBaseUrl}/Bodega/Actualizar`, bodegaActualizar, {
         headers: {
           'X-Api-Key': environment.apiKey,
@@ -220,6 +235,7 @@ export class EditComponent implements OnChanges {
         }
       });
     } else {
+      
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
       setTimeout(() => this.cerrarAlerta(), 4000);

@@ -25,19 +25,6 @@
         </div>
         <div class="card-body">
           <div class="row g-3"> 
-            <div class="col-12 col-sm-4" *ngIf="canalDetalleCopia.cana_Id">
-              <div class="detail-item">
-                <div class="detail-icon bg-dark-blue text-white">
-                  <i class="ri-hashtag"></i>
-                </div>
-                <div class="detail-content">
-                  <div class="detail-label">Código</div>
-                  <div class="detail-value">
-                    {{ canalDetalleCopia.cana_Id }}
-                  </div>
-                </div>
-              </div>
-            </div>
             <div class="col-12 col-sm-4">
               <div class="detail-item">
                 <div class="detail-icon bg-dark-blue text-white">
@@ -83,7 +70,7 @@
             <span class="audit-action">Creador</span>
           </div>
           <div class="audit-col">
-            <span class="audit-user">{{ canalDetalleCopia.UsuarioCreacion || 'N/A' }}</span>
+            <span class="audit-user">{{ canalDetalleCopia.usuarioCreacion || 'N/A' }}</span>
           </div>
           <div class="audit-col">
             <span class="audit-date">{{ formatearFecha(canalDetalleCopia.cana_FechaCreacion) }}</span>
@@ -95,7 +82,7 @@
             <span class="audit-action">Modificación</span>
           </div>
           <div class="audit-col">
-            <span class="audit-user">{{ canalDetalleCopia.UsuarioModificacion || 'N/A' }}</span>
+            <span class="audit-user">{{ canalDetalleCopia.usuarioModificacion || 'N/A' }}</span>
           </div>
           <div class="audit-col">
             <span class="audit-date">{{ formatearFecha(canalDetalleCopia.cana_FechaModificacion ?? null) }}</span>

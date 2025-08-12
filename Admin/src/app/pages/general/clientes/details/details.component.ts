@@ -36,6 +36,11 @@ export class DetailsComponent implements OnChanges {
     if (changes['clienteData'] && changes['clienteData'].currentValue) {
       this.cargarDetallesSimulado(changes['clienteData'].currentValue);
     }
+
+    const vend_Id = changes['clienteData'].currentValue.vend_Id;
+    if (vend_Id) {
+      this.obtenerVendedoresPorCliente(vend_Id);
+    }
     this.cargarColonias();
     this.cargarMunicipios();
     this.cargarDepartamentos();
@@ -74,16 +79,15 @@ export class DetailsComponent implements OnChanges {
 
   formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
-    try {
-      const date = new Date(fecha);
-      return date.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      });
-    } catch {
-      return String(fecha);
-    }
+    const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
+    if (isNaN(dateObj.getTime())) return 'N/A';
+    return dateObj.toLocaleString('es-HN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
   constructor(private http: HttpClient) { }
@@ -157,5 +161,21 @@ export class DetailsComponent implements OnChanges {
   obtenerDescripcionDepartamento(depa_Codigo: any): string {
     const departamento = this.departamentos.find(d => String(d.depa_Codigo) === String(depa_Codigo));
     return departamento?.depa_Descripcion || 'Departamento no encontrado';
+  }
+
+  vendedores: any[] = [];
+
+  obtenerVendedoresPorCliente(vend_Id: number): void {
+  this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/MostrarVendedor/${vend_Id}`)
+  
+    .subscribe({
+      next: (data) => {
+        this.vendedores = data;
+      },
+      error: (err) => {
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error al cargar los vendedores.';
+      }
+    });
   }
 }

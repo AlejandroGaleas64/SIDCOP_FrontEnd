@@ -2,9 +2,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { getUserId } from 'src/app/core/utils/user-utils';
+import {  obtenerUsuario } from 'src/app/core/utils/user-utils';
 
 export interface ReportConfig {
   titulo: string;
@@ -26,6 +26,7 @@ export interface TableData {
 
 @Injectable({
   providedIn: 'root'
+  
 })
 export class PdfReportService {
   private configuracionEmpresa: any = null;
@@ -183,6 +184,7 @@ export class PdfReportService {
     return yPos;
   }
 
+  
   private crearPiePagina(doc: jsPDF, data: any, datosReporte?: any[]) {
     doc.setFontSize(8);
     doc.setTextColor(this.COLORES.grisTexto);
@@ -193,7 +195,7 @@ export class PdfReportService {
     const totalPages = doc.getNumberOfPages();
     
     // Información del usuario
-    const usuarioCreacion = datosReporte?.[0]?.usuarioCreacion || 'N/A';
+    const usuarioCreacion = obtenerUsuario() || 'N/A';
     doc.text(`Generado por:  ${usuarioCreacion} | ${fechaTexto} ${horaTexto}`, 20, doc.internal.pageSize.height - 12);
     
     // Paginación

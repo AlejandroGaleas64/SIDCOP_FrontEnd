@@ -80,7 +80,7 @@ export class ListComponent implements OnInit {
           title: 'Listado de Descuentos',                    // Título del reporte
           filename: 'Descuentos',                           // Nombre base del archivo
           department: 'Invetario',                         // Departamento
-          additionalInfo: 'SIDCOP',         // Información adicional
+          additionalInfo: '',         // Información adicional
           
           // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
           columns: [

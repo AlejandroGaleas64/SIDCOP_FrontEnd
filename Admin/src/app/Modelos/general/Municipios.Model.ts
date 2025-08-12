@@ -9,7 +9,7 @@ export class Municipio{
   usua_Modificacion?: number;
   muni_FechaModificacion?: Date;
   usuarioCreacion: string = '';
-  usuarioModificacion: string = '';
+  usuarioModificacion?: string;
   code_Status: number = 0;
   message_Status: string ='';
 

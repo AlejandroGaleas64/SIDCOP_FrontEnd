@@ -29,7 +29,7 @@ export class CreateComponent {
   @ViewChild('tabsScroll', { static: false }) tabsScroll!: ElementRef<HTMLDivElement>;
   @ViewChild(MapaSelectorComponent)
   mapaSelectorComponent!: MapaSelectorComponent;
-  
+
   entrando = true;
   activeTab = 1;
 
@@ -42,7 +42,7 @@ export class CreateComponent {
   mensajeWarning = '';
   mostrarMapa = false;
 
-  //Arregloes de las Listas
+  //Arreglos de las Listas
   nacionalidades: any[] = [];
   paises: any[] = [];
   tiposDeVivienda: any[] = [];
@@ -52,7 +52,7 @@ export class CreateComponent {
   parentescos: any[] = [];
   TodasColonias: any[] = [];
   TodasColoniasAval: any[] = [];
-
+  colonias: any[] = [];
 
   //Variables para el mapa
   latitudSeleccionada: number | null = null;
@@ -67,7 +67,7 @@ export class CreateComponent {
 
   //Id del cliente obtenido al crear el nuevo cliente
   idDelCliente: number = 0;
-  
+
 
   scrollToAval(index: number) {
     const container = this.tabsScroll.nativeElement;
@@ -83,6 +83,12 @@ export class CreateComponent {
         behavior: 'smooth'
       });
     }
+  }
+
+  esCorreoValido(correo: string): boolean {
+    if (!correo) return true;
+    // Solo acepta gmail.com y hotmail.com, y debe tener @ y .com
+    return /^[\w\.-]+@(gmail|hotmail|outlook)\.com$/.test(correo.trim());
   }
 
   //Declarado para validar la direccion
@@ -255,7 +261,7 @@ export class CreateComponent {
         this.cliente.clie_NombreNegocio.trim() &&
         this.cliente.clie_ImagenDelNegocio.trim() &&
         this.cliente.ruta_Id &&
-        this.cliente.cana_Id && 
+        this.cliente.cana_Id &&
         this.validarDireccion
       ) {
         this.mostrarErrores = false;
@@ -359,6 +365,7 @@ export class CreateComponent {
       diCl_Id: 0,
       clie_Id: 0,
       colo_Id: 0,
+      colo_Descripcion: '',
       diCl_DireccionExacta: '',
       diCl_Observaciones: '',
       diCl_Latitud: 0,
@@ -381,6 +388,7 @@ export class CreateComponent {
     this.cargarParentescos();
     this.cargarColoniasCliente();
     this.cargarColoniasAval();
+    this.cargarColonias();
   }
 
   cargarPaises() {
@@ -433,6 +441,17 @@ export class CreateComponent {
     }).subscribe(data => this.TodasColoniasAval = data);
   }
 
+  cargarColonias() {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Colonia/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(data => this.colonias = data);
+  }
+
+   obtenerDescripcionColonia(colo_Id: number): string {
+    const colonia = this.colonias.find(c => c.colo_Id === colo_Id);
+    return colonia?.colo_Descripcion || 'Colonia no encontrada';
+  }
+
   cliente: Cliente = {
     clie_Id: 0,
     clie_Codigo: '',
@@ -480,6 +499,7 @@ export class CreateComponent {
     diCl_Id: 0,
     clie_Id: 0,
     colo_Id: 0,
+    colo_Descripcion: '',
     diCl_DireccionExacta: '',
     diCl_Observaciones: '',
     diCl_Latitud: 0,
@@ -650,8 +670,8 @@ export class CreateComponent {
         clie_ObservacionRetiro: this.cliente.clie_ObservacionRetiro.trim(),
         clie_Confirmacion: this.cliente.clie_Confirmacion,
         clie_Estado: true,
-        usua_Creacion: environment.usua_Id,
-        usua_Modificacion: environment.usua_Id,
+        usua_Creacion: getUserId(),
+        usua_Modificacion: getUserId(),
         secuencia: 0,
         clie_FechaCreacion: new Date(),
         clie_FechaModificacion: new Date(),
@@ -766,6 +786,7 @@ export class CreateComponent {
       diCl_Id: 0,
       clie_Id: 0,
       colo_Id: 0,
+      colo_Descripcion: '',
       diCl_DireccionExacta: '',
       diCl_Observaciones: '',
       diCl_Latitud: 0,
@@ -783,10 +804,11 @@ export class CreateComponent {
     for (const direccion of this.direccionesPorCliente) {
       const direccionPorClienteGuardar = {
         ...direccion,
+        colo_Descripcion: direccion?.colo_Descripcion || '',
         clie_Id: clie_Id,
-        usua_Creacion: environment.usua_Id,
+        usua_Creacion: getUserId(),
         diCl_FechaCreacion: new Date(),
-        usua_Modificacion: environment.usua_Id,
+        usua_Modificacion: getUserId(),
         diCl_FechaModificacion: new Date()
       };
       this.http.post<any>(`${environment.apiBaseUrl}/DireccionesPorCliente/Insertar`, direccionPorClienteGuardar, {
@@ -841,9 +863,9 @@ export class CreateComponent {
       const avalGuardar = {
         ...aval,
         clie_Id: clie_Id,
-        usua_Creacion: environment.usua_Id,
+        usua_Creacion: getUserId(),
         aval_FechaCreacion: new Date(),
-        usua_Modificacion: environment.usua_Id,
+        usua_Modificacion: getUserId(),
         aval_FechaModificacion: new Date()
       };
       this.http.post<any>(`${environment.apiBaseUrl}/Aval/Insertar`, avalGuardar, {
@@ -868,16 +890,16 @@ export class CreateComponent {
     }
   }
 
-formatearLimiteCredito() {
-  let valor = this.cliente.clie_LimiteCredito;
+  formatearLimiteCredito() {
+    let valor = this.cliente.clie_LimiteCredito;
 
-  if (valor === null || valor === undefined || isNaN(valor)) {
-    this.cliente.clie_LimiteCredito = 0.00;
-  } else {
-    // Redondear a dos decimales correctamente
-    this.cliente.clie_LimiteCredito = Math.round(valor * 100) / 100;
+    if (valor === null || valor === undefined || isNaN(valor)) {
+      this.cliente.clie_LimiteCredito = 0.00;
+    } else {
+      // Redondear a dos decimales correctamente
+      this.cliente.clie_LimiteCredito = Math.round(valor * 100) / 100;
+    }
   }
-}
 
 }
 

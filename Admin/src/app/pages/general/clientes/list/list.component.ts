@@ -29,7 +29,7 @@ import {
   animate
 } from '@angular/animations';
 import { Router, ActivatedRoute } from '@angular/router';
-import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
+import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/exportHori.service';
 
 @Component({
   standalone: true,
@@ -103,10 +103,11 @@ export class ListComponent {
     columns: [
       { key: 'No', header: 'No.', width: 3, align: 'center' as const },
       { key: 'Codigo', header: 'Codigo', width: 15, align: 'left' as const },
-      { key: 'RTN', header: 'RTN', width: 40, align: 'left' as const },
+      { key: 'RTN', header: 'RTN', width: 30, align: 'left' as const },
       { key: 'Nombres', header: 'Nombres', width: 50, align: 'left' as const },
       { key: 'Apellidos', header: 'Apellidos', width: 50, align: 'left' as const },
-      { key: 'Telefono', header: 'Telefono', width: 40, align: 'left' as const }
+      { key: 'Nombre del Negocio', header: 'Nombre del Negocio', width: 50, align: 'left' as const },
+      { key: 'Telefono', header: 'Telefono', width: 30, align: 'left' as const }
     ] as ExportColumn[],
     
     // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
@@ -116,6 +117,7 @@ export class ListComponent {
       'RTN': this.limpiarTexto(cliente?.clie_RTN),
       'Nombres': this.limpiarTexto(cliente?.clie_Nombres),
       'Apellidos': this.limpiarTexto(cliente?.clie_Apellidos),
+      'Nombre del Negocio': this.limpiarTexto(cliente?.clie_NombreNegocio),
       'Telefono': this.limpiarTexto(cliente?.clie_Telefono)
       // Agregar más campos aquí según necesites:
       // 'Campo': this.limpiarTexto(modelo?.campo),
@@ -447,167 +449,166 @@ export class ListComponent {
       this.listadoClientesSinConfirmar = false
     }
 
-    eliminar(): void {
-        if(!this.clienteAEliminar) return;
-        const clienteAEliminar: Cliente = {
-          secuencia: 0,
-          clie_Id: this.clienteAEliminar.clie_Id,
-          clie_Codigo: '',
-          clie_Nacionalidad: '',
-          pais_Descripcion: '',
-          clie_DNI: '',
-          clie_RTN: '',
-          clie_Nombres: '',
-          clie_Apellidos: '',
-          clie_NombreNegocio: '',
-          clie_ImagenDelNegocio: '',
-          clie_Telefono: '',
-          clie_Correo: '',
-          clie_Sexo: '',
-          clie_FechaNacimiento: new Date(),
-          tiVi_Id: 0,
-          tiVi_Descripcion: '',
-          cana_Id: 0,
-          cana_Descripcion: '',
-          esCv_Id: 0,
-          esCv_Descripcion: '',
-          ruta_Id: 0,
-          ruta_Descripcion: '',
-          clie_LimiteCredito: 0,
-          clie_DiasCredito: 0,
-          clie_Saldo: 0,
-          clie_Vencido: true,
-          clie_Observaciones:  '',
-          clie_ObservacionRetiro: '',
-          clie_Confirmacion: true,
-          clie_Estado: true,
-          usua_Creacion: getUserId(),
-          clie_FechaCreacion: new Date(),
-          usua_Modificacion: getUserId(),
-          clie_FechaModificacion: new Date(),
+    // eliminar(): void {
+    //     if(!this.clienteAEliminar) return;
+    //     const clienteAEliminar: Cliente = {
+    //       secuencia: 0,
+    //       clie_Id: this.clienteAEliminar.clie_Id,
+    //       clie_Codigo: '',
+    //       clie_Nacionalidad: '',
+    //       pais_Descripcion: '',
+    //       clie_DNI: '',
+    //       clie_RTN: '',
+    //       clie_Nombres: '',
+    //       clie_Apellidos: '',
+    //       clie_NombreNegocio: '',
+    //       clie_ImagenDelNegocio: '',
+    //       clie_Telefono: '',
+    //       clie_Correo: '',
+    //       clie_Sexo: '',
+    //       clie_FechaNacimiento: new Date(),
+    //       tiVi_Id: 0,
+    //       tiVi_Descripcion: '',
+    //       cana_Id: 0,
+    //       cana_Descripcion: '',
+    //       esCv_Id: 0,
+    //       esCv_Descripcion: '',
+    //       ruta_Id: 0,
+    //       ruta_Descripcion: '',
+    //       clie_LimiteCredito: 0,
+    //       clie_DiasCredito: 0,
+    //       clie_Saldo: 0,
+    //       clie_Vencido: true,
+    //       clie_Observaciones:  '',
+    //       clie_ObservacionRetiro: '',
+    //       clie_Confirmacion: true,
+    //       clie_Estado: true,
+    //       usua_Creacion: getUserId(),
+    //       clie_FechaCreacion: new Date(),
+    //       usua_Modificacion: getUserId(),
+    //       clie_FechaModificacion: new Date(),
 
-          usuaC_Nombre: '',
-          usuaM_Nombre: '',
-          code_Status: 0,
-          message_Status: '',
-        }
-        this.mostrarOverlayCarga = true;
-        this.http.post(`${environment.apiBaseUrl}/Cliente/CambiarEstado`, clienteAEliminar,{
-          headers:{
-            'X-Api-Key': environment.apiKey,
-            'accept': '*/*'
-          }
-        }).subscribe({
-          next: (response: any) =>{
-            setTimeout(() =>{
-              this.mostrarOverlayCarga = false;
-              if(response.success && response.data){
-                if(response.data.code_Status === 1){
-                  if(this.clienteAEliminar!.clie_Estado) {
-                    this.mensajeExito = `Cliente "${this.clienteAEliminar!.clie_Nombres}" desactivado exitosamente`;
-                    this.mostrarAlertaExito = true;
-                  }
-                  if(!this.clienteAEliminar!.clie_Estado) {
-                    this.mensajeExito = `Cliente "${this.clienteAEliminar!.clie_Nombres}" activado exitosamente`;
-                    this.mostrarAlertaExito = true;
-                  }
+    //       usuaC_Nombre: '',
+    //       usuaM_Nombre: '',
+    //       code_Status: 0,
+    //       message_Status: '',
+    //     }
+    //     this.mostrarOverlayCarga = true;
+    //     this.http.post(`${environment.apiBaseUrl}/Cliente/CambiarEstado`, clienteAEliminar,{
+    //       headers:{
+    //         'X-Api-Key': environment.apiKey,
+    //         'accept': '*/*'
+    //       }
+    //     }).subscribe({
+    //       next: (response: any) =>{
+    //         setTimeout(() =>{
+    //           this.mostrarOverlayCarga = false;
+    //           if(response.success && response.data){
+    //             if(response.data.code_Status === 1){
+    //               if(this.clienteAEliminar!.clie_Estado) {
+    //                 this.mensajeExito = `Cliente "${this.clienteAEliminar!.clie_Nombres}" desactivado exitosamente`;
+    //                 this.mostrarAlertaExito = true;
+    //               }
+    //               if(!this.clienteAEliminar!.clie_Estado) {
+    //                 this.mensajeExito = `Cliente "${this.clienteAEliminar!.clie_Nombres}" activado exitosamente`;
+    //                 this.mostrarAlertaExito = true;
+    //               }
     
-                  setTimeout(() => {
-                    this.mostrarAlertaExito = false;
-                    this.mensajeExito = '';
-                  }, 3000);
+    //               setTimeout(() => {
+    //                 this.mostrarAlertaExito = false;
+    //                 this.mensajeExito = '';
+    //               }, 3000);
     
-                  this.cargarDatos(false);
-                  this.cancelarEliminar();
-                }else if (response.data.code_Status === -1){
-                  this.mostrarAlertaError = true;
-                  this.mensajeError = response.data.message_Status;
+    //               this.cargarDatos(false);
+    //               this.cancelarEliminar();
+    //             }else if (response.data.code_Status === -1){
+    //               this.mostrarAlertaError = true;
+    //               this.mensajeError = response.data.message_Status;
     
-                  setTimeout(() => {
-                    this.mostrarAlertaError = false;
-                    this.mensajeError = '';
-                  }, 5000);
+    //               setTimeout(() => {
+    //                 this.mostrarAlertaError = false;
+    //                 this.mensajeError = '';
+    //               }, 5000);
     
-                  this.cancelarEliminar();
-                }
-              } else {
-                this.mostrarAlertaError = true;
-                this.mensajeError = response.message || 'Error inesperado al cambiar el estado al cliente.';
+    //               this.cancelarEliminar();
+    //             }
+    //           } else {
+    //             this.mostrarAlertaError = true;
+    //             this.mensajeError = response.message || 'Error inesperado al cambiar el estado al cliente.';
     
-                setTimeout(() => {
-                  this.mostrarAlertaError = false;
-                  this.mensajeError = '';
-                }, 5000);
+    //             setTimeout(() => {
+    //               this.mostrarAlertaError = false;
+    //               this.mensajeError = '';
+    //             }, 5000);
     
-                this.cancelarEliminar();
-              }
-            },1000)
-          }
-        })
-      }
+    //             this.cancelarEliminar();
+    //           }
+    //         },1000)
+    //       }
+    //     })
+    //   }
 
   filtradorClientes(): void {
     const termino = this.busqueda.trim().toLowerCase();
     if (!termino) {
-      this.clientesFiltrados = this.clientes;
+      this.clientesFiltrados = [...this.clienteGrid];
     } else {
-      this.clientesFiltrados = this.clientes.filter((cliente: any) =>
+      this.clientesFiltrados = this.clienteGrid.filter((cliente: any) =>
         (cliente.clie_Codigo || '').toLowerCase().includes(termino) ||
         (cliente.clie_Nombres || '').toLowerCase().includes(termino) ||
         (cliente.cana_Descripcion || '').toLowerCase().includes(termino)
       );
     }
+
+        // Resetear la página actual a 1 cuando se filtra
+    this.currentPage = 1;
+    
+    // Actualizar los productos visibles basados en la paginación
+    this.actualizarClientesVisibles();
   }
 
-  // private cargarDatos(state: boolean): void {
-  //   this.clienteGrid = [];
-  //   this.clientes = [];
-  //   this.mostrarOverlayCarga = state;
-  //   this.http.get<Cliente[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
-  //     headers: { 'x-api-key': environment.apiKey }
-  //   }).subscribe(data => {
-  //     setTimeout(() => {
-  //       this.mostrarOverlayCarga = false;
-  //       this.clienteGrid = data || [];
-  //       this.clientes = this.clienteGrid.slice(0, 10);
-  //       this.filtradorClientes();
-  //     },500);
-  //   });
-  // }
+  // Método auxiliar para actualizar los productos visibles
+  private actualizarClientesVisibles(): void {
+    const startItem = (this.currentPage - 1) * this.itemsPerPage;
+    const endItem = this.currentPage * this.itemsPerPage;
+    this.clientes = this.clientesFiltrados.slice(startItem, endItem);
+  }
+
+  
+
+  pageChanged(event: any): void {
+    this.currentPage = event.page;
+    this.actualizarClientesVisibles();
+  }
 
   private cargarDatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
-  
     this.http.get<Cliente[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
-    }).subscribe({
-      next: (data) => {
+    }).subscribe(data => {
+      console.log('data',data);
+      
+      setTimeout(() => {
+        this.mostrarOverlayCarga = false;
         const tienePermisoListar = this.accionPermitida('listar');
         const userId = getUserId();
-  
+
         const datosFiltrados = tienePermisoListar
           ? data
           : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
-  
-        this.clienteGrid = datosFiltrados;
-        this.clientes = this.clienteGrid.slice(0, 10);
-        this.filtradorClientes();
-        this.tieneRegistros = datosFiltrados.length > 0;
-      },
-      error: (error) => {
-        console.error('Error al cargar los datos:', error);
-        this.mostrarOverlayCarga = false;
-        this.mostrarAlertaError = true;
-        this.mensajeError = 'Error al cargar los datos. Por favor, inténtelo de nuevo más tarde.';
-        this.clienteGrid = [];
-        this.clientes = [];
-        this.tieneRegistros = false; 
-      },
-      complete: () => {
-        setTimeout(() => {
-          this.mostrarOverlayCarga = false;
-        }, 500);
-      }
+        
+        this.clienteGrid = datosFiltrados || [];
+        console.log(this.clienteGrid);
+        // Resetear filtros y paginación al cargar nuevos datos
+        this.busqueda = '';
+        this.currentPage = 1;
+        this.itemsPerPage = 10; // Asegurar que siempre sean 8 items por página
+        this.clientesFiltrados = [...this.clienteGrid];
+        
+        // IMPORTANTE: NO llamar a filtradorProductos() aquí
+        this.actualizarClientesVisibles();
+        
+      }, 500);
     });
   }
   
@@ -660,14 +661,14 @@ export class ListComponent {
   currentPage: number = 1;
   itemsPerPage: number = 10;
 
-  get startIndex(): number {
-    return this.clienteGrid?.length ? ((this.currentPage - 1) * this.itemsPerPage) + 1 : 0;
+get startIndex(): number {
+    return this.clientesFiltrados?.length ? ((this.currentPage - 1) * this.itemsPerPage) + 1 : 0;
   }
 
   get endIndex(): number {
-    if (!this.clienteGrid?.length) return 0;
+    if (!this.clientesFiltrados?.length) return 0;
     const end = this.currentPage * this.itemsPerPage;
-    return end > this.clienteGrid.length ? this.clienteGrid.length : end;
+    return end > this.clientesFiltrados.length ? this.clientesFiltrados.length : end;
   }
 
   trackByClienteId(index: number, item: any): any {
@@ -756,14 +757,15 @@ export class ListComponent {
     }
   }
 
+  //Borrar
   // Page Changed
-  pageChanged(event: any): void {
-    this.currentPage = event.page;
-    const startItem = (event.page - 1) * event.itemsPerPage;
-    const endItem = event.page * event.itemsPerPage;
-    this.clientes = this.clienteGrid.slice(startItem, endItem);
-    this.filtradorClientes();
-  }
+  // pageChanged(event: any): void {
+  //   this.currentPage = event.page;
+  //   const startItem = (event.page - 1) * event.itemsPerPage;
+  //   const endItem = event.page * event.itemsPerPage;
+  //   this.clientes = this.clienteGrid.slice(startItem, endItem);
+  //   this.filtradorClientes();
+  // }
 
   // Abre/cierra el menú de acciones para la fila seleccionada
   onActionMenuClick(rowIndex: number) {
@@ -897,56 +899,6 @@ export class ListComponent {
   // }
 
 
-// En  teoría no iríaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-  // editar(cliente: Cliente): void {
-  //   console.log('Abriendo formulario de edición para:', cliente);
-  //   // Crear una copia profunda asegurando que todos los campos estén presentes y sin sobrescribir
-  //   this.clienteEditando = {
-  //     secuencia: cliente.secuencia ?? 0,
-  //     clie_Id: cliente.clie_Id ?? 0,
-  //     clie_Codigo: cliente.clie_Codigo || '',
-  //     clie_Nacionalidad: cliente.clie_Nacionalidad || '',
-  //     pais_Descripcion: cliente.pais_Descripcion || '',
-  //     clie_DNI: cliente.clie_DNI || '',
-  //     clie_RTN: cliente.clie_RTN || '',
-  //     clie_Nombres: cliente.clie_Nombres || '',
-  //     clie_Apellidos: cliente.clie_Apellidos || '',
-  //     clie_NombreNegocio: cliente.clie_NombreNegocio || '',
-  //     clie_ImagenDelNegocio: cliente.clie_ImagenDelNegocio || '',
-  //     clie_Telefono: cliente.clie_Telefono || '',
-  //     clie_Correo: cliente.clie_Correo || '',
-  //     clie_Sexo: cliente.clie_Sexo || '',
-  //     clie_FechaNacimiento: cliente.clie_FechaNacimiento ? new Date(cliente.clie_FechaNacimiento) : new Date(),
-  //     tiVi_Id: cliente.tiVi_Id ?? 0,
-  //     tiVi_Descripcion: cliente.tiVi_Descripcion || '',
-  //     cana_Id: cliente.cana_Id ?? 0,
-  //     cana_Descripcion: cliente.cana_Descripcion || '',
-  //     esCv_Id: cliente.esCv_Id ?? 0,
-  //     esCv_Descripcion: cliente.esCv_Descripcion || '',
-  //     ruta_Id: cliente.ruta_Id ?? 0,
-  //     ruta_Descripcion: cliente.ruta_Descripcion || '',
-  //     clie_LimiteCredito: cliente.clie_LimiteCredito ?? 0,
-  //     clie_DiasCredito: cliente.clie_DiasCredito ?? 0,
-  //     clie_Saldo: cliente.clie_Saldo ?? 0,
-  //     clie_Vencido: cliente.clie_Vencido ?? true,
-  //     clie_Observaciones: cliente.clie_Observaciones || '',
-  //     clie_ObservacionRetiro: cliente.clie_ObservacionRetiro || '',
-  //     clie_Confirmacion: cliente.clie_Confirmacion ?? true,
-  //     clie_Estado: cliente.clie_Estado ?? true,
-  //     usua_Creacion: cliente.usua_Creacion ?? 0,
-  //     clie_FechaCreacion: cliente.clie_FechaCreacion ? new Date(cliente.clie_FechaCreacion) : new Date(),
-  //     usua_Modificacion: cliente.usua_Modificacion ?? 0,
-  //     clie_FechaModificacion: cliente.clie_FechaModificacion ? new Date(cliente.clie_FechaModificacion) : new Date(),
-  //     usuaC_Nombre: cliente.usuaC_Nombre || '',
-  //     usuaM_Nombre: cliente.usuaM_Nombre || '',
-  //     code_Status: cliente.code_Status ?? 0,
-  //     message_Status: cliente.message_Status || '',
-  //   };
-  //   this.showEditForm = true;
-  //   this.showCreateForm = false; // Cerrar create si está abierto
-  //   this.showDetailsForm = false; // Cerrar details si está abierto
-  //   this.activeActionRow = null; // Cerrar menú de acciones
-  // }
 
   actualizarCliente(cliente: Cliente): void {
     console.log('Cliente actualizado exitosamente desde edit component:', cliente);
@@ -957,5 +909,40 @@ export class ListComponent {
   cerrarFormularioEdicion(): void {
     this.showEditForm = false;
     this.clienteEditando = null;
+  }
+
+  cambiarEstadoCliente(clienteId: number) {
+    const body = {
+      Clie_Id: clienteId,
+      FechaActual: new Date().toISOString(),
+      code_Status: 0,
+      message_Status: "string"
+    };
+    this.http.post<any>(`${environment.apiBaseUrl}/Cliente/CambiarEstado`, body, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (resp) => {
+        if (resp.code_Status === 1) {
+          // Éxito: muestra mensaje y refresca la lista
+          this.mostrarAlertaExito = true;
+          this.mensajeExito = resp.message_Status || 'Estado cambiado correctamente.';
+          this.cargarDatos(true); 
+          this.cancelarEliminar(); 
+        } else {
+          // Error de negocio: muestra mensaje de error
+          this.mostrarAlertaError = true;
+          this.mensajeError = resp.message_Status || 'No se pudo cambiar el estado.';
+        }
+      },
+      error: () => {
+        // Error de red o servidor
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error al cambiar el estado del cliente.';
+      }
+    });
+  }
+
+  esClienteActivo(cliente: any): boolean {
+    return cliente.clie_Estado === 1 || cliente.clie_Estado === true;
   }
 }

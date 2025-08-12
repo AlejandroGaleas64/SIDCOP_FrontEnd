@@ -24,25 +24,25 @@
     
     <!-- Sección izquierda - Imagen del producto -->
     <div class="flex-shrink-0" style="width: 350px;">
-      <div class="card h-100">
+      <div class="card">
         <div class="card-body d-flex flex-column align-items-center justify-content-center">
           <div class="text-center mb-3">
             <label for="prod_Imagen" class="form-label fw-semibold">Imagen del Producto</label>
           </div>
           
-          <div style="position: relative; margin-bottom: 20px;">
+          <div style="position: relative; margin-top: 10%;">
             <img
               [src]="producto.prod_Imagen"
               alt="Foto de producto"
               class="rounded"
-              style="width: 390px; height: 510px; object-fit: cover; border: 3px solid #d6b68a; background: #f5f5f5;"
+              style="width: 100%; height: 10%; object-fit: cover; border: 3px solid #d6b68a; background: #f5f5f5;"
             />
             <label for="inputImagen" style="position: absolute; bottom: -10px; right: -10px; background: #d6b68a; border-radius: 50%; border: 2px solid #fff; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
               <i class="ri-camera-line" style="font-size: 1.2rem; color: #fff;"></i>
               <input id="inputImagen" type="file" accept="image/*" (change)="onImagenSeleccionada($event)" style="display: none;" />
             </label>
           </div>
-          
+          <br>
           <small class="text-muted text-center">Haz clic en el ícono de la cámara para subir una imagen</small>
         </div>
       </div>

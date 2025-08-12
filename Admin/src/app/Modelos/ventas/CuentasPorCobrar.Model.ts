@@ -15,8 +15,7 @@ export class CuentaPorCobrar {
   cpCo_FechaModificacion?: Date;
   cpCo_Estado: boolean = true;
   secuencia?: number;
-  
-  // Propiedades adicionales (NotMapped en el backend)
+
   clie_Codigo: string = '';
   clie_Nombres: string = '';
   clie_Apellidos: string = '';
@@ -29,6 +28,14 @@ export class CuentaPorCobrar {
   usuarioModificacion: string = '';
   code_Status: number = 0;
   message_Status: string = '';
+
+  saldo_0_30: number = 0;
+  saldo_31_60: number = 0;
+  saldo_61_90: number = 0;
+  saldo_91_mas: number = 0;
+  saldo_vencido: number = 0; 
+  saldo_total: number = 0; 
+  estaVencido: boolean = false; 
 
   constructor(init?: Partial<CuentaPorCobrar>) {
     Object.assign(this, init);

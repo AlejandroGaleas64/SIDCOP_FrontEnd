@@ -24,25 +24,25 @@
     
     <!-- Sección izquierda - Imagen del producto -->
     <div class="flex-shrink-0" style="width: 350px;">
-      <div class="card h-100">
+      <div class="card">
         <div class="card-body d-flex flex-column align-items-center justify-content-center">
           <div class="text-center mb-3">
-            <label for="prod_Imagen" class="form-label fw-semibold">Imagen del Producto<span class="text-danger">*</span></label>
+            <label for="prod_Imagen" class="form-label fw-semibold">Imagen del Producto</label>
           </div>
           
-          <div style="position: relative; margin-bottom: 20px;">
+          <div style="position: relative; margin-top: 10px;">
             <img
               [src]="producto.prod_Imagen"
               alt="Foto de producto"
               class="rounded"
-              style="width: 390px; height: 510px; object-fit: cover; border: 3px solid #d6b68a; background: #f5f5f5;"
+              style="width: 100%; height: 10%; object-fit: cover; border: 3px solid #d6b68a; background: #f5f5f5;"
             />
             <label for="inputImagen1" style="position: absolute; bottom: -10px; right: -10px; background: #d6b68a; border-radius: 50%; border: 2px solid #fff; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
               <i class="ri-camera-line" style="font-size: 1.2rem; color: #fff;"></i>
               <input id="inputImagen1" type="file" accept="image/*" (change)="onImagenSeleccionada1($event)" style="display: none;" />
             </label>
           </div>
-          
+          <br>
           <small class="text-muted text-center">Haz clic en el ícono de la cámara para subir una imagen</small>
         </div>
       </div>
@@ -59,7 +59,14 @@
             <div class="col-md-6">
               <div class="mb-3">
                 <label for="prod_Codigo" class="form-label">Código<span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="prod_Codigo" [(ngModel)]="producto.prod_Codigo" [class.is-invalid]="!producto.prod_Codigo.trim() && mostrarErrores" placeholder="Ingrese el código" maxlength="10" required/>
+                <div class="d-flex align-items-center">
+                  <i class="ri-keyboard-line" [ngStyle]="{
+                      border: (!producto.prod_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                      backgroundColor: (!producto.prod_Codigo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                      padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                    </i>
+                  <input type="text" class="form-control" id="prod_Codigo" [(ngModel)]="producto.prod_Codigo" [class.is-invalid]="!producto.prod_Codigo.trim() && mostrarErrores" placeholder="Ingrese el código" maxlength="10" required/>
+                </div>
                 <div class="text-danger mt-1" *ngIf="!producto.prod_Codigo.trim() && mostrarErrores">
                   <small>El campo Código es requerido</small>
                 </div>
@@ -70,7 +77,14 @@
             <div class="col-md-6">
               <div class="mb-3">
                 <label for="prod_CodigoBarra" class="form-label">Código de Barras<span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="prod_CodigoBarra" [(ngModel)]="producto.prod_CodigoBarra" [class.is-invalid]="!producto.prod_CodigoBarra.trim() && mostrarErrores" placeholder="Ingrese el código de barras" required/>
+                <div class="d-flex align-items-center">
+                  <i class="ri-barcode-line" [ngStyle]="{
+                      border: (!producto.marc_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                      backgroundColor: (!producto.marc_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                      padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                  </i>
+                  <input type="text" class="form-control" id="prod_CodigoBarra" [(ngModel)]="producto.prod_CodigoBarra" [class.is-invalid]="!producto.prod_CodigoBarra.trim() && mostrarErrores" placeholder="Ingrese el código de barras" required/>
+                </div>
                 <div class="text-danger mt-1" *ngIf="!producto.prod_CodigoBarra.trim() && mostrarErrores">
                   <small>El campo Código de Barras es requerido</small>
                 </div>
@@ -81,7 +95,14 @@
             <div class="col-md-6">
               <div class="mb-3">
                 <label for="prod_Descripcion" class="form-label">Descripción<span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="prod_Descripcion" [(ngModel)]="producto.prod_Descripcion" [class.is-invalid]="!producto.prod_Descripcion.trim() && mostrarErrores" placeholder="Ingrese la descripción" required/>
+                <div class="d-flex align-items-center">
+                  <i class="ri-attachment-line" [ngStyle]="{
+                      border: (!producto.prod_Descripcion.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                      backgroundColor: (!producto.prod_Descripcion.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                      padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                    </i>
+                  <input type="text" class="form-control" id="prod_Descripcion" [(ngModel)]="producto.prod_Descripcion" [class.is-invalid]="!producto.prod_Descripcion.trim() && mostrarErrores" placeholder="Ingrese la descripción" required/>
+                </div>
                 <div class="text-danger mt-1" *ngIf="!producto.prod_Descripcion.trim() && mostrarErrores">
                   <small>El campo Descripción es requerido</small>
                 </div>
@@ -92,7 +113,14 @@
             <div class="col-md-6">
               <div class="mb-3">
                 <label for="prod_DescripcionCorta" class="form-label">Descripción Corta<span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="prod_DescripcionCorta" [(ngModel)]="producto.prod_DescripcionCorta" [class.is-invalid]="!producto.prod_DescripcionCorta.trim() && mostrarErrores" placeholder="Ingrese una descripción corta" maxlength="50" required/>
+                <div class="d-flex align-items-center">
+                  <i class="ri-attachment-2" [ngStyle]="{
+                      border: (!producto.prod_DescripcionCorta.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                      backgroundColor: (!producto.prod_DescripcionCorta.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                      padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                    </i>
+                  <input type="text" class="form-control" id="prod_DescripcionCorta" [(ngModel)]="producto.prod_DescripcionCorta" [class.is-invalid]="!producto.prod_DescripcionCorta.trim() && mostrarErrores" placeholder="Ingrese una descripción corta" maxlength="50" required/>
+                </div>
                 <div class="text-danger mt-1" *ngIf="!producto.prod_DescripcionCorta.trim() && mostrarErrores">
                   <small>El campo Descripción corta es requerido</small>
                 </div>
@@ -103,20 +131,27 @@
             <div class="col-md-6">
               <div class="mb-3">
                 <label for="cate_Id" class="form-label">Categorías<span class="text-danger">*</span></label>
-                <select
-                  id="cate_Id"
-                  name="cate_Id"
-                  class="form-select"
-                  [(ngModel)]="producto.cate_Id"
-                  (change)="onCategoriaChange($event)"
-                  [class.is-invalid]="!producto.cate_Id && mostrarErrores"
-                  required
-                >
-                  <option [ngValue]="0" disabled>Seleccione una Categoría</option>
-                  <option *ngFor="let cate of categorias" [ngValue]="cate.cate_Id">
-                    {{ cate.cate_Descripcion }}
-                  </option>
-                </select>
+                <div class="d-flex align-items-center">
+                  <i class="ri-stack-line" [ngStyle]="{
+                      border: (!producto.cate_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                      backgroundColor: (!producto.cate_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                      padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                    </i>
+                  <select
+                    id="cate_Id"
+                    name="cate_Id"
+                    class="form-select"
+                    [(ngModel)]="producto.cate_Id"
+                    (change)="onCategoriaChange($event)"
+                    [class.is-invalid]="!producto.cate_Id && mostrarErrores"
+                    required
+                  >
+                    <option [ngValue]="0" disabled>Seleccione una Categoría</option>
+                    <option *ngFor="let cate of categorias" [ngValue]="cate.cate_Id">
+                      {{ cate.cate_Descripcion }}
+                    </option>
+                  </select>
+                </div>
                 <div class="text-danger mt-1" *ngIf="!producto.cate_Id && mostrarErrores">
                   <small>El campo Categoría es requerido</small>
                 </div>
@@ -127,31 +162,38 @@
             <div class="col-md-6">
               <div class="mb-3">
                 <label for="subc_Id" class="form-label">Subcategorías<span class="text-danger">*</span></label>
-                <select
-                  id="subc_Id"
-                  name="subc_Id"
-                  class="form-select"
-                  [(ngModel)]="producto.subc_Id"
-                  (change)="onSubcategoriaChange($event)"
-                  [class.is-invalid]="!producto.subc_Id && mostrarErrores"
-                  required
-                  [disabled]="!producto.cate_Id || producto.cate_Id === 0"
-                >
-                  <option [ngValue]="0" disabled>
-                    {{ 
-                      !producto.cate_Id || producto.cate_Id === 0 
-                      ? 'Primero seleccione una categoría' 
-                      : isCargandoSubcategorias 
-                      ? 'Cargando subcategorías...' 
-                      : subcategoriasFiltradas.length === 0 
-                        ? 'No hay subcategorías disponibles' 
-                        : 'Seleccione una Subcategoría' 
-                    }}
-                  </option>
-                  <option *ngFor="let sub of subcategoriasFiltradas" [ngValue]="sub.subc_Id">
-                    {{ sub.subC_Descripcion }}
-                  </option>
-                </select>
+                <div class="d-flex align-items-center">
+                  <i class="ri-stackshare-line" [ngStyle]="{
+                      border: (!producto.subc_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                      backgroundColor: (!producto.subc_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                      padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                    </i>
+                  <select
+                    id="subc_Id"
+                    name="subc_Id"
+                    class="form-select"
+                    [(ngModel)]="producto.subc_Id"
+                    (change)="onSubcategoriaChange($event)"
+                    [class.is-invalid]="!producto.subc_Id && mostrarErrores"
+                    required
+                    [disabled]="!producto.cate_Id || producto.cate_Id === 0"
+                  >
+                    <option [ngValue]="0" disabled>
+                      {{ 
+                        !producto.cate_Id || producto.cate_Id === 0 
+                        ? 'Primero seleccione una categoría' 
+                        : isCargandoSubcategorias 
+                        ? 'Cargando subcategorías...' 
+                        : subcategoriasFiltradas.length === 0 
+                          ? 'No hay subcategorías disponibles' 
+                          : 'Seleccione una Subcategoría' 
+                      }}
+                    </option>
+                    <option *ngFor="let sub of subcategoriasFiltradas" [ngValue]="sub.subc_Id">
+                      {{ sub.subC_Descripcion }}
+                    </option>
+                  </select>
+                </div>
                 <div class="text-danger mt-1" *ngIf="!producto.subc_Id && mostrarErrores">
                   <small>El campo Subcategoría es requerido</small>
                 </div>
@@ -162,10 +204,17 @@
             <div class="col-md-6">
               <div class="mb-3">
                 <label for="marc_Id" class="form-label">Marca<span class="text-danger">*</span></label>
-                <select id="marc_Id" class="form-select" [(ngModel)]="producto.marc_Id" (change)="onMarcaChange($event)" [class.is-invalid]="!producto.marc_Id && mostrarErrores" required>
-                  <option value=0 disabled selected>Seleccione una marca</option>
-                  <option *ngFor="let marc of marcas" [value]="marc.marc_Id">{{ marc.marc_Descripcion }}</option>
-                </select>
+                <div class="d-flex align-items-center">
+                  <i class="ri-price-tag-3-line" [ngStyle]="{
+                        border: (!producto.marc_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                        backgroundColor: (!producto.marc_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                        padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                      </i>
+                  <select id="marc_Id" class="form-select" [(ngModel)]="producto.marc_Id" (change)="onMarcaChange($event)" [class.is-invalid]="!producto.marc_Id && mostrarErrores" required>
+                    <option value=0 disabled selected>Seleccione una marca</option>
+                    <option *ngFor="let marc of marcas" [value]="marc.marc_Id">{{ marc.marc_Descripcion }}</option>
+                  </select>
+                </div>
                 <div class="text-danger mt-1" *ngIf="!producto.marc_Id && mostrarErrores">
                   <small>El campo Marca es requerido</small>
                 </div>
@@ -176,10 +225,17 @@
             <div class="col-md-6">
               <div class="mb-3">
                 <label for="prov_Id" class="form-label">Proveedor<span class="text-danger">*</span></label>
-                <select id="prov_Id" class="form-select" [(ngModel)]="producto.prov_Id" (change)="onProveedorChange($event)" [class.is-invalid]="!producto.prov_Id && mostrarErrores" required>
-                  <option value=0 disabled selected>Seleccione un proveedor</option>
-                  <option *ngFor="let prov of proveedores" [value]="prov.prov_Id">{{ prov.prov_NombreEmpresa }}</option>
-                </select>
+                <div class="d-flex align-items-center">
+                  <i class="ri-truck-line" [ngStyle]="{
+                      border: (!producto.prov_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                      backgroundColor: (!producto.prov_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                      padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                    </i>
+                  <select id="prov_Id" class="form-select" [(ngModel)]="producto.prov_Id" (change)="onProveedorChange($event)" [class.is-invalid]="!producto.prov_Id && mostrarErrores" required>
+                    <option value=0 disabled selected>Seleccione un proveedor</option>
+                    <option *ngFor="let prov of proveedores" [value]="prov.prov_Id">{{ prov.prov_NombreEmpresa }}</option>
+                  </select>
+                </div>
                 <div class="text-danger mt-1" *ngIf="!producto.prov_Id && mostrarErrores">
                   <small>El campo Proveedor es requerido</small>
                 </div>
@@ -190,8 +246,11 @@
             <div class="col-md-6">
               <div class="mb-3">
                 <label for="prod_PrecioUnitario" class="form-label">Precio Unitario<span class="text-danger">*</span></label>
-                <div class="input-group">
-                  <span class="input-group-text">L.</span>
+                <div class="d-flex align-items-center">
+                  <span [ngStyle]="{
+                    border: (!producto.prod_PrecioUnitario && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                    backgroundColor: (!producto.prod_PrecioUnitario && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">L.</span>
                   <input type="number" class="form-control" id="prod_PrecioUnitario" [(ngModel)]="producto.prod_PrecioUnitario" [class.is-invalid]="!producto.prod_PrecioUnitario && mostrarErrores" placeholder="0.00" required/>
                 </div>
                 <div class="text-danger mt-1" *ngIf="!producto.prod_PrecioUnitario && mostrarErrores">
@@ -210,8 +269,11 @@
             <div class="col-md-6">
               <div class="mb-3">
                 <label for="prod_CostoTotal" class="form-label">Costo Total<span class="text-danger">*</span></label>
-                <div class="input-group">
-                  <span class="input-group-text">L.</span>
+                <div class="d-flex align-items-center">
+                  <span [ngStyle]="{
+                    border: (!producto.prod_CostoTotal && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                    backgroundColor: (!producto.prod_CostoTotal && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">L.</span>
                   <input
                     type="number"
                     class="form-control"

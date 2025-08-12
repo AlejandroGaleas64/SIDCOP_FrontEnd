@@ -81,7 +81,7 @@ export class ListComponent implements OnInit {
       title: 'Listado de Bodegas',                    // Título del reporte
       filename: 'Bodegas',                           // Nombre base del archivo
       department: 'Logistica',                         // Departamento
-      additionalInfo: 'Sistema de Gestión',         // Información adicional
+      additionalInfo: '',         // Información adicional
       
       // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
       columns: [

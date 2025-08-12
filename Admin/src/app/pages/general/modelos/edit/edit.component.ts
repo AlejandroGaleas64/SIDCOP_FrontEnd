@@ -36,11 +36,13 @@ export class EditComponent implements OnInit, OnChanges {
     usuarioModificacion: '',
     code_Status: 0,
     message_Status: '',
-    mode_Estado: true // Aseguramos que el estado esté inicializado
+    mode_Estado: true
   };
 
-  modeloOriginal = '';
-  marcaOriginal = 0;
+  // Objeto para almacenar los datos originales completos
+  modeloOriginal: any = {};
+
+  // Variables de estado
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -53,6 +55,9 @@ export class EditComponent implements OnInit, OnChanges {
   // Cambiamos el nombre para que coincida con el HTML
   marcasVehiculo: Marca[] = [];
 
+  // Objeto para almacenar los cambios detectados
+  cambiosDetectados: any = {};
+
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
@@ -62,8 +67,9 @@ export class EditComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['modeloData'] && changes['modeloData'].currentValue) {
       this.modelo = { ...changes['modeloData'].currentValue };
-      this.modeloOriginal = this.modelo.mode_Descripcion || '';
-      this.marcaOriginal = this.modelo.maVe_Id || 0;
+       const marcaActual = this.marcasVehiculo.find(m => m.maVe_Id === this.modelo.maVe_Id);
+      this.modelo.maVe_Marca = marcaActual ? marcaActual.maVe_Marca : '';
+      this.modeloOriginal = { ...changes['modeloData'].currentValue };
       this.mostrarErrores = false;
       this.cerrarAlerta();
       
@@ -73,6 +79,17 @@ export class EditComponent implements OnInit, OnChanges {
       }
     }
   }
+
+OnMarcaChange(event: any) {
+    const selectedId = +event.target.value;
+    const marcaSeleccionada = this.marcasVehiculo.find(m => m.maVe_Id === selectedId);
+    if (marcaSeleccionada) {
+      this.modelo.maVe_Marca = marcaSeleccionada.maVe_Marca;
+    } else {
+      this.modelo.maVe_Marca = '';
+    }
+  }
+
 
   private cargarMarcas(): void {
     this.http.get<Marca[]>(`${environment.apiBaseUrl}/MarcasVehiculos/Listar`, {
@@ -93,12 +110,134 @@ export class EditComponent implements OnInit, OnChanges {
         console.error('Error al cargar marcas:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar las marcas disponibles';
-        
-        // Ocultar la alerta de error después de 5 segundos
+        setTimeout(() => this.cerrarAlerta(), 5000);
+      }
+    });
+  }
+
+  // Método mejorado para validar todos los campos obligatorios
+  private validarCampos(): boolean {
+    const errores: string[] = [];
+
+    if (!this.modelo.mode_Descripcion.trim()) {
+      errores.push('Descripción del modelo');
+    }
+
+    if (!this.modelo.maVe_Id || this.modelo.maVe_Id === 0) {
+      errores.push('Marca de vehículo');
+    }
+
+    if (errores.length > 0) {
+      this.mensajeWarning = `Por favor corrija los siguientes campos: ${errores.join(', ')}`;
+      this.mostrarAlertaWarning = true;
+      this.mostrarAlertaError = false;
+      this.mostrarAlertaExito = false;
+      return false;
+    }
+
+    return true;
+  }
+
+  // Método para detectar diferencias y almacenar cambios
+  hayDiferencias(): boolean {
+    const a = this.modelo;
+    const b = this.modeloOriginal;
+    this.cambiosDetectados = {};
+
+    // Verificar cambio en la descripción del modelo
+    if (a.mode_Descripcion.trim() !== b.mode_Descripcion.trim()) {
+      this.cambiosDetectados.descripcion = {
+        anterior: b.mode_Descripcion || 'Sin descripción',
+        nuevo: a.mode_Descripcion.trim(),
+        label: 'Descripción del Modelo'
+      };
+    }
+
+       if (a.maVe_Id !== b.maVe_Id) {
+      this.cambiosDetectados.marca = {
+        anterior: b.maVe_Marca,
+        nuevo: a.maVe_Marca,
+        label: 'Marca'
+      };
+    }
+   
+    return Object.keys(this.cambiosDetectados).length > 0;
+  }
+
+  // Método para obtener la lista de cambios como array
+  obtenerListaCambios(): any[] {
+    return Object.values(this.cambiosDetectados);
+  }
+
+  validarEdicion(): void {
+    this.mostrarErrores = true;
+
+    if (this.validarCampos()) {
+      if (this.hayDiferencias()) {
+        console.log('Cambios detectados:', this.cambiosDetectados);
+        this.mostrarConfirmacionEditar = true;
+      } else {
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = 'No se han detectado cambios.';
+        setTimeout(() => this.cerrarAlerta(), 4000);
+      }
+    } else {
+      // El mensaje de error ya se establece en validarCampos()
+      setTimeout(() => this.cerrarAlerta(), 4000);
+    }
+  }
+
+  cancelarEdicion(): void {
+    this.mostrarConfirmacionEditar = false;
+  }
+
+  confirmarEdicion(): void {
+    this.mostrarConfirmacionEditar = false;
+    this.guardar();
+  }
+
+  private guardar(): void {
+    // Validación final antes de guardar
+    if (!this.validarCampos()) {
+      return;
+    }
+
+    const modeloActualizar = {
+      mode_Id: this.modelo.mode_Id,
+      maVe_Id: this.modelo.maVe_Id,
+      mode_Descripcion: this.modelo.mode_Descripcion.trim(),
+      usua_Creacion: this.modelo.usua_Creacion,
+      mode_FechaCreacion: this.modelo.mode_FechaCreacion,
+      usua_Modificacion: getUserId(),
+      mode_FechaModificacion: new Date().toISOString(),
+      usuarioCreacion: '',
+      usuarioModificacion: '',
+      mave_Marca: '',
+      mode_Estado: this.modelo.mode_Estado
+    };
+
+    this.http.put<any>(`${environment.apiBaseUrl}/Modelo/Actualizar`, modeloActualizar, {
+      headers: {
+        'X-Api-Key': environment.apiKey,
+        'Content-Type': 'application/json',
+        'accept': '*/*'
+      }
+    }).subscribe({
+      next: (response) => {
+        this.mensajeExito = `Modelo actualizado exitosamente`;
+        this.mostrarAlertaExito = true;
+        this.mostrarErrores = false;
+
         setTimeout(() => {
-          this.mostrarAlertaError = false;
-          this.mensajeError = '';
-        }, 5000);
+          this.onSave.emit(this.modelo);
+          this.cancelar();
+        }, 3000);
+      },
+      error: (error) => {
+        console.error('Error al actualizar modelo:', error);
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error al actualizar el modelo. Por favor, intente nuevamente.';
+        setTimeout(() => this.cerrarAlerta(), 5000);
       }
     });
   }
@@ -115,86 +254,5 @@ export class EditComponent implements OnInit, OnChanges {
     this.mensajeError = '';
     this.mostrarAlertaWarning = false;
     this.mensajeWarning = '';
-  }
-
-  validarEdicion(): void {
-    this.mostrarErrores = true;
-
-    if (this.modelo.mode_Descripcion.trim() && this.modelo.maVe_Id) {
-      // Verificar si hay cambios
-      const hayDescripcionCambiada = this.modelo.mode_Descripcion.trim() !== this.modeloOriginal;
-      const hayMarcaCambiada = this.modelo.maVe_Id !== this.marcaOriginal;
-
-      if (hayDescripcionCambiada || hayMarcaCambiada) {
-        this.mostrarConfirmacionEditar = true;
-      } else {
-        this.mostrarAlertaWarning = true;
-        this.mensajeWarning = 'No se han detectado cambios.';
-        setTimeout(() => this.cerrarAlerta(), 4000);
-      }
-    } else {
-      this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
-      setTimeout(() => this.cerrarAlerta(), 4000);
-    }
-  }
-
-  cancelarEdicion(): void {
-    this.mostrarConfirmacionEditar = false;
-  }
-
-  confirmarEdicion(): void {
-    this.mostrarConfirmacionEditar = false;
-    this.guardar();
-  }
-
-  private guardar(): void {
-    this.mostrarErrores = true;
-
-    if (this.modelo.mode_Descripcion.trim() && this.modelo.maVe_Id) {
-      const modeloActualizar = {
-        mode_Id: this.modelo.mode_Id,
-        maVe_Id: this.modelo.maVe_Id,
-        mode_Descripcion: this.modelo.mode_Descripcion.trim(),
-        usua_Creacion: this.modelo.usua_Creacion,
-        mode_FechaCreacion: this.modelo.mode_FechaCreacion,
-        usua_Modificacion: getUserId(), // Obtener ID de usuario de manera segura
-        mode_FechaModificacion: new Date().toISOString(),
-        usuarioCreacion: '',
-        usuarioModificacion: '',
-        mave_Marca: '',
-        mode_Estado: this.modelo.mode_Estado
-      };
-
-      this.http.put<any>(`${environment.apiBaseUrl}/Modelo/Actualizar`, modeloActualizar, {
-        headers: {
-          'X-Api-Key': environment.apiKey,
-          'Content-Type': 'application/json',
-          'accept': '*/*'
-        }
-      }).subscribe({
-        next: (response) => {
-          this.mensajeExito = `Modelo "${this.modelo.mode_Descripcion}" actualizado exitosamente`;
-          this.mostrarAlertaExito = true;
-          this.mostrarErrores = false;
-
-          setTimeout(() => {
-            this.mostrarAlertaExito = false;
-            this.onSave.emit(this.modelo);
-            this.cancelar();
-          }, 3000);
-        },
-        error: (error) => {
-          console.error('Error al actualizar modelo:', error);
-          this.mostrarAlertaError = true;
-          this.mensajeError = 'Error al actualizar el modelo. Por favor, intente nuevamente.';
-          setTimeout(() => this.cerrarAlerta(), 5000);
-        }
-      });
-    } else {
-      this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
-      setTimeout(() => this.cerrarAlerta(), 4000);
-    }
   }
 }
