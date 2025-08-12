@@ -23,12 +23,21 @@ const routes: Routes = [
       import('../reportes/reporteProductosPorRuta/reporteProductosPorRuta.module').then(m => m.ReporteProductosPorRutaModule),
     canActivate: [PermisoGuard],
     data: { pantallaId: 67 } // ID 61: Reporte Productos
-  }
-  //  ,{
-  //   path: 'traslados',
-  //   loadChildren: () =>
-  //     import('./traslados/traslado.module').then(m => m.TrasladoModule)
-  // },
+  },
+    {
+    path: 'reporteDevoluciones',
+    loadChildren: () =>
+      import('../reportes/reporteDevoluciones/reporteDevoluciones.module').then(m => m.reporteDevolucionesModule),
+    canActivate: [PermisoGuard],
+    data: { pantallaId: 69 } 
+  },
+   {
+   path: 'reporteRutas',
+   loadChildren: () =>
+     import('../reportes/reporteRecargaPorBodega/ReporteRecargasPorBodega.module').then(m => m.reporteRecargasPorBodegaModule),
+   canActivate: [PermisoGuard],
+   data: { pantallaId: 68 } 
+ },
 
 ];
 
