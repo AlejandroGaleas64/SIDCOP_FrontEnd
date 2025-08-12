@@ -20,7 +20,7 @@
         <div class="col-md-3">
           <label class="form-label">Canal</label>
           <select class="form-select" [(ngModel)]="canalSeleccionado">
-            <option [value]="null">Todos los canales</option>
+            <option [value]="null" (click)="canalSeleccionado=null" >Todos los canales</option>
             <option *ngFor="let canal of canales" [value]="canal.cana_Id">{{ canal.cana_Descripcion }}</option>
           </select>
         </div>
