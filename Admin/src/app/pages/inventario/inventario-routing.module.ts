@@ -27,6 +27,11 @@ const routes: Routes = [
     path: 'promociones',
     loadChildren: () =>
       import('./promociones/promociones.module').then(m => m.PromocionesModule)
+  },
+  {
+    path: 'inventario-sucursal',
+    loadChildren: () =>
+      import('./inventarioSucursal/inventarioSucursal.module').then(m => m.InventarioSucursalModule)
   }
 ];
 

@@ -304,6 +304,14 @@ activeTab: number = 1;
       };
     }
 
+    if (a.prod_PagaImpuesto !== b.prod_PagaImpuesto) {
+      this.cambiosDetectados.codigo = {
+        anterior: b.prod_PagaImpuesto == 'S' || 's'? 'Sí' : 'No',
+        nuevo: a.prod_PagaImpuesto == 'S' ? 'Sí' : 'No',
+        label: 'Paga Impuesto'
+      };
+    }
+
     if (
   JSON.stringify(this.clientesSeleccionados.slice().sort()) !==
   JSON.stringify((a.idClientes ?? []).slice().sort())
@@ -556,9 +564,7 @@ if (serializeProductos(productosOriginal) !== serializeProductos(productosActual
       })
       .then(response => response.json())
       .then(data => {
-        console.log('Imagen subida a Cloudinary:', data);
         this.producto.prod_Imagen = data.secure_url;
-        console.log('URL de la imagen:', this.producto.prod_Imagen);
       })
       .catch(error => {
         console.error('Error al subir la imagen a Cloudinary:', error);
@@ -567,7 +573,6 @@ if (serializeProductos(productosOriginal) !== serializeProductos(productosActual
   }
 
   onImgError(event: Event) {
-    console.log('Entro al error');
     const target = event.target as HTMLImageElement;
     target.src = 'assets/images/users/32/agotado.png';
   }

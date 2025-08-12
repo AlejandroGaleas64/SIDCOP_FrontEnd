@@ -33,6 +33,8 @@ export class CreateComponent  {
     this.listarColonias();
     this.listarEmpleados();
     this.listarModelos();
+    this.listarRutasDisponibles();
+    this.cargarVendedores();
   }
 
   vendedor: Vendedor = {
@@ -43,7 +45,7 @@ export class CreateComponent  {
     vend_Telefono: '',
     vend_Correo: '',
     vend_DNI: '',
-    vend_Sexo: '',
+    vend_Sexo: 'M',
     vend_Tipo: '',
     vend_DireccionExacta: '',
     vend_Supervisor: 0,
@@ -68,6 +70,7 @@ export class CreateComponent  {
     supervisores: any[] = [];
     ayudantes: any[] = [];
     modelos: any[] = [];
+    vendedores: any[] = [];
 
 
     searchSucursal = (term: string, item: any) => {
@@ -99,6 +102,26 @@ ordenarPorMunicipioYDepartamento(colonias: any[]): any[] {
     return 0;
   });
 }
+
+listarRutasDisponibles(): void {
+    this.http.get<any>(`${environment.apiBaseUrl}/Rutas/ListarDisponibles`, {
+        headers: { 'x-api-key': environment.apiKey }
+      }).subscribe((data) => {
+        this.rutasDisponibles = data;
+        // Recalcular opciones cuando llegan las rutas
+        this.recomputarOpciones();
+      });
+    }
+
+   cargarVendedores() {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(data => {this.vendedores = data; this.vendedor.vend_Codigo = this.generarSiguienteCodigo();},
+      error => {
+        console.error('Error al cargar las Vendedores:', error);
+      }
+    );
+  }
 
  listarSucursales(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Sucursales/Listar`, {
@@ -201,6 +224,7 @@ tieneAyudante: boolean = false;
     usuarioCreacion: '',
     usuarioModificacion: ''
     };
+    this.vendedor.vend_Codigo = this.generarSiguienteCodigo();
     this.onCancel.emit();
   }
 
@@ -222,11 +246,17 @@ tieneAyudante: boolean = false;
     this.vendedor.vend_Telefono.trim() && this.vendedor.vend_Correo.trim() &&
     this.vendedor.vend_DNI.trim() && this.vendedor.vend_Sexo.trim() &&
     this.vendedor.vend_Tipo.trim() && this.vendedor.vend_DireccionExacta.trim() &&
-    this.vendedor.sucu_Id > 0 && this.vendedor.colo_Id > 0
+    this.vendedor.sucu_Id > 0 && this.vendedor.colo_Id > 0 && this.rutasVendedor.length > 0
   ) {
     this.mostrarAlertaWarning = false;
     this.mostrarAlertaError = false;
 
+    // Preparar rutas para enviar (solo ruta_Id y veRu_Dias)
+    const rutasParaEnviar = this.rutasVendedor
+      .filter(rv => rv.ruta_Id != null && rv.veRu_Dias !== '')
+      .map(rv => ({ ruta_Id: rv.ruta_Id as number, veRu_Dias: rv.veRu_Dias }));
+
+      console.log('Rutas para enviar:', rutasParaEnviar);
     // Construir el objeto para guardar
     const vendedorGuardar: any = {
       vend_Id: 0,
@@ -249,7 +279,8 @@ tieneAyudante: boolean = false;
       numero: "",
       vend_FechaModificacion: new Date().toISOString(),
       usuarioCreacion: "",
-      usuarioModificacion: ""
+      usuarioModificacion: "",
+      rutas_Json: rutasParaEnviar
     };
 
     // Solo agregar vend_Ayudante si tieneAyudante es true
@@ -302,4 +333,104 @@ tieneAyudante: boolean = false;
     }, 4000);
   }
 }
+// Opcional: lista de rutas y días para el select
+rutasDisponibles: any[] = [];
+rutasVendedor: { ruta_Id: number | null, diasSeleccionados: number[], veRu_Dias: string }[] = [
+  { ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' }
+];
+// Listas precalculadas por índice para evitar funciones en el template
+rutasDisponiblesFiltradas: any[][] = [[]];
+diasDisponiblesFiltradas: any[][] = [[]];
+
+diasSemana = [
+  { id: 1, nombre: 'Lunes' },
+  { id: 2, nombre: 'Martes' },
+  { id: 3, nombre: 'Miércoles' },
+  { id: 4, nombre: 'Jueves' },
+  { id: 5, nombre: 'Viernes' },
+  { id: 6, nombre: 'Sábado' },
+  { id: 7, nombre: 'Domingo' }
+];
+
+agregarRuta() {
+  this.rutasVendedor.push({ ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' });
+  // Expandir arreglos filtrados para el nuevo índice
+  this.rutasDisponiblesFiltradas.push([]);
+  this.diasDisponiblesFiltradas.push([]);
+  this.recomputarOpciones();
+}
+
+eliminarRuta(idx: number) {
+  this.rutasVendedor.splice(idx, 1);
+  this.rutasDisponiblesFiltradas.splice(idx, 1);
+  this.diasDisponiblesFiltradas.splice(idx, 1);
+  this.recomputarOpciones();
+}
+
+actualizarDias(idx: number, dias: number[]) {
+  this.rutasVendedor[idx].veRu_Dias = dias.join(',');
+  // Recalcular días disponibles para todos los índices
+  this.recomputarOpciones();
+  console.log('rutasVendedor actualizadas:', this.rutasVendedor);
+}
+
+// Reaccionar al cambio de ruta en un índice
+onRutaChange(idx: number): void {
+  this.recomputarOpciones();
+}
+
+// Recalcular listas filtradas por índice para rutas y días
+recomputarOpciones(): void {
+  // Asegurar longitud de arreglos filtrados
+  if (this.rutasDisponiblesFiltradas.length !== this.rutasVendedor.length) {
+    this.rutasDisponiblesFiltradas = new Array(this.rutasVendedor.length).fill(0).map(() => []);
+  }
+  if (this.diasDisponiblesFiltradas.length !== this.rutasVendedor.length) {
+    this.diasDisponiblesFiltradas = new Array(this.rutasVendedor.length).fill(0).map(() => []);
+  }
+
+  const totalRutasSeleccionadas = this.rutasVendedor.map(rv => rv.ruta_Id);
+  const totalDiasSeleccionadosPorIndice = this.rutasVendedor.map(rv => rv.diasSeleccionados);
+
+  for (let i = 0; i < this.rutasVendedor.length; i++) {
+    // Rutas disponibles: excluir seleccionadas en otros índices
+    const rutasSeleccionadasOtros = totalRutasSeleccionadas.filter((_, idx) => idx !== i && totalRutasSeleccionadas[idx] != null);
+    this.rutasDisponiblesFiltradas[i] = (this.rutasDisponibles || []).filter(r => !rutasSeleccionadasOtros.includes(r.ruta_Id));
+
+    // Días disponibles: excluir días elegidos en otros índices
+    const diasOtros = totalDiasSeleccionadosPorIndice
+      .filter((_, idx) => idx !== i)
+      .flatMap(arr => arr || []);
+    this.diasDisponiblesFiltradas[i] = this.diasSemana.filter(d => !diasOtros.includes(d.id));
+  }
+}
+
+// Validar si una ruta ya está seleccionada
+esRutaYaSeleccionada(rutaId: number, indiceActual: number): boolean {
+  return this.rutasVendedor.some((rv, index) => 
+    index !== indiceActual && rv.ruta_Id === rutaId
+  );
+}
+
+// Validar si un día ya está seleccionado en otra ruta
+esDiaYaSeleccionado(diaId: number, indiceActual: number): boolean {
+  return this.rutasVendedor.some((rv, index) => 
+    index !== indiceActual && rv.diasSeleccionados.includes(diaId)
+  );
+}
+
+generarSiguienteCodigo(): string {
+  
+  // Supón que tienes un array de promociones existentes llamado promociones
+  const codigos = this.vendedores
+    .map(p => p.vend_Codigo)
+    .filter(c => /^VEND-\d{5}$/.test(c));
+  if (codigos.length === 0) return 'VEND-00001';
+
+  // Ordena y toma el mayor
+  const ultimoCodigo = codigos.sort().pop()!;
+  const numero = parseInt(ultimoCodigo.split('-')[1], 10) + 1;
+  return `VEND-${numero.toString().padStart(5, '0')}`;
+}
+
 }

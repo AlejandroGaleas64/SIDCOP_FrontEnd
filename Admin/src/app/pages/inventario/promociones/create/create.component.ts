@@ -74,7 +74,7 @@ change(event: any) {
     impu_Id: 0,
     prod_PrecioUnitario: 0,
     prod_CostoTotal: 0,
-    prod_PagaImpuesto: "",
+    prod_PagaImpuesto: "S",
     prod_EsPromo: "",
     prod_Estado: true,
     usua_Creacion: 0,
@@ -357,7 +357,7 @@ change(event: any) {
                 }, 3000);
               } else {
                 this.mostrarAlertaError = true;
-                this.mensajeError = response?.data?.message_Status || 'No se pudo actualizar el producto.';
+                this.mensajeError = response?.data?.message_Status || 'No se pudo crear la promocion.';
                 this.mostrarAlertaExito = false;
 
                 setTimeout(() => {
@@ -374,7 +374,7 @@ change(event: any) {
                 console.error('400 Bad Request:', error.error); // posible detalle del error
               }
               this.mostrarAlertaError = true;
-              this.mensajeError = 'Error al guardar el producto. Por favor, revise los datos e intente nuevamente.';
+              this.mensajeError = 'Error al guardar la promocion. Por favor, revise los datos e intente nuevamente.';
               this.mostrarAlertaExito = false;
               setTimeout(() => {
                 this.mostrarAlertaError = false;
@@ -394,10 +394,18 @@ change(event: any) {
             // }
           });
         } else {
+          if(this.producto.prod_PrecioUnitario == null || this.producto.prod_PrecioUnitario < 0) {
+            this.mostrarAlertaWarning = true;
+            this.mensajeWarning = 'El precio unitario debe ser mayor o igual a 0.';
+            this.mostrarAlertaError = false;
+            this.mostrarAlertaExito = false;
+          }
+          else{
           this.mostrarAlertaWarning = true;
           this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
           this.mostrarAlertaError = false;
           this.mostrarAlertaExito = false;
+          }
           setTimeout(() => {
             this.mostrarAlertaWarning = false;
             this.mensajeWarning = '';
@@ -450,9 +458,18 @@ change(event: any) {
 
 validarPasoInformacionGeneral(): boolean {
   const d = this.producto;
+    console.log('Validando paso de Información General:', d);
+  const isv = d.prod_PagaImpuesto? 'S' : 'N';
+  return !!d.prod_Codigo?.trim()
+    && !!d.prod_Descripcion?.trim()
+    && !!d.prod_DescripcionCorta?.trim()
+    && d.prod_PrecioUnitario != null
+    && d.prod_PrecioUnitario > 0
+     && (
+      (isv === 'N') ||
+      (isv === 'S'  && d.impu_Id != null && d.impu_Id > 0)
+    );
 
-  return !!d.prod_Codigo?.trim() && !!d.prod_Descripcion?.trim() && !!d.prod_DescripcionCorta?.trim() &&
-          d.prod_PrecioUnitario != null && d.prod_PrecioUnitario >= 0;
 
 }
 

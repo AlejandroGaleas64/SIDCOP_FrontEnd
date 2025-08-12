@@ -25,7 +25,8 @@
         "CARGOS": "Cargos",
          "CLIENTES": "Clientes",
         "PROVEEDORES": "Proveedores",
-         "EMPLEADOS": "Empleados"
+         "EMPLEADOS": "Empleados",
+         "VISITASCLIENTES": "Visitas Clientes"
       }
     },
     "INVENTARIO": {
@@ -35,14 +36,15 @@
         "SUBCATEGORIAS": "Subcategorias",
         "PRODUCTOS": "Productos",
         "DESCUENTOS": "Descuentos",
-        "PROMOCIONES": "Promociones"
+        "PROMOCIONES": "Promociones",
+        "INVENTARIOSUCURSAL": "Inventario Sucursal"
       }
     },
       "VENTAS": {
       "TEXT": "Ventas",
       "LIST": {
         "IMPUESTOS": "Impuestos",
-        "CONFIGURACIONFACTURA": "Configuración de Factura",
+        "CONFIGURACIONFACTURA": "Configuración de la Empresa",
         "CAIS": "CAIS",
         "VENDEDORES": "Vendedores",
         "REGISTROCAIS": "Registros CAI",
@@ -63,9 +65,18 @@
     "REPORTES": {
       "TEXT": "Reportes",
       "LIST": {
-        "REPORTEPRODUCTOS": "Reporte Productos",
-        "REPORTECLIENTESMASFACTURADOS": "Reporte Clientes Más Facturados",
-        "REPORTEPRODUCTOSPORRUTA": "Reporte Productos por Ruta"
+        "REPORTEPRODUCTOS": " Productos",
+        "REPORTECLIENTESMASFACTURADOS": " Clientes Más Facturados",
+        "REPORTEPRODUCTOSPORRUTA": " Productos por Ruta",
+        "REPORTERECARGAPORSBODEGA": " Recargas Por Bodega",
+        "REPORTEDEVOLUCIONES": " Devoluciones",
+        "REPORTEPRODUCTOSVENDIDOS": " Total de Productos Vendidos",
+        "REPORTEVENDEDORESVENTAS": " Total de Ventas por Vendedor",
+        "REPORTECUENTASCLIENTES": " Cuentas Por Cliente",
+        "REPORTEVENDEDORESPORRUTA": " Vendedores Por Ruta",
+        "REPORTECLIENTES": " Clientes"
+        ,
+         "REPORTEPEDIDOSPORFECHA": " Pedidos Por Fecha"
       }
     },
     "DASHBOARD": {
