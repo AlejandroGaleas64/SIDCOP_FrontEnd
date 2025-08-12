@@ -14,6 +14,18 @@ import { getUserId } from 'src/app/core/utils/user-utils';
   styleUrl: './edit.component.scss'
 })
 export class EditComponent implements OnChanges {
+  // Devuelve la lista de cambios detectados para el modal de confirmación
+  obtenerListaCambios() {
+    const cambios = [];
+    if (this.estadoCivil.esCv_Descripcion?.trim() !== this.estadoCivilOriginal?.trim()) {
+      cambios.push({
+        label: 'Descripción',
+        anterior: this.estadoCivilOriginal,
+        nuevo: this.estadoCivil.esCv_Descripcion
+      });
+    }
+    return cambios;
+  }
   @Input() estadoCivilData: EstadoCivil | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<EstadoCivil>();

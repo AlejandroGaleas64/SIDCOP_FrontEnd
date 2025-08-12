@@ -68,7 +68,8 @@
         "REPORTEPRODUCTOS": "ReporteProductos",
         "REPORTERECARGAPORSBODEGA": "Reporte Recargas Por Bodega",
         "REPORTEDEVOLUCIONES": "Reporte Devoluciones",
-        "REPORTERUTAS": "Reporte Rutas"
+        "REPORTECLIENTES": "Reporte Clientes"
+
       
       }
     },
