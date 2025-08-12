@@ -29,7 +29,7 @@ export class CreateComponent {
   @ViewChild('tabsScroll', { static: false }) tabsScroll!: ElementRef<HTMLDivElement>;
   @ViewChild(MapaSelectorComponent)
   mapaSelectorComponent!: MapaSelectorComponent;
-  
+
   entrando = true;
   activeTab = 1;
 
@@ -52,7 +52,7 @@ export class CreateComponent {
   parentescos: any[] = [];
   TodasColonias: any[] = [];
   TodasColoniasAval: any[] = [];
-
+  colonias: any[] = [];
 
   //Variables para el mapa
   latitudSeleccionada: number | null = null;
@@ -67,7 +67,7 @@ export class CreateComponent {
 
   //Id del cliente obtenido al crear el nuevo cliente
   idDelCliente: number = 0;
-  
+
 
   scrollToAval(index: number) {
     const container = this.tabsScroll.nativeElement;
@@ -86,9 +86,9 @@ export class CreateComponent {
   }
 
   esCorreoValido(correo: string): boolean {
-  if (!correo) return true;
-  // Solo acepta gmail.com y hotmail.com, y debe tener @ y .com
-  return /^[\w\.-]+@(gmail|hotmail|outlook)\.com$/.test(correo.trim());
+    if (!correo) return true;
+    // Solo acepta gmail.com y hotmail.com, y debe tener @ y .com
+    return /^[\w\.-]+@(gmail|hotmail|outlook)\.com$/.test(correo.trim());
   }
 
   //Declarado para validar la direccion
@@ -261,7 +261,7 @@ export class CreateComponent {
         this.cliente.clie_NombreNegocio.trim() &&
         this.cliente.clie_ImagenDelNegocio.trim() &&
         this.cliente.ruta_Id &&
-        this.cliente.cana_Id && 
+        this.cliente.cana_Id &&
         this.validarDireccion
       ) {
         this.mostrarErrores = false;
@@ -388,6 +388,7 @@ export class CreateComponent {
     this.cargarParentescos();
     this.cargarColoniasCliente();
     this.cargarColoniasAval();
+    this.cargarColonias();
   }
 
   cargarPaises() {
@@ -438,6 +439,17 @@ export class CreateComponent {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Colonia/ListarMunicipiosyDepartamentos`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => this.TodasColoniasAval = data);
+  }
+
+  cargarColonias() {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Colonia/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(data => this.colonias = data);
+  }
+
+   obtenerDescripcionColonia(colo_Id: number): string {
+    const colonia = this.colonias.find(c => c.colo_Id === colo_Id);
+    return colonia?.colo_Descripcion || 'Colonia no encontrada';
   }
 
   cliente: Cliente = {
@@ -878,16 +890,16 @@ export class CreateComponent {
     }
   }
 
-formatearLimiteCredito() {
-  let valor = this.cliente.clie_LimiteCredito;
+  formatearLimiteCredito() {
+    let valor = this.cliente.clie_LimiteCredito;
 
-  if (valor === null || valor === undefined || isNaN(valor)) {
-    this.cliente.clie_LimiteCredito = 0.00;
-  } else {
-    // Redondear a dos decimales correctamente
-    this.cliente.clie_LimiteCredito = Math.round(valor * 100) / 100;
+    if (valor === null || valor === undefined || isNaN(valor)) {
+      this.cliente.clie_LimiteCredito = 0.00;
+    } else {
+      // Redondear a dos decimales correctamente
+      this.cliente.clie_LimiteCredito = Math.round(valor * 100) / 100;
+    }
   }
-}
 
 }
 

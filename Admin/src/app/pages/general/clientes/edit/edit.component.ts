@@ -55,6 +55,7 @@ export class EditComponent implements OnChanges {
   mostrarAlertaError = false;
   mensajeError = '';
   mostrarAlertaWarning = false;
+  mostrarConfirmacionEditar = false;
   mensajeWarning = '';
   mostrarMapa = false;
 
@@ -81,7 +82,9 @@ export class EditComponent implements OnChanges {
 
   //Info del cliente
   idDelCliente: number = 0;
-  clienteOriginal: Cliente | null = null;
+  clienteOriginal: any = {};
+  direccionOriginal: any = {};
+  avalOriginal: any = {};
 
   // Arrays para controlar que direcciones y avales son nuevos vs existentes
   direccionesOriginales: DireccionPorCliente[] = [];
@@ -109,6 +112,57 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // onChanges para validar cambios en el formulario de editar
+  onEstadoCivilChange(event: any) {
+    const selectedId = +event.target.value;
+    const estadoCivilSeleccionado = this.estadosCiviles.find(e => e.esCv_Id === selectedId);
+    if (estadoCivilSeleccionado) {
+      this.cliente.esCv_Descripcion = estadoCivilSeleccionado.esCv_Descripcion;
+    } else {
+      this.cliente.esCv_Descripcion = '';
+    }
+  }
+
+  onTipoViviendaChange(event: any) {
+    const selectedId = +event.target.value;
+    const tipoViviendaSeleccionado = this.tiposDeVivienda.find(t => t.tiVi_Id === selectedId);
+    if (tipoViviendaSeleccionado) {
+      this.cliente.tiVi_Descripcion = tipoViviendaSeleccionado.tiVi_Descripcion;
+    } else {
+      this.cliente.tiVi_Descripcion = '';
+    }
+  }
+
+  onNacionalidadChange(event: any) {
+    const selectedId = +event.target.value;
+    const nacionalidadSeleccionada = this.paises.find(e => e.pais_Codigo === selectedId);
+    if (nacionalidadSeleccionada) {
+      this.cliente.pais_Descripcion = nacionalidadSeleccionada.pais_Descripcion;
+    } else {
+      this.cliente.pais_Descripcion = '';
+    }
+  }
+
+  // onParentescoChange(event: any) {
+  //   const selectedId = +event.target.value;
+  //   const parentescoSeleccionado = this.parentescos.find(p => p.pare_Id === selectedId);
+  //   if (parentescoSeleccionado) {
+  //     this.avales.pare_Descripcion = parentescoSeleccionado.pare_Descripcion;
+  //   } else {
+  //     this.aval.pare_Descripcion = '';
+  //   }
+  // }
+
+  // onColoniaChangeCliente(event: any) {
+  //   const selectedId = +event.target.value;
+  //   const coloniaSeleccionada = this.TodasColonias.find(c => c.colo_Id === selectedId);
+  //   if (coloniaSeleccionada) {
+  //     this.direccionPorCliente.colo_Descripcion = coloniaSeleccionada.colo_Descripcion;
+  //   } else {
+  //     this.coloniaSeleccionada.colo_Descripcion = '';
+  //   }
+  // }
+
   esCorreoValido(correo: string): boolean {
     if (!correo) return true;
     // Solo acepta lo que está dentro del parentesis
@@ -119,6 +173,7 @@ export class EditComponent implements OnChanges {
     const valor = event.target.value;
     this.cliente.clie_FechaNacimiento = valor ? new Date(valor) : null;
   }
+
 
   //Declarado para validar la direccion
   validarDireccion: boolean = false;
@@ -156,7 +211,7 @@ export class EditComponent implements OnChanges {
     if (no === 1) {
       this.mostrarErrores = true;
       if (
-        this.cliente.clie_Codigo.trim() &&
+        // this.cliente.clie_Codigo.trim() &&
         this.cliente.clie_Nacionalidad.trim() &&
         this.cliente.clie_RTN.trim() &&
         this.cliente.clie_Nombres.trim() &&
@@ -224,8 +279,10 @@ export class EditComponent implements OnChanges {
     }
 
     if (no === 4) {
-      this.mostrarErrores = true;
+      console.log('2do',4);      
       if (this.tieneDatosCredito()) {
+        console.log('2do',this.tieneDatosCredito());      
+        this.mostrarErrores = true;
         if (
           this.avales.length > 0 &&
           this.avales.every((aval) => this.esAvalValido(aval))
@@ -242,6 +299,7 @@ export class EditComponent implements OnChanges {
           }, 3000);
         }
       } else {
+        // Si no hay datos de crédito, saltar el tab de avales
         this.mostrarErrores = false;
         this.activeTab = 5;
       }
@@ -301,7 +359,7 @@ export class EditComponent implements OnChanges {
     if (no == 1) {
       this.mostrarErrores = true;
       if (
-        this.cliente.clie_Codigo.trim() &&
+        // this.cliente.clie_Codigo.trim() &&
         this.cliente.clie_Nacionalidad.trim() &&
         this.cliente.clie_RTN.trim() &&
         this.cliente.clie_Nombres.trim() &&
@@ -388,8 +446,10 @@ export class EditComponent implements OnChanges {
     }
 
     if (no == 4) {
-      this.mostrarErrores = true;
+      console.log(4);
       if (this.tieneDatosCredito()) {
+        console.log('tieneDatosCredito');
+        this.mostrarErrores = true;
         if (
           this.avales.length > 0 &&
           this.avales.every((aval) => this.esAvalValido(aval))
@@ -407,6 +467,7 @@ export class EditComponent implements OnChanges {
           }, 3000);
         }
       } else {
+        // Si no hay datos de crédito, saltar el tab de avales
         this.mostrarErrores = false;
         this.activeTab = 5;
       }
@@ -582,7 +643,7 @@ export class EditComponent implements OnChanges {
             }));
           this.avalesOriginales = [...this.avales];
 
-          if (this.avales.length === 0) {
+          if (this.avales.length === 0 && this.tieneDatosCredito()) {
             this.avales = [this.nuevoAval()];
           }
         },
@@ -676,7 +737,7 @@ export class EditComponent implements OnChanges {
       aval_Observaciones: '',
       aval_DireccionExacta: '',
       colo_Id: 0,
-      aval_FechaNacimiento: new Date(),
+      aval_FechaNacimiento: null,
       esCv_Id: 0,
       aval_Sexo: 'M',
       pare_Descripcion: '',
@@ -743,7 +804,7 @@ export class EditComponent implements OnChanges {
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
 
-      const clienteActualizar = {
+      const clienteActualizar: Cliente = {
         clie_Id: this.cliente.clie_Id,
         clie_Codigo: this.cliente.clie_Codigo.trim(),
         clie_Nacionalidad: this.cliente.clie_Nacionalidad,
@@ -785,6 +846,7 @@ export class EditComponent implements OnChanges {
         usuaM_Nombre: this.cliente.usuaM_Nombre,
       };
 
+      console.log('cliente', clienteActualizar );
       this.http
         .put<any>(
           `${environment.apiBaseUrl}/Cliente/Actualizar`,
@@ -1077,6 +1139,7 @@ export class EditComponent implements OnChanges {
       });
   }
 
+  
   agregarDireccion() {
     this.mostrarErrores = true;
     if (
@@ -1105,11 +1168,11 @@ export class EditComponent implements OnChanges {
       this.direccionPorCliente.muni_Descripcion = colonia
         ? colonia.colo_Descripcion
         : '';
-      this.direccionPorCliente.muni_Descripcion += ' ';
+      this.direccionPorCliente.muni_Descripcion += ', ';
       this.direccionPorCliente.muni_Descripcion += colonia
         ? colonia.muni_Descripcion
         : '';
-      this.direccionPorCliente.muni_Descripcion += ' ';
+      this.direccionPorCliente.muni_Descripcion += ', ';
       this.direccionPorCliente.muni_Descripcion += colonia
         ? colonia.depa_Descripcion
         : '';
@@ -1213,5 +1276,314 @@ export class EditComponent implements OnChanges {
       this.avalActivoIndex = nuevoIndex;
       this.scrollToAval(nuevoIndex);
     }
+  }
+
+  // Todo lo de mensaje de confirmación de edición
+
+  obtenerListaCambios(): any[] {
+    return Object.values(this.cambiosDetectados);
+  }
+
+  cambiosDetectados: any = {};
+
+  hayDiferencias(): boolean {
+    const a = this.cliente;
+    const b = this.clienteOriginal;
+    const c = this.direccionPorCliente;
+    const d = this.direccionOriginal;
+    const e = this.nuevoAval();
+    const f = this.avalOriginal;
+    this.cambiosDetectados = {};
+
+    // Verificar cada campo y almacenar los cambios
+    if (a.clie_Nacionalidad !== b.clie_Nacionalidad) {
+      this.cambiosDetectados.nacionalidad = {
+        anterior: b.pais_Descripcion,
+        nuevo: a.pais_Descripcion,
+        label: 'Nacionalidad del Cliente'
+      };
+    }
+
+    if (a.clie_Nombres !== b.clie_Nombres) {
+      this.cambiosDetectados.nombres = {
+        anterior: b.clie_Nombres,
+        nuevo: a.clie_Nombres,
+        label: 'Nombres del Cliente'
+      };
+    }
+
+    if (a.clie_Apellidos !== b.clie_Apellidos) {
+      this.cambiosDetectados.apellidos = {
+        anterior: b.clie_Apellidos,
+        nuevo: a.clie_Apellidos,
+        label: 'Apellidos del Cliente'
+      };
+    }
+
+    if (a.clie_DNI !== b.clie_DNI) {
+      this.cambiosDetectados.dni = {
+        anterior: b.clie_DNI,
+        nuevo: a.clie_DNI,
+        label: 'DNI del Cliente'
+      };
+    }
+
+    if (a.clie_RTN !== b.clie_RTN) {
+      this.cambiosDetectados.rtn = {
+        anterior: b.clie_RTN,
+        nuevo: a.clie_RTN,
+        label: 'RTN del Cliente'
+      };
+    }
+
+    if (a.clie_Sexo !== b.clie_Sexo) {
+      this.cambiosDetectados.sexo = {
+        anterior: b.clie_Sexo,
+        nuevo: a.clie_Sexo,
+        label: 'Sexo del Cliente'
+      };
+    }
+
+    if (a.esCv_Id !== b.esCv_Id) {
+      this.cambiosDetectados.marca = {
+        anterior: b.esCv_Descripcion,
+        nuevo: a.esCv_Descripcion,
+        label: 'Estado Civil'
+      };
+    }
+
+    if (a.tiVi_Id !== b.tiVi_Id) {
+      this.cambiosDetectados.proveedor = {
+        anterior: b.tiVi_Descripcion,
+        nuevo: a.tiVi_Descripcion,
+        label: 'Tipo de Vivienda'
+      };
+    }
+
+    if (a.clie_Telefono !== b.clie_Telefono) {
+      this.cambiosDetectados.telefono = {
+        anterior: b.clie_Telefono,
+        nuevo: a.clie_Telefono,
+        label: 'Teléfono'
+      };
+    }
+
+    if (a.clie_Correo !== b.clie_Correo) {
+      this.cambiosDetectados.correo = {
+        anterior: b.clie_Correo,
+        nuevo: a.clie_Correo,
+        label: 'Correo Electrónico'
+      };
+    }
+
+    // Comparar fechas de nacimiento en formato YYYY-MM-DD
+    const fechaA = a.clie_FechaNacimiento ? new Date(a.clie_FechaNacimiento).toISOString().slice(0, 10) : '';
+    const fechaB = b.clie_FechaNacimiento ? new Date(b.clie_FechaNacimiento).toISOString().slice(0, 10) : '';
+    if (fechaA !== fechaB) {
+      this.cambiosDetectados.fechaNacimientoCliente = {
+        anterior: fechaB,
+        nuevo: fechaA,
+        label: 'Fecha de Nacimiento del Cliente'
+      };
+    }
+
+    //Tab 2
+    if (a.clie_NombreNegocio !== b.clie_NombreNegocio) {
+      this.cambiosDetectados.nombreNegocio = {
+        anterior: b.clie_NombreNegocio,
+        nuevo: a.clie_NombreNegocio,
+        label: 'Nombre del Negocio'
+      };
+    }
+
+    if (a.clie_ImagenDelNegocio !== b.clie_ImagenDelNegocio) {
+      this.cambiosDetectados.imagen = {
+        anterior: b.clie_ImagenDelNegocio ? 'Imagen actual' : 'Sin imagen',
+        nuevo: a.clie_ImagenDelNegocio ? 'Nueva imagen' : 'Sin imagen',
+        label: 'Imagen del Negocio'
+      };
+    }
+
+    if (a.ruta_Id !== b.ruta_Id) {
+      this.cambiosDetectados.ruta = {
+        anterior: b.ruta_Descripcion,
+        nuevo: a.ruta_Descripcion,
+        label: 'Ruta'
+      };
+    }
+
+    if (a.cana_Id !== b.cana_Id) {
+      this.cambiosDetectados.canal = {
+        anterior: b.cana_Descripcion,
+        nuevo: a.cana_Descripcion,
+        label: 'Canal'
+      };
+    }
+
+    //Tab 3
+    if (a.clie_LimiteCredito !== b.clie_LimiteCredito) {
+      this.cambiosDetectados.limiteCredito = {
+        anterior: b.clie_LimiteCredito,
+        nuevo: a.clie_LimiteCredito,
+        label: 'Límite de Crédito'
+      };
+    }
+
+    if (a.clie_DiasCredito !== b.clie_DiasCredito) {
+      this.cambiosDetectados.diasCredito = {
+        anterior: b.clie_DiasCredito,
+        nuevo: a.clie_DiasCredito,
+        label: 'Días de Crédito'
+      };
+    }
+
+    if (a.clie_Observaciones !== b.clie_Observaciones) {
+      this.cambiosDetectados.observaciones = {
+        anterior: b.clie_Observaciones,
+        nuevo: a.clie_Observaciones,
+        label: 'Observaciones'
+      };
+    }
+
+    //Tab 4
+    // if (e.aval_DNI !== f.aval_DNI) {
+    //   this.cambiosDetectados.dniAval = {
+    //     anterior: f.aval_DNI,
+    //     nuevo: e.aval_DNI,
+    //     label: 'DNI del Aval'
+    //   };
+    // }
+
+    // if (e.aval_Nombres !== f.aval_Nombres) {
+    //   this.cambiosDetectados.nombresAval = {
+    //     anterior: f.aval_Nombres,
+    //     nuevo: e.aval_Nombres,
+    //     label: 'Nombres del Aval'
+    //   };
+    // }
+
+    // if (e.aval_Apellidos !== f.aval_Apellidos) {
+    //   this.cambiosDetectados.apellidosAval = {
+    //     anterior: f.aval_Apellidos,
+    //     nuevo: e.aval_Apellidos,
+    //     label: 'Apellidos del Aval'
+    //   };
+    // }
+
+    // if (e.pare_Id !== f.pare_Id) {
+    //   this.cambiosDetectados.parentescoAval = {
+    //     anterior: f.pare_Descripcion,
+    //     nuevo: e.pare_Descripcion,
+    //     label: 'Parentesco del Aval'
+    //   };
+    // }
+
+    // if (e.aval_Sexo !== f.aval_Sexo) {
+    //   this.cambiosDetectados.sexoAval = {
+    //     anterior: f.aval_Sexo,
+    //     nuevo: e.aval_Sexo,
+    //     label: 'Sexo del Aval'
+    //   };
+    // }
+
+    // if (e.tiVi_Id !== f.tiVi_Id) {
+    //   this.cambiosDetectados.tipoViviendaAval = {
+    //     anterior: f.tiVi_Descripcion,
+    //     nuevo: e.tiVi_Descripcion,
+    //     label: 'Tipo de Vivienda del Aval'
+    //   };
+    // }
+
+    // if (e.aval_Telefono !== f.aval_Telefono) {
+    //   this.cambiosDetectados.telefonoAval = {
+    //     anterior: f.aval_Telefono,
+    //     nuevo: e.aval_Telefono,
+    //     label: 'Teléfono del Aval'
+    //   };
+    // }
+
+    // if (e.aval_FechaNacimiento !== f.aval_FechaNacimiento) {
+    //   this.cambiosDetectados.fechaNacimientoAval = {
+    //     anterior: f.aval_FechaNacimiento,
+    //     nuevo: e.aval_FechaNacimiento,
+    //     label: 'Fecha de Nacimiento del Aval'
+    //   };
+    // }
+  console.log('Cambios detectados:', this.cambiosDetectados);
+  return Object.keys(this.cambiosDetectados).length > 0;
+  }
+
+  validarEdicion(): void {
+    this.mostrarErrores = true;
+   // debugger
+    if (this.validarCampos()) {
+      if (this.hayDiferencias()) {
+        this.mostrarConfirmacionEditar = true;
+      } else {
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = 'No se han detectado cambios.';
+        setTimeout(() => this.cerrarAlerta(), 4000);
+      }
+    } else {
+      // El mensaje de error ya se establece en validarCampos()
+      setTimeout(() => this.cerrarAlerta(), 4000);
+    }
+  }
+
+  // Método para validar todos los campos obligatorios - MEJORADO
+  private validarCampos(): boolean {
+    const errores: string[] = [];
+
+    // Validar campos básicos requeridos
+    if (!this.cliente.clie_DNI.trim()) {
+      errores.push('DNI');
+    }
+
+    if (!this.cliente.clie_RTN.trim()) {
+      errores.push('RTN');
+    }
+
+    if (!this.cliente.clie_Nombres.trim()) {
+      errores.push('Nombres');
+    }
+
+    if (!this.cliente.clie_Apellidos.trim()) {
+      errores.push('Apellidos');
+    }
+
+    if (!this.cliente.clie_NombreNegocio.trim()) {
+      errores.push('Nombre del Negocio');
+    }
+
+    if (!this.cliente.tiVi_Id) {
+      errores.push('Tipo de Vivienda');
+    }
+
+    if (!this.cliente.esCv_Id) {
+      errores.push('Estado Civil');
+    }
+
+    if (!this.cliente.clie_ImagenDelNegocio) {
+      errores.push('Imagen del Negocio');
+    }
+
+
+    if (errores.length > 0) {
+      this.mensajeWarning = `Por favor corrija los siguientes campos: ${errores.join(', ')}`;
+      this.mostrarAlertaWarning = true;
+      this.mostrarAlertaError = false;
+      this.mostrarAlertaExito = false;
+      return false;
+    }
+
+    return true;
+  }
+  cancelarEdicion(): void {
+    this.mostrarConfirmacionEditar = false;
+  }
+
+  confirmarEdicion(): void {
+    this.mostrarConfirmacionEditar = false;
+    this.guardarCliente();
   }
 }
