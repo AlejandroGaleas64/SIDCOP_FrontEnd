@@ -19,7 +19,7 @@ import {
   ExportService,
   ExportConfig,
   ExportColumn,
-} from 'src/app/shared/export.service';
+} from 'src/app/shared/exportHori.service';
 
 import {
   trigger,
@@ -134,7 +134,7 @@ set fechaFinFormato(value: string) {
     title: 'Listado de Registros CAI', // Título del reporte
     filename: 'Registros CAI', // Nombre base del archivo
     department: 'Ventas', // Departamento
-    additionalInfo: 'SIDCOP', // Información adicional
+    additionalInfo: '', // Información adicional
 
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
