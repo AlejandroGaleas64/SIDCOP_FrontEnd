@@ -24,6 +24,8 @@
 
   <div class="container-fluid">
     <div class="row align-itemes-center">
+
+      <!-- Imagen de Usuario -->
       <div class="col-12 col-md-4 d-flex justify-content-center align-items-center mb-4 mb-md-0"
         style="min-height: 220px;">
         <div
@@ -83,7 +85,7 @@
                 </ng-container>
 
                 <ng-template #selectRol>
-                  <select id="role_Id" class="form-select" [(ngModel)]="usuario.role_Id"
+                  <select id="role_Id" class="form-select" [(ngModel)]="usuario.role_Id" (change)="onRolChange($event)"
                     [class.is-invalid]="!usuario.role_Id && mostrarErrores" required>
                     <option value=0 disabled selected>Seleccione un rol</option>
                     <option *ngFor="let rol of roles" [value]="rol.role_Id">{{ rol.role_Descripcion }}</option>
@@ -119,8 +121,8 @@
                     </i>
                     <select id="usua_IdPersona" class="form-select" [(ngModel)]="usuario.usua_IdPersona"
                       [class.is-invalid]="!usuario.usua_IdPersona && mostrarErrores" required>
-                      <option value=0 disabled selected>Seleccione un empleado</option>
-                      <option *ngFor="let emp of empleados" [value]="emp.empl_Id">{{ emp.empl_Nombres }}</option>
+                      <option value=0 disabled>Seleccione un empleado</option>
+                      <option *ngFor="let emp of empleados" [value]="emp.empl_Id">{{ emp.empl_Nombres }} {{ emp.empl_Apellidos }} </option>
                     </select>
                   </div>
                   <div class="text-danger mt-1" *ngIf="!usuario.usua_IdPersona && mostrarErrores">
@@ -138,8 +140,8 @@
                     </i>
                     <select id="usua_IdPersona" class="form-select" [(ngModel)]="usuario.usua_IdPersona"
                       [class.is-invalid]="!usuario.usua_IdPersona && mostrarErrores" required>
-                      <option value=0 disabled selected>Seleccione un vendedor</option>
-                      <option *ngFor="let ven of vendedores" [value]="ven.vend_Id">{{ ven.vend_Nombres }}</option>
+                      <option value=0 disabled>Seleccione un vendedor</option>
+                      <option *ngFor="let ven of vendedores" [value]="ven.vend_Id">{{ ven.vend_Nombres }} {{ ven.vend_Apellidos }}</option>
                     </select>
                   </div>
                   <div class="text-danger mt-1" *ngIf="!usuario.usua_IdPersona && mostrarErrores">
@@ -158,10 +160,10 @@
                     backgroundColor: (!usuario.usua_IdPersona && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                     padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                   </i>
-                  <select id="usua_IdPersona" class="form-select" [(ngModel)]="usuario.usua_IdPersona"
+                  <select id="usua_IdPersona" class="form-select" [(ngModel)]="usuario.usua_IdPersona" (change)="onEmpleadoChange($event)"
                     [class.is-invalid]="!usuario.usua_IdPersona && mostrarErrores" required>
-                    <option value=0 disabled selected>Seleccione un empleado</option>
-                    <option *ngFor="let emp of empleados" [value]="emp.empl_Id">{{ emp.empl_Nombres }}</option>
+                    <option value=0 disabled>Seleccione un empleado</option>
+                    <option *ngFor="let emp of empleados" [value]="emp.empl_Id">{{ emp.empl_Nombres }} {{ emp.empl_Apellidos }}</option>
                   </select>
                 </div>
                 <div class="text-danger mt-1" *ngIf="!usuario.usua_IdPersona && mostrarErrores">
@@ -180,6 +182,19 @@
                   (change)="onAdminToggle()" />
                 <label class="form-check-label" for="usua_EsAdmin">
                   {{ usuario.usua_EsAdmin ? 'Sí' : 'No' }}
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tiene Permisos -->
+          <div class="col-12 col-md-6">
+            <div class="mb-3">
+              <label class="form-label">¿Tiene Permisos?</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="usua_TienePermisos" [(ngModel)]="usuario.usua_TienePermisos"/>
+                <label class="form-check-label" for="usua_TienePermisos">
+                  {{ usuario.usua_TienePermisos ? 'Sí' : 'No' }}
                 </label>
               </div>
             </div>

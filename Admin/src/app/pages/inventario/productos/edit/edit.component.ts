@@ -509,8 +509,7 @@ export class EditComponent implements OnChanges {
     ) {
       const productoActualizar = {
         ...this.producto,
-        usua_Modificacion: getUserId(),
-        prod_FechaModificacion: new Date()
+        usua_Modificacion: getUserId()
       }
 
       if (this.producto.prod_PagaImpuesto === 'S' && !this.producto.impu_Id) {

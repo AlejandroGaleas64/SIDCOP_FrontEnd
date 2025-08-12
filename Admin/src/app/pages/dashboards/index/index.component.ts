@@ -1,8 +1,26 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LocalstorageDebugComponent } from './localstorage-debug.component';
-import { environment } from '../../../../environments/environment.prod';
-import { getUserId, getUserName, getUserRole } from '../../../core/utils/user-utils';
+
+import {
+  obtenerNombres,
+  obtenerApellidos,
+  obtenerCorreo,
+  obtenerTelefono,
+  obtenerCodigoUsuario,
+  obtenerImagenUsuario,
+  obtenerRolDescripcion,
+  obtenerCargo,
+  obtenerSucursal,
+  esAdministrador,
+  esVendedor,
+  obtenerUsuarioId,
+  obtenerPersonaId,
+  obtenerRolId,
+  obtenerCargoId,
+  obtenerSucursalId,
+  obtenerUsuario
+} from 'src/app/core/utils/user-utils';
 
 @Component({
   selector: 'app-index',
@@ -10,52 +28,57 @@ import { getUserId, getUserName, getUserRole } from '../../../core/utils/user-ut
   styleUrls: ['./index.component.scss']
 })
 export class IndexComponent implements OnInit {
-  // Datos de usuario
-  usuarioId: string | number = '';
-  nombreUsuario: string = '';
-  rolUsuario: string = '';
-  ultimoAcceso: Date | null = null;
-  
-  // Datos de entorno
-  apiUrl: string = '';
-  authMode: string = '';
-  appVersion: string = '';
-  isProd: boolean = false;
-  entorno: string = '';
 
-  constructor() { }
+  // Datos personales
+  nombres: string = '';
+  apellidos: string = '';
+  correo: string = '';
+  telefono: string = '';
+  codigo: string = '';
+  imagen: string = '';
+
+  // Información de rol y ubicación
+  rol: string = '';
+  cargo: string = '';
+  sucursal: string = '';
+  usuario: string = '';
+
+
+  // Flags de permisos
+  esAdmin: boolean = false;
+  esVendedor: boolean = false;
+
+  // Identificadores
+  usuarioId: number = 0;
+  personaId: number = 0;
+  rolId: number = 0;
+  cargoId: number = 0;
+  sucursalId: number = 0;
 
   ngOnInit(): void {
     this.cargarDatosSesion();
   }
 
   cargarDatosSesion(): void {
-    // Obtener datos del usuario usando las funciones de utilidad
-    const userId = getUserId();
-    this.usuarioId = userId > 0 ? userId : 'No disponible';
-    this.nombreUsuario = getUserName() || 'No disponible';
-    this.rolUsuario = getUserRole() || 'No disponible';
-    
-    const ultimoAccesoStr = localStorage.getItem('ultimoAcceso');
-    if (ultimoAccesoStr) {
-      try {
-        this.ultimoAcceso = new Date(ultimoAccesoStr);
-      } catch (e) {
-        this.ultimoAcceso = new Date();
-      }
-    } else {
-      this.ultimoAcceso = new Date();
-    }
+    // Carga todos los datos del usuario desde user-utils
+    this.nombres = obtenerNombres();
+    this.apellidos = obtenerApellidos();
+    this.correo = obtenerCorreo();
+    this.telefono = obtenerTelefono();
+    this.codigo = obtenerCodigoUsuario();
+    this.imagen = obtenerImagenUsuario();
 
-    // Obtener datos del entorno
-    this.apiUrl = environment.apiBaseUrl || 'No configurada';
-    this.authMode = environment.defaultauth || 'No configurado';
-    this.appVersion = '1.0.0'; // Versión de la aplicación
-    
-    // Determinar si estamos en producción
-    const isProduction = window.location.hostname !== 'localhost' && 
-                        !window.location.hostname.includes('127.0.0.1');
-    this.isProd = isProduction;
-    this.entorno = isProduction ? 'Producción' : 'Desarrollo';
+    this.rol = obtenerRolDescripcion();
+    this.cargo = obtenerCargo();
+    this.sucursal = obtenerSucursal();
+    this.usuario = obtenerUsuario();
+    this.esAdmin = esAdministrador();
+    this.esVendedor = esVendedor();
+
+    this.usuarioId = obtenerUsuarioId();
+    this.personaId = obtenerPersonaId();
+    this.rolId = obtenerRolId();
+    this.cargoId = obtenerCargoId();
+    this.sucursalId = obtenerSucursalId();
   }
 }

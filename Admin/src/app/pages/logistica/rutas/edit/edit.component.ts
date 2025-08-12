@@ -35,7 +35,7 @@ export class EditComponent implements OnChanges {
     usuarioModificacion: ''
   };
 
-  rutaOriginal = '';
+  rutaOriginal: any = {};
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -50,9 +50,7 @@ export class EditComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['rutaData'] && changes['rutaData'].currentValue) {
       this.ruta = { ...changes['rutaData'].currentValue };
-      this.rutaOriginal = this.ruta.ruta_Descripcion || '';
-      this.rutaOriginal = this.ruta.ruta_Codigo || '';
-      this.rutaOriginal = this.ruta.ruta_Observaciones || '';
+      this.rutaOriginal = { ...this.rutaData };
       this.mostrarErrores = false;
       this.cerrarAlerta();
     }
@@ -75,8 +73,8 @@ export class EditComponent implements OnChanges {
   validarEdicion(): void {
     this.mostrarErrores = true;
 
-    if (this.ruta.ruta_Codigo.trim() && this.ruta.ruta_Descripcion.trim() && this.ruta.ruta_Observaciones.trim()) {
-      if (this.ruta.ruta_Descripcion.trim() !== this.rutaOriginal  || this.ruta.ruta_Codigo.trim() !== this.rutaOriginal || this.ruta.ruta_Observaciones.trim() !== this.rutaOriginal) {
+    if (this.ruta.ruta_Codigo.trim() && this.ruta.ruta_Descripcion.trim()) {
+      if (this.hayDiferencias()) {
         this.mostrarConfirmacionEditar = true;
       } else {
         this.mostrarAlertaWarning = true;
@@ -94,6 +92,45 @@ export class EditComponent implements OnChanges {
     this.mostrarConfirmacionEditar = false;
   }
 
+  obtenerListaCambios(): any[] {
+    return Object.values(this.cambiosDetectados);
+  }
+
+  cambiosDetectados: any = {};
+
+  hayDiferencias(): boolean {
+    const a = this.ruta;
+    const b = this.rutaOriginal;
+    this.cambiosDetectados = {};
+
+    // Verificar cada campo y almacenar los cambios
+    if (a.ruta_Codigo !== b.ruta_Codigo) {
+      this.cambiosDetectados.codigo = {
+        anterior: b.ruta_Codigo,
+        nuevo: a.ruta_Codigo,
+        label: 'Código de la ruta'
+      };
+    }
+
+    if (a.ruta_Descripcion !== b.ruta_Descripcion) {
+      this.cambiosDetectados.descripcion = {
+        anterior: b.ruta_Descripcion,
+        nuevo: a.ruta_Descripcion,
+        label: 'Descripción de la ruta'
+      };
+    }
+   
+    if (a.ruta_Observaciones !== b.ruta_Observaciones) {
+      this.cambiosDetectados.Observaciones = {
+        anterior: b.ruta_Observaciones,
+        nuevo: a.ruta_Observaciones,
+        label: 'Observaciones de la ruta'
+      };
+    }
+
+    return Object.keys(this.cambiosDetectados).length > 0;
+  }
+
   confirmarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
     this.guardar();
@@ -103,7 +140,7 @@ export class EditComponent implements OnChanges {
     this.mostrarErrores = true;
     this.onOverlayChange.emit(true);
 
-    if (this.ruta.ruta_Codigo.trim() && this.ruta.ruta_Descripcion.trim() && this.ruta.ruta_Observaciones.trim()) {
+    if (this.ruta.ruta_Codigo.trim() && this.ruta.ruta_Descripcion.trim()) {
       const rutaActualizar = {
         ruta_Id: this.ruta.ruta_Id,
         ruta_Codigo: this.ruta.ruta_Codigo.trim(),

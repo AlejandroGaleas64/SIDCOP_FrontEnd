@@ -1,4 +1,13 @@
-import { Component, Output, EventEmitter, ViewChild, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  Output,
+  EventEmitter,
+  ViewChild,
+  ElementRef,
+  Input,
+  OnChanges,
+  SimpleChanges,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -18,16 +27,23 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, NgxMaskDirective, MapaSelectorComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    HttpClientModule,
+    NgxMaskDirective,
+    MapaSelectorComponent,
+  ],
   templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss',
-  providers: [provideNgxMask()]
+  providers: [provideNgxMask()],
 })
 export class EditComponent implements OnChanges {
   @Input() clienteData: Cliente | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Cliente>();
-  @ViewChild('tabsScroll', { static: false }) tabsScroll!: ElementRef<HTMLDivElement>;
+  @ViewChild('tabsScroll', { static: false })
+  tabsScroll!: ElementRef<HTMLDivElement>;
   @ViewChild(MapaSelectorComponent)
   mapaSelectorComponent!: MapaSelectorComponent;
   entrando = true;
@@ -79,9 +95,29 @@ export class EditComponent implements OnChanges {
       this.clienteOriginal = { ...changes['clienteData'].currentValue };
       this.idDelCliente = this.cliente.clie_Id;
 
+      // *** CONVIERTE LA FECHA SI VIENE COMO STRING ***
+      if (this.cliente.clie_FechaNacimiento) {
+        this.cliente.clie_FechaNacimiento = new Date(
+          this.cliente.clie_FechaNacimiento
+        );
+      } else {
+        this.cliente.clie_FechaNacimiento = null;
+      }
+
       this.cargarDireccionesExistentes();
       this.cargarAvalesExistentes();
     }
+  }
+
+  esCorreoValido(correo: string): boolean {
+    if (!correo) return true;
+    // Solo acepta lo que está dentro del parentesis
+    return /^[\w\.-]+@(gmail|hotmail|outlook)\.com$/.test(correo.trim());
+  }
+
+  actualizarFechaNacimiento(event: any) {
+    const valor = event.target.value;
+    this.cliente.clie_FechaNacimiento = valor ? new Date(valor) : null;
   }
 
   //Declarado para validar la direccion
@@ -100,7 +136,7 @@ export class EditComponent implements OnChanges {
 
       container.scrollTo({
         left: offsetLeft - containerWidth / 4,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
   }
@@ -110,7 +146,7 @@ export class EditComponent implements OnChanges {
 
     if (this.activeTab > no) {
       this.activeTab -= 1;
-      return
+      return;
     }
 
     if (this.activeTab < no) {
@@ -134,7 +170,8 @@ export class EditComponent implements OnChanges {
         this.activeTab = 2;
       } else {
         this.mostrarAlertaWarning = true;
-        this.mensajeWarning = 'Por favor, complete todos los campos obligatorios de los Datos Personales.';
+        this.mensajeWarning =
+          'Por favor, complete todos los campos obligatorios de los Datos Personales.';
         setTimeout(() => {
           this.mostrarAlertaWarning = false;
           this.mensajeWarning = '';
@@ -157,7 +194,8 @@ export class EditComponent implements OnChanges {
       } else {
         this.validarDireccion = true;
         this.mostrarAlertaWarning = true;
-        this.mensajeWarning = 'Por favor, complete todos los campos obligatorios del negocio.';
+        this.mensajeWarning =
+          'Por favor, complete todos los campos obligatorios del negocio.';
         setTimeout(() => {
           this.mostrarAlertaWarning = false;
           this.mensajeWarning = '';
@@ -188,12 +226,16 @@ export class EditComponent implements OnChanges {
     if (no === 4) {
       this.mostrarErrores = true;
       if (this.tieneDatosCredito()) {
-        if (this.avales.length > 0 && this.avales.every(aval => this.esAvalValido(aval))) {
+        if (
+          this.avales.length > 0 &&
+          this.avales.every((aval) => this.esAvalValido(aval))
+        ) {
           this.mostrarErrores = false;
           this.activeTab = 5;
         } else {
           this.mostrarAlertaWarning = true;
-          this.mensajeWarning = 'Por favor complete correctamente todos los registros de Aval.';
+          this.mensajeWarning =
+            'Por favor complete correctamente todos los registros de Aval.';
           setTimeout(() => {
             this.mostrarAlertaWarning = false;
             this.mensajeWarning = '';
@@ -210,55 +252,71 @@ export class EditComponent implements OnChanges {
   //Es una funcion creada para el if 4 que es de corroborar
   //que haya un credito para que el aval sea obligatorio
   tieneDatosCredito(): boolean {
-    return (
-      !!this.cliente.clie_LimiteCredito &&
-      !!this.cliente.clie_DiasCredito
-    );
+    return !!this.cliente.clie_LimiteCredito && !!this.cliente.clie_DiasCredito;
   }
 
   //Verifica si el aval es valido- Si nungo campo este vacio
   esAvalValido(aval: Aval): boolean {
     let fechaValida = false;
     if (aval.aval_FechaNacimiento) {
-      const fecha = typeof aval.aval_FechaNacimiento === 'string'
-        ? new Date(aval.aval_FechaNacimiento)
-        : aval.aval_FechaNacimiento;
+      const fecha =
+        typeof aval.aval_FechaNacimiento === 'string'
+          ? new Date(aval.aval_FechaNacimiento)
+          : aval.aval_FechaNacimiento;
       fechaValida = fecha instanceof Date && !isNaN(fecha.getTime());
     }
 
     return (
-      typeof aval.aval_DNI === 'string' && aval.aval_DNI.trim().length > 0 &&
-      !isNaN(Number(aval.pare_Id)) && Number(aval.pare_Id) > 0 &&
-      typeof aval.aval_Nombres === 'string' && aval.aval_Nombres.trim().length > 0 &&
-      typeof aval.aval_Apellidos === 'string' && aval.aval_Apellidos.trim().length > 0 &&
-      !isNaN(Number(aval.esCv_Id)) && Number(aval.esCv_Id) > 0 &&
-      typeof aval.aval_Telefono === 'string' && aval.aval_Telefono.trim().length > 0 &&
-      !isNaN(Number(aval.tiVi_Id)) && Number(aval.tiVi_Id) > 0 &&
-      !isNaN(Number(aval.colo_Id)) && Number(aval.colo_Id) > 0 &&
-      typeof aval.aval_DireccionExacta === 'string' && aval.aval_DireccionExacta.trim().length > 0 &&
+      typeof aval.aval_DNI === 'string' &&
+      aval.aval_DNI.trim().length > 0 &&
+      !isNaN(Number(aval.pare_Id)) &&
+      Number(aval.pare_Id) > 0 &&
+      typeof aval.aval_Nombres === 'string' &&
+      aval.aval_Nombres.trim().length > 0 &&
+      typeof aval.aval_Apellidos === 'string' &&
+      aval.aval_Apellidos.trim().length > 0 &&
+      !isNaN(Number(aval.esCv_Id)) &&
+      Number(aval.esCv_Id) > 0 &&
+      typeof aval.aval_Telefono === 'string' &&
+      aval.aval_Telefono.trim().length > 0 &&
+      !isNaN(Number(aval.tiVi_Id)) &&
+      Number(aval.tiVi_Id) > 0 &&
+      !isNaN(Number(aval.colo_Id)) &&
+      Number(aval.colo_Id) > 0 &&
+      typeof aval.aval_DireccionExacta === 'string' &&
+      aval.aval_DireccionExacta.trim().length > 0 &&
       fechaValida
     );
   }
 
   get avalesValidos(): boolean {
-    return this.avales.length > 0 && this.avales.every(aval => this.esAvalValido(aval));
+    return (
+      this.avales.length > 0 &&
+      this.avales.every((aval) => this.esAvalValido(aval))
+    );
   }
 
   //Parametros para evaluar antes de pasar al siguiente tabulador
   tabuladores(no: number) {
     if (no == 1) {
-      this.mostrarErrores = true
-      if (this.cliente.clie_Codigo.trim() && this.cliente.clie_Nacionalidad.trim() &&
-        this.cliente.clie_RTN.trim() && this.cliente.clie_Nombres.trim() &&
-        this.cliente.clie_Apellidos.trim() && this.cliente.esCv_Id &&
-        this.cliente.clie_FechaNacimiento && this.cliente.tiVi_Id &&
-        this.cliente.clie_Telefono.trim()) {
+      this.mostrarErrores = true;
+      if (
+        this.cliente.clie_Codigo.trim() &&
+        this.cliente.clie_Nacionalidad.trim() &&
+        this.cliente.clie_RTN.trim() &&
+        this.cliente.clie_Nombres.trim() &&
+        this.cliente.clie_Apellidos.trim() &&
+        this.cliente.esCv_Id &&
+        this.cliente.clie_FechaNacimiento &&
+        this.cliente.tiVi_Id &&
+        this.cliente.clie_Telefono.trim()
+      ) {
         this.mostrarErrores = false;
         this.activeTab = 2;
-      }
-      else {
+      } else {
         this.mostrarAlertaWarning = true;
-        this.mensajeWarning = 'Por favor, complete todos los campos obligatorios.';
+        this.mensajeWarning =
+          'Por favor, complete todos los campos obligatorios.';
         setTimeout(() => {
           this.mostrarAlertaWarning = false;
           this.mensajeWarning = '';
@@ -280,7 +338,8 @@ export class EditComponent implements OnChanges {
       } else {
         this.validarDireccion = this.direccionesPorCliente.length === 0;
         this.mostrarAlertaWarning = true;
-        this.mensajeWarning = 'Por favor, complete todos los campos obligatorios del negocio.';
+        this.mensajeWarning =
+          'Por favor, complete todos los campos obligatorios del negocio.';
         setTimeout(() => {
           this.mostrarAlertaWarning = false;
           this.mensajeWarning = '';
@@ -296,15 +355,15 @@ export class EditComponent implements OnChanges {
       if (!this.cliente.clie_LimiteCredito && !this.cliente.clie_DiasCredito) {
         this.mostrarErrores = false;
         this.activeTab = 4;
-      }
-      else {
+      } else {
         if (this.cliente.clie_LimiteCredito) {
           if (this.cliente.clie_DiasCredito) {
             this.mostrarErrores = false;
             this.activeTab = 4;
           } else {
             this.mostrarAlertaWarning = true;
-            this.mensajeWarning = 'Los Dias del Credito son obligatorios si asigno un crédito.';
+            this.mensajeWarning =
+              'Los Dias del Credito son obligatorios si asigno un crédito.';
             setTimeout(() => {
               this.mostrarAlertaWarning = false;
               this.mensajeWarning = '';
@@ -317,7 +376,8 @@ export class EditComponent implements OnChanges {
             this.activeTab = 4;
           } else {
             this.mostrarAlertaWarning = true;
-            this.mensajeWarning = 'Se asigno Dias de Credito, pero no un crédito.';
+            this.mensajeWarning =
+              'Se asigno Dias de Credito, pero no un crédito.';
             setTimeout(() => {
               this.mostrarAlertaWarning = false;
               this.mensajeWarning = '';
@@ -330,20 +390,23 @@ export class EditComponent implements OnChanges {
     if (no == 4) {
       this.mostrarErrores = true;
       if (this.tieneDatosCredito()) {
-        if (this.avales.length > 0 && this.avales.every(aval => this.esAvalValido(aval))) {
+        if (
+          this.avales.length > 0 &&
+          this.avales.every((aval) => this.esAvalValido(aval))
+        ) {
           this.mostrarErrores = false;
           this.activeTab = 5;
         } else {
           this.mostrarErrores = true;
           this.mostrarAlertaWarning = true;
-          this.mensajeWarning = 'Por favor complete correctamente todos los registros de Aval.';
+          this.mensajeWarning =
+            'Por favor complete correctamente todos los registros de Aval.';
           setTimeout(() => {
             this.mostrarAlertaWarning = false;
             this.mensajeWarning = '';
           }, 3000);
         }
-      }
-      else {
+      } else {
         this.mostrarErrores = false;
         this.activeTab = 5;
       }
@@ -354,15 +417,17 @@ export class EditComponent implements OnChanges {
     }
   }
 
-  trackByIndex(index: number) { return index; }
+  trackByIndex(index: number) {
+    return index;
+  }
 
-  onCoordenadasSeleccionadas(coords: { lat: number, lng: number }) {
+  onCoordenadasSeleccionadas(coords: { lat: number; lng: number }) {
     this.direccionPorCliente.diCl_Latitud = coords.lat;
     this.direccionPorCliente.diCl_Longitud = coords.lng;
     this.cdr.detectChanges();
   }
 
-  coordenadaPrevia: { lat: number, lng: number } | null = null;
+  coordenadaPrevia: { lat: number; lng: number } | null = null;
   abrirMapa() {
     this.mostrarMapa = true;
     setTimeout(() => {
@@ -385,11 +450,15 @@ export class EditComponent implements OnChanges {
       usua_Creacion: 0,
       diCl_FechaCreacion: new Date(),
       usua_Modificacion: 0,
-      diCl_FechaModificacion: new Date()
-    }
+      diCl_FechaModificacion: new Date(),
+    };
   }
 
-  constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef) {
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {
     this.cargarPaises();
     this.cargarTiposDeVivienda();
     this.cargarEstadosCiviles();
@@ -402,91 +471,131 @@ export class EditComponent implements OnChanges {
 
   //Metodos para cargar los datos de la listas
   cargarPaises() {
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Pais/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(
-      data => this.paises = data,
-    );
+    this.http
+      .get<any[]>(`${environment.apiBaseUrl}/Pais/Listar`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe((data) => (this.paises = data));
   }
 
   cargarTiposDeVivienda() {
-    this.http.get<any[]>(`${environment.apiBaseUrl}/TipoDeVivienda/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => this.tiposDeVivienda = data);
+    this.http
+      .get<any[]>(`${environment.apiBaseUrl}/TipoDeVivienda/Listar`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe((data) => (this.tiposDeVivienda = data));
   }
 
   cargarEstadosCiviles() {
-    this.http.get<any[]>(`${environment.apiBaseUrl}/EstadosCiviles/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => this.estadosCiviles = data);
+    this.http
+      .get<any[]>(`${environment.apiBaseUrl}/EstadosCiviles/Listar`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe((data) => (this.estadosCiviles = data));
   }
 
   cargarCanales() {
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Canal/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => this.canales = data);
+    this.http
+      .get<any[]>(`${environment.apiBaseUrl}/Canal/Listar`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe((data) => (this.canales = data));
   }
 
   cargarRutas() {
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Rutas/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => this.rutas = data);
+    this.http
+      .get<any[]>(`${environment.apiBaseUrl}/Rutas/Listar`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe((data) => (this.rutas = data));
   }
 
   cargarParentescos() {
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Parentesco/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => this.parentescos = data);
+    this.http
+      .get<any[]>(`${environment.apiBaseUrl}/Parentesco/Listar`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe((data) => (this.parentescos = data));
   }
 
   cargarColoniasCliente() {
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Colonia/ListarMunicipiosyDepartamentos`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => this.TodasColonias = data);
+    this.http
+      .get<any[]>(
+        `${environment.apiBaseUrl}/Colonia/ListarMunicipiosyDepartamentos`,
+        {
+          headers: { 'x-api-key': environment.apiKey },
+        }
+      )
+      .subscribe((data) => (this.TodasColonias = data));
   }
 
   cargarColoniasAval() {
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Colonia/ListarMunicipiosyDepartamentos`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => this.TodasColoniasAval = data);
+    this.http
+      .get<any[]>(
+        `${environment.apiBaseUrl}/Colonia/ListarMunicipiosyDepartamentos`,
+        {
+          headers: { 'x-api-key': environment.apiKey },
+        }
+      )
+      .subscribe((data) => (this.TodasColoniasAval = data));
   }
 
   // Métodos para cargar datos existentes
   cargarDireccionesExistentes() {
     if (!this.idDelCliente) return;
 
-    this.http.get<any[]>(`${environment.apiBaseUrl}/DireccionesPorCliente/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe({
-      next: (data) => {
-        this.direccionesPorCliente = data.filter(d => d.clie_Id === this.idDelCliente);
-        this.direccionesOriginales = [...this.direccionesPorCliente];
-        this.validarDireccion = this.direccionesPorCliente.length === 0;
-      },
-      error: (error) => {
-        console.error('Error cargando direcciones:', error);
-      }
-    });
+    this.http
+      .get<any[]>(`${environment.apiBaseUrl}/DireccionesPorCliente/Listar`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe({
+        next: (data) => {
+          this.direccionesPorCliente = data.filter(
+            (d) => d.clie_Id === this.idDelCliente
+          );
+          this.direccionesOriginales = [...this.direccionesPorCliente];
+          this.validarDireccion = this.direccionesPorCliente.length === 0;
+        },
+        error: (error) => {
+          console.error('Error cargando direcciones:', error);
+        },
+      });
   }
 
   cargarAvalesExistentes() {
     if (!this.idDelCliente) return;
 
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Aval/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe({
-      next: (data) => {
-        this.avales = data.filter(a => a.clie_Id === this.idDelCliente);
-        this.avalesOriginales = [...this.avales];
+    this.http
+      .get<any[]>(`${environment.apiBaseUrl}/Aval/Listar`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe({
+        next: (data) => {
+          this.avales = data
+            .filter((a) => a.clie_Id === this.idDelCliente)
+            .map((a) => ({
+              ...a,
+              aval_FechaNacimiento: a.aval_FechaNacimiento
+                ? this.formatearFechaInput(a.aval_FechaNacimiento)
+                : null,
+            }));
+          this.avalesOriginales = [...this.avales];
 
-        if (this.avales.length === 0) {
-          this.avales = [this.nuevoAval()];
-        }
-      },
-      error: (error) => {
-        console.error('Error cargando avales:', error);
-      }
-    });
+          if (this.avales.length === 0) {
+            this.avales = [this.nuevoAval()];
+          }
+        },
+        error: (error) => {
+          console.error('Error cargando avales:', error);
+        },
+      });
+  }
+
+  formatearFechaInput(fecha: string | Date): string {
+    const d = new Date(fecha);
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
+    return `${d.getFullYear()}-${month}-${day}`;
   }
 
   cliente: Cliente = {
@@ -528,7 +637,7 @@ export class EditComponent implements OnChanges {
     code_Status: 0,
     message_Status: '',
     usuaC_Nombre: '',
-    usuaM_Nombre: ''
+    usuaM_Nombre: '',
   };
 
   direccionesPorCliente: DireccionPorCliente[] = [];
@@ -565,7 +674,7 @@ export class EditComponent implements OnChanges {
       aval_Observaciones: '',
       aval_DireccionExacta: '',
       colo_Id: 0,
-      aval_FechaNacimiento: null,
+      aval_FechaNacimiento: new Date(),
       esCv_Id: 0,
       aval_Sexo: 'M',
       pare_Descripcion: '',
@@ -578,9 +687,9 @@ export class EditComponent implements OnChanges {
       aval_FechaCreacion: new Date(),
       usua_Modificacion: 0,
       usuarioModificacion: '',
-      aval_FechaModificacion: new Date()
+      aval_FechaModificacion: new Date(),
     };
-  };
+  }
 
   cancelar(): void {
     this.mostrarErrores = false;
@@ -613,14 +722,14 @@ export class EditComponent implements OnChanges {
 
       fetch(url, {
         method: 'POST',
-        body: formData
+        body: formData,
       })
-        .then(response => response.json())
-        .then(data => {
+        .then((response) => response.json())
+        .then((data) => {
           this.cliente.clie_ImagenDelNegocio = data.secure_url;
-          console.log(this.cliente.clie_ImagenDelNegocio)
+          console.log(this.cliente.clie_ImagenDelNegocio);
         })
-        .catch(error => {
+        .catch((error) => {
           console.error('Error al subir la imagen a Cloudinary:', error);
         });
     }
@@ -671,50 +780,58 @@ export class EditComponent implements OnChanges {
         code_Status: 0,
         message_Status: '',
         usuaC_Nombre: this.cliente.usuaC_Nombre,
-        usuaM_Nombre: this.cliente.usuaM_Nombre
-      }
+        usuaM_Nombre: this.cliente.usuaM_Nombre,
+      };
 
-      this.http.put<any>(`${environment.apiBaseUrl}/Cliente/Actualizar`, clienteActualizar, {
-        headers: {
-          'X-Api-Key': environment.apiKey,
-          'Content-Type': 'application/json',
-          'accept': '*/*'
-        }
-      }).subscribe({
-        next: (response) => {
-          if (response.data?.code_Status === -1) {
+      this.http
+        .put<any>(
+          `${environment.apiBaseUrl}/Cliente/Actualizar`,
+          clienteActualizar,
+          {
+            headers: {
+              'X-Api-Key': environment.apiKey,
+              'Content-Type': 'application/json',
+              accept: '*/*',
+            },
+          }
+        )
+        .subscribe({
+          next: (response) => {
+            if (response.data?.code_Status === -1) {
+              this.mostrarAlertaError = true;
+              this.mensajeError = response.data.message_Status;
+              this.activeTab = 1;
+              setTimeout(() => {
+                this.mostrarAlertaError = false;
+                this.mensajeError = '';
+              }, 3000);
+              return;
+            }
+
+            // Actualizar direcciones y avales
+            this.actualizarDireccionesYAvales();
+
+            this.mostrarAlertaExito = true;
+            this.mensajeExito = 'Cliente actualizado correctamente';
+            setTimeout(() => {
+              this.onSave.emit(this.cliente);
+              this.cancelar();
+            }, 2000);
+          },
+          error: (error) => {
             this.mostrarAlertaError = true;
-            this.mensajeError = response.data.message_Status;
-            this.activeTab = 1;
+            this.mensajeError =
+              'Error al actualizar el Cliente. Por favor, intente nuevamente.';
             setTimeout(() => {
               this.mostrarAlertaError = false;
               this.mensajeError = '';
             }, 3000);
-            return;
-          }
-
-          // Actualizar direcciones y avales
-          this.actualizarDireccionesYAvales();
-
-          this.mostrarAlertaExito = true;
-          this.mensajeExito = 'Cliente actualizado correctamente';
-          setTimeout(() => {
-            this.onSave.emit(this.cliente);
-            this.cancelar();
-          }, 2000);
-        },
-        error: (error) => {
-          this.mostrarAlertaError = true;
-          this.mensajeError = 'Error al actualizar el Cliente. Por favor, intente nuevamente.';
-          setTimeout(() => {
-            this.mostrarAlertaError = false;
-            this.mensajeError = '';
-          }, 3000);
-        }
-      });
+          },
+        });
     } else {
       this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'Por favor, complete todos los campos obligatorios.';
+      this.mensajeWarning =
+        'Por favor, complete todos los campos obligatorios.';
       setTimeout(() => {
         this.mostrarAlertaWarning = false;
         this.mensajeWarning = '';
@@ -728,11 +845,11 @@ export class EditComponent implements OnChanges {
   }
 
   procesarDirecciones(): void {
-    this.direccionesEliminadas.forEach(direccionId => {
+    this.direccionesEliminadas.forEach((direccionId) => {
       this.eliminarDireccionServidor(direccionId);
     });
 
-    this.direccionesPorCliente.forEach(direccion => {
+    this.direccionesPorCliente.forEach((direccion) => {
       if (direccion.diCl_Id === 0) {
         this.insertarDireccion(direccion);
       } else {
@@ -742,12 +859,12 @@ export class EditComponent implements OnChanges {
   }
 
   procesarAvales(): void {
-    this.avalesEliminados.forEach(avalId => {
+    this.avalesEliminados.forEach((avalId) => {
       this.eliminarAvalServidor(avalId);
     });
 
     if (this.tieneDatosCredito()) {
-      this.avales.forEach(aval => {
+      this.avales.forEach((aval) => {
         if (aval.aval_Id === 0) {
           this.insertarAval(aval);
         } else {
@@ -764,134 +881,204 @@ export class EditComponent implements OnChanges {
       usua_Creacion: environment.usua_Id,
       diCl_FechaCreacion: new Date(),
       usua_Modificacion: environment.usua_Id,
-      diCl_FechaModificacion: new Date()
+      diCl_FechaModificacion: new Date(),
     };
 
-    this.http.post<any>(`${environment.apiBaseUrl}/DireccionesPorCliente/Insertar`, direccionInsertar, {
-      headers: {
-        'X-Api-Key': environment.apiKey,
-        'Content-Type': 'application/json',
-        'accept': '*/*'
-      }
-    }).subscribe({
-      next: (response) => {
-        console.log('Dirección insertada correctamente:', response);
-      },
-      error: (error) => {
-        console.error('Error al insertar dirección:', error);
-      }
-    });
+    this.http
+      .post<any>(
+        `${environment.apiBaseUrl}/DireccionesPorCliente/Insertar`,
+        direccionInsertar,
+        {
+          headers: {
+            'X-Api-Key': environment.apiKey,
+            'Content-Type': 'application/json',
+            accept: '*/*',
+          },
+        }
+      )
+      .subscribe({
+        next: (response) => {
+          console.log('Dirección insertada correctamente:', response);
+        },
+        error: (error) => {
+          console.error('Error al insertar dirección:', error);
+        },
+      });
   }
 
   actualizarDireccion(direccion: DireccionPorCliente): void {
     const direccionActualizar = {
       ...direccion,
       usua_Modificacion: environment.usua_Id,
-      diCl_FechaModificacion: new Date()
+      diCl_FechaModificacion: new Date(),
     };
 
-    this.http.put<any>(`${environment.apiBaseUrl}/DireccionesPorCliente/Actualizar`, direccionActualizar, {
-      headers: {
-        'X-Api-Key': environment.apiKey,
-        'Content-Type': 'application/json',
-        'accept': '*/*'
-      }
-    }).subscribe({
-      next: (response) => {
-        console.log('Dirección actualizada correctamente:', response);
-      },
-      error: (error) => {
-        console.error('Error al actualizar dirección:', error);
-      }
-    });
+    this.http
+      .put<any>(
+        `${environment.apiBaseUrl}/DireccionesPorCliente/Actualizar`,
+        direccionActualizar,
+        {
+          headers: {
+            'X-Api-Key': environment.apiKey,
+            'Content-Type': 'application/json',
+            accept: '*/*',
+          },
+        }
+      )
+      .subscribe({
+        next: (response) => {
+          console.log('Dirección actualizada correctamente:', response);
+        },
+        error: (error) => {
+          console.error('Error al actualizar dirección:', error);
+        },
+      });
   }
 
   eliminarDireccionServidor(direccionId: number): void {
-    this.http.post(`${environment.apiBaseUrl}/DireccionesPorCliente/Eliminar/${direccionId}`, {}, {
-      headers: {
-        'X-Api-Key': environment.apiKey,
-        'Content-Type': 'application/json',
-        'accept': '*/*'
-      }
-    }).subscribe({
-      next: (response) => {
-        console.log('Dirección eliminada correctamente:', response);
-      },
-      error: (error) => {
-        console.error('Error al eliminar dirección:', error);
-      }
-    });
+    this.http
+      .post(
+        `${environment.apiBaseUrl}/DireccionesPorCliente/Eliminar/${direccionId}`,
+        {},
+        {
+          headers: {
+            'X-Api-Key': environment.apiKey,
+            'Content-Type': 'application/json',
+            accept: '*/*',
+          },
+        }
+      )
+      .subscribe({
+        next: (response) => {
+          console.log('Dirección eliminada correctamente:', response);
+        },
+        error: (error) => {
+          console.error('Error al eliminar dirección:', error);
+        },
+      });
   }
 
   insertarAval(aval: Aval): void {
     const avalInsertar = {
-      ...aval,
-      clie_Id: this.idDelCliente,
-      usua_Creacion: environment.usua_Id,
-      aval_FechaCreacion: new Date(),
-      usua_Modificacion: environment.usua_Id,
-      aval_FechaModificacion: new Date()
+      Aval_Id: aval.aval_Id,
+      Clie_Id: aval.clie_Id,
+      Aval_Nombres: aval.aval_Nombres,
+      Aval_Apellidos: aval.aval_Apellidos,
+      Aval_Sexo: aval.aval_Sexo,
+      Pare_Id: aval.pare_Id,
+      Aval_DNI: aval.aval_DNI,
+      Aval_Telefono: aval.aval_Telefono,
+      TiVi_Id: aval.tiVi_Id,
+      Aval_Observaciones: aval.aval_Observaciones || '',
+      Aval_DireccionExacta: aval.aval_DireccionExacta,
+      Colo_Id: aval.colo_Id,
+      Aval_FechaNacimiento: aval.aval_FechaNacimiento,
+      EsCv_Id: aval.esCv_Id,
+      Pare_Descripcion: '',
+      EsCv_Descripcion: '',
+      Colo_Descripcion: '',
+      Depa_Descripcion: '',
+      TiVi_Descripcion: '',
+      Usua_Creacion: aval.usua_Creacion || environment.usua_Id,
+      Aval_FechaCreacion: aval.aval_FechaCreacion,
+      Usua_Modificacion: environment.usua_Id,
+      Aval_FechaModificacion: new Date(),
+      Aval_Estado: true,
     };
 
-    this.http.post<any>(`${environment.apiBaseUrl}/Aval/Insertar`, avalInsertar, {
-      headers: {
-        'X-Api-Key': environment.apiKey,
-        'Content-Type': 'application/json',
-        'accept': '*/*'
-      }
-    }).subscribe({
-      next: (response) => {
-        console.log('Aval insertado correctamente:', response);
-      },
-      error: (error) => {
-        console.error('Error al insertar aval:', error);
-      }
-    });
+    this.http
+      .post<any>(`${environment.apiBaseUrl}/Aval/Insertar`, avalInsertar, {
+        headers: {
+          'X-Api-Key': environment.apiKey,
+          'Content-Type': 'application/json',
+          accept: '*/*',
+        },
+      })
+      .subscribe({
+        next: (response) => {
+          console.log('Aval insertado correctamente:', response);
+        },
+        error: (error) => {
+          console.error('Error al insertar aval:', error);
+        },
+      });
   }
 
   actualizarAval(aval: Aval): void {
     const avalActualizar = {
-      ...aval,
-      usua_Modificacion: environment.usua_Id,
-      aval_FechaModificacion: new Date()
+      Aval_Id: aval.aval_Id,
+      Clie_Id: aval.clie_Id,
+      Aval_Nombres: aval.aval_Nombres,
+      Aval_Apellidos: aval.aval_Apellidos,
+      Aval_Sexo: aval.aval_Sexo,
+      Pare_Id: aval.pare_Id,
+      Aval_DNI: aval.aval_DNI,
+      Aval_Telefono: aval.aval_Telefono,
+      TiVi_Id: aval.tiVi_Id,
+      Aval_Observaciones: aval.aval_Observaciones || '',
+      Aval_DireccionExacta: aval.aval_DireccionExacta,
+      Colo_Id: aval.colo_Id,
+      Aval_FechaNacimiento: aval.aval_FechaNacimiento,
+      EsCv_Id: aval.esCv_Id,
+      Pare_Descripcion: '',
+      EsCv_Descripcion: '',
+      Colo_Descripcion: '',
+      Depa_Descripcion: '',
+      TiVi_Descripcion: '',
+      Usua_Creacion: aval.usua_Creacion || environment.usua_Id,
+      Aval_FechaCreacion: aval.aval_FechaCreacion,
+      Usua_Modificacion: environment.usua_Id,
+      Aval_FechaModificacion: new Date(),
+      Aval_Estado: true,
     };
-
-    this.http.put<any>(`${environment.apiBaseUrl}/Aval/Actualizar`, avalActualizar, {
-      headers: {
-        'X-Api-Key': environment.apiKey,
-        'Content-Type': 'application/json',
-        'accept': '*/*'
-      }
-    }).subscribe({
-      next: (response) => {
-        console.log('Aval actualizado correctamente:', response);
-      },
-      error: (error) => {
-        console.error('Error al actualizar aval:', error);
-      }
-    });
+    console.log(avalActualizar);
+    this.http
+      .put<any>(`${environment.apiBaseUrl}/Aval/Actualizar`, avalActualizar, {
+        headers: {
+          'X-Api-Key': environment.apiKey,
+          'Content-Type': 'application/json',
+          accept: '*/*',
+        },
+      })
+      .subscribe({
+        next: (response) => {
+          console.log('Aval actualizado correctamente:', response);
+        },
+        error: (error) => {
+          console.error('Error al actualizar aval:', error);
+        },
+      });
   }
 
   eliminarAvalServidor(avalId: number): void {
-    this.http.put(`${environment.apiBaseUrl}/Aval/Eliminar/${avalId}`, {}, {
-      headers: {
-        'X-Api-Key': environment.apiKey,
-        'Content-Type': 'application/json',
-        'accept': '*/*'
-      }
-    }).subscribe({
-      next: (response) => {
-        console.log('Aval eliminado correctamente:', response);
-      },
-      error: (error) => {
-        console.error('Error al eliminar aval:', error);
-      }
-    });
+    this.http
+      .put(
+        `${environment.apiBaseUrl}/Aval/Eliminar/${avalId}`,
+        {},
+        {
+          headers: {
+            'X-Api-Key': environment.apiKey,
+            'Content-Type': 'application/json',
+            accept: '*/*',
+          },
+        }
+      )
+      .subscribe({
+        next: (response) => {
+          console.log('Aval eliminado correctamente:', response);
+        },
+        error: (error) => {
+          console.error('Error al eliminar aval:', error);
+        },
+      });
   }
 
   agregarDireccion() {
     this.mostrarErrores = true;
-    if (!this.direccionPorCliente.diCl_Longitud && !this.direccionPorCliente.diCl_Latitud) {
+    if (
+      !this.direccionPorCliente.diCl_Longitud &&
+      !this.direccionPorCliente.diCl_Latitud
+    ) {
       this.mostrarErrores = true;
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'Por favor, seleccione una ubicación en el mapa.';
@@ -902,17 +1089,31 @@ export class EditComponent implements OnChanges {
       return;
     }
 
-    if (this.direccionPorCliente.diCl_DireccionExacta.trim() && this.direccionPorCliente.colo_Id && this.direccionPorCliente.diCl_Observaciones) {
+    if (
+      this.direccionPorCliente.diCl_DireccionExacta.trim() &&
+      this.direccionPorCliente.colo_Id &&
+      this.direccionPorCliente.diCl_Observaciones
+    ) {
       this.mostrarErrores = false;
-      const colonia = this.TodasColonias.find(c => c.colo_Id == this.direccionPorCliente.colo_Id);
-      this.direccionPorCliente.muni_Descripcion = colonia ? colonia.colo_Descripcion : '';
+      const colonia = this.TodasColonias.find(
+        (c) => c.colo_Id == this.direccionPorCliente.colo_Id
+      );
+      this.direccionPorCliente.muni_Descripcion = colonia
+        ? colonia.colo_Descripcion
+        : '';
       this.direccionPorCliente.muni_Descripcion += ' ';
-      this.direccionPorCliente.muni_Descripcion += colonia ? colonia.muni_Descripcion : '';
+      this.direccionPorCliente.muni_Descripcion += colonia
+        ? colonia.muni_Descripcion
+        : '';
       this.direccionPorCliente.muni_Descripcion += ' ';
-      this.direccionPorCliente.muni_Descripcion += colonia ? colonia.depa_Descripcion : '';
+      this.direccionPorCliente.muni_Descripcion += colonia
+        ? colonia.depa_Descripcion
+        : '';
 
       if (this.direccionEditandoIndex !== null) {
-        this.direccionesPorCliente[this.direccionEditandoIndex] = { ...this.direccionPorCliente };
+        this.direccionesPorCliente[this.direccionEditandoIndex] = {
+          ...this.direccionPorCliente,
+        };
         this.direccionEditandoIndex = null;
       } else {
         this.direccionesPorCliente.push({ ...this.direccionPorCliente });
@@ -920,11 +1121,11 @@ export class EditComponent implements OnChanges {
       this.limpiarDireccionModal();
       this.cerrarMapa();
       this.validarDireccion = false;
-    }
-    else {
+    } else {
       this.mostrarErrores = true;
       this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'Por favor, complete todos los campos obligatorios de la dirección.';
+      this.mensajeWarning =
+        'Por favor, complete todos los campos obligatorios de la dirección.';
       setTimeout(() => {
         this.mostrarAlertaWarning = false;
         this.mensajeWarning = '';

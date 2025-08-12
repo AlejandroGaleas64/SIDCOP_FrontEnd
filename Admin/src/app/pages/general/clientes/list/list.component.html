@@ -201,7 +201,7 @@
   <!-- Mostrar listado solo si no se está creando, editando o viendo detalles -->
   <div *ngIf="!showCreateForm && !showEditForm && !showDetailsForm && !listadoClientesSinConfirmar">
     <div class="row row-cols-xxl-5 g-4 mx-2 mb-4">
-      <ng-container *ngFor="let cliente of clientesFiltrados; trackBy: trackByClienteId">
+      <ng-container *ngFor="let cliente of clientes; trackBy: trackByClienteId">
         <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4 mx-auto">
           <div class="card card-empleado position-relative h-100">
             <div class="card-header p-0 position-relative header-bg"
@@ -291,7 +291,7 @@
         </div>
       </div>
       <div class="col-sm-auto mt-3 mt-sm-0 text-md-right float-md-end gridjs-pagination">
-        <pagination [totalItems]="clienteGrid?.length" [itemsPerPage]="itemsPerPage"
+        <pagination [(ngModel)]="currentPage" [totalItems]="clientesFiltrados.length" [itemsPerPage]="itemsPerPage"
           (pageChanged)="pageChanged($event)">
         </pagination>
       </div>

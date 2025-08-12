@@ -13,6 +13,7 @@ export class Traslado {
   tras_Estado: boolean = true;
   usuaCreacion: string = ''; // Nombre del usuario que creó el traslado
   usuaModificacion?: string; // Nombre del usuario que modificó el traslado
+  reca_Id?: number; // ID del recaudo asociado (opcional)
 
   // Campo para numeración de filas en la tabla
   No?: number;

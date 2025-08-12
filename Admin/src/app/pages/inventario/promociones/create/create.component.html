@@ -1,5 +1,5 @@
 <div class="d-flex flex-column" style="height: 100%; min-height: 250px">
-  <h5 class="card-title mb-4">Crear Nuevo Producto</h5>
+  <h5 class="card-title mb-4">Crear Nueva Promocion</h5>
 
   <div class="alert-container">
     <div *ngIf="mostrarAlertaExito" class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
@@ -20,261 +20,490 @@
   </div>
 
   <!-- Contenedor principal con flexbox -->
-  <div class="d-flex flex-grow-1 gap-4">
+    <div class="flex-grow-1 flex-grow-1 gap-4">
+    <ul class="nav nav-tabs mb-3" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="activeTab === 1" (click)="navegar(1)" type="button" role="tab">
+          Informacion General
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="activeTab === 2" (click)="navegar(2)" type="button" role="tab">
+          Productos Relacionados
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="activeTab === 3" (click)="navegar(3)" type="button" role="tab">
+          Clientes
+        </button>
+      </li>
+      
+    </ul>
     
-    <!-- Sección izquierda - Imagen del producto -->
-    <div class="flex-shrink-0" style="width: 350px;">
-      <div class="card h-100">
-        <div class="card-body d-flex flex-column align-items-center justify-content-center">
-          <div class="text-center mb-3">
-            <label for="prod_Imagen" class="form-label fw-semibold">Imagen del Producto<span class="text-danger">*</span></label>
+    <div *ngIf="activeTab === 1">
+      <div class="row">
+        <!-- Sección izquierda - Imagen del producto -->
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+              <div class="text-center mb-3">
+                <label for="prod_Imagen" class="form-label fw-semibold">Imagen del Producto</label>
+              </div>
+              
+              <div style="position: relative; margin-top: 10%;">
+                <img
+                  [src]="producto.prod_Imagen"
+                  alt="Foto de producto"
+                  class="rounded"
+                  style="width: 100%; height: 10%; object-fit: cover; border: 3px solid #d6b68a; background: #f5f5f5;"
+                />
+                <label for="inputImagen" style="position: absolute; bottom: -10px; right: -10px; background: #d6b68a; border-radius: 50%; border: 2px solid #fff; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                  <i class="ri-camera-line" style="font-size: 1.2rem; color: #fff;"></i>
+                  <input id="inputImagen" type="file" accept="image/*" (change)="onImagenSeleccionada($event)" style="display: none;" />
+                </label>
+              </div>
+              <br>
+              <small class="text-muted text-center">Haz clic en el ícono de la cámara para subir una imagen</small>
+            </div>
           </div>
-          
-          <div style="position: relative; margin-bottom: 20px;">
-            <img
-              [src]="producto.prod_Imagen"
-              alt="Foto de producto"
-              class="rounded"
-              style="width: 390px; height: 510px; object-fit: cover; border: 3px solid #d6b68a; background: #f5f5f5;"
-            />
-            <label for="inputImagen" style="position: absolute; bottom: -10px; right: -10px; background: #d6b68a; border-radius: 50%; border: 2px solid #fff; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-              <i class="ri-camera-line" style="font-size: 1.2rem; color: #fff;"></i>
-              <input id="inputImagen" type="file" accept="image/*" (change)="onImagenSeleccionada($event)" style="display: none;" />
-            </label>
+        </div>
+        <!-- Sección derecha - Campos del formulario -->
+        <div class="col-md-8">
+          <div class="card h-100">
+            <div class="card-body">
+              <h6 class="card-subtitle mb-3 text-muted">Información del Producto</h6>
+              
+              <div class="row">
+                <!-- Codigo -->
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="prod_Codigo" class="form-label">Código<span class="text-danger">*</span></label>
+                    <div class="d-flex align-items-center">
+                      <i class="ri-keyboard-line" [ngStyle]="{
+                        border: (!producto.prod_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                        backgroundColor: (!producto.prod_Codigo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                        padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                      </i>
+                      <input type="text" class="form-control" id="prod_Codigo" [(ngModel)]="producto.prod_Codigo" [class.is-invalid]="!producto.prod_Codigo.trim() && mostrarErrores" placeholder="Ingrese el código" maxlength="10" required/>
+                    </div>
+                    <div class="text-danger mt-1" *ngIf="!producto.prod_Codigo.trim() && mostrarErrores">
+                      <small>El campo Código es requerido</small>
+                    </div>
+                  </div>
+                </div>
+
+              
+
+                <!-- Descripcion -->
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="prod_Descripcion" class="form-label">Descripción<span class="text-danger">*</span></label>
+                    <div class="d-flex align-items-center">
+                      <i class="ri-attachment-line" [ngStyle]="{
+                        border: (!producto.prod_Descripcion.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                        backgroundColor: (!producto.prod_Descripcion.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                        padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                      </i>
+                      <input type="text" class="form-control" id="prod_Descripcion" [(ngModel)]="producto.prod_Descripcion" [class.is-invalid]="!producto.prod_Descripcion.trim() && mostrarErrores" placeholder="Ingrese la descripción" required/>
+                    </div>
+                    <div class="text-danger mt-1" *ngIf="!producto.prod_Descripcion.trim() && mostrarErrores">
+                      <small>El campo Descripción es requerido</small>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Descripcion Corta -->
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="prod_DescripcionCorta" class="form-label">Descripción Corta<span class="text-danger">*</span></label>
+                    <div class="d-flex align-items-center">
+                      <i class="ri-attachment-2" [ngStyle]="{
+                        border: (!producto.prod_DescripcionCorta.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                        backgroundColor: (!producto.prod_DescripcionCorta.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                        padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                      </i>
+                      <input type="text" class="form-control" id="prod_DescripcionCorta" [(ngModel)]="producto.prod_DescripcionCorta" [class.is-invalid]="!producto.prod_DescripcionCorta.trim() && mostrarErrores" placeholder="Ingrese una descripción corta" maxlength="50" required/>
+                    </div>
+                    <div class="text-danger mt-1" *ngIf="!producto.prod_DescripcionCorta.trim() && mostrarErrores">
+                      <small>El campo Descripción corta es requerido</small>
+                    </div>
+                  </div>
+                </div>
+
+                
+
+                <!-- Precio Unitario -->
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="prod_PrecioUnitario" class="form-label">Precio Unitario<span class="text-danger">*</span></label>
+                    <div class="d-flex align-items-center">
+                      <span [ngStyle]="{
+                        border: (!producto.prod_PrecioUnitario && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                        backgroundColor: (!producto.prod_PrecioUnitario && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                        padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">L.</span>
+                      <input type="number" class="form-control" id="prod_PrecioUnitario" [(ngModel)]="producto.prod_PrecioUnitario" [class.is-invalid]="!producto.prod_PrecioUnitario && mostrarErrores" placeholder="0.00" required/>
+                    </div>
+                    <div class="text-danger mt-1" *ngIf="!producto.prod_PrecioUnitario && mostrarErrores">
+                      <small>El campo Precio Unitario es requerido</small>
+                    </div>
+                    <div class="text-danger mt-1" *ngIf="producto.prod_PrecioUnitario && !precioFormatoValido">
+                      <small>Máximo permitido: 10 enteros y 2 decimales</small>
+                    </div>
+                    <div class="text-danger mt-1" *ngIf="producto.prod_PrecioUnitario && producto.prod_PrecioUnitario < 0">
+                      <small>El precio debe ser mayor o igual 0</small>
+                    </div>
+                 
+                  </div>
+                </div>
+
+               
+
+                <!-- Paga Impuesto -->
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">¿Paga Impuesto?</label>
+                    <div class="form-check form-switch">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="prod_PagaImpuesto"
+                        [(ngModel)]="producto.prod_PagaImpuesto"
+                        (change)="onPagaImpuestoChange()"
+                      />
+                      <label class="form-check-label" for="prod_PagaImpuesto">
+                        {{ producto.prod_PagaImpuesto ? 'Sí' : 'No' }}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Impuesto -->
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="impu_Id" class="form-label">Impuesto</label>
+                    <div class="d-flex align-items-center">
+                      <i class="ri-percent-line" [ngStyle]="{
+                        border: '1px solid #e9ecf5',
+                        backgroundColor: '#f2f3f9',
+                        padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                      </i>
+                      <select id="impu_Id" class="form-select" [(ngModel)]="producto.impu_Id" [disabled]="!producto.prod_PagaImpuesto">
+                        <option value="0" disabled selected>Seleccione un impuesto</option>
+                        <option *ngFor="let imp of impuestos" [value]="imp.impu_Id">{{ imp.impu_Descripcion }}</option>
+                      </select>
+                    </div>
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <small class="text-muted text-center">Haz clic en el ícono de la cámara para subir una imagen</small>
+        </div>
+      </div>
+    </div>
+    </div>
+    
+        
+
+    <div *ngIf="activeTab === 2">
+        <div class="row">
+        <div class="col-12">
+          <h6 class="mb-3">
+            <i class="ri-box-3-line me-2"></i>
+            Seleccionar Productos
+          </h6>
+
+          <!-- Buscador -->
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <div class="search-container">
+                <div class="input-group">
+                  <span class="input-group-text search-icon">
+                    <i class="ri-search-line"></i>
+                  </span>
+                  <input type="text" class="form-control search-input" placeholder="Buscar productos por nombre..."
+                    [(ngModel)]="busquedaProducto" (keyup)="buscarProductos()" />
+                  <button class="btn btn-outline-secondary" type="button" *ngIf="busquedaProducto"
+                    (click)="limpiarBusqueda()">
+                    <i class="ri-close-line"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6 d-flex align-items-center justify-content-end gap-3">
+              <span class="text-muted">
+                <i class="ri-information-line me-1"></i>
+                Mostrando {{ getInicioRegistro() }} - {{ getFinRegistro() }} de
+                {{ productosFiltrados.length }}
+                productos
+                <span *ngIf="busquedaProducto">
+                  para "{{ busquedaProducto }}"</span>
+              </span>
+              <span class="badge bg-primary" *ngIf="getTotalProductosSeleccionados() > 0">
+                {{ getTotalProductosSeleccionados() }} seleccionado(s)
+              </span>
+            </div>
+          </div>
+
+          <!-- Contenedor de productos -->
+          <div class="productos-container">
+            <div class="row g-3">
+              <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12" *ngFor="
+                  let producto of getProductosPaginados();
+                  trackBy: trackByProducto
+                ">
+                <div class="card producto-card-premium h-100"
+                  [class.selected]="getCantidadProducto(producto.prod_Id) > 0">
+                  <div class="card-body-premium p-3">
+                    <!-- Imagen del producto -->
+                    <div class="producto-imagen-premium mb-3">
+                      <img [src]="
+                          producto.prod_Imagen ||
+                          'assets/images/default-product.png'
+                        " [alt]="producto.prod_Descripcion" class="producto-img"
+                        onerror="this.src='assets/images/default-product.png'" />
+                      <div class="image-overlay" [class.active]="
+                          getCantidadProducto(producto.prod_Id) > 0
+                        ">
+                        <div class="overlay-content">
+                          <i class="ri-check-double-line"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Nombre del producto -->
+                    <h6 class="producto-titulo-premium mb-3">
+                      {{ producto.prod_Descripcion }}
+                    </h6>
+
+                    <!-- Controles de cantidad -->
+                    <div class="cantidad-controls-premium">
+                      <label class="form-label-premium">Cantidad</label>
+                      <div class="input-group-premium">
+                        <button class="btn-cantidad-premium btn-minus" type="button"
+                          (click)="disminuirCantidad(producto.prod_Id)" [disabled]="
+                            getCantidadProducto(producto.prod_Id) <= 0
+                          ">
+                          <i class="ri-subtract-line"></i>
+                        </button>
+                        <input type="number" class="cantidad-input-premium"
+                          [ngModel]="getCantidadProducto(producto.prod_Id)" (ngModelChange)="
+                            productos[
+                              getProductoIndex(producto.prod_Id)
+                            ].cantidad =
+                              $event > 999 ? 999 : $event < 0 ? 0 : $event;
+                            validarCantidad(producto.prod_Id)
+                          " min="0" max="999" />
+
+                        <button class="btn-cantidad-premium btn-plus" type="button"
+                          (click)="aumentarCantidad(producto.prod_Id)">
+                          <i class="ri-add-line"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Footer con cantidad seleccionada -->
+                  <!-- <div class="card-footer-premium" [class.visible]="getCantidadProducto(producto.prod_Id) > 0">
+                    <div class="cantidad-badge">
+                      <span class="badge-text">{{ getCantidadProducto(producto.prod_Id) }}</span>
+                      <span class="badge-label">{{ getCantidadProducto(producto.prod_Id) === 1 ? 'unidad' : 'unidades'
+                        }}</span>
+                    </div>
+                  </div> -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Mensaje si no hay productos -->
+            <div class="text-center py-5" *ngIf="productosFiltrados.length === 0 && busquedaProducto">
+              <i class="ri-search-line display-4 text-muted mb-3"></i>
+              <h6 class="text-muted">
+                No se encontraron productos que coincidan con "{{
+                busquedaProducto
+                }}"
+              </h6>
+            </div>
+          </div>
+
+          <!-- Paginación -->
+          <div class="d-flex justify-content-between align-items-center mt-4" *ngIf="getTotalPaginas() > 1">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Página {{ paginaActual }} de {{ getTotalPaginas() }}
+              </span>
+            </div>
+            <nav aria-label="Paginación de productos">
+              <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" [class.disabled]="paginaActual === 1">
+                  <a class="page-link" href="#" (click)="
+                      cambiarPagina(paginaActual - 1); $event.preventDefault()
+                    ">
+                    <i class="ri-arrow-left-line"></i>
+                  </a>
+                </li>
+
+                <li class="page-item" *ngFor="let pagina of getPaginasVisibles()"
+                  [class.active]="pagina === paginaActual">
+                  <a class="page-link" href="#" (click)="cambiarPagina(pagina); $event.preventDefault()">
+                    {{ pagina }}
+                  </a>
+                </li>
+
+                <li class="page-item" [class.disabled]="paginaActual === getTotalPaginas()">
+                  <a class="page-link" href="#" (click)="
+                      cambiarPagina(paginaActual + 1); $event.preventDefault()
+                    ">
+                    <i class="ri-arrow-right-line"></i>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Sección derecha - Campos del formulario -->
-    <div class="flex-grow-1">
-      <div class="card h-100">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-3 text-muted">Información del Producto</h6>
-          
-          <div class="row">
-            <!-- Codigo -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="prod_Codigo" class="form-label">Código<span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="prod_Codigo" [(ngModel)]="producto.prod_Codigo" [class.is-invalid]="!producto.prod_Codigo.trim() && mostrarErrores" placeholder="Ingrese el código" maxlength="10" required/>
-                <div class="text-danger mt-1" *ngIf="!producto.prod_Codigo.trim() && mostrarErrores">
-                  <small>El campo Código es requerido</small>
-                </div>
-              </div>
-            </div>
+    <div *ngIf="activeTab === 3">
+       <div class="row mx-lg-4">
+                <div class="col-md-12">
+                  <label  class="form-label">Aplicar para:</label>
+                  <div class="mb-3">
+                    <div *ngFor="let grupo of clientesAgrupados" class="canal-section mb-4">
+                      <!-- Encabezado del canal con checkbox y botón de colapso -->
+                      <div class="canal-header d-flex align-items-center justify-content-between p-3 bg-light border rounded">
+                        <div class="d-flex align-items-center">
+                          <input
+                            type="checkbox"
+                            class="form-check-input me-2"
+                            [id]="'canal-' + grupo.canal"
+                            [checked]="estanTodosSeleccionados(grupo)"
+                            (change)="seleccionarTodosClientes(grupo, $any($event.target).checked)"
+                          />
+                          <label class="form-check-label fw-bold mb-0" [for]="'canal-' + grupo.canal">
+                            {{ grupo.canal }} ({{ grupo.clientes.length }} clientes)
+                          </label>
+                        </div>
+                        <button 
+                          type="button" 
+                          class="btn btn-sm "
+                          (click)="toggleCanal(grupo)"
+                          [attr.aria-expanded]="!grupo.collapsed"
+                        >
+                          <i class="ri-arrow-down-s-line" [class.rotate-180]="!grupo.collapsed"></i>
+                          
+                        </button>
+                      </div>
 
-            <!-- Codigo de Barras -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="prod_CodigoBarra" class="form-label">Código de Barras</label>
-                <input type="text" class="form-control" id="prod_CodigoBarra" [(ngModel)]="producto.prod_CodigoBarra" placeholder="Ingrese el código de barras"/>
-              </div>
-            </div>
+                      <!-- Contenido colapsable del canal -->
+                      <div class="canal-content" [class.d-none]="grupo.collapsed">
+                        <!-- Buscador individual por canal -->
+                        <div class="p-3 border-start border-end">
+                          <div class="input-group input-group-sm mb-3">
+                            <span class="input-group-text">
+                              <i class="ri-search-line"></i>
+                            </span>
+                            <input 
+                              type="text" 
+                              class="form-control" 
+                              placeholder="Buscar clientes en {{ grupo.canal }}..."
+                              [(ngModel)]="grupo.filtro"
+                            />
+                            <button 
+                              class="btn btn-outline-secondary" 
+                              type="button"
+                              (click)="grupo.filtro = ''"
+                              [disabled]="!grupo.filtro"
+                            >
+                              <i class="ri-close-line"></i>
+                            </button>
+                          </div>
+                        </div>
 
-            <!-- Descripcion -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="prod_Descripcion" class="form-label">Descripción<span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="prod_Descripcion" [(ngModel)]="producto.prod_Descripcion" [class.is-invalid]="!producto.prod_Descripcion.trim() && mostrarErrores" placeholder="Ingrese la descripción" required/>
-                <div class="text-danger mt-1" *ngIf="!producto.prod_Descripcion.trim() && mostrarErrores">
-                  <small>El campo Descripción es requerido</small>
+                        <!-- Lista de clientes -->
+                        <div class="p-3 border-start border-end border-bottom rounded-bottom">
+                          <div class="d-flex flex-wrap gap-3" *ngIf="getClientesFiltrados(grupo).length > 0; else noClientes">
+                            <div
+                              class="form-check me-3"
+                              *ngFor="let cliente of getClientesFiltrados(grupo)"
+                            >
+                              <input
+                                type="checkbox"
+                                class="form-check-input"
+                                [id]="'cliente-' + cliente.clie_Id"
+                                [checked]="clientesSeleccionados.includes(cliente.clie_Id)"
+                                (click)="onClickCheckbox($event, cliente.clie_Id)"
+                              />
+                              <label class="form-check-label" [for]="'cliente-' + cliente.clie_Id">
+                                {{ cliente.clie_NombreNegocio }}
+                              </label>
+                            </div>
+                          </div>
+                          <ng-template #noClientes>
+                            <div class="text-muted text-center py-3">
+                              <i class="ri-search-line me-2"></i>
+                              No se encontraron clientes que coincidan con "{{ grupo.filtro }}"
+                            </div>
+                          </ng-template>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            <!-- Descripcion Corta -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="prod_DescripcionCorta" class="form-label">Descripción Corta<span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="prod_DescripcionCorta" [(ngModel)]="producto.prod_DescripcionCorta" [class.is-invalid]="!producto.prod_DescripcionCorta.trim() && mostrarErrores" placeholder="Ingrese una descripción corta" maxlength="50" required/>
-                <div class="text-danger mt-1" *ngIf="!producto.prod_DescripcionCorta.trim() && mostrarErrores">
-                  <small>El campo Descripción corta es requerido</small>
-                </div>
-              </div>
-            </div>
-
-            <!-- Categoria -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="cate_Id" class="form-label">Categorías<span class="text-danger">*</span></label>
-                <select
-                  id="cate_Id"
-                  name="cate_Id"
-                  class="form-select"
-                  [(ngModel)]="producto.cate_Id"
-                  (change)="onCategoriaChange($event)"
-                  [class.is-invalid]="!producto.cate_Id && mostrarErrores"
-                  required
-                >
-                  <option [ngValue]="0" disabled>Seleccione una Categoría</option>
-                  <option *ngFor="let cate of categorias" [ngValue]="cate.cate_Id">
-                    {{ cate.cate_Descripcion }}
-                  </option>
-                </select>
-                <div class="text-danger mt-1" *ngIf="!producto.cate_Id && mostrarErrores">
-                  <small>El campo Categoría es requerido</small>
-                </div>
-              </div>
-            </div>
-
-            <!-- Subcategoria -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="subc_Id" class="form-label">Subcategorías<span class="text-danger">*</span></label>
-                <select
-                  id="subc_Id"
-                  name="subc_Id"
-                  class="form-select"
-                  [(ngModel)]="producto.subc_Id"
-                  [class.is-invalid]="!producto.subc_Id && mostrarErrores"
-                  required
-                  [disabled]="!producto.cate_Id || producto.cate_Id === 0"
-                >
-                  <option [ngValue]="0" disabled>
-                    {{ 
-                      !producto.cate_Id || producto.cate_Id === 0 
-                      ? 'Primero seleccione una categoría' 
-                      : isCargandoSubcategorias 
-                      ? 'Cargando subcategorías...' 
-                      : subcategoriasFiltradas.length === 0 
-                        ? 'No hay subcategorías disponibles' 
-                        : 'Seleccione una Subcategoría' 
-                    }}
-                  </option>
-                  <option *ngFor="let sub of subcategoriasFiltradas" [ngValue]="sub.subc_Id">
-                    {{ sub.subC_Descripcion }}
-                  </option>
-                </select>
-                <div class="text-danger mt-1" *ngIf="!producto.subc_Id && mostrarErrores">
-                  <small>El campo Subcategoría es requerido</small>
-                </div>
-              </div>
-            </div>
-
-            <!-- Marca -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="marc_Id" class="form-label">Marca<span class="text-danger">*</span></label>
-                <select id="marc_Id" class="form-select" [(ngModel)]="producto.marc_Id" [class.is-invalid]="!producto.marc_Id && mostrarErrores" required>
-                  <option value=0 disabled selected>Seleccione una marca</option>
-                  <option *ngFor="let marc of marcas" [value]="marc.marc_Id">{{ marc.marc_Descripcion }}</option>
-                </select>
-                <div class="text-danger mt-1" *ngIf="!producto.marc_Id && mostrarErrores">
-                  <small>El campo Marca es requerido</small>
-                </div>
-              </div>
-            </div>
-
-            <!-- Proveedor -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="prov_Id" class="form-label">Proveedor<span class="text-danger">*</span></label>
-                <select id="prov_Id" class="form-select" [(ngModel)]="producto.prov_Id" [class.is-invalid]="!producto.prov_Id && mostrarErrores" required>
-                  <option value=0 disabled selected>Seleccione un proveedor</option>
-                  <option *ngFor="let prov of proveedores" [value]="prov.prov_Id">{{ prov.prov_NombreEmpresa }}</option>
-                </select>
-                <div class="text-danger mt-1" *ngIf="!producto.prov_Id && mostrarErrores">
-                  <small>El campo Proveedor es requerido</small>
-                </div>
-              </div>
-            </div>
-
-            <!-- Precio Unitario -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="prod_PrecioUnitario" class="form-label">Precio Unitario<span class="text-danger">*</span></label>
-                <div class="input-group">
-                  <span class="input-group-text">L.</span>
-                  <input type="number" class="form-control" id="prod_PrecioUnitario" [(ngModel)]="producto.prod_PrecioUnitario" [class.is-invalid]="!producto.prod_PrecioUnitario && mostrarErrores" placeholder="0.00" required/>
-                </div>
-                <div class="text-danger mt-1" *ngIf="!producto.prod_PrecioUnitario && mostrarErrores">
-                  <small>El campo Precio Unitario es requerido</small>
-                </div>
-                <div class="text-danger mt-1" *ngIf="producto.prod_PrecioUnitario && !precioFormatoValido">
-                  <small>Máximo permitido: 10 enteros y 2 decimales</small>
-                </div>
-                <div class="text-danger mt-1" *ngIf="producto.prod_PrecioUnitario && producto.prod_PrecioUnitario < 0">
-                  <small>El precio debe ser mayor o igual 0</small>
-                </div>
-                <div class="text-danger mt-1" *ngIf="producto.prod_PrecioUnitario < producto.prod_CostoTotal">
-                  <small>El precio debe ser mayor o igual al costo total</small>
-                </div>
-              </div>
-            </div>
-
-            <!-- Costo Total -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="prod_CostoTotal" class="form-label">Costo Total<span class="text-danger">*</span></label>
-                <div class="input-group">
-                  <span class="input-group-text">L.</span>
-                  <input type="number" class="form-control" id="prod_CostoTotal" [(ngModel)]="producto.prod_CostoTotal" [class.is-invalid]="!producto.prod_CostoTotal && mostrarErrores" placeholder="0.00" required/>
-                </div>
-                <div class="text-danger mt-1" *ngIf="!producto.prod_CostoTotal && mostrarErrores">
-                  <small>El campo Costo Total es requerido</small>
-                </div>
-                <div class="text-danger mt-1" *ngIf="producto.prod_CostoTotal && !precioFormatoValido">
-                  <small>Máximo permitido: 10 enteros y 2 decimales</small>
-                </div>
-                <div class="text-danger mt-1" *ngIf="producto.prod_CostoTotal && producto.prod_CostoTotal < 0">
-                  <small>El costo debe ser mayor o igual 0</small>
-                </div>
-              </div>
-            </div>
-
-            <!-- Paga Impuesto -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">¿Paga Impuesto?</label>
-                <div class="form-check form-switch">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    id="prod_PagaImpuesto"
-                    [(ngModel)]="producto.prod_PagaImpuesto"
-                    (change)="onPagaImpuestoChange()"
-                  />
-                  <label class="form-check-label" for="prod_PagaImpuesto">
-                    {{ producto.prod_PagaImpuesto ? 'Sí' : 'No' }}
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <!-- Impuesto -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="impu_Id" class="form-label">Impuesto</label>
-                <select id="impu_Id" class="form-select" [(ngModel)]="producto.impu_Id" [disabled]="!producto.prod_PagaImpuesto">
-                  <option value="0" disabled selected>Seleccione un impuesto</option>
-                  <option *ngFor="let imp of impuestos" [value]="imp.impu_Id">{{ imp.impu_Descripcion }}</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Botones de acción -->
-          <div class="mt-auto pt-3" >
-            <div class="row">
-            <div class="col-12">
-                <div class="d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-primary gold" (click)="cancelar()">
-                    <span class="btn-text">Cancelar</span>
-                    <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
-                </button>
-                <button type="button" class="btn btn-primary" (click)="guardar()">
-                    <span class="btn-text">Guardar</span>
-                    <span class="btn-icon"><i class="ri-save-line"></i></span>
-                </button>
-                </div>
-            </div>
-            </div>
-        </div>
-        </div>
-      </div>
     </div>
   </div>
-</div>
+   <div class="row mx-lg-4 gap-4 mt-5">
+        <div class="d-flex justify-content-between">
+          <!-- Botón Cancelar (siempre visible) -->
+          <button type="button" class="btn btn-primary gold" (click)="cancelar()">
+            <span class="btn-text">Cancelar</span>
+            <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+          </button>
+          
+          <!-- Botones de navegación -->
+          <div class="d-flex gap-2">
+       
+          <!-- Botón Anterior (no en el primer tab) -->
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="activeTab = activeTab - 1"
+            *ngIf="activeTab > 1"
+          >
+            <span class="btn-text">Anterior</span>
+            <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
+          </button>
+
+          <!-- Botón Siguiente (en tabs 1 y 2) -->
+          <button
+            type="button"
+            class="btn btn-primary right ms-auto nexttab"
+            *ngIf="activeTab < 3"
+            (click)="irAlSiguientePaso()"
+          >
+            <span class="btn-text">Siguiente</span>
+            <span class="btn-icon"><i class="ri-arrow-right-line label-icon align-middle fs-16 ms-2"></i></span>
+          </button>
+
+          <!-- Botón Guardar (solo en tab 3) -->
+          <button
+            type="button"
+            (click)="guardar()"
+            *ngIf="activeTab == 3"
+            class="btn btn-primary right ms-auto nexttab"
+            data-nexttab="steparrow-description-info-tab"
+          >
+            <span class="btn-text">Guardar</span>
+            <span class="btn-icon"><i class="ri-save-line label-icon align-middle fs-16 ms-2"></i></span>
+          </button>
+        </div>
+
+        </div>
+      </div>
+    </div>
+          
+
+
+
+      
+
+

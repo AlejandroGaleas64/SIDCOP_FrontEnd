@@ -14,15 +14,30 @@
                     <span class="btn-icon"><i class="ri-add-line"></i></span>
                 </button>           
             </div>
-            <div class="col-2 ms-auto position-relative">
-                <input
-                    type="text"
-                    class="form-control ps-5"
-                    placeholder="Buscar..."
-                    [(ngModel)]="busqueda"
-                    (ngModelChange)="filtradorProductos()"
-                />
-                <i class="ri-search-line search-icon" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #aaa;"></i>
+            <div class="col-lg-5 d-flex align-items-center justify-content-end gap-2 mb-2">
+                <div class="export-buttons d-flex gap-1">
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarExcel()"
+                        title="Exportar a Excel">
+                        <span class="btn-text">Excel</span>
+                        <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
+                    </button>
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarPDF()"
+                        title="Exportar a PDF">
+                        <span class="btn-text">PDF</span>
+                        <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
+                    </button>
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarCSV()"
+                        title="Exportar a CSV">
+                        <span class="btn-text">CSV</span>
+                        <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
+                    </button>
+                </div>
+                <div class="position-relative" style="min-width: 200px;">
+                    <input type="text" class="form-control ps-5" placeholder="Buscar..." [(ngModel)]="busqueda"
+                        (ngModelChange)="filtradorProductos()" />
+                    <i class="ri-search-line search-icon"
+                        style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #aaa;"></i>
+                </div>
             </div>
         </div>
     
@@ -60,7 +75,7 @@
     </div>
     <div *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
         <div class="row row-cols-xxl-4 row-cols-lg-3 row-cols-md-2 row-cols-1 g-4 mx-2 mb-4">
-            <ng-container *ngFor="let data of productosFiltrados; trackBy: trackByProductoId">
+            <ng-container *ngFor="let data of productos; trackBy: trackByProductoId">
                 <div class="col">
                     <div class="card card-empleado position-relative">
                         <div class="card-body cb1 p-2 position-relative">
@@ -146,9 +161,10 @@
             </div>
             <div class="col-sm-auto mt-3 mt-sm-0 text-md-right float-md-end gridjs-pagination">
                 <pagination 
-                    [totalItems]="productoGrid?.length" 
-                    [itemsPerPage]="itemsPerPage" 
-                    (pageChanged)="pageChanged($event)">
+                [(ngModel)]="currentPage" 
+                [totalItems]="productosFiltrados.length" 
+                [itemsPerPage]="itemsPerPage"
+                (pageChanged)="pageChanged($event)">
                 </pagination>
             </div>
         </div>

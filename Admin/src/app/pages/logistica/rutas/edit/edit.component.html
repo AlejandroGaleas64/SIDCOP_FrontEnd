@@ -45,7 +45,6 @@
               [(ngModel)]="ruta.ruta_Codigo"
               placeholder="Ingrese el codigo de la ruta"
               required>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!ruta.ruta_Codigo.trim() && mostrarErrores">
             <small>El campo Código de la Ruta es requerido</small> 
@@ -70,7 +69,6 @@
               [(ngModel)]="ruta.ruta_Descripcion"
               placeholder="Ingrese la descripcion de la ruta" 
               required>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!ruta.ruta_Descripcion.trim() && mostrarErrores">
             <small>El campo Descripción de la Ruta es requerido</small>
@@ -113,64 +111,60 @@
   </div>
 </div>
 
-  <!-- Modal de confirmación para editar sucursal -->
   <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }"
-    [style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
-          <span>Confirmación</span>
-          <i class="ri-close-line custom-modal-close" (click)="cancelarEdicion()"></i>
+  [style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
+        <span>Confirmación</span>
+        <i class="ri-close-line custom-modal-close" (click)="cancelarEdicion()"></i>
+      </div>
+      <hr class="custom-modal-divider">
+      <div class="modal-body custom-modal-body">
+        <div class="text-center mb-3">
+          <p class="mt-2 custom-modal-text">
+            <i class="ri-edit-line me-2 custom-modal-alert-icon"></i>
+            ¿Estás seguro que deseas guardar los siguientes cambios en la configuración?
+          </p>
         </div>
-        <hr class="custom-modal-divider">
-        <div class="modal-body custom-modal-body">
-          <div class="text-center">
-            <p class="mt-2 custom-modal-text">
-              <i class="ri-edit-line me-2 custom-modal-alert-icon"></i>
-              ¿Estás seguro que deseas editar la ruta <strong>"{{ rutaOriginal }}"</strong>? 
-            </p>
-            <table class="table table-bordered align-middle">
-              <thead class="text-white" style="background: #141a2e">
-                <tr class="text-white">
-                  <th class="text-white" style="width: 30%">Campo</th>
-                  <th class="text-white" style="width: 30%">Valor Original</th>
-                  <th class="text-white" style="width: 30%">Valor Nuevo</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- Verificamos y mostramos solo los campos modificados -->
-                <tr *ngIf="rutaData?.ruta_Codigo !== ruta.ruta_Codigo"> 
-                  <td>Código:</td>
-                  <td>{{ rutaData?.ruta_Codigo }}</td>
-                  <td>{{ ruta.ruta_Codigo }}</td>
-                </tr>
-                <tr *ngIf="rutaData?.ruta_Descripcion !== ruta.ruta_Descripcion">
-                  <td>Descripción de la Ruta:</td>
-                  <td>{{ rutaData?.ruta_Descripcion }}</td>
-                  <td>{{ ruta.ruta_Descripcion }}</td>
-                </tr>
-                <tr *ngIf="rutaData?.ruta_Observaciones !== ruta.ruta_Observaciones">
-                  <td>Observaciones:</td>
-                  <td>{{ rutaData?.ruta_Observaciones }}</td>
-                  <td>{{ ruta.ruta_Observaciones }}</td>
-                </tr>
-              </tbody>
-            </table>
+        
+        <!-- Lista de cambios detectados -->
+        <div class="changes-list" style="max-height: 300px; overflow-y: auto;">
+          <div *ngFor="let cambio of obtenerListaCambios()" class="change-item mb-3 p-3" 
+               style="border: 1px solid #e9ecef; border-radius: 8px; background-color: #f8f9fa;">
+            <div class="d-flex align-items-center mb-2">
+              <i class="ri-arrow-right-circle-line me-2 text-primary"></i>
+              <strong class="text-primary">{{ cambio.label }}</strong>
+            </div>
+            <div class="row">
+              <div class="col-6">
+                <small class="text-muted d-block">Original :</small>
+                <div class="p-2" style="background-color: #fff2f2; border-left: 3px solid #dc3545; border-radius: 4px;">
+                  <span class="text-dark">{{ cambio.anterior }}</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <small class="text-muted d-block">Nuevo:</small>
+                <div class="p-2" style="background-color: #f0fff4; border-left: 3px solid #28a745; border-radius: 4px;">
+                  <span class="text-dark">{{ cambio.nuevo }}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="modal-footer custom-modal-footer">
-          <button type="button" class="btn btn-primary btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
-            <span class="btn-text">No</span>
-            <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
-          </button>
-          <button type="button" class="btn btn-primary btn-minw-5 btn-sm" (click)="confirmarEdicion()">
-            <span class="btn-text">Sí</span>
-            <span class="btn-icon"><i class="ri-save-line"></i></span>
-          </button>
-        </div>
+      </div>
+      <div class="modal-footer custom-modal-footer">
+        <button type="button" class="btn btn-primary btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
+          <span class="btn-text">No</span>
+          <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+        </button>
+        <button type="button" class="btn btn-primary btn-minw-5 btn-sm" (click)="confirmarEdicion()">
+          <span class="btn-text">Sí</span>
+          <span class="btn-icon"><i class="ri-save-line"></i></span>
+        </button>
       </div>
     </div>
   </div>
-
-<!-- Overlay para el modal -->
+</div>
+<!-- Overlay modal -->
 <div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEditar }" *ngIf="mostrarConfirmacionEditar"></div>

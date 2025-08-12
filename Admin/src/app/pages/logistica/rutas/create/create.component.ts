@@ -83,7 +83,7 @@ export class CreateComponent {
   guardar(): void {
     this.mostrarErrores = true;
     this.onOverlayChange.emit(true);
-    if (this.ruta.ruta_Descripcion.trim() && this.ruta.ruta_Codigo.trim() && this.ruta.ruta_Observaciones.trim()) {
+    if (this.ruta.ruta_Descripcion.trim() && this.ruta.ruta_Codigo.trim()) {
       // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;

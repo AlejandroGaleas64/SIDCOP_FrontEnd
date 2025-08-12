@@ -234,12 +234,12 @@
                   </div>
                   </td>
                   <td><span class="fw-semibold">{{data.secuencia}}</span></td>
-                  <td>{{data.coFa_NombreEmpresa}}</td>
-                  <td>{{data.coFa_DireccionEmpresa}}</td>
-                  <td>{{data.coFa_RTN}}</td>
-                  <td>{{data.coFa_Correo}}</td>
-                  <td>{{data.coFa_Telefono1}}</td>
-                  <td>{{data.coFa_Telefono2}}</td>
+                  <td>{{data.coFa_NombreEmpresa || 'N/A'}}</td>
+                  <td>{{data.coFa_DireccionEmpresa || 'N/A' }}</td>
+                  <td>{{data.coFa_RTN || 'N/A'}}</td>
+                  <td>{{data.coFa_Correo || 'N/A'}}</td>
+                  <td>{{data.coFa_Telefono1 || 'N/A'}}</td>
+                  <td>{{data.coFa_Telefono2 || 'N/A'}}</td>
                   <td>
                        <img
                         [src]="data.coFa_Logo" (error)="onImgError($event)" alt="Logo"

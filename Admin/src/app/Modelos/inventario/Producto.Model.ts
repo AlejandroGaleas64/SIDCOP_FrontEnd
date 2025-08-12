@@ -30,6 +30,7 @@ export class Producto {
     secuencia?: number;
     code_Status: number = 0;
     message_Status: string = '';
+    No?: number = 0;
 
     constructor(init?: Partial<Producto>) {
     Object.assign(this, init);

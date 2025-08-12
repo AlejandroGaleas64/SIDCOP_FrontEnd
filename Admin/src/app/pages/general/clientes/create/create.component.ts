@@ -42,7 +42,7 @@ export class CreateComponent {
   mensajeWarning = '';
   mostrarMapa = false;
 
-  //Arregloes de las Listas
+  //Arreglos de las Listas
   nacionalidades: any[] = [];
   paises: any[] = [];
   tiposDeVivienda: any[] = [];
@@ -83,6 +83,12 @@ export class CreateComponent {
         behavior: 'smooth'
       });
     }
+  }
+
+  esCorreoValido(correo: string): boolean {
+  if (!correo) return true;
+  // Solo acepta gmail.com y hotmail.com, y debe tener @ y .com
+  return /^[\w\.-]+@(gmail|hotmail|outlook)\.com$/.test(correo.trim());
   }
 
   //Declarado para validar la direccion

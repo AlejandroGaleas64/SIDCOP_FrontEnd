@@ -23,7 +23,7 @@
                     <ng-container *ngIf=" configuracionFacturaDetalle?.coFa_Logo; else noImage">
                         <img [src]=" configuracionFacturaDetalle.coFa_Logo" alt="Foto del empleado" class="  employee-img-card" />
                         <div class="  employee-img-overlay">
-                            <span class="  employee-img-name">{{  configuracionFacturaDetalle.coFa_NombreEmpresa }}</span>
+                            <span class="  employee-img-name">{{  configuracionFacturaDetalle.coFa_NombreEmpresa || 'N/A' }}</span>
                         </div>
                     </ng-container>
                     <ng-template #noImage>
@@ -51,7 +51,7 @@
                                     <div class="detail-content">
                                        
                                         <div class="detail-label">Nombre de la Empresa</div>
-                                        <div class="detail-value">{{configuracionFacturaDetalle.coFa_NombreEmpresa }}</div>
+                                        <div class="detail-value">{{configuracionFacturaDetalle.coFa_NombreEmpresa || 'N/A' }}</div>
 
                                     </div>
                                 </div>
@@ -62,7 +62,7 @@
                                     </div>
                                     <div class="detail-content">
                                         <div class="detail-label">RTN </div>
-                                        <div class="detail-value">{{  configuracionFacturaDetalle.coFa_RTN }}</div>
+                                        <div class="detail-value">{{  configuracionFacturaDetalle.coFa_RTN || 'N/A' }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -72,7 +72,7 @@
                                     </div>
                                     <div class="detail-content">
                                         <div class="detail-label">Correo Electronico </div>
-                                        <div class="detail-value">{{  configuracionFacturaDetalle.coFa_Correo }}</div>
+                                        <div class="detail-value">{{  configuracionFacturaDetalle.coFa_Correo || 'N/A' }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -82,7 +82,7 @@
                                     </div>
                                     <div class="detail-content">
                                         <div class="detail-label">Telefono 1 </div>
-                                        <div class="detail-value">{{  configuracionFacturaDetalle.coFa_Telefono1 }}</div>
+                                        <div class="detail-value">{{  configuracionFacturaDetalle.coFa_Telefono1 || 'N/A' }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -92,7 +92,7 @@
                                     </div>
                                     <div class="detail-content">
                                         <div class="detail-label">Telefono 2 </div>
-                                        <div class="detail-value">{{ configuracionFacturaDetalle.coFa_Telefono2 }}</div>
+                                        <div class="detail-value">{{ configuracionFacturaDetalle.coFa_Telefono2 || 'N/A' }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -104,7 +104,7 @@
                                     <div class="detail-content">
                                         <div class="detail-label">Ubicación</div>
                                         <div class="detail-value">{{configuracionFacturaDetalle.muni_Descripcion + ', '
-                                         + configuracionFacturaDetalle.colo_Descripcion }}</div>
+                                         + configuracionFacturaDetalle.colo_Descripcion || 'N/A' }}</div>
                                     </div>
                                 </div>
                             </div>

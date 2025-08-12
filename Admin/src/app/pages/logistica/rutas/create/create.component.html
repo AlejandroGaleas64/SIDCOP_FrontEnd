@@ -45,7 +45,6 @@
               [(ngModel)]="ruta.ruta_Codigo"
               placeholder="Ingrese el codigo de la ruta"
               required>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!ruta.ruta_Codigo.trim() && mostrarErrores">
             <small>El campo Código de la Ruta es requerido</small> 
@@ -70,7 +69,6 @@
               [(ngModel)]="ruta.ruta_Descripcion"
               placeholder="Ingrese la descripcion de la ruta" 
               required>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!ruta.ruta_Descripcion.trim() && mostrarErrores">
             <small>El campo Descripción de la Ruta es requerido</small>
