@@ -5,7 +5,7 @@ const routes: Routes = [
   {
     path: '',
     data: {
-      title: 'Reporte Devoluciones'
+      title: 'Reporte Recargas  Bodega'
     },
     children: [
       { 
@@ -17,7 +17,7 @@ const routes: Routes = [
         path: 'list',
         loadComponent: () => import('./list/list.component').then(m => m.ReporteRecargasPorBodegaComponent),
         data: {
-          title: 'Reporte Devoluciones',
+          title: 'Reporte Recargas Bodega',
         }
       },
     ]

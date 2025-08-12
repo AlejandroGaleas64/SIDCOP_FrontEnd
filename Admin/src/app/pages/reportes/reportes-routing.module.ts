@@ -32,7 +32,7 @@ const routes: Routes = [
     data: { pantallaId: 69 } 
   },
    {
-   path: 'reporteRutas',
+   path: 'reporteRecargasPorBodega',
    loadChildren: () =>
      import('../reportes/reporteRecargaPorBodega/ReporteRecargasPorBodega.module').then(m => m.reporteRecargasPorBodegaModule),
    canActivate: [PermisoGuard],
