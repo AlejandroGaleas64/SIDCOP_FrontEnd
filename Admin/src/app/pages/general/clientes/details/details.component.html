@@ -21,13 +21,15 @@
   <div *ngIf="!cargando && clienteDetalle" class="details-content">
     <div class="row g-4 align-items-stretch">
       <!-- Card izquierda: Imagen negocio + nombre -->
-       <span style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; font-size: 38px; text-align: center; color: #303d7d"> Información del Negocio </span>
+      <span
+        style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; font-size: 38px; text-align: center; color: #303d7d">
+        Información del Negocio </span>
       <div class="col-5">
         <div class="card-image-customer customer-photo-card-modern">
           <ng-container *ngIf="clienteDetalle?.clie_ImagenDelNegocio;">
             <div class="customer-img-container">
-              <img [src]="clienteDetalle.clie_ImagenDelNegocio" alt="Imagen del negocio"
-                class="customer-img-modern" (load)="imgLoaded = true" [class.loaded]="imgLoaded" />
+              <img [src]="clienteDetalle.clie_ImagenDelNegocio" alt="Imagen del negocio" class="customer-img-modern"
+                (load)="imgLoaded = true" [class.loaded]="imgLoaded" />
             </div>
           </ng-container>
           <ng-template #noImage>
@@ -44,11 +46,11 @@
         </div>
       </div>
       <div class="col-6 mapa-derecha card-mapa-card-custom">
-        <div class="card h-100 rounded-4"> 
+        <div class="card h-100 rounded-4">
           <div class="card-body h-100 p-0">
             <app-mapa-selector [puntosVista]="puntosVista" [mostrar]="true" [mostrarPuntos]="true"></app-mapa-selector>
           </div>
-        </div> 
+        </div>
       </div>
 
       <!-- Card derecha: Detalles del cliente -->
@@ -486,6 +488,22 @@
       </div>
     </div>
 
+    <div *ngIf="vendedores.length">
+      <div class="card shadow-sm employee-details-card">
+        <div class="card-header d-flex align-items-center rounded-top details-header-custom">
+          <i class="ri-user-star-line me-2 fs-4"></i>
+          <h4 class="mb-0" style="color: #303d7d">Vendedores de la Ruta</h4>
+        </div>
+        <div class="card-body">
+          <div *ngFor="let v of vendedores">
+            <div><strong>Nombre:</strong> {{ v.nombreCompleto }}</div>
+            <div><strong>Días de visita:</strong> {{ v.veRu_Dias }}</div>
+            <div><strong>Ruta:</strong> {{ v.ruta_Descripcion }}</div>
+            <hr>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- <app-mapa-selector [puntosVista]="puntosVista" [mostrar]="true"></app-mapa-selector> -->
 
     <!-- Historial de auditoría -->

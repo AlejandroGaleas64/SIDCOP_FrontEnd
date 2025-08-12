@@ -133,6 +133,13 @@ export const MENU: MenuItem[] = [
         link: '/general/sucursales',
         parentId: 2,
         icon: 'ri-group-line',
+      },
+      {
+        id: 71,
+        label: 'MENUITEMS.GENERAL.LIST.VISITASCLIENTES',
+        link: '/general/visitas-clientes',
+        parentId: 2,
+        icon: 'ri-group-line',
       }
     ],
   },

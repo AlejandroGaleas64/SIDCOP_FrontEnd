@@ -25,7 +25,8 @@
         "CARGOS": "Cargos",
          "CLIENTES": "Clientes",
         "PROVEEDORES": "Proveedores",
-         "EMPLEADOS": "Empleados"
+         "EMPLEADOS": "Empleados",
+         "VISITASCLIENTES": "Visitas Clientes"
       }
     },
     "INVENTARIO": {
