@@ -25,15 +25,15 @@ export const MENU: MenuItem[] = [
     icon: 'ri-lock-line',
     subItems: [
       {
-        id: 62,
-        label: 'MENUITEMS.ACCESO.LIST.ROLES',
-        link: '/acceso/roles',
-        parentId: 1,
-      },
-      {
         id: 63,
         label: 'MENUITEMS.ACCESO.LIST.USUARIOS',
         link: '/acceso/usuarios',
+        parentId: 1,
+      },
+      {
+        id: 62,
+        label: 'MENUITEMS.ACCESO.LIST.ROLES',
+        link: '/acceso/roles',
         parentId: 1,
       },
     ],
@@ -183,6 +183,13 @@ export const MENU: MenuItem[] = [
         parentId: 3,
         icon: 'ri-truck-line',
       },
+      {
+        id: 24,
+        label: 'MENUITEMS.INVENTARIO.LIST.INVENTARIOSUCURSAL',
+        link: '/inventario/inventario-sucursal',
+        parentId: 3,
+        icon: 'ri-truck-line',
+      },
       // Puedes añadir más subitems aquí según sea necesario
     ],
   },
@@ -294,6 +301,87 @@ export const MENU: MenuItem[] = [
     ],
   },
   {
+    id: 4,
+    label: 'MENUITEMS.LOGISTICA.TEXT',
+    icon: 'ri-apps-2-line',
+    subItems: [
+      {
+        id: 28,
+        label: 'MENUITEMS.LOGISTICA.LIST.BODEGAS',
+        link: '/logistica/bodegas',
+        parentId: 4,
+        icon: 'ri-truck-line',
+      },
+      {
+        id: 30,
+        label: 'MENUITEMS.LOGISTICA.LIST.RUTAS',
+        link: '/logistica/rutas',
+        parentId: 4,
+        icon: 'ri-truck-line',
+      },
+
+       {
+         id: 29,
+         label: 'MENUITEMS.LOGISTICA.LIST.RECARGAS',
+         link: '/logistica/recargas',
+         parentId: 4,
+         icon: 'ri-truck-line',
+       },
+  
+      {
+        id: 31,
+        label: 'MENUITEMS.LOGISTICA.LIST.TRASLADOS',
+        link: '/logistica/traslados',
+        parentId: 4,
+        icon: 'ri-truck-line',
+      },
+    
+    ],
+  },
+  {
+    id: 3,
+    label: 'MENUITEMS.INVENTARIO.TEXT',
+    icon: 'ri-layout-grid-fill',
+    subItems: [
+      {
+        id: 21,
+        label: 'MENUITEMS.INVENTARIO.LIST.CATEGORIAS',
+        link: '/inventario/categorias',
+        parentId: 3,
+        icon: 'ri-truck-line',
+      },
+      {
+        id: 22,
+        label: 'MENUITEMS.INVENTARIO.LIST.DESCUENTOS',
+        link: '/inventario/descuentos',
+        parentId: 3,
+        icon: 'ri-truck-line',
+      },
+      {
+        id: 25,
+        label: 'MENUITEMS.INVENTARIO.LIST.PRODUCTOS',
+        link: '/inventario/productos',
+        parentId: 3,
+        icon: 'ri-truck-line',
+      },
+      {
+        id: 27,
+        label: 'MENUITEMS.INVENTARIO.LIST.SUBCATEGORIAS',
+        link: '/inventario/subcategorias',
+        parentId: 3,
+        icon: 'ri-truck-line',
+      },
+      // {
+      //   id: 26,
+      //   label: 'MENUITEMS.INVENTARIO.LIST.PROMOCIONES',
+      //   link: '/inventario/promociones',
+      //   parentId: 3,
+      //   icon: 'ri-truck-line',
+      // },
+      // Puedes añadir más subitems aquí según sea necesario
+    ],
+  },
+  {
     id: 7,
     label: 'MENUITEMS.REPORTES.TEXT',
     icon: 'ri-layout-grid-fill',
@@ -304,7 +392,63 @@ export const MENU: MenuItem[] = [
         link: '/reportes/reporteproductos',
         parentId: 7,
         icon: 'ri-truck-line',
-      }
+      },
+      {
+        id: 66,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTECLIENTESMASFACTURADOS',
+        link: '/reportes/reporteclientesMasFacturados',
+        parentId: 7,
+        icon: 'ri-truck-line',
+      },
+      {
+        id: 67,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTEPRODUCTOSPORRUTA',
+        link: '/reportes/reporteProductosPorRuta',
+        parentId: 7,
+        icon: 'ri-truck-line',
+      },
+      // {
+      //   id: 68,
+      //        label: 'MENUITEMS.REPORTES.LIST.REPORTERECARGAPORSBODEGA',
+      //   link: '/reportes/reporteRecargasPorBodega',
+      //   parentId: 7,
+      //   icon: 'ri-truck-line',
+      // },
+      {
+        id: 69,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTEDEVOLUCIONES',
+        link:  '/reportes/reporteDevoluciones',
+        parentId: 7,
+        icon: 'ri-truck-line',
+      },
+      {
+        id: 70,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTERUTAS',
+        link: '/reportes/reporteRutas',
+        parentId: 7,
+        icon: 'ri-truck-line',
+      },
+      {
+        id: 72,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTEPRODUCTOSVENDIDOS',
+        link: '/reportes/reporteProductosVendidos',
+        parentId: 7,
+        icon: 'ri-truck-line',
+      },
+      {
+        id: 73,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTEVENDEDORESVENTAS',
+        link: '/reportes/reporteVendedoresVentas',
+        parentId: 7,
+        icon: 'ri-truck-line',
+      },
+      {
+        id: 74,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTECUENTASCLIENTES',
+        link: '/reportes/reporteCuentasClientes',
+        parentId: 7,
+        icon: 'ri-truck-line',
+      },
     ],
   },
 ];

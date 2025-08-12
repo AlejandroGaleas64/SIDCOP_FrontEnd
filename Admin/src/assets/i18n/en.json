@@ -65,8 +65,11 @@
      "REPORTES": {
       "TEXT": "Reportes",
       "LIST": {
-        "REPORTEPRODUCTOS": "ReporteProductos"
-        
+        "REPORTEPRODUCTOS": "ReporteProductos",
+        "REPORTERECARGAPORSBODEGA": "Reporte Recargas Por Bodega",
+        "REPORTEDEVOLUCIONES": "Reporte Devoluciones",
+        "REPORTERUTAS": "Reporte Rutas"
+      
       }
     },
     "DASHBOARD": {

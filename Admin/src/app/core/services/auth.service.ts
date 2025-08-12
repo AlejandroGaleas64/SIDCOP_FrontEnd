@@ -205,6 +205,9 @@ export class AuthenticationService {
             if (userData.usua_Usuario) {
               localStorage.setItem('usuarioNombre', userData.usua_Usuario);
             }
+           if (userData.sucu_Id) {
+              localStorage.setItem('sucu_Id', userData.sucu_Id);
+            }
 
             // Guardar permisos JSON
             if (userData.permisosJson) {

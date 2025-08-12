@@ -24,6 +24,8 @@
 
   <div class="container-fluid">
     <div class="row align-items-center">
+
+      <!-- Imagen de Usuario -->
       <div class="col-12 col-md-4 d-flex justify-content-center align-items-center mb-4 mb-md-0"
         style="min-height: 220px;">
         <div
@@ -77,8 +79,29 @@
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <input type="password" class="form-control" id="usua_Clave" [(ngModel)]="usuario.usua_Clave"
+                  (input)="corroborarClave(usuario.usua_Clave)"
+                  (keydown.space)="$event.preventDefault()"
                   [class.is-invalid]="!usuario.usua_Clave.trim() && mostrarErrores" placeholder="Ingrese la contraseña"
                   required />
+              </div>
+              <div class="password-strength-bar mt-2" *ngIf="usuario.usua_Clave">
+                <div class="progress" style="height: 8px;">
+                  <div class="progress-bar"
+                    [ngClass]="{
+                      'bg-danger': claveDatos === 1,
+                      'bg-warning': claveDatos === 2,
+                      'bg-success': claveDatos === 3
+                    }"
+                    [style.width.%]="claveDatos * 33.33">
+                  </div>
+                </div>
+                <small class="d-block mt-1 text-muted text-end" [ngClass]="{
+                  'text-danger': claveDatos === 1,
+                  'text-warning': claveDatos === 2,
+                  'text-success': claveDatos === 3
+                }">
+                  {{ claveMensaje }}
+                </small>
               </div>
               <div class="text-danger mt-1" *ngIf="!usuario.usua_Clave.trim() && mostrarErrores">
                 <small>El campo Contraseña es requerido</small>
@@ -207,6 +230,7 @@
             </div>
           </div>
 
+          <!-- Tiene Permisos -->
           <div class="col-12 col-md-6">
             <div class="mb-3">
               <label class="form-label">¿Tiene Permisos?</label>

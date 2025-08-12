@@ -1,0 +1,35 @@
+{
+    // Use IntelliSense para saber los atributos posibles.
+    // Mantenga el puntero para ver las descripciones de los existentes atributos.
+    // Para más información, visite: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Iniciar Chrome para Angular",
+            "url": "http://localhost:4200",
+            "webRoot": "${workspaceFolder}",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "webpack:///./src/*": "${webRoot}/src/*"
+            }
+        },
+        {
+            "type": "chrome",
+            "request": "attach",
+            "name": "Conectar a Chrome",
+            "port": 9222,
+            "webRoot": "${workspaceFolder}",
+            "sourceMaps": true
+        },
+        {
+            "name": "Launch Brave",
+            "type": "pwa-chrome",
+            "request": "launch",
+            "url": "http://localhost:4200",
+            "webRoot": "${workspaceFolder}",
+            "runtimeExecutable": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe"
+        }
+    ]
+}
