@@ -109,9 +109,14 @@ export const MENU: MenuItem[] = [
       { id: 67, label: 'MENUITEMS.REPORTES.LIST.REPORTEPRODUCTOSPORRUTA',        link: '/reportes/reporteProductosPorRuta',        parentId: 7, icon: 'ri-truck-line' },
       { id: 68, label: 'MENUITEMS.REPORTES.LIST.REPORTERECARGAPORSBODEGA',        link: '/reportes/reporteRecargasPorBodega',      parentId: 7, icon: 'ri-truck-line',},
       { id: 69, label: 'MENUITEMS.REPORTES.LIST.REPORTEDEVOLUCIONES',            link: '/reportes/reporteDevoluciones',            parentId: 7, icon: 'ri-truck-line' },
-      { id: 70, label: 'MENUITEMS.REPORTES.LIST.REPORTERUTAS',                   link: '/reportes/reporteRutas',                   parentId: 7, icon: 'ri-truck-line' },
       { id: 72, label: 'MENUITEMS.REPORTES.LIST.REPORTEPRODUCTOSVENDIDOS',       link: '/reportes/reporteProductosVendidos',       parentId: 7, icon: 'ri-truck-line' },
       { id: 73, label: 'MENUITEMS.REPORTES.LIST.REPORTEVENDEDORESVENTAS',        link: '/reportes/reporteVendedoresVentas',        parentId: 7, icon: 'ri-truck-line' },
+      { id: 75, label: 'MENUITEMS.REPORTES.LIST.REPORTEPEDIDOSPORFECHA',    link: '/reportes/reportePedidosPorFecha',     parentId: 7, icon: 'ri-truck-line' },
+
+      { id: 76, label: 'MENUITEMS.REPORTES.LIST.REPORTEVENDEDORESPORRUTA',        link: '/reportes/reporteVendedoresPorRuta',        parentId: 7, icon: 'ri-truck-line' },
+      { id: 77, label: 'MENUITEMS.REPORTES.LIST.REPORTECLIENTES',                  link: '/reportes/reporteClientes',                 parentId: 7, icon: 'ri-truck-line' }
+
+    
     ],
   },
 ];

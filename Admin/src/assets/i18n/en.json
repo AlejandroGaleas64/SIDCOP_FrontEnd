@@ -67,7 +67,8 @@
       "LIST": {
         "REPORTEPRODUCTOS": "ReporteProductos",
         "REPORTERECARGAPORSBODEGA": "Reporte Recargas Por Bodega",
-        "REPORTEDEVOLUCIONES": "Reporte Devoluciones"
+        "REPORTEDEVOLUCIONES": "Reporte Devoluciones",
+        "REPORTECLIENTES": "Reporte Clientes"
 
       
       }

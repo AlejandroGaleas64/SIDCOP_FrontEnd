@@ -79,6 +79,30 @@ const routes: Routes = [
    canActivate: [PermisoGuard],
    data: { pantallaId: 74 } 
   },
+  {
+   path: 'reporteVendedoresPorRuta',
+   loadChildren: () =>
+     import('../reportes/vendedoresPorRuta/reporteVendedoresPorRuta.module').then(m => m.reporteVendedoresPorRutaModule),
+   canActivate: [PermisoGuard],
+   data: { pantallaId: 76 } 
+  },
+  {
+   path: 'reporteClientes',
+   loadChildren: () =>
+     import('../reportes/clientesPorCanalYFecha/reporteClientes.module').then(m => m.ReporteClientesModule),
+   canActivate: [PermisoGuard],
+   data: { pantallaId: 77 } 
+  },
+  {
+   path: 'reportePedidosPorFecha',
+   loadChildren: () =>
+     import('../reportes/pedidosPorFecha/reportePedidosPorFecha.module').then(m => m.reportePedidosPorFechaModule),
+   canActivate: [PermisoGuard],
+   data: { pantallaId: 75 } 
+  }
+
+
+  
 ];
 
 @NgModule({
