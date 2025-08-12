@@ -420,7 +420,28 @@ export const MENU: MenuItem[] = [
         link: '/reportes/reporteRutas',
         parentId: 7,
         icon: 'ri-truck-line',
-      }
+      },
+      {
+        id: 72,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTEPRODUCTOSVENDIDOS',
+        link: '/reportes/reporteProductosVendidos',
+        parentId: 7,
+        icon: 'ri-truck-line',
+      },
+      {
+        id: 73,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTEVENDEDORESVENTAS',
+        link: '/reportes/reporteVendedoresVentas',
+        parentId: 7,
+        icon: 'ri-truck-line',
+      },
+      {
+        id: 74,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTECUENTASCLIENTES',
+        link: '/reportes/reporteCuentasClientes',
+        parentId: 7,
+        icon: 'ri-truck-line',
+      },
     ],
   },
 ];
