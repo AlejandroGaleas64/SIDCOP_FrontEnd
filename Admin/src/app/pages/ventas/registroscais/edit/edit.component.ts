@@ -329,7 +329,14 @@ export class EditComponent implements OnChanges {
   private guardar(): void {
     this.mostrarErrores = true;
 
-    if (this.registroCai.regC_Descripcion.trim()) {
+    if (this.registroCai.regC_Descripcion.trim() &&
+        this.registroCai.sucu_Id && 
+        this.registroCai.nCai_Id && 
+        this.registroCai.puEm_Id &&
+        this.registroCai.regC_RangoInicial.trim() &&
+        this.registroCai.regC_RangoFinal.trim() &&
+        this.registroCai.regC_FechaInicialEmision &&
+        this.registroCai.regC_FechaFinalEmision) {
       const registroCAIActualizar = {
         regC_Id: this.registroCai.regC_Id,
         regC_Descripcion: this.registroCai.regC_Descripcion,
@@ -368,9 +375,22 @@ export class EditComponent implements OnChanges {
         )
         .subscribe({
           next: (response) => {
-            this.mostrarErrores = false;
-            this.onSave.emit(this.registroCai);
-            this.cancelar();
+            if (response.data.code_Status === 1) {
+              this.mostrarErrores = false;
+              this.onSave.emit(this.registroCai);
+              this.cancelar();
+            } else {
+            
+              this.mostrarAlertaError = true;
+              this.mensajeError = response.data.message_Status;
+              this.mostrarAlertaExito = false;
+
+              // Ocultar la alerta de error después de 5 segundos
+              setTimeout(() => {
+                this.mostrarAlertaError = false;
+                this.mensajeError = '';
+              }, 5000);
+            }
           },
           error: (error) => {
             console.error('Error al actualizar el Registro CAI:', error);
