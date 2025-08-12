@@ -1,6 +1,7 @@
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Producto } from 'src/app/Modelos/inventario/Producto.Model';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-details',
@@ -24,6 +25,8 @@ export class DetailsComponent implements OnChanges{
       this.cargarDetallesSimulado(changes['productoData'].currentValue);
     }
   }
+
+  constructor(private http: HttpClient) {}
 
   // Simulación de carga
   cargarDetallesSimulado(data: Producto): void {
@@ -64,4 +67,20 @@ export class DetailsComponent implements OnChanges{
       minute: '2-digit'
     });
   }
+
+  obtenerVendedoresPorCliente(clie_Id: number): void {
+  this.http.get<any[]>(`URL_DEL_ENDPOINT/VendedoresPorCliente/${clie_Id}`)
+    .subscribe({
+      next: (data) => {
+        this.vendedores = data;
+      },
+      error: (err) => {
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error al cargar los vendedores.';
+      }
+    });
+}
+
+  //Extra
+  vendedores: any[] = [];
 }

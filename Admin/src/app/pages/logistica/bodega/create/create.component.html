@@ -149,7 +149,9 @@
               id="bode_Capacidad"
               [(ngModel)]="bodega.bode_Capacidad"
               placeholder="Ingrese la capacidad de la bodega"
-              required>
+              required
+              min="1"
+              >
             <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!bodega.bode_Capacidad && mostrarErrores">
