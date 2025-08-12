@@ -77,35 +77,31 @@
     </div>
 
     <!-- Collapse para el formulario de creación -->
-    <div class="collapse" [ngClass]="{ 'show': showCreateForm }" id="createFormCollapse">
-      <div class="mb-3 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
-        <div class="container-fluid flex-grow-1">
-          <app-create (onCancel)="cerrarFormulario()" (onSave)="guardarCliente($event)"></app-create>
+    <div *ngIf="showCreateForm" [@fadeExpand]>
+        <div class="mb-2 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
+            <div class="container-fluid flex-grow-1">
+              <app-create (onCancel)="cerrarFormulario()" (onSave)="guardarCliente($event)"></app-create>
+            </div>
         </div>
-      </div>
     </div>
 
     <!-- Collapse para el formulario de edición -->
-    <div class="collapse" [ngClass]="{ 'show': showEditForm }" id="editFormCollapse">
-      <div class="card card-body mb-3 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
-        <div class="container-fluid flex-grow-1">
-          <app-edit [clienteData]="clienteEditando!" (onCancel)="cerrarFormularioEdicion()"
-            (onSave)="actualizarCliente($event)">
-          </app-edit>
+    <div *ngIf="showEditForm" [@fadeExpand]>
+        <div class="mb-2 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
+            <div class="container-fluid flex-grow-1">
+              <app-edit [clienteData]="clienteEditando!" (onCancel)="cerrarFormularioEdicion()"(onSave)="actualizarCliente($event)"></app-edit>
+            </div>
         </div>
-      </div>
     </div>
 
     <!-- Collapse para el formulario de detalles -->
-    <div class="collapse" [ngClass]="{ 'show': showDetailsForm }" id="detailsFormCollapse">
-      <div class="card card-body mb-3 d-flex flex-column" style="min-height: 400px; padding: 0.5rem;">
-        <div class="container-fluid flex-grow-1">
-          <app-details [clienteData]="clienteDetalle" (onClose)="cerrarFormularioDetalles()">
-          </app-details>
+    <div *ngIf="showDetailsForm" [@fadeExpand]>
+        <div class="mb-2 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
+            <div class="container-fluid flex-grow-1">
+              <app-details [clienteData]="clienteDetalle" (onClose)="cerrarFormularioDetalles()"></app-details>
+            </div>
         </div>
-      </div>
     </div>
-
   </div>
 
   <div *ngIf="listadoClientesSinConfirmar">
@@ -203,7 +199,7 @@
     <div class="row row-cols-xxl-5 g-4 mx-2 mb-4">
       <ng-container *ngFor="let cliente of clientes; trackBy: trackByClienteId">
         <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4 mx-auto">
-          <div class="card card-empleado position-relative h-100" [class.cliente-inactivo]="!esClienteActivo(cliente)" >
+          <div class="card card-empleado position-relative h-100" [class.cliente-inactivo]="!esClienteActivo(cliente)">
             <div class="card-header p-0 position-relative header-bg"
               [ngStyle]="{ 'background-image': 'url(' + (cliente.clie_ImagenDelNegocio || 'assets/images/imagenes/full-logo.png') + ')' }">
               <div class="header-overlay"></div>
@@ -228,16 +224,19 @@
                   <ul *ngIf="activeActionRow === cliente.clie_Id" class="dropdown-menu show"
                     style="left: -100px; z-index: 10000;">
                     <li *ngIf="showEdit">
-                      <button class="dropdown-action-btn" (click)="editar(cliente)">Editar <i class="ri-edit-line"></i></button>
+                      <button class="dropdown-action-btn" (click)="editar(cliente)">Editar <i
+                          class="ri-edit-line"></i></button>
                     </li>
                     <li *ngIf="showDelete">
                       <button class="dropdown-action-btn" (click)="confirmarEliminar(cliente)">
                         {{ esClienteActivo(cliente) ? 'Desactivar' : 'Activar' }}
-                        <i [ngClass]="cliente.clie_Estado == 1 || cliente.clie_Estado === true || cliente.clie_Estado == '1' || cliente.clie_Estado == 'true' ? 'ri-delete-bin-line' : 'ri-checkbox-circle-line'"></i>
+                        <i
+                          [ngClass]="cliente.clie_Estado == 1 || cliente.clie_Estado === true || cliente.clie_Estado == '1' || cliente.clie_Estado == 'true' ? 'ri-delete-bin-line' : 'ri-checkbox-circle-line'"></i>
                       </button>
                     </li>
                     <li *ngIf="showDetails">
-                      <button class="dropdown-action-btn" (click)="detalles(cliente)">Detalles <i class="ri-error-warning-fill"></i></button>
+                      <button class="dropdown-action-btn" (click)="detalles(cliente)">Detalles <i
+                          class="ri-error-warning-fill"></i></button>
                     </li>
                   </ul>
                 </div>
@@ -335,4 +334,15 @@
     <div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEliminar }"
       *ngIf="mostrarConfirmacionEliminar"></div>
   </div>
+</div>
+
+<div *ngIf="mostrarOverlayCarga" class="overlay-carga">
+    <div class="typing-indicator">
+        <div class="typing-circle"></div>
+        <div class="typing-circle"></div>
+        <div class="typing-circle"></div>
+        <div class="typing-shadow"></div>
+        <div class="typing-shadow"></div>
+        <div class="typing-shadow"></div>
+    </div>
 </div>

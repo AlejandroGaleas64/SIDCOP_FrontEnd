@@ -5,12 +5,9 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Cliente } from 'src/app/Modelos/general/Cliente.Model';
 import { environment } from 'src/environments/environment.prod';
 import { ChangeDetectorRef } from '@angular/core';
-
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { MapaSelectorComponent } from '../mapa-selector/mapa-selector.component';
 import { Aval } from 'src/app/Modelos/general/Aval.Model';
-
-import { NgModule } from '@angular/core';
 import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente.Model';
 import { getUserId } from 'src/app/core/utils/user-utils';
 
@@ -447,7 +444,7 @@ export class CreateComponent {
     }).subscribe(data => this.colonias = data);
   }
 
-   obtenerDescripcionColonia(colo_Id: number): string {
+  obtenerDescripcionColonia(colo_Id: number): string {
     const colonia = this.colonias.find(c => c.colo_Id === colo_Id);
     return colonia?.colo_Descripcion || 'Colonia no encontrada';
   }
@@ -634,6 +631,45 @@ export class CreateComponent {
     }
   }
 
+  onRutaSeleccionada(ruta_Id: number) {
+    this.cliente.ruta_Id = ruta_Id;
+    this.generarCodigoClientePorRuta(ruta_Id);
+  }
+
+  generarCodigoClientePorRuta(ruta_Id: number): void {
+    // Busca la ruta seleccionada
+    const ruta = this.rutas.find(r => r.ruta_Id === ruta_Id);
+    if (!ruta) {
+      this.cliente.clie_Codigo = '';
+      return;
+    }
+    // Usa el código de la ruta o el ID con 3 dígitos
+    const codigoRuta = ruta.ruta_Codigo ? ruta.ruta_Codigo : ruta.ruta_Id.toString().padStart(3, '0');
+
+    // Trae todos los clientes de esa ruta
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(clientes => {
+      // Filtra los clientes de la ruta seleccionada
+      const clientesRuta = clientes.filter(c => c.ruta_Id === ruta_Id);
+
+      // Busca el mayor correlativo
+      let maxCorrelativo = 0;
+      clientesRuta.forEach(c => {
+        // Extrae el correlativo del código (ej: CLIE-RT504-000000123)
+        const match = c.clie_Codigo?.match(/CLIE-RT\d{3}-(\d{9})/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxCorrelativo) maxCorrelativo = num;
+        }
+      });
+
+      // Siguiente correlativo
+      const siguiente = (maxCorrelativo + 1).toString().padStart(9, '0');
+      this.cliente.clie_Codigo = `CLIE-RT${codigoRuta}-${siguiente}`;
+    });
+  }
+
   guardarCliente(): void {
     this.mostrarErrores = true;
     if (this.entrando) {
@@ -703,6 +739,7 @@ export class CreateComponent {
             this.idDelCliente = response.data.data;
             this.guardarDireccionesPorCliente(this.idDelCliente);
             this.guardarAvales(this.idDelCliente);
+            this.mostrarErrores = false;
             this.onSave.emit(this.cliente);
             this.cancelar();
           }
@@ -819,7 +856,6 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          console.log(response);
         },
         error: (error) => {
           this.mostrarAlertaError = true;
@@ -876,7 +912,6 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          // Puedes manejar la respuesta aquí
         },
         error: (error) => {
           this.mostrarAlertaError = true;
