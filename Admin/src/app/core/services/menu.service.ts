@@ -61,6 +61,7 @@ export class MenuService {
     70: '/reportes/reporteRuas',
     72: '/reportes/reporteProductosVendidos',
     73: '/reportes/reporteVendedoresVentas',
+    74: '/reportes/reporteCuentasClientes',
   };
 
   private menuItemsSubject: BehaviorSubject<MenuItem[]> = new BehaviorSubject<MenuItem[]>([]);

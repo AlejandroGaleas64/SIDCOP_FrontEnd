@@ -435,6 +435,13 @@ export const MENU: MenuItem[] = [
         parentId: 7,
         icon: 'ri-truck-line',
       },
+      {
+        id: 74,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTECUENTASCLIENTES',
+        link: '/reportes/reporteCuentasClientes',
+        parentId: 7,
+        icon: 'ri-truck-line',
+      },
     ],
   },
 ];

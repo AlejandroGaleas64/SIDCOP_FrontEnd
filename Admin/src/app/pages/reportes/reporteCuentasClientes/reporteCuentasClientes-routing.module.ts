@@ -5,7 +5,7 @@ const routes: Routes = [
   {
     path: '',
     data: {
-      title: 'Reportes de Ventas Por Vendedor'
+      title: 'Reportes de Cuentas Por Clientes'
     },
     children: [
       { 
@@ -15,9 +15,9 @@ const routes: Routes = [
       },
       {
         path: 'list',
-        loadComponent: () => import('./list/list.component').then(m => m.ReporteVendedoresVentasComponent),
+        loadComponent: () => import('./list/list.component').then(m => m.ReporteCuentasClientesComponent),
         data: {
-          title: 'Reporte Vendedores Ventas',
+          title: 'Reporte Cuentas Clientes',
         }
       },
     ]
@@ -28,4 +28,4 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
 })
-export class reporteVendedoresVentasRoutingModule {}
+export class reporteCuentasClientesRoutingModule {}
