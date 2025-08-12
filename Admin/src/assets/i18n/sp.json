@@ -70,7 +70,8 @@
         "REPORTERECARGAPORSBODEGA": "Reporte Recargas Por Bodega",
         "REPORTEDEVOLUCIONES": "Reporte Devoluciones",
         "REPORTERUTAS": "Reporte Rutas",
-        "REPORTEPRODUCTOSVENDIDOS": "Reporte Total Productos Vendidos"
+        "REPORTEPRODUCTOSVENDIDOS": "Reporte Total Productos Vendidos",
+        "REPORTEVENDEDORESVENTAS": "Reporte Vendedores Total Ventas"
       }
     },
     "DASHBOARD": {

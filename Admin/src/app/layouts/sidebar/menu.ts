@@ -428,6 +428,13 @@ export const MENU: MenuItem[] = [
         parentId: 7,
         icon: 'ri-truck-line',
       },
+      {
+        id: 73,
+        label: 'MENUITEMS.REPORTES.LIST.REPORTEVENDEDORESVENTAS',
+        link: '/reportes/reporteVendedoresVentas',
+        parentId: 7,
+        icon: 'ri-truck-line',
+      },
     ],
   },
 ];

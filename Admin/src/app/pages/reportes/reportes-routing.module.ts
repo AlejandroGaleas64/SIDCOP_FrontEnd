@@ -45,6 +45,13 @@ const routes: Routes = [
    canActivate: [PermisoGuard],
    data: { pantallaId: 72 } 
   },
+  {
+   path: 'reporteVendedoresVentas',
+   loadChildren: () =>
+     import('../reportes/reporteVendedoresVentas/reporteVendedoresVentas.module').then(m => m.ReporteVendedoresVentasModule),
+   canActivate: [PermisoGuard],
+   data: { pantallaId: 73 } 
+  },
 ];
 
 @NgModule({
