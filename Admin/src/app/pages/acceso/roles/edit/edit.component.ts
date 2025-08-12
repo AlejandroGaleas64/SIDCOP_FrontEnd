@@ -6,6 +6,16 @@ import { Rol } from 'src/app/Modelos/acceso/roles.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 
+interface TreeItem {
+  id: string;
+  name: string;
+  type: 'esquema' | 'pantalla' | 'accion';
+  selected: boolean;
+  expanded: boolean;
+  children?: TreeItem[];
+  parent?: TreeItem;
+}
+
 interface Permiso {
   perm_Id: number;
   acPa_Id: number;
@@ -36,16 +46,6 @@ interface PermisoInsertar {
   perm_FechaCreacion: string;
 }
 
-interface TreeItem {
-  id: string;
-  name: string;
-  type: 'esquema' | 'pantalla' | 'accion';
-  selected: boolean;
-  expanded: boolean;
-  children?: TreeItem[];
-  parent?: TreeItem;
-}
-
 interface Esquema {
   Esquema: string;
   Pantallas: Pantalla[];
@@ -67,14 +67,12 @@ interface Accion {
   standalone: true,
   imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './edit.component.html',
-  styleUrl: './edit.component.scss'
+  styleUrls: ['./edit.component.scss']
 })
 export class EditComponent implements OnChanges {
   @Input() rolData: Rol | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Rol>();
-
-  hayCambiosPermisos: boolean = false;
 
   rol: Rol = {
     role_Id: 0,
@@ -105,19 +103,18 @@ export class EditComponent implements OnChanges {
   permisosDelRol: string[] = [];
   permisosActuales: any[] = [];
   selectedItems: TreeItem[] = [];
-
-  // Ahora propiedades dinámicas
   accionesPorPantalla: { AcPa_Id: number, Pant_Id: number, Acci_Id: number }[] = [];
+
+  hayCambiosPermisos: boolean = false;
 
   constructor(private http: HttpClient) {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['rolData'] && changes['rolData'].currentValue) {
+    if (changes['rolData']?.currentValue) {
       this.rol = { ...changes['rolData'].currentValue };
       this.rolOriginal = this.rol.role_Descripcion || '';
       this.mostrarErrores = false;
       this.cerrarAlerta();
-      // Primero carga las acciones, luego permisos y pantallas
       this.cargarAccionesPorPantalla();
     }
   }
@@ -127,18 +124,15 @@ export class EditComponent implements OnChanges {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (data) => {
-        // Normalizar propiedades recibidas por la API a las usadas en el componente (mayúsculas)
         this.accionesPorPantalla = data.map(item => ({
           AcPa_Id: item.acPa_Id,
           Pant_Id: item.pant_Id,
           Acci_Id: item.acci_Id
         }));
-        // Luego carga permisos que depende de rol y acciones cargadas
         this.cargarPermisos();
       },
       error: (err) => {
         console.error('Error cargando acciones por pantalla:', err);
-        // Si falla carga permisos igual, pero la lista de acciones estará vacía
         this.accionesPorPantalla = [];
         this.cargarPermisos();
       }
@@ -190,17 +184,13 @@ export class EditComponent implements OnChanges {
                 };
               });
 
-              // Si alguna acción está seleccionada, marcar pantalla como seleccionada y expandida
               pantallaNode.selected = pantallaNode.children.some(c => c.selected);
               pantallaNode.expanded = pantallaNode.selected;
-
               return pantallaNode;
             });
 
-            // Si alguna pantalla está seleccionada, marcar esquema como seleccionado y expandido
             esquemaNode.selected = esquemaNode.children.some(c => c.selected);
             esquemaNode.expanded = true;
-
             return esquemaNode;
           });
 
@@ -275,7 +265,7 @@ export class EditComponent implements OnChanges {
       } else {
         if (pantalla && !pantalla.children?.some(acc => acc.selected)) {
           pantalla.selected = false;
-          if (esquema && !esquema.children?.some(pant => pant.selected)) {
+          if (esquema && !esquema.children?.some(p => p.selected)) {
             esquema.selected = false;
           }
         }
@@ -330,7 +320,6 @@ export class EditComponent implements OnChanges {
 
   alternarDesplegables(): void {
     const expandir = !this.hayExpandido;
-
     const cambiarExpansion = (items: TreeItem[], expandir: boolean) => {
       for (const item of items) {
         item.expanded = expandir;
@@ -338,35 +327,42 @@ export class EditComponent implements OnChanges {
           cambiarExpansion(item.children, expandir);
         }
       }
-    }
-
+    };
     cambiarExpansion(this.treeData, expandir);
   }
 
   validarEdicion(): void {
     this.mostrarErrores = true;
+    const nuevaDescripcion = this.rol.role_Descripcion.trim();
+    const descripcionCambiada = nuevaDescripcion !== this.rolOriginal;
 
-    if (this.rol.role_Descripcion.trim()) {
-      const permisosActuales = this.selectedItems
-        .filter(item => item.type === 'accion')
-        .map(item => {
-          const pantallaId = item.parent ? Number(item.parent.id.split('_').pop()) : undefined;
-          const accionId = Number(item.id.split('_').pop());
-          return `${pantallaId}_${accionId}`;
-        });
+    const permisosActuales = this.selectedItems
+      .filter(item => item.type === 'accion')
+      .map(item => {
+        const pantallaId = item.parent ? Number(item.parent.id.split('_').pop()) : undefined;
+        const accionId = Number(item.id.split('_').pop());
+        return `${pantallaId}_${accionId}`;
+      });
 
-      this.hayCambiosPermisos = JSON.stringify(this.permisosDelRol) !== JSON.stringify(permisosActuales);
+    const permisosCambiados = JSON.stringify(this.permisosDelRol.sort()) !== JSON.stringify(permisosActuales.sort());
+    this.hayCambiosPermisos = permisosCambiados;
 
-      if (this.rol.role_Descripcion.trim() !== this.rolOriginal || this.hayCambiosPermisos) {
-        this.mostrarConfirmacionEditar = true;
+    if (nuevaDescripcion && (descripcionCambiada || permisosCambiados)) {
+      if (descripcionCambiada && permisosCambiados) {
+        this.mensajeWarning = '¿Estás seguro que deseas modificar la descripción y los permisos de este rol?';
+      } else if (descripcionCambiada) {
+        this.mensajeWarning = '¿Estás seguro que deseas modificar la descripción de este rol?';
       } else {
-        this.mostrarAlertaWarning = true;
-        this.mensajeWarning = 'No se han detectado cambios.';
-        setTimeout(() => this.cerrarAlerta(), 4000);
+        this.mensajeWarning = '¿Estás seguro que deseas modificar los permisos de este rol?';
       }
-    } else {
+      this.mostrarConfirmacionEditar = true;
+    } else if (!nuevaDescripcion) {
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
+      setTimeout(() => this.cerrarAlerta(), 4000);
+    } else {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'No se han detectado cambios.';
       setTimeout(() => this.cerrarAlerta(), 4000);
     }
   }
@@ -419,11 +415,9 @@ export class EditComponent implements OnChanges {
 
       if (descripcionVacia && permisosVacios) {
         this.mensajeWarning = 'Por favor complete todos los campos requeridos y seleccione al menos un permiso antes de guardar.';
-      }
-      else if (permisosVacios) {
+      } else if (permisosVacios) {
         this.mensajeWarning = 'Por favor seleccione al menos un permiso antes de guardar.';
-      }
-      else if (descripcionVacia) {
+      } else if (descripcionVacia) {
         this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
       }
 
