@@ -92,6 +92,7 @@
                       class="form-select"
                       [class.is-invalid]="descuento.desc_Tipo == null"
                       [(ngModel)]="descuento.desc_Tipo"
+                      (ngModelChange)="onTipoCambio($event)"
                       required>
                           <option value="" disabled selected>Seleccione una opción</option>
                           <option value=true  selected>Monto Fijo</option>
