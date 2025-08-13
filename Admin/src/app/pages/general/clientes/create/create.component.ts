@@ -5,12 +5,9 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Cliente } from 'src/app/Modelos/general/Cliente.Model';
 import { environment } from 'src/environments/environment.prod';
 import { ChangeDetectorRef } from '@angular/core';
-
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { MapaSelectorComponent } from '../mapa-selector/mapa-selector.component';
 import { Aval } from 'src/app/Modelos/general/Aval.Model';
-
-import { NgModule } from '@angular/core';
 import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente.Model';
 import { getUserId } from 'src/app/core/utils/user-utils';
 
@@ -29,7 +26,7 @@ export class CreateComponent {
   @ViewChild('tabsScroll', { static: false }) tabsScroll!: ElementRef<HTMLDivElement>;
   @ViewChild(MapaSelectorComponent)
   mapaSelectorComponent!: MapaSelectorComponent;
-  
+
   entrando = true;
   activeTab = 1;
 
@@ -52,7 +49,7 @@ export class CreateComponent {
   parentescos: any[] = [];
   TodasColonias: any[] = [];
   TodasColoniasAval: any[] = [];
-
+  colonias: any[] = [];
 
   //Variables para el mapa
   latitudSeleccionada: number | null = null;
@@ -67,7 +64,7 @@ export class CreateComponent {
 
   //Id del cliente obtenido al crear el nuevo cliente
   idDelCliente: number = 0;
-  
+
 
   scrollToAval(index: number) {
     const container = this.tabsScroll.nativeElement;
@@ -86,9 +83,9 @@ export class CreateComponent {
   }
 
   esCorreoValido(correo: string): boolean {
-  if (!correo) return true;
-  // Solo acepta gmail.com y hotmail.com, y debe tener @ y .com
-  return /^[\w\.-]+@(gmail|hotmail|outlook)\.com$/.test(correo.trim());
+    if (!correo) return true;
+    // Solo acepta gmail.com y hotmail.com, y debe tener @ y .com
+    return /^[\w\.-]+@(gmail|hotmail|outlook)\.com$/.test(correo.trim());
   }
 
   //Declarado para validar la direccion
@@ -109,7 +106,6 @@ export class CreateComponent {
     if (no === 1) {
       this.mostrarErrores = true;
       if (
-        this.cliente.clie_Codigo.trim() &&
         this.cliente.clie_Nacionalidad.trim() &&
         this.cliente.clie_RTN.trim() &&
         this.cliente.clie_Nombres.trim() &&
@@ -237,7 +233,7 @@ export class CreateComponent {
   tabuladores(no: number) {
     if (no == 1) {
       this.mostrarErrores = true
-      if (this.cliente.clie_Codigo.trim() && this.cliente.clie_Nacionalidad.trim() &&
+      if (this.cliente.clie_Nacionalidad.trim() &&
         this.cliente.clie_RTN.trim() && this.cliente.clie_Nombres.trim() &&
         this.cliente.clie_Apellidos.trim() && this.cliente.esCv_Id &&
         this.cliente.clie_FechaNacimiento && this.cliente.tiVi_Id &&
@@ -261,7 +257,7 @@ export class CreateComponent {
         this.cliente.clie_NombreNegocio.trim() &&
         this.cliente.clie_ImagenDelNegocio.trim() &&
         this.cliente.ruta_Id &&
-        this.cliente.cana_Id && 
+        this.cliente.cana_Id &&
         this.validarDireccion
       ) {
         this.mostrarErrores = false;
@@ -365,6 +361,7 @@ export class CreateComponent {
       diCl_Id: 0,
       clie_Id: 0,
       colo_Id: 0,
+      colo_Descripcion: '',
       diCl_DireccionExacta: '',
       diCl_Observaciones: '',
       diCl_Latitud: 0,
@@ -387,6 +384,7 @@ export class CreateComponent {
     this.cargarParentescos();
     this.cargarColoniasCliente();
     this.cargarColoniasAval();
+    this.cargarColonias();
   }
 
   cargarPaises() {
@@ -439,6 +437,17 @@ export class CreateComponent {
     }).subscribe(data => this.TodasColoniasAval = data);
   }
 
+  cargarColonias() {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Colonia/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(data => this.colonias = data);
+  }
+
+  obtenerDescripcionColonia(colo_Id: number): string {
+    const colonia = this.colonias.find(c => c.colo_Id === colo_Id);
+    return colonia?.colo_Descripcion || 'Colonia no encontrada';
+  }
+
   cliente: Cliente = {
     clie_Id: 0,
     clie_Codigo: '',
@@ -486,6 +495,7 @@ export class CreateComponent {
     diCl_Id: 0,
     clie_Id: 0,
     colo_Id: 0,
+    colo_Descripcion: '',
     diCl_DireccionExacta: '',
     diCl_Observaciones: '',
     diCl_Latitud: 0,
@@ -620,6 +630,30 @@ export class CreateComponent {
     }
   }
 
+  generarCodigoClientePorRuta(ruta_Id: number): void {
+    const ruta = this.rutas.find(r => r.ruta_Id === +ruta_Id);
+    const codigoRuta = ruta?.ruta_Codigo
+      ? ruta.ruta_Codigo.padStart(3, '0')
+      : ruta_Id.toString().padStart(3, '0');
+
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(clientes => {
+      const clientesRuta = clientes.filter(c => c.ruta_Id === +ruta_Id);
+      let maxCorrelativo = 0;
+      clientesRuta.forEach(c => {
+        const match = c.clie_Codigo?.match(/CLIE-RT\d{3}-(\d{9})/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxCorrelativo) maxCorrelativo = num;
+        }
+      });
+
+      const siguiente = (maxCorrelativo + 1).toString().padStart(9, '0');
+      this.cliente.clie_Codigo = `CLIE-RT${codigoRuta}-${siguiente}`;
+    });
+  }
+
   guardarCliente(): void {
     this.mostrarErrores = true;
     if (this.entrando) {
@@ -656,8 +690,8 @@ export class CreateComponent {
         clie_ObservacionRetiro: this.cliente.clie_ObservacionRetiro.trim(),
         clie_Confirmacion: this.cliente.clie_Confirmacion,
         clie_Estado: true,
-        usua_Creacion: environment.usua_Id,
-        usua_Modificacion: environment.usua_Id,
+        usua_Creacion: getUserId(),
+        usua_Modificacion: getUserId(),
         secuencia: 0,
         clie_FechaCreacion: new Date(),
         clie_FechaModificacion: new Date(),
@@ -689,6 +723,7 @@ export class CreateComponent {
             this.idDelCliente = response.data.data;
             this.guardarDireccionesPorCliente(this.idDelCliente);
             this.guardarAvales(this.idDelCliente);
+            this.mostrarErrores = false;
             this.onSave.emit(this.cliente);
             this.cancelar();
           }
@@ -772,6 +807,7 @@ export class CreateComponent {
       diCl_Id: 0,
       clie_Id: 0,
       colo_Id: 0,
+      colo_Descripcion: '',
       diCl_DireccionExacta: '',
       diCl_Observaciones: '',
       diCl_Latitud: 0,
@@ -789,10 +825,11 @@ export class CreateComponent {
     for (const direccion of this.direccionesPorCliente) {
       const direccionPorClienteGuardar = {
         ...direccion,
+        colo_Descripcion: direccion?.colo_Descripcion || '',
         clie_Id: clie_Id,
-        usua_Creacion: environment.usua_Id,
+        usua_Creacion: getUserId(),
         diCl_FechaCreacion: new Date(),
-        usua_Modificacion: environment.usua_Id,
+        usua_Modificacion: getUserId(),
         diCl_FechaModificacion: new Date()
       };
       this.http.post<any>(`${environment.apiBaseUrl}/DireccionesPorCliente/Insertar`, direccionPorClienteGuardar, {
@@ -803,7 +840,6 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          console.log(response);
         },
         error: (error) => {
           this.mostrarAlertaError = true;
@@ -847,9 +883,9 @@ export class CreateComponent {
       const avalGuardar = {
         ...aval,
         clie_Id: clie_Id,
-        usua_Creacion: environment.usua_Id,
+        usua_Creacion: getUserId(),
         aval_FechaCreacion: new Date(),
-        usua_Modificacion: environment.usua_Id,
+        usua_Modificacion: getUserId(),
         aval_FechaModificacion: new Date()
       };
       this.http.post<any>(`${environment.apiBaseUrl}/Aval/Insertar`, avalGuardar, {
@@ -860,7 +896,6 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          // Puedes manejar la respuesta aquí
         },
         error: (error) => {
           this.mostrarAlertaError = true;
@@ -874,16 +909,16 @@ export class CreateComponent {
     }
   }
 
-formatearLimiteCredito() {
-  let valor = this.cliente.clie_LimiteCredito;
+  formatearLimiteCredito() {
+    let valor = this.cliente.clie_LimiteCredito;
 
-  if (valor === null || valor === undefined || isNaN(valor)) {
-    this.cliente.clie_LimiteCredito = 0.00;
-  } else {
-    // Redondear a dos decimales correctamente
-    this.cliente.clie_LimiteCredito = Math.round(valor * 100) / 100;
+    if (valor === null || valor === undefined || isNaN(valor)) {
+      this.cliente.clie_LimiteCredito = 0.00;
+    } else {
+      // Redondear a dos decimales correctamente
+      this.cliente.clie_LimiteCredito = Math.round(valor * 100) / 100;
+    }
   }
-}
 
 }
 

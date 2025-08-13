@@ -26,6 +26,7 @@ export interface TableData {
 
 @Injectable({
   providedIn: 'root'
+  
 })
 export class PdfReportService {
   private configuracionEmpresa: any = null;
@@ -183,6 +184,7 @@ export class PdfReportService {
     return yPos;
   }
 
+  
   private crearPiePagina(doc: jsPDF, data: any, datosReporte?: any[]) {
     doc.setFontSize(8);
     doc.setTextColor(this.COLORES.grisTexto);

@@ -33,13 +33,26 @@
                   <i class="ri-hashtag"></i>
                 </div>
                 <div class="detail-content">
-                  <div class="detail-label">Código</div>
+                  <div class="detail-label">ID</div>
                   <div class="detail-value">
                     {{ sucursalDetalle.sucu_Id }}
                   </div>
                 </div>
               </div>
             </div> -->
+            <div class="col-12 col-sm-4">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white">
+                  <i class="ri-file-list-3-line"></i>
+                </div>
+                <div class="detail-content">
+                  <div class="detail-label">Código</div>
+                  <div class="detail-value">
+                    {{ sucursalDetalle.sucu_Codigo || 'N/A' }}
+                  </div>
+                </div>
+              </div>
+            </div>
             <div class="col-12 col-sm-4">
               <div class="detail-item">
                 <div class="detail-icon bg-dark-blue text-white">
