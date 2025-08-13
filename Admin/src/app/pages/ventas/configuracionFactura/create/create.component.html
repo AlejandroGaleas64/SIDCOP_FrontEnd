@@ -82,65 +82,65 @@
             </div>
           </div>
 
-     <!-- RTN - Con validaciones -->
-<div class="col-md-6">
-  <div class="mb-3">
-    <label class="form-label">RTN</label>
-    <span class="text-danger" *ngIf="mostrarErrores">*</span>
-    <div class="d-flex align-items-center">
-      <i class="ri-newspaper-line" [ngStyle]="{
-        border: ((!configFactura.coFa_RTN.trim() || !isValidRTN(configFactura.coFa_RTN)) && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-        backgroundColor: ((!configFactura.coFa_RTN.trim() || !isValidRTN(configFactura.coFa_RTN)) && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-        padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-      </i>
-      <input 
-        type="text" 
-        class="form-control" 
-        [class.is-invalid]="((!configFactura.coFa_RTN.trim() || !isValidRTN(configFactura.coFa_RTN)) && mostrarErrores)"
-        id="clienteRTN" 
-        [(ngModel)]="configFactura.coFa_RTN" 
-        (input)="onRTNInput($event)"
-        placeholder="Ingrese 14 dígitos del RTN"
-        maxlength="14"
-        required />
-    </div>
-    <!-- Mensajes de error específicos para RTN -->
-    <div class="text-danger mt-1" *ngIf="!configFactura.coFa_RTN.trim() && mostrarErrores">
-      <small>El campo RTN es requerido</small>
-    </div>
-    <div class="text-danger mt-1" *ngIf="configFactura.coFa_RTN.trim() && !isValidRTN(configFactura.coFa_RTN) && mostrarErrores">
-      <small>El RTN debe tener exactamente 14 dígitos</small>
-    </div>
+          <!-- RTN - Con validaciones -->
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">RTN</label>
+              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-newspaper-line" [ngStyle]="{
+                    border: ((!configFactura.coFa_RTN.trim() || !isValidRTN(configFactura.coFa_RTN)) && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                    backgroundColor: ((!configFactura.coFa_RTN.trim() || !isValidRTN(configFactura.coFa_RTN)) && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [class.is-invalid]="((!configFactura.coFa_RTN.trim() || !isValidRTN(configFactura.coFa_RTN)) && mostrarErrores)"
+                  id="clienteRTN" 
+                  [(ngModel)]="configFactura.coFa_RTN" 
+                  (input)="onRTNInput($event)"
+                  placeholder="Ingrese 14 dígitos del RTN"
+                  maxlength="14"
+                  required />
+              </div>
+              <!-- Mensajes de error específicos para RTN -->
+              <div class="text-danger mt-1" *ngIf="!configFactura.coFa_RTN.trim() && mostrarErrores">
+                <small>El campo RTN es requerido</small>
+              </div>
+              <div class="text-danger mt-1" *ngIf="configFactura.coFa_RTN.trim() && !isValidRTN(configFactura.coFa_RTN) && mostrarErrores">
+                <small>El RTN debe tener exactamente 14 dígitos</small>
+              </div>
 
-  </div>
-</div>
+            </div>
+          </div>
 
-         <!-- CORREO ELECTRÓNICO - Con validaciones -->
-<div class="col-md-6 mb-3">
-  <label class="form-label me-2">Correo Electrónico</label>
-  <span class="text-danger">*</span>
-  <div class="d-flex align-items-center">
-    <i class="ri-mail-unread-line" [ngStyle]="{
-      border: ((!configFactura.coFa_Correo.trim() || !isValidEmail(configFactura.coFa_Correo)) && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-      backgroundColor: ((!configFactura.coFa_Correo.trim() || !isValidEmail(configFactura.coFa_Correo)) && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-      padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-    </i>
-    <input 
-      type="email" 
-      class="form-control" 
-      placeholder="ejemplo@empresa.com"
-      [(ngModel)]="configFactura.coFa_Correo"
-      [class.is-invalid]="((!configFactura.coFa_Correo.trim() || !isValidEmail(configFactura.coFa_Correo)) && mostrarErrores)"
-      required />
-  </div>
-  <!-- Mensajes de error específicos para correo -->
-  <div class="text-danger mt-1" *ngIf="!configFactura.coFa_Correo.trim() && mostrarErrores">
-    <small>El campo Correo Electrónico es requerido</small>
-  </div>
-  <div class="text-danger mt-1" *ngIf="configFactura.coFa_Correo.trim() && !isValidEmail(configFactura.coFa_Correo) && mostrarErrores">
-    <small>El formato del correo electrónico no es válido</small>
-  </div>
-</div>
+          <!-- CORREO ELECTRÓNICO - Con validaciones -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label me-2">Correo Electrónico</label>
+            <span class="text-danger">*</span>
+            <div class="d-flex align-items-center">
+              <i class="ri-mail-unread-line" [ngStyle]="{
+                border: ((!configFactura.coFa_Correo.trim() || !isValidEmail(configFactura.coFa_Correo)) && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: ((!configFactura.coFa_Correo.trim() || !isValidEmail(configFactura.coFa_Correo)) && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <input 
+                type="email" 
+                class="form-control" 
+                placeholder="ejemplo@empresa.com"
+                [(ngModel)]="configFactura.coFa_Correo"
+                [class.is-invalid]="((!configFactura.coFa_Correo.trim() || !isValidEmail(configFactura.coFa_Correo)) && mostrarErrores)"
+                required />
+            </div>
+            <!-- Mensajes de error específicos para correo -->
+            <div class="text-danger mt-1" *ngIf="!configFactura.coFa_Correo.trim() && mostrarErrores">
+              <small>El campo Correo Electrónico es requerido</small>
+            </div>
+            <div class="text-danger mt-1" *ngIf="configFactura.coFa_Correo.trim() && !isValidEmail(configFactura.coFa_Correo) && mostrarErrores">
+              <small>El formato del correo electrónico no es válido</small>
+            </div>
+          </div>
 
           <!-- TELÉFONO 1 -->
           <div class="col-md-6 mb-3">
@@ -152,7 +152,12 @@
                   backgroundColor: (!configFactura.coFa_Telefono1.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
-              <input type="text" class="form-control" placeholder="Teléfono 1"
+              <input 
+                type="text" 
+                class="form-control" 
+                mask="0000-0000"
+                maxlength="9"
+                placeholder="0000-0000"
                 [(ngModel)]="configFactura.coFa_Telefono1"
                 [class.is-invalid]="!configFactura.coFa_Telefono1.trim() && mostrarErrores"
                 required />
@@ -163,20 +168,28 @@
           </div>
 
           <!-- TELÉFONO 2 (OPCIONAL) -->
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label for="telefono2" class="form-label">Teléfono 2 (opcional)</label>
-              <div class="d-flex align-items-center">
-                <i class="ri-phone-fill" [ngStyle]="{
-                    border: '1px solid #e9ecf5',
-                    backgroundColor: '#f2f3f9',
-                    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-                  </i>
-                  <input type="text" class="form-control"  [(ngModel)]="configFactura.coFa_Telefono2"
-                    placeholder="Ingrese el teléfono 2" />
-                </div>
-              </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Teléfono 2 (Opcional)</label>
+            <div class="d-flex align-items-center">
+              <i class="ri-phone-fill" style="
+                  border: '1px solid #e9ecf5';
+                  backgroundColor: '#f2f3f9';
+                  padding: '0.525rem 0.525rem'; 
+                  position: 'relative'; 
+                  left: '7px'; 
+                  borderTopLeftRadius: '8px'; 
+                  borderBottomLeftRadius: '8px';
+                ">
+              </i>
+              <input 
+                type="text" 
+                class="form-control" 
+                mask="0000-0000"
+                maxlength="9"
+                placeholder="0000-0000"
+                [(ngModel)]="configFactura.coFa_Telefono2" />
             </div>
+          </div>
 
           <!-- COLONIA -->
           <div class="col-md-6">
