@@ -5,13 +5,21 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 
 @Component({
   selector: 'app-edit-config-factura',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    HttpClientModule, 
+    NgSelectModule,
+    NgxMaskDirective
+  ],
   templateUrl: './edit.component.html',
-  styleUrl: './edit.component.scss'
+  styleUrls: ['./edit.component.scss'],
+  providers: [provideNgxMask()]
 })
 export class EditConfigFacturaComponent implements OnChanges {
   @Input() configFacturaData: any | null = null;
