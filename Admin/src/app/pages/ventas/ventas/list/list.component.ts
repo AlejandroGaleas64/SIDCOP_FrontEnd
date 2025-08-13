@@ -11,6 +11,7 @@ import { PaginationModule } from 'ngx-bootstrap/pagination';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { CreateComponent } from '../create/create.component';
+import { DetailsComponent } from '../details/details.component';
 
 import {
   ExportService,
@@ -30,7 +31,8 @@ import { Respuesta } from 'src/app/Modelos/apiresponse.model';
     BreadcrumbsComponent,
     TableModule,
     PaginationModule,
-    CreateComponent 
+    CreateComponent,
+    DetailsComponent 
   ],
   templateUrl: './list.component.html',
   styleUrl: './list.component.scss',

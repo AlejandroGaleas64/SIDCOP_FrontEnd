@@ -69,18 +69,18 @@
 </div> -->
 
         <!-- Collapse para el formulario de detalles -->
-<!-- <div class="collapse" [ngClass]="{ 'show': showDetailsForm }" id="detailsFormCollapse">
+<div class="collapse" [ngClass]="{ 'show': showDetailsForm }" id="detailsFormCollapse">
   <div class="card card-body mb-3 d-flex flex-column" style="min-height: 400px; padding: 0.5rem;">
     <div class="container-fluid flex-grow-1">
        
       <app-details 
-        [trasladoId]="trasladoIdDetalle"
-        [trasladoData]="trasladoDetalle" 
+        [facturaId]="facturaIdDetalle"
+        [facturaData]="facturaDetalle" 
         (onClose)="cerrarFormularioDetalles()">
       </app-details>
     </div>
   </div>
-</div> -->
+</div>
 
 <div class="table-radius-container">
   <div class="table-responsive" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
