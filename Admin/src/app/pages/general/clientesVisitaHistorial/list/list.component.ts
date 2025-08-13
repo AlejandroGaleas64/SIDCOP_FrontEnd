@@ -217,6 +217,7 @@ export class ListComponent {
       status: ['', [Validators.required]],
       img: ['']
     });
+    this.cargarAccionesUsuario();
     this.cargarDatos(true);
     document.getElementById('elmLoader')?.classList.add('d-none');
   }
@@ -420,10 +421,30 @@ export class ListComponent {
 
   // constructor(private formBuilder: UntypedFormBuilder, private http: HttpClient) { }
   accionesDisponibles: string[] = [];
-  tieneRegistros: boolean = false;
-  // Método robusto para validar si una acción está permitida
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
+  }
+
+  private cargarAccionesUsuario(): void {
+    const permisosRaw = localStorage.getItem('permisosJson');
+    let accionesArray: string[] = [];
+    if (permisosRaw) {
+      try {
+        const permisos = JSON.parse(permisosRaw);
+        let modulo = null;
+        if (Array.isArray(permisos)) {
+          modulo = permisos.find((m: any) => m.Pant_Id === 71);
+        } else if (typeof permisos === 'object' && permisos !== null) {
+          modulo = permisos['Visitas de Clientes'] || permisos['visitas de clientes'] || null;
+        }
+        if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
+          accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
+        }
+      } catch (e) {
+        console.error('Error al parsear permisosJson:', e);
+      }
+    }
+    this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLocaleLowerCase());
   }
 
 
@@ -495,6 +516,30 @@ export class ListComponent {
     this.actualizarVendedoresVisibles();
   }
 
+  // private cargarDatos(state: boolean): void {
+  //   this.mostrarOverlayCarga = state;
+  //   this.http.get<Vendedor[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
+  //     headers: { 'x-api-key': environment.apiKey }
+  //   }).subscribe(data => {
+  //     setTimeout(() => {
+  //       this.mostrarOverlayCarga = false;
+  //       const tienePermisoListar = this.accionPermitida('listar');
+  //       const userId = getUserId();
+  //       const datosFiltrados = tienePermisoListar
+  //         ? data
+  //         : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
+
+  //       this.vendedorGrid = datosFiltrados || [];
+  //       this.busqueda = '';
+  //       this.currentPage = 1;
+  //       this.itemsPerPage = 10;
+  //       this.vendedoresFiltrados = [...this.vendedorGrid];
+  //       console.log('vendedoresFiltrados', this.vendedoresFiltrados);
+  //       this.actualizarVendedoresVisibles();
+  //     }, 500);
+  //   });
+  // }
+
   private cargarDatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
     this.http.get<Vendedor[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
@@ -504,6 +549,7 @@ export class ListComponent {
         this.mostrarOverlayCarga = false;
         const tienePermisoListar = this.accionPermitida('listar');
         const userId = getUserId();
+
         const datosFiltrados = tienePermisoListar
           ? data
           : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
@@ -513,7 +559,7 @@ export class ListComponent {
         this.currentPage = 1;
         this.itemsPerPage = 10;
         this.vendedoresFiltrados = [...this.vendedorGrid];
-        console.log('vendedoresFiltrados', this.vendedoresFiltrados);
+
         this.actualizarVendedoresVisibles();
       }, 500);
     });
