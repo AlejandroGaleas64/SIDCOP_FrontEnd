@@ -186,6 +186,7 @@ export class DetalleItem {
   porcentajeImpuesto: number = 0;
   descuentoUnitario: number = 0;
   porcentajeDescuento: number = 0;
+  prod_Imagen: string = '';
 
   constructor(init?: Partial<DetalleItem>) {
     Object.assign(this, init);

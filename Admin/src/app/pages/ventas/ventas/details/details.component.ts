@@ -128,6 +128,13 @@ export class DetailsComponent implements OnChanges {
       return detalle.faDe_Id || index;
     }
 
-
+    // Método para calcular el total de todos los impuestos sumando los impuestos de cada producto
+    calcularTotalImpuestos(): number {
+      if (!this.detallesFactura || this.detallesFactura.length === 0) return 0;
+      
+      return this.detallesFactura.reduce((total, detalle) => {
+        return total + (detalle.faDe_Impuesto || 0);
+      }, 0);
+    }
 
 }
