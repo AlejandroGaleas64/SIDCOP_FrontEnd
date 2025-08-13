@@ -3,7 +3,7 @@
   [breadcrumbItems]="breadCrumbItems"
 >
   <img class="breadcrumbs-icon ms-2 icon-breadcrumb"
-       style="width: 14vh; height: 12vh;" 
+       style="width: 10vh; height: 10vh;"
        src="assets/images/imagenes/download.svg" 
        alt="icono breadcrumb" />
 </app-breadcrumbs>
@@ -237,40 +237,25 @@
   </div>
 </div>
 
-<!-- FORMULARIO DE EDICIÓN -->
-<div *ngIf="showEditForm" [@fadeExpand] class="row mt-4">
-  <div class="col-lg-12">
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">
-          <i class="ri-edit-line me-2"></i>
-          Editar Recarga
-        </h5>
-        <button type="button" 
-                class="btn btn-sm btn-outline-secondary" 
-                (click)="cerrarFormularioEdicion()">
-          <i class="ri-close-line"></i>
-          Cerrar
-        </button>
-      </div>
-      <div class="card-body">
-        <app-edit-recarga
-          [recargaData]="recargaSeleccionada"
-          (onSave)="actualizarRecarga($event)"
-          (onCancel)="cerrarFormularioEdicion()"
-          *ngIf="recargaSeleccionada; else noRecargaTemplate">
-        </app-edit-recarga>
-
-        <ng-template #noRecargaTemplate>
+     <!-- Collapse para el formulario de edición -->
+        <div *ngIf="showEditForm" [@fadeExpand]>
+          <div class="card card-body mb-3 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
+            <div class="container-fluid flex-grow-1">
+              <app-edit-recarga 
+                [recargaData]="recargaSeleccionada" 
+                (onCancel)="cerrarFormularioEdicion()"  
+                (onSave)="actualizarRecarga($event)"
+                  *ngIf="recargaSeleccionada; else noRecargaTemplate">
+              </app-edit-recarga>
+              <ng-template #noRecargaTemplate>
           <div class="alert alert-info">
-            <i class="ri-information-line me-2"></i>
             No se ha seleccionado ninguna recarga para editar.
           </div>
         </ng-template>
-      </div>
-    </div>
-  </div>
-</div>
+            </div>-
+          </div>
+        </div>
+
 
 <!-- FORMULARIO DE DETALLES -->
 <div *ngIf="showDetailsForm" [@fadeExpand] class="row mt-4">
@@ -278,26 +263,23 @@
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">
-          <i class="ri-eye-line me-2"></i>
           Detalles de Recarga
         </h5>
         <button type="button" 
-                class="btn btn-sm btn-outline-secondary" 
-                (click)="cerrarFormularioDetalles()">
-          <i class="ri-close-line"></i>
-          Cerrar
+                class="btn-close" 
+                (click)="cerrarDetalles()"
+                aria-label="Cerrar detalles">
         </button>
       </div>
       <div class="card-body">
         <app-details
           [recargaData]="recargaSeleccionada"
-          (onClose)="cerrarFormularioDetalles()"
+          (onClose)="cerrarDetalles()"
           *ngIf="recargaSeleccionada; else noRecargaDetailsTemplate">
         </app-details>
 
         <ng-template #noRecargaDetailsTemplate>
           <div class="alert alert-info">
-            <i class="ri-information-line me-2"></i>
             No se ha seleccionado ninguna recarga para ver detalles.
           </div>
         </ng-template>
@@ -349,48 +331,29 @@
 </div>
 
 <!-- Menú flotante de acciones -->
-<ul *ngIf="floatingMenuService.show"
-    class="dropdown-menu show"
-    role="menu"
-    aria-label="Menú de acciones"
-    [ngStyle]="{
-      position: 'absolute',
-      top: floatingMenuService.top + 'px',
-      left: floatingMenuService.left + 'px',
-      zIndex: 1050
-    }">
-  <li *ngIf="accionPermitida('editar')" role="none">
-    <button type="button" 
-            class="dropdown-action-btn" 
-            role="menuitem"
-            (click)="editar(floatingMenuService.data); floatingMenuService.close()"
-            [attr.aria-label]="'Editar recarga ' + (floatingMenuService.data?.reca_Id || '')">
-      <i class="ri-edit-line me-2" aria-hidden="true"></i>
-      Confirmar
+
+
+<ul
+  *ngIf="floatingMenuService.show"
+  class="dropdown-menu show"  
+  [ngStyle]="{
+    position: 'absolute',
+    top: floatingMenuService.top + 'px',
+    left: floatingMenuService.left + 'px',
+  }">
+  <li *ngIf="accionPermitida('editar')">
+    <button type="button" class="dropdown-action-btn" (click)="editar(floatingMenuService.data); floatingMenuService.close()">
+      Editar <i class="ri-edit-line"></i>
     </button>
   </li>
-  <li *ngIf="accionPermitida('detalle')" role="none">
-    <button type="button" 
-            class="dropdown-action-btn" 
-            role="menuitem"
-            (click)="detalles(floatingMenuService.data); floatingMenuService.close()"
-            [attr.aria-label]="'Ver detalles de recarga ' + (floatingMenuService.data?.reca_Id || '')">
-      <i class="ri-eye-line me-2" aria-hidden="true"></i>
-      Ver Detalles
+  <li *ngIf="accionPermitida('detalle')">
+    <button type="button" class="dropdown-action-btn" (click)="detalles(floatingMenuService.data); floatingMenuService.close()">
+      Detalles <i class="ri-error-warning-fill"></i>
     </button>
   </li>
-  <!-- Agregar más acciones aquí si es necesario -->
-  <!-- <li *ngIf="accionPermitida('eliminar')" role="none">
-    <button type="button" 
-            class="dropdown-action-btn" 
-            role="menuitem"
-            (click)="confirmarEliminar(floatingMenuService.data); floatingMenuService.close()"
-            [attr.aria-label]="'Eliminar recarga ' + (floatingMenuService.data?.reca_Id || '')">
-      <i class="ri-delete-bin-line me-2" aria-hidden="true"></i>
-      Eliminar
-    </button>
-  </li> -->
 </ul>
+
+
 
 <!-- Overlay de carga -->
 <div *ngIf="mostrarOverlayCarga" 
