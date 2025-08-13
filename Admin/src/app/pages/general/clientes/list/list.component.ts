@@ -414,9 +414,9 @@ export class ListComponent {
         const permisos = JSON.parse(permisosRaw);
         let modulo = null;
         if (Array.isArray(permisos)) {
-          modulo = permisos.find((m: any) => m.Pant_Id === 63);
+          modulo = permisos.find((m: any) => m.Pant_Id === 10);
         } else if (typeof permisos === 'object' && permisos !== null) {
-          modulo = permisos['Usuarios'] || permisos['usuarios'] || null;
+          modulo = permisos['Clientes'] || permisos['clientes'] || null;
         }
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
