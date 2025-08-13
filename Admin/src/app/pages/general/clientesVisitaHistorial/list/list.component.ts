@@ -19,7 +19,7 @@ import { isTrustedHtml } from 'ngx-editor/lib/trustedTypesUtil';
 import { ClientesVisitaHistorial } from 'src/app/Modelos/general/ClientesVisitaHistorial.Model';
 import { DetailsComponent } from '../details/details.component';
 
-// import { CreateComponent } from '../create/create.component';
+import { CreateComponent } from '../create/create.component';
 // import { DetailsComponent } from '../details/details.component';
 // import { EditComponent } from '../edit/edit.component';
 import {
@@ -54,7 +54,7 @@ import { Vendedor } from 'src/app/Modelos/ventas/Vendedor.Model';
     SimplebarAngularModule,
     DropzoneModule,
     BreadcrumbsComponent,
-    // CreateComponent,
+    CreateComponent,
     // EditComponent,
     DetailsComponent,
   ],
@@ -105,26 +105,22 @@ export class ListComponent {
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
       { key: 'No', header: 'No.', width: 3, align: 'center' as const },
-      { key: 'Codigo', header: 'Codigo', width: 15, align: 'left' as const },
-      { key: 'RTN', header: 'RTN', width: 30, align: 'left' as const },
-      { key: 'Nombres', header: 'Nombres', width: 50, align: 'left' as const },
-      { key: 'Apellidos', header: 'Apellidos', width: 50, align: 'left' as const },
-      { key: 'Nombre del Negocio', header: 'Nombre del Negocio', width: 50, align: 'left' as const },
-      { key: 'Telefono', header: 'Telefono', width: 30, align: 'left' as const }
+      { key: 'Código Vendedor', header: 'Código Vendedor', width: 15, align: 'left' as const },
+      { key: 'Vendedor', header: 'Vendedor', width: 30, align: 'left' as const },
+      { key: 'Tipo', header: 'Tipo', width: 50, align: 'left' as const },
+      { key: 'Ruta', header: 'Ruta', width: 50, align: 'left' as const },
+      { key: 'Días de la semana', header: 'Días de la semana', width: 50, align: 'left' as const },
     ] as ExportColumn[],
 
     // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
-    // dataMapping: (visita: ClientesVisitaHistorial, index: number) => ({
-    //   'No': visita?.No || (index + 1),
-    //   'Codigo': this.limpiarTexto(visita?.clie_Codigo),
-    //   'RTN': this.limpiarTexto(cliente?.clie_RTN),
-    //   'Nombres': this.limpiarTexto(cliente?.clie_Nombres),
-    //   'Apellidos': this.limpiarTexto(cliente?.clie_Apellidos),
-    //   'Nombre del Negocio': this.limpiarTexto(cliente?.clie_NombreNegocio),
-    //   'Telefono': this.limpiarTexto(cliente?.clie_Telefono)
-    // Agregar más campos aquí según necesites:
-    // 'Campo': this.limpiarTexto(modelo?.campo),
-    // })
+    dataMapping: (visita: VisitaClientePorVendedorDto, index: number) => ({
+      'No': visita?.No || (index + 1),
+      'Código Vendedor': this.limpiarTexto(visita?.vend_Codigo),
+      'Vendedor': this.limpiarTexto(visita?.vend_Nombres + visita.vend_Apellidos),
+      'Tipo': this.limpiarTexto(visita?.vend_Tipo),
+      'Ruta': this.limpiarTexto(visita?.ruta_Descripcion),
+      'Días de la semana': this.limpiarTexto(visita?.veRu_Dias),
+    })
   };
 
 
@@ -133,11 +129,8 @@ export class ListComponent {
 
   listadoClientesSinConfirmar = false;
   activeActionRow: number | null = null;
-  showEdit = true;
   showDetails = true;
-  showDelete = true;
   showCreateForm = false; // Control del collapse
-  showEditForm = false; // Control del collapse de edición
   showDetailsForm = false; // Control del collapse de detalles
   isLoading = true;
 
@@ -155,8 +148,6 @@ export class ListComponent {
   visitaDetalle: VisitaClientePorVendedorDto | null = null;
   // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
-
-
 
 
   // Estado de exportación
@@ -228,61 +219,61 @@ export class ListComponent {
   /**
    * Método unificado para todas las exportaciones
    */
-  // async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
-  //   if (this.exportando) {
-  //     this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
-  //     return;
-  //   }
+  async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
+    if (this.exportando) {
+      this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
+      return;
+    }
 
-  //   if (!this.validarDatosParaExport()) {
-  //     return;
-  //   }
+    if (!this.validarDatosParaExport()) {
+      return;
+    }
 
-  //   try {
-  //     this.exportando = true;
-  //     this.tipoExportacion = tipo;
-  //     this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
+    try {
+      this.exportando = true;
+      this.tipoExportacion = tipo;
+      this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
 
-  //     const config = this.crearConfiguracionExport();
-  //     let resultado;
+      const config = this.crearConfiguracionExport();
+      let resultado;
 
-  //     switch (tipo) {
-  //       case 'excel':
-  //         resultado = await this.exportService.exportToExcel(config);
-  //         break;
-  //       case 'pdf':
-  //         resultado = await this.exportService.exportToPDF(config);
-  //         break;
-  //       case 'csv':
-  //         resultado = await this.exportService.exportToCSV(config);
-  //         break;
-  //     }
+      switch (tipo) {
+        case 'excel':
+          resultado = await this.exportService.exportToExcel(config);
+          break;
+        case 'pdf':
+          resultado = await this.exportService.exportToPDF(config);
+          break;
+        case 'csv':
+          resultado = await this.exportService.exportToCSV(config);
+          break;
+      }
 
-  //     this.manejarResultadoExport(resultado);
+      this.manejarResultadoExport(resultado);
 
-  //   } catch (error) {
-  //     console.error(`Error en exportación ${tipo}:`, error);
-  //     this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
-  //   } finally {
-  //     this.exportando = false;
-  //     this.tipoExportacion = null;
-  //   }
-  // }
+    } catch (error) {
+      console.error(`Error en exportación ${tipo}:`, error);
+      this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
+    } finally {
+      this.exportando = false;
+      this.tipoExportacion = null;
+    }
+  }
 
   /**
    * Métodos específicos para cada tipo (para usar en templates)
    */
-  // async exportarExcel(): Promise<void> {
-  //   await this.exportar('excel');
-  // }
+  async exportarExcel(): Promise<void> {
+    await this.exportar('excel');
+  }
 
-  // async exportarPDF(): Promise<void> {
-  //   await this.exportar('pdf');
-  // }
+  async exportarPDF(): Promise<void> {
+    await this.exportar('pdf');
+  }
 
-  // async exportarCSV(): Promise<void> {
-  //   await this.exportar('csv');
-  // }
+  async exportarCSV(): Promise<void> {
+    await this.exportar('csv');
+  }
 
   /**
    * Verifica si se puede exportar un tipo específico
@@ -299,38 +290,38 @@ export class ListComponent {
   /**
    * Crea la configuración de exportación de forma dinámica
    */
-  // private crearConfiguracionExport(): ExportConfig {
-  //   return {
-  //     title: this.exportConfig.title,
-  //     filename: this.exportConfig.filename,
-  //     data: this.obtenerDatosExport(),
-  //     columns: this.exportConfig.columns,
-  //     metadata: {
-  //       department: this.exportConfig.department,
-  //       additionalInfo: this.exportConfig.additionalInfo
-  //     }
-  //   };
-  // }
+  private crearConfiguracionExport(): ExportConfig {
+    return {
+      title: this.exportConfig.title,
+      filename: this.exportConfig.filename,
+      data: this.obtenerDatosExport(),
+      columns: this.exportConfig.columns,
+      metadata: {
+        department: this.exportConfig.department,
+        additionalInfo: this.exportConfig.additionalInfo
+      }
+    };
+  }
 
   /**
    * Obtiene y prepara los datos para exportación
    */
-  //  private obtenerDatosExport(): any[] {
-  //   try {
-  //     const datos = this.vendedores; // Use the array for cards
+   private obtenerDatosExport(): any[] {
+    try {
+      const datos = this.vendedores; // Use the array for cards
 
-  //     if (!Array.isArray(datos) || datos.length === 0) {
-  //       throw new Error('No hay datos disponibles para exportar');
-  //     }
+      if (!Array.isArray(datos) || datos.length === 0) {
+        throw new Error('No hay datos disponibles para exportar');
+      }
 
-  //     return datos.map((modelo, index) =>
-  //       this.exportConfig.dataMapping.call(this, modelo, index)
-  //     );
-  //   } catch (error) {
-  //     console.error('Error obteniendo datos:', error);
-  //     throw error;
-  //   }
-  // }
+      return datos.map((modelo, index) =>
+        this.exportConfig.dataMapping.call(this, modelo, index)
+      );
+    } catch (error) {
+      console.error('Error obteniendo datos:', error);
+      throw error;
+    }
+  }
 
 
   /**
@@ -428,8 +419,7 @@ export class ListComponent {
 
 
   crear(): void {
-    this.showCreateForm = !this.showCreateForm;
-    this.showEditForm = false;
+    this.showCreateForm = true;
     this.showDetailsForm = false;
     this.activeActionRow = null;
   }
@@ -530,7 +520,6 @@ export class ListComponent {
     // this.cargarVendedores();
   }
 
-
   currentPage: number = 1;
   itemsPerPage: number = 10;
 
@@ -627,11 +616,11 @@ export class ListComponent {
   }
 
 
-  // guardarVisita(visita: ClientesVisitaHistorial): void {
-  //   console.log('Visita guardada exitosamente desde create component:', visita);
-  //   this.cargarDatos(false);
-  //   this.cerrarFormulario();
-  // }
+  guardarVisita(visita: ClientesVisitaHistorial): void {
+    console.log('Visita guardada exitosamente desde create component:', visita);
+    this.cargarDatos(false);
+    this.cerrarFormulario();
+  }
 
   vendedores: any[] = [];
   vendedorSeleccionado: any = null;
@@ -639,16 +628,6 @@ export class ListComponent {
   mostrarDetalle: boolean = false;
   nuevoRegistro: any = { /* campos necesarios */ };
 
-
-
-
-  // verDetalle(vendedor: any) {
-  //   this.vendedorSeleccionado = vendedor;
-  //   this.http.get<any[]>(`${environment.apiBaseUrl}/ClientesVisitaHistorial/ListarPorVendedor/${id}`).subscribe(data => {
-  //     this.visitas = data;
-  //     this.mostrarDetalle = true;
-  //   });
-  // }
 
   // insertarVisita() {
   //   this.http.post(`${environment.apiBaseUrl}/ClientesVisitaHistorial/Insertar`, this.nuevoRegistro).subscribe(() => {
