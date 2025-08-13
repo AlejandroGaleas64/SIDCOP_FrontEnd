@@ -1,0 +1,223 @@
+<app-breadcrumbs
+  [title]="'Ventas'"
+  [breadcrumbItems]="[
+    { label: 'Ventas' },
+    { label: 'Ventas', active: true }
+  ]"
+>
+<img class="icon-breadcrumb" style="width: 10vh; height: 10vh;" src="assets/images/svg/Vector.svg" alt="breadcrumb icon" />
+</app-breadcrumbs>
+
+
+<div class="row">
+  <div class="col-lg-12">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-3 flex-wrap" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+          <!-- AQUI EMPIEZA LO BUENO PARA LAS ACCIONES, TENEMOS ACCIONPERMITIDA QUE VIENE DEL TS DONDE VEMOS LAS ACCIONES -->
+<button *ngIf="accionPermitida('crear')" type="button" class="btn btn-primary me-2 mb-2" (click)="crear()">
+            <span class="btn-text">Nuevo</span>
+            <span class="btn-icon"><i class="ri-add-line"></i></span>
+          </button> 
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <!-- Botones de exportación -->
+            <div class="export-buttons d-flex gap-1 mb-2">
+          <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarExcel()" title="Exportar a Excel">
+            <span class="btn-text">Excel</span>
+            <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
+          </button>
+          <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarPDF()" title="Exportar a PDF">
+            <span class="btn-text">PDF</span>
+            <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
+          </button>
+          <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarCSV()" title="Exportar a CSV">
+            <span class="btn-text">CSV</span>
+            <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
+          </button>
+            </div>
+            
+            <!-- Campo de búsqueda -->
+            <div class="search-box mb-2">
+              <input type="text" class="form-control search" placeholder="Buscar..." [(ngModel)]="table.searchTerm" (ngModelChange)="table.setSearchTerm($event)">
+              <i class="ri-search-line search-icon"></i>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Collapse para el formulario de creación -->
+<div class="collapse" [ngClass]="{ 'show': showCreateForm }" id="createFormCollapse">
+  <div class="card card-body mb-3 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
+    <div class="container-fluid flex-grow-1">
+     <app-create (onCancel)="cerrarFormulario()" (onSave)="guardarFactura($event)"></app-create>
+    </div>
+  </div>
+</div>
+
+        <!-- Collapse para el formulario de edición -->
+<!-- <div class="collapse" [ngClass]="{ 'show': showEditForm }" id="editFormCollapse">
+  <div class="card card-body mb-3 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
+    <div class="container-fluid flex-grow-1">
+      
+        <app-edit 
+        [trasladoData]="trasladoEditando" 
+        (onCancel)="cerrarFormularioEdicion()" 
+        (onSave)="actualizarTraslado($event)">
+      </app-edit>
+     
+    </div>
+  </div>
+</div> -->
+
+        <!-- Collapse para el formulario de detalles -->
+<!-- <div class="collapse" [ngClass]="{ 'show': showDetailsForm }" id="detailsFormCollapse">
+  <div class="card card-body mb-3 d-flex flex-column" style="min-height: 400px; padding: 0.5rem;">
+    <div class="container-fluid flex-grow-1">
+       
+      <app-details 
+        [trasladoId]="trasladoIdDetalle"
+        [trasladoData]="trasladoDetalle" 
+        (onClose)="cerrarFormularioDetalles()">
+      </app-details>
+    </div>
+  </div>
+</div> -->
+
+<div class="table-radius-container">
+  <div class="table-responsive" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+    <table class="table table-gridjs table-style">
+      <thead>
+        <tr>
+          <!-- Acciones -->
+          <th class="gridjs-th" *ngIf="accionPermitida('detalle')">
+            Acciones
+          </th>
+
+          <th class="gridjs-th">No.</th>
+          <th class="gridjs-th">Número</th>
+          <th class="gridjs-th">Tipo Documento</th>
+          <th class="gridjs-th">Fecha Emisión</th>
+          <th class="gridjs-th">Tipo Venta</th>
+          <th class="gridjs-th">Cliente</th>
+          <th class="gridjs-th">Negocio</th>
+          <th class="gridjs-th">Vendedor</th>
+          <th class="gridjs-th text-end">Subtotal</th>
+          <th class="gridjs-th text-end">Imp. 15%</th>
+          <th class="gridjs-th text-end">Imp. 18%</th>
+          <th class="gridjs-th text-end">Total</th>
+        </tr>
+      </thead>
+<tbody>
+  <tr *ngFor="let data of table.paginated$ | async; let i = index">
+    <!-- Acciones -->
+    <td *ngIf="accionPermitida('detalle')">
+      <div class="dropdown-action-list">
+        <button type="button"
+                class="dropdown-toggle"
+                [attr.aria-expanded]="false"
+                (click)="floatingMenuService.open($event, data)">
+          <span>Acciones</span>
+          <i class="ri-settings-3-line"></i>
+        </button>
+      </div>
+    </td>
+
+    <!-- Datos -->
+    <td>{{data.secuencia}}</td>
+    <td>{{data.fact_Numero}}</td>
+    <td>{{data.fact_TipoDeDocumento}}</td>
+    <td>{{data.fact_FechaEmision | date:'dd/MM/yyyy'}}</td>
+    <td>{{data.fact_TipoVenta}}</td>
+    <td>{{data.clie_NombreCompleto}}</td>
+    <td>{{data.clie_NombreNegocio}}</td>
+    <td>{{data.vend_NombreCompleto}}</td>
+    <td class="text-end">{{data.fact_Subtotal | number:'1.2-2'}}</td>
+    <td class="text-end">{{data.fact_TotalImpuesto15 | number:'1.2-2'}}</td>
+    <td class="text-end">{{data.fact_TotalImpuesto18 | number:'1.2-2'}}</td>
+    <td class="text-end">{{data.fact_Total | number:'1.2-2'}}</td>
+  </tr>
+</tbody>
+
+    </table>
+  </div>
+</div>
+
+        <div class="row justify-content-md-between align-items-md-center" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+          <ng-container *ngIf="(table.paginated$ | async) as paginados">
+            <div class="col-sm-12 col-md-5">
+              <div class="dataTables_info mb-2" role="status" aria-live="polite">
+                Mostrando
+                {{ (table.page - 1) * table.pageSizeValue + paginados.length }} de {{ table.total$ | async }}
+                registros
+              </div>
+            </div>
+            <div class="col-sm-12 col-md-5">
+              <div class="text-md-right float-md-end gridjs-pagination">
+                <pagination [totalItems]="(table.total$ | async) || 0" [(ngModel)]="table.page" [itemsPerPage]="table.pageSizeValue" (pageChanged)="table.setPage($event.page)"></pagination>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+<div class="alert-container" style="z-index: 3000;">
+  <!-- Alerta de éxito -->
+  <div *ngIf="mostrarAlertaExito" class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+    <strong>¡Éxito!</strong> {{ mensajeExito }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
+  
+  <!-- Alerta de advertencia -->
+  <div *ngIf="mostrarAlertaWarning" class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+    <strong>¡Atención!</strong> {{ mensajeWarning }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
+  
+  <!-- Alerta de error -->
+  <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+    <strong>¡Error!</strong> {{ mensajeError }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
+</div>
+
+<ul
+  *ngIf="floatingMenuService.show"
+  class="dropdown-menu show"  
+  [ngStyle]="{
+    position: 'absolute',
+    top: floatingMenuService.top + 'px',
+    left: floatingMenuService.left + 'px',
+  }">
+
+
+  <li *ngIf="accionPermitida('detalle')">
+    <button type="button" class="dropdown-action-btn" (click)="detalles(floatingMenuService.data); floatingMenuService.close()">
+      Detalles <i class="ri-error-warning-fill"></i>
+    </button>
+  </li>
+</ul> 
+
+
+
+
+<div *ngIf="mostrarOverlayCarga" class="overlay-carga">
+    <div class="typing-indicator">
+        <div class="typing-circle"></div>
+        <div class="typing-circle"></div>
+        <div class="typing-circle"></div>
+        <div class="typing-shadow"></div>
+        <div class="typing-shadow"></div>
+        <div class="typing-shadow"></div>
+    </div>
+</div>
