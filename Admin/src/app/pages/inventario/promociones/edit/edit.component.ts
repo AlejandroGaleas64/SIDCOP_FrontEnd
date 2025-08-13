@@ -162,7 +162,8 @@ activeTab: number = 1;
 
       // Si solo necesitas los IDs
       const clientesIds = clientesLista.map((c: any) => c.id);
-      this.producto.idClientes = clientesIds;
+      // Importante: crear copias para evitar referencias compartidas que impidan detectar cambios
+      this.producto.idClientes = [...clientesIds];
       console.log('Productos lista:', productosLista);
       // Transformar y aplicar las cantidades de productos seleccionados
       if (productosLista.length > 0) {
@@ -196,7 +197,8 @@ activeTab: number = 1;
   console.log('Cantidades aplicadas a productos:', cantidadesPorProducto);
 }
       
-      this.clientesSeleccionados = clientesIds;
+      // Copia independiente para que las mutaciones del UI no modifiquen el arreglo original por referencia
+      this.clientesSeleccionados = [...clientesIds];
       
       console.log('Clientes seleccionados cargados:', this.clientesSeleccionados);
       console.log('Productos cargados:', this.productos);
@@ -272,6 +274,11 @@ activeTab: number = 1;
   cancelar(): void {
     this.activeTab = 1
     this.cerrarAlerta();
+    this.producto = { ...this.productoOriginal };
+    this.productoData = null;
+    this.seleccionados = [];
+    this.clientesSeleccionados = [];
+    this.productos.forEach(producto => producto.cantidad = 0);
     this.onCancel.emit();
   }
 
@@ -594,8 +601,16 @@ if (serializeProductos(productosOriginal) !== serializeProductos(productosActual
 validarPasoInformacionGeneral(): boolean {
   const d = this.producto;
 
-    return !!d.prod_Codigo?.trim() && !!d.prod_Descripcion?.trim() && !!d.prod_DescripcionCorta?.trim() &&
-          !!d.prod_PrecioUnitario != null && d.prod_PrecioUnitario >= 0;
+    const isv = d.prod_PagaImpuesto? 'S' : 'N';
+  return !!d.prod_Codigo?.trim()
+    && !!d.prod_Descripcion?.trim()
+    && !!d.prod_DescripcionCorta?.trim()
+    && d.prod_PrecioUnitario != null
+    && d.prod_PrecioUnitario > 0
+     && (
+      (isv === 'N') ||
+      (isv === 'S'  && d.impu_Id != null && d.impu_Id > 0)
+    );
 }
 
 
