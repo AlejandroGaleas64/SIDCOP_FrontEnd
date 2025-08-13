@@ -44,7 +44,7 @@ export class EditRecargaComponent implements OnChanges {
     if (changes['recargaData']?.currentValue) {
       this.recarga = { 
         ...changes['recargaData'].currentValue,
-        reca_Confirmacion: changes['recargaData'].currentValue.reca_Confirmacion || '',
+        reca_Confirmacion: '', // Siempre iniciar con "Seleccione una opción"
         reca_Observaciones: changes['recargaData'].currentValue.reca_Observaciones || ''
       };
       this.recargaOriginal = { ...this.recarga };
@@ -110,26 +110,49 @@ private validarCampos(): boolean {
   private hayDiferencias(): boolean {
     if (!this.recarga || !this.recargaOriginal) return false;
 
-    const cambios = {
-      confirmacion: this.recarga.reca_Confirmacion !== this.recargaOriginal.reca_Confirmacion,
-      observaciones: this.recarga.reca_Observaciones !== this.recargaOriginal.reca_Observaciones
-    };
+    this.cambiosDetectados = {};
 
-    return cambios.confirmacion || cambios.observaciones;
+    // Verificar cambio en confirmación
+    if (this.recarga.reca_Confirmacion !== this.recargaOriginal.reca_Confirmacion) {
+      const getEstadoLabel = (estado: string) => {
+        switch (estado?.toUpperCase()) {
+          case 'A': return 'Aprobado/Confirmada';
+          case 'R': return 'Rechazado/Rechazada';
+          case 'P': return 'Pendiente';
+          default: return 'Sin estado';
+        }
+      };
+
+      this.cambiosDetectados.confirmacion = {
+        anterior: getEstadoLabel(this.recargaOriginal.reca_Confirmacion),
+        nuevo: getEstadoLabel(this.recarga.reca_Confirmacion),
+        label: 'Estado de Confirmación'
+      };
+    }
+
+    // Verificar cambio en observaciones
+    if (this.recarga.reca_Observaciones !== this.recargaOriginal.reca_Observaciones) {
+      this.cambiosDetectados.observaciones = {
+        anterior: this.recargaOriginal.reca_Observaciones || 'Sin observaciones',
+        nuevo: this.recarga.reca_Observaciones || 'Sin observaciones',
+        label: 'Observaciones'
+      };
+    }
+
+    return Object.keys(this.cambiosDetectados).length > 0;
   }
-
-  confirmarAccion(): void {
-    this.mostrarConfirmacionEditar = false;
-    this.guardar();
-  }
-
 
   obtenerListaCambios(): any[] {
     return Object.values(this.cambiosDetectados);
   }
 
-  cancelarConfirmacion(): void {
+  cancelarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
+  }
+
+  confirmarEdicion(): void {
+    this.mostrarConfirmacionEditar = false;
+    this.guardar();
   }
 
  private guardar(): void {
@@ -147,6 +170,7 @@ private validarCampos(): boolean {
         Reca_Confirmacion: String(this.recarga.reca_Confirmacion).substring(0, 1).toUpperCase(),
         Reca_Observaciones: String(this.recarga.reca_Observaciones || '').substring(0, 200),
         Usua_Modificacion: Number(userId),
+        Usua_Confirmacion : Number(userId),
         Recarga : "",
         detalles :  [], 
         Reca_FechaModificacion: new Date().toISOString()
