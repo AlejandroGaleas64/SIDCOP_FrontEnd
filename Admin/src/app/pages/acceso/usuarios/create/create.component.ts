@@ -171,9 +171,9 @@ export class CreateComponent {
   guardar(): void {
     this.mostrarErrores = true;
 
-    if (this.claveDatos < 2) {
+    if (this.claveDatos < 3) {
       this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'La contraseña debe ser al menos de seguridad media (letras y números o letras y caracteres especiales).';
+      this.mensajeWarning = 'La contraseña debe ser de nivel fuerte.';
       this.mostrarAlertaError = false;
       this.mostrarAlertaExito = false;
       setTimeout(() => {
