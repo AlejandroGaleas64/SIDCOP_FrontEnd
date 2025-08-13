@@ -25,7 +25,7 @@ export class CreateComponent {
 
   cargos: any[] = [];
   colonia: any[] = [];
-
+  empleados: any[] = [];
   @Output() onCancel = new EventEmitter<void>();
     @Output() onSave = new EventEmitter<Empleado>();
     
@@ -44,6 +44,7 @@ export class CreateComponent {
       this.obtenerEstadosCiviles();
       this.obtenerCargos();
       this.listarColonias();
+      this.cargarEmpleados();
     }
   
     empleado: Empleado = {
@@ -99,6 +100,8 @@ export class CreateComponent {
         empl_Estado: true,
         empl_Imagen: ''
       };
+       this.empleado.empl_Codigo = this.generarSiguienteCodigo();
+
       this.onCancel.emit();
     }
   
@@ -138,7 +141,7 @@ export class CreateComponent {
 
       const telefono = this.empleado.empl_Telefono.trim();
         
-      const estadoCivilGuardar = {
+      const empleadoGuardar = {
       empl_Id: 0,
       empl_DNI: dniMask,
       empl_Codigo: this.empleado.empl_Codigo,
@@ -161,10 +164,10 @@ export class CreateComponent {
       empl_FechaModificacion: new Date().toISOString(),
       };
       
-      console.log('Datos a enviar al backend:', estadoCivilGuardar);
-      console.log('URL de la imagen (empl_Imagen):', estadoCivilGuardar.empl_Imagen);
+      console.log('Datos a enviar al backend:', empleadoGuardar);
+      console.log('URL de la imagen (empl_Imagen):', empleadoGuardar.empl_Imagen);
         
-      this.http.post<any>(`${environment.apiBaseUrl}/Empleado/Insertar`, estadoCivilGuardar, {
+      this.http.post<any>(`${environment.apiBaseUrl}/Empleado/Insertar`, empleadoGuardar, {
       headers: { 
       'X-Api-Key': environment.apiKey,
       'Content-Type': 'application/json',
@@ -172,7 +175,7 @@ export class CreateComponent {
       }
       }).subscribe({
       next: (response) => {
-      console.log('Estado civil guardado exitosamente:', response);
+      console.log('Empleado guardado exitosamente:', response);
       this.mensajeExito = `Empleado "${this.empleado.empl_Nombres}" guardado exitosamente`;
       this.mostrarAlertaExito = true;
       this.mostrarErrores = false;
@@ -184,7 +187,7 @@ export class CreateComponent {
       }, 3000);
       },
       error: (error) => {
-      console.error('Error al guardar estado civil:', error);
+      console.error('Error al guardar Empleado:', error);
       this.mostrarAlertaError = true;
       this.mensajeError = 'Error al guardar el empleado. Por favor, intente nuevamente.';
       this.mostrarAlertaExito = false;
@@ -306,7 +309,21 @@ export class CreateComponent {
       }).subscribe((data) => this.colonia = this.ordenarPorMunicipioYDepartamento(data));
     };
 
-
+       cargarEmpleados() {
+        this.http.get<any[]>(`${environment.apiBaseUrl}/Empleado/Listar`, {
+          headers: { 'x-api-key': environment.apiKey }
+        }).subscribe(data => {
+          this.empleados = data; 
+          this.empleado.empl_Codigo = this.generarSiguienteCodigo();
+        },
+          error => {
+            console.error('Error al cargar los empleados:', error);
+          }
+        );
+    
+        
+      }
+    
     //Crear imagenes
 
     public dropzoneConfig: DropzoneConfigInterface = {
@@ -359,12 +376,21 @@ export class CreateComponent {
       removeFile(event: any) {
         this.uploadedFiles.splice(this.uploadedFiles.indexOf(event), 1);
       }
+
+
+generarSiguienteCodigo(): string {
+  
+  // Supón que tienes un array de promociones existentes llamado promociones
+  const codigos = this.empleados
+    .map(p => p.empl_Codigo)
+    .filter(c => /^EMP-\d{5}$/.test(c));
+  if (codigos.length === 0) return 'EMP-00001';
+
+  // Ordena y toma el mayor
+  const ultimoCodigo = codigos.sort().pop()!;
+  const numero = parseInt(ultimoCodigo.split('-')[1], 10) + 1;
+  return `EMP-${numero.toString().padStart(5, '0')}`;
 }
 
 
-
-
-
-
-
-
+}

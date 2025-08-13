@@ -66,7 +66,9 @@
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
                 borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
-                <input type="text"  id="codigo-input"  [(ngModel)]="empleado.empl_Codigo"  class="form-control" [class.is-invalid]="!empleado.empl_Codigo.trim() && mostrarErrores" placeholder="Ingrese el código" required>
+                <input type="text"         [disabled]="true"  id="codigo-input"  [(ngModel)]="empleado.empl_Codigo"
+                  class="form-control" [class.is-invalid]="!empleado.empl_Codigo.trim() && mostrarErrores" 
+                  placeholder="Ingrese el código" required>
               </div>
                 <div class="text-danger" *ngIf="!empleado.empl_Codigo.trim() && mostrarErrores">
                     <small>El código es requerido</small>
