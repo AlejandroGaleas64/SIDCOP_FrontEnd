@@ -173,25 +173,50 @@ export class ListComponent implements OnInit {
   private cargarDatosSesion(): void {
     try {
       const userId = getUserId();
+      console.log('User ID from getUserId():', userId);
+      
+      // Get the currentUser object from localStorage
+      const currentUserStr = localStorage.getItem('currentUser');
+      let currentUser = null;
+      let esAdmin = false;
+      
+      if (currentUserStr) {
+        try {
+          currentUser = JSON.parse(currentUserStr);
+          esAdmin = currentUser?.usua_EsAdmin === true;
+          console.log('Current user from localStorage:', currentUser);
+          console.log('Is admin from currentUser:', esAdmin);
+        } catch (e) {
+          console.error('Error parsing currentUser:', e);
+        }
+      }
+  
       if (!userId) {
         console.error('No se pudo obtener el ID del usuario');
         this.mostrarMensaje('error', 'Error al cargar datos del usuario');
         return;
       }
-
+  
+      // Set the current user with proper type conversion
       this.currentUser = {
         usua_Id: userId,
-        sucu_Id: localStorage.getItem('sucu_Id') ? parseInt(localStorage.getItem('sucu_Id')!) : 0,
-        usua_EsAdmin: localStorage.getItem('usua_EsAdmin') === 'true'
+        sucu_Id: currentUser?.sucu_Id || 0,
+        usua_EsAdmin: esAdmin
       };
-
+  
+      // Set the component property
       this.EsAdmin = this.currentUser.usua_EsAdmin;
+      
+      // Debug log to verify the value
+      console.log('Final admin status:', this.EsAdmin);
+      console.log('Current user object:', this.currentUser);
     } catch (error) {
       console.error('Error al cargar datos de sesión:', error);
       this.mostrarMensaje('error', 'Error al cargar configuración del usuario');
     }
   }
 
+  
    //Carga las acciones/permisos disponibles del usuario para este módulo
     private cargarAccionesUsuario(): void {
     const permisosRaw = localStorage.getItem('permisosJson');
