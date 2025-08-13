@@ -15,7 +15,7 @@ import { EditComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
 // Importar el servicio de exportación optimizado
-import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
+import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/exportHori.service';
 import {
   trigger,
   state,
@@ -81,7 +81,7 @@ export class ListComponent implements OnInit {
       title: 'Listado de Pedidos',                    // Título del reporte
       filename: 'Pedidos',                           // Nombre base del archivo
       department: 'Ventas',                         // Departamento
-      additionalInfo: 'SIDCOP',         // Información adicional
+      additionalInfo: '',         // Información adicional
       
       // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
       columns: [

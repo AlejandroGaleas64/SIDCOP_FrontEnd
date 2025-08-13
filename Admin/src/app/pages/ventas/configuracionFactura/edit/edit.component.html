@@ -157,7 +157,12 @@
                   backgroundColor: (!configFactura.coFa_Telefono1.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
-              <input type="text" class="form-control" placeholder="Teléfono 1"
+              <input 
+                type="text" 
+                class="form-control" 
+                mask="0000-0000"
+                maxlength="9"
+                placeholder="0000-0000"
                 [(ngModel)]="configFactura.coFa_Telefono1"
                 [class.is-invalid]="!configFactura.coFa_Telefono1.trim() && mostrarErrores"
                 required />
@@ -168,20 +173,28 @@
           </div>
 
           <!-- TELÉFONO 2 (OPCIONAL) -->
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label for="telefono2" class="form-label">Teléfono 2 (opcional)</label>
-              <div class="d-flex align-items-center">
-                <i class="ri-phone-fill" [ngStyle]="{
-                    border: '1px solid #e9ecf5',
-                    backgroundColor: '#f2f3f9',
-                    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-                  </i>
-                  <input type="text" class="form-control"  [(ngModel)]="configFactura.coFa_Telefono2"
-                    placeholder="Ingrese el teléfono 2" />
-                </div>
-              </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Teléfono 2 (Opcional)</label>
+            <div class="d-flex align-items-center">
+              <i class="ri-phone-fill" style="
+                  border: '1px solid #e9ecf5';
+                  backgroundColor: '#f2f3f9';
+                  padding: '0.525rem 0.525rem'; 
+                  position: 'relative'; 
+                  left: '7px'; 
+                  borderTopLeftRadius: '8px'; 
+                  borderBottomLeftRadius: '8px';
+                ">
+              </i>
+              <input 
+                type="text" 
+                class="form-control" 
+                mask="0000-0000"
+                maxlength="9"
+                placeholder="0000-0000"
+                [(ngModel)]="configFactura.coFa_Telefono2" />
             </div>
+          </div>
 
           <!-- COLONIA -->
           <div class="col-md-6">

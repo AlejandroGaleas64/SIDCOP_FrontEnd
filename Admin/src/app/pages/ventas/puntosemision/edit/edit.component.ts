@@ -25,6 +25,7 @@ export class EditComponent implements OnChanges {
   @Input() PEData: PuntoEmision | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<PuntoEmision>();
+  @Output() onOverlayChange = new EventEmitter<boolean>();
 
   puntoEmision: PuntoEmision = {
     puEm_Id: 0,
@@ -44,7 +45,6 @@ export class EditComponent implements OnChanges {
     estado: '',
   };
 
-  PEOriginal = '';
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -53,6 +53,9 @@ export class EditComponent implements OnChanges {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
+  Sucursales: any[] = [];
+  PEOriginal: any = {};
+
   ordenarPorMunicipioYDepartamento(sucursales: any[]): any[] {
     return sucursales.sort((a, b) => {
       if (a.depa_Descripcion < b.depa_Descripcion) return -1;
@@ -72,17 +75,15 @@ export class EditComponent implements OnChanges {
     );
   };
 
-  Sucursales: any[] = [];
-
   cargarSucursales() {
     this.http
       .get<any>(`${environment.apiBaseUrl}/Sucursales/Listar`, {
         headers: { 'x-api-key': environment.apiKey },
       })
-      .subscribe(
-        (data) =>
-          (this.Sucursales = this.ordenarPorMunicipioYDepartamento(data))
-      );
+      .subscribe((data) => {
+        this.Sucursales = this.ordenarPorMunicipioYDepartamento(data);
+        console.log('Sucursales', this.Sucursales);
+      });
   }
 
   constructor(private http: HttpClient) {
@@ -92,7 +93,8 @@ export class EditComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['PEData'] && changes['PEData'].currentValue) {
       this.puntoEmision = { ...changes['PEData'].currentValue };
-      this.PEOriginal = this.puntoEmision.puEm_Descripcion || '';
+      this.PEOriginal = { ...this.PEData };
+      //console.log('Punto Original', this.PEOriginal );
       this.mostrarErrores = false;
       this.cerrarAlerta();
     }
@@ -127,20 +129,61 @@ export class EditComponent implements OnChanges {
       return;
     }
 
-    const cambios =
-      this.puntoEmision.puEm_Codigo.trim() !==
-        (this.PEData?.puEm_Codigo?.trim() ?? '') ||
-      this.puntoEmision.puEm_Descripcion.trim() !==
-        (this.PEData?.puEm_Descripcion?.trim() ?? '') ||
-      this.puntoEmision.sucu_Id !== (this.PEData?.sucu_Id ?? 0);
-
-    if (cambios) {
+    if (this.hayDiferencias()) {
       this.mostrarConfirmacionEditar = true;
     } else {
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'No se han detectado cambios.';
       setTimeout(() => this.cerrarAlerta(), 4000);
     }
+  }
+
+  obtenerListaCambios(): any[] {
+    return Object.values(this.cambiosDetectados);
+  }
+
+  cambiosDetectados: any = {};
+
+  hayDiferencias(): boolean {
+    const a = this.puntoEmision;
+    const b = this.PEOriginal;
+    this.cambiosDetectados = {};
+
+    // Verificar cada campo y almacenar los cambios
+    if (a.puEm_Codigo !== b.puEm_Codigo) {
+      this.cambiosDetectados.codigo = {
+        anterior: b.puEm_Codigo,
+        nuevo: a.puEm_Codigo,
+        label: 'Código',
+      };
+    }
+
+    if (a.puEm_Descripcion !== b.puEm_Descripcion) {
+      this.cambiosDetectados.descripcion = {
+        anterior: b.puEm_Descripcion,
+        nuevo: a.puEm_Descripcion,
+        label: 'Descripción',
+      };
+    }
+
+    if (a.sucu_Id !== b.sucu_Id) {
+      const coloniaAnterior = this.Sucursales.find(
+        (c) => c.sucu_Id === b.sucu_Id
+      );
+      const coloniaNueva = this.Sucursales.find((c) => c.sucu_Id === a.sucu_Id);
+
+      this.cambiosDetectados.Observaciones = {
+        anterior: coloniaAnterior
+          ? `${coloniaAnterior.sucu_Descripcion} - ${coloniaAnterior.muni_Descripcion} - ${coloniaAnterior.depa_Descripcion}`
+          : 'No seleccionada',
+        nuevo: coloniaNueva
+          ? `${coloniaNueva.sucu_Descripcion} - ${coloniaNueva.muni_Descripcion} - ${coloniaNueva.depa_Descripcion}`
+          : 'No seleccionada',
+        label: 'Sucursal',
+      };
+    }
+
+    return Object.keys(this.cambiosDetectados).length > 0;
   }
 
   cancelarEdicion(): void {
@@ -155,7 +198,11 @@ export class EditComponent implements OnChanges {
   private guardar(): void {
     this.mostrarErrores = true;
 
-    if (this.puntoEmision.puEm_Descripcion.trim()) {
+    if (
+      this.puntoEmision.puEm_Descripcion.trim() &&
+      this.puntoEmision.puEm_Codigo.trim() &&
+      this.puntoEmision.sucu_Id > 0
+    ) {
       const PEActualizar = {
         puEm_Id: this.puntoEmision.puEm_Id,
         puEm_Codigo: this.puntoEmision.puEm_Codigo.trim(),
@@ -202,6 +249,7 @@ export class EditComponent implements OnChanges {
           },
         });
     } else {
+      console.log('Entro al else');
       this.mostrarAlertaWarning = true;
       this.mensajeWarning =
         'Por favor complete todos los campos requeridos antes de guardar.';

@@ -34,6 +34,7 @@ export class CreateComponent  {
     this.listarEmpleados();
     this.listarModelos();
     this.listarRutasDisponibles();
+    this.cargarVendedores();
   }
 
   vendedor: Vendedor = {
@@ -53,6 +54,7 @@ export class CreateComponent  {
     colo_Id: 0,
     sucu_Id: 0,
     vend_Estado:'',
+    vend_Imagen:'assets/images/users/32/user-svg.svg',
     vend_FechaCreacion: new Date(),
     vend_FechaModificacion: new Date(),
     usua_Creacion: 0,
@@ -69,6 +71,7 @@ export class CreateComponent  {
     supervisores: any[] = [];
     ayudantes: any[] = [];
     modelos: any[] = [];
+    vendedores: any[] = [];
 
 
     searchSucursal = (term: string, item: any) => {
@@ -110,6 +113,16 @@ listarRutasDisponibles(): void {
         this.recomputarOpciones();
       });
     }
+
+   cargarVendedores() {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(data => {this.vendedores = data; this.vendedor.vend_Codigo = this.generarSiguienteCodigo();},
+      error => {
+        console.error('Error al cargar las Vendedores:', error);
+      }
+    );
+  }
 
  listarSucursales(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Sucursales/Listar`, {
@@ -203,6 +216,7 @@ tieneAyudante: boolean = false;
     colo_Id: 0,
     sucu_Id: 0,
     vend_Estado:'',
+    vend_Imagen:'assets/images/users/32/user-svg.svg',
     vend_FechaCreacion: new Date(),
     vend_FechaModificacion: new Date(),
     usua_Creacion: 0,
@@ -212,6 +226,7 @@ tieneAyudante: boolean = false;
     usuarioCreacion: '',
     usuarioModificacion: ''
     };
+    this.vendedor.vend_Codigo = this.generarSiguienteCodigo();
     this.onCancel.emit();
   }
 
@@ -260,6 +275,7 @@ tieneAyudante: boolean = false;
       sucu_Id: this.vendedor.sucu_Id,
       vend_Supervisor: this.vendedor.vend_Supervisor || 0,
       vend_EsExterno: this.vendedor.vend_EsExterno || false,
+      vend_Imagen: this.vendedor.vend_Imagen,
       usua_Creacion: getUserId(),
       vend_FechaCreacion: new Date().toISOString(),
       usua_Modificacion: 0,
@@ -406,4 +422,45 @@ esDiaYaSeleccionado(diaId: number, indiceActual: number): boolean {
   );
 }
 
+generarSiguienteCodigo(): string {
+  
+  // Supón que tienes un array de promociones existentes llamado promociones
+  const codigos = this.vendedores
+    .map(p => p.vend_Codigo)
+    .filter(c => /^VEND-\d{5}$/.test(c));
+  if (codigos.length === 0) return 'VEND-00001';
+
+  // Ordena y toma el mayor
+  const ultimoCodigo = codigos.sort().pop()!;
+  const numero = parseInt(ultimoCodigo.split('-')[1], 10) + 1;
+  return `VEND-${numero.toString().padStart(5, '0')}`;
+}
+
+  onImagenSeleccionada(event: any) {
+    // Obtenemos el archivo seleccionado desde el input tipo file
+    const file = event.target.files[0];
+
+    if (file) {
+      // para enviar la imagen a Cloudinary
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'empleados');
+      //Subidas usuarios Carpeta identificadora en Cloudinary
+      //dwiprwtmo es el nombre de la cuenta de Cloudinary
+      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
+
+
+      fetch(url, {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(data => {
+          this.vendedor.vend_Imagen = data.secure_url;
+        })
+        .catch(error => {
+          console.error('Error al subir la imagen a Cloudinary:', error);
+        });
+    }
+  }
 }

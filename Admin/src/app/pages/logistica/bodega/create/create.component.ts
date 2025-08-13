@@ -202,11 +202,20 @@ export class CreateComponent  {
         }
       });
     } else {
+       if(this.bodega.bode_Capacidad <= 0) {
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = 'La capacidad de la bodega debe ser mayor a 0.';
+        this.mostrarAlertaError = false;
+        this.mostrarAlertaExito = false;
+       }
+       else{
+         this.mostrarAlertaWarning = true;
+        this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
+        this.mostrarAlertaError = false;
+        this.mostrarAlertaExito = false;
+       }
       // Mostrar alerta de warning para campos vacíos
-      this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
-      this.mostrarAlertaError = false;
-      this.mostrarAlertaExito = false;
+     
       
       // Ocultar la alerta de warning después de 4 segundos
       setTimeout(() => {

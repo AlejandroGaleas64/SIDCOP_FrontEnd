@@ -125,7 +125,7 @@ export class ReporteProductosPorRutaComponent implements OnInit {
         fila.push({
           content: producto.vend_DNI || 'N/A',
           rowSpan: rowSpanDNI,
-          styles: { valign: 'middle' }
+          styles: { halign: 'center', valign: 'middle' }
         });
       }
 
@@ -135,7 +135,7 @@ export class ReporteProductosPorRutaComponent implements OnInit {
         fila.push({
           content: producto.nombreCompleto || 'N/A',
           rowSpan: rowSpanVendedor,
-          styles: { valign: 'middle' }
+          styles: { halign: 'center', valign: 'middle' }
         });
       }
 
@@ -145,7 +145,7 @@ export class ReporteProductosPorRutaComponent implements OnInit {
         fila.push({
           content: producto.ruta_Descripcion || 'N/A',
           rowSpan: rowSpanRuta,
-          styles: { valign: 'middle' }
+          styles: { halign: 'center', valign: 'middle' }
         });
       }
 

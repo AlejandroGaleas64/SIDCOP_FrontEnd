@@ -1,5 +1,14 @@
 <div class="d-flex flex-column" style="height: 100%; min-height: 250px">
-  <h5 class="card-title mb-4">Crear Nuevo Cliente</h5>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="card-title mb-4">Crear Nuevo Cliente</h5>
+    <div class="d-flex justify-content-end align-items-center mb-2">
+      <span
+        class="codigo-cliente-mini"
+        [ngClass]="{'codigo-placeholder': !cliente.clie_Codigo}">
+        {{ cliente.clie_Codigo || 'CLIE-RT000-000000000' }}
+      </span>
+    </div>
+  </div>
 
   <div class="alert-container" style="position: relative; z-index: 10000;">
     <div *ngIf="mostrarAlertaExito"
@@ -58,29 +67,6 @@
     <!--=======================================-->
     <div *ngIf="activeTab === 1">
       <div class="row mx-lg-4">
-        <!-- Código -->
-        <div class="col-md-6">
-          <div class="mb-3">
-            <label for="clienteCodigo" class="form-label">Código</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
-            <div class="d-flex align-items-center">
-              <i class="ri-attachment-line"
-                [ngStyle]="{
-                border: (!cliente.clie_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.clie_Codigo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
-              <input type="text" class="form-control" [class.is-invalid]="
-                  !cliente.clie_Codigo.trim() && mostrarErrores
-                " id="clienteCodigo" [(ngModel)]="cliente.clie_Codigo" placeholder="Ingrese el código del cliente"
-                required />
-            </div>
-            <div class="text-danger mt-1" *ngIf="!cliente.clie_Codigo.trim() && mostrarErrores">
-              <small>El campo Código del Cliente es requerido</small>
-            </div>
-          </div>
-        </div>
-
         <!-- Nacionalidad -->
         <div class="col-md-6">
           <div class="mb-3">
@@ -439,6 +425,7 @@
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
               <select id="ruta_Id" class="form-select" [(ngModel)]="cliente.ruta_Id"
+                (change)="generarCodigoClientePorRuta(cliente.ruta_Id)"
                 [class.is-invalid]="!cliente.ruta_Id && mostrarErrores" required>
                 <option value="0" disabled selected>Seleccione una ruta</option>
                 <option *ngFor="let ruta of rutas" [value]="ruta.ruta_Id">
@@ -476,10 +463,9 @@
           <div class="card-content">
             <div class="info">
               <h2 class="direccion-nombre">{{ direccion.diCl_Observaciones }}</h2>
-              <p class="detalle"><i class="bx bxs-map-pin"></i> Colonia: {{ direccion.colo_Id }}</p>
               <p class="detalle"><i class="bx bx-current-location"></i> Lat: {{ direccion.diCl_Latitud }}, Lng:
                 {{direccion.diCl_Longitud }}</p>
-              <p class="detalle"><i class="bx bx-map"></i>Municipio: {{ direccion.muni_Descripcion }}</p>
+              <p class="detalle"><i class="bx bx-map"></i>Dirección Exacta: {{ direccion.muni_Descripcion }}</p>
             </div>
 
             <div class="ver-ubicacion">
@@ -1062,12 +1048,9 @@
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <select id="colo_Id" name="colo_Id" class="form-select" [(ngModel)]="direccionPorCliente.colo_Id"
-                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores" required
-                  (change)="cargarColoniasCliente()">
-                  <option value="0" disabled selected>
-                    Seleccione una Colonia
-                  </option>
-                  <option *ngFor="let colonia of TodasColonias" [value]="colonia.colo_Id">
+                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores" required>
+                  <option [ngValue]="0" disabled>Seleccione una Colonia</option>
+                  <option *ngFor="let colonia of TodasColonias" [ngValue]="colonia.colo_Id">
                     {{ colonia.colo_Descripcion }}, {{ colonia.muni_Descripcion }}, {{ colonia.depa_Descripcion }}
                   </option>
                 </select>

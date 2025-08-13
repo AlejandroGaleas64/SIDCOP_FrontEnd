@@ -25,7 +25,8 @@
         "MODELOS": "Modelos",
         "CANALES": "Canales",
         "EMPLEADOS": "Empleados",
-        "CARGOS": "Cargos"
+        "CARGOS": "Cargos",
+        "VISITASCLIENTES": "Visitas Clientes"
       }
     },
     "INVENTARIO": {
@@ -64,8 +65,12 @@
      "REPORTES": {
       "TEXT": "Reportes",
       "LIST": {
-        "REPORTEPRODUCTOS": "ReporteProductos"
-        
+        "REPORTEPRODUCTOS": "ReporteProductos",
+        "REPORTERECARGAPORSBODEGA": "Reporte Recargas Por Bodega",
+        "REPORTEDEVOLUCIONES": "Reporte Devoluciones",
+        "REPORTECLIENTES": "Reporte Clientes"
+
+      
       }
     },
     "DASHBOARD": {

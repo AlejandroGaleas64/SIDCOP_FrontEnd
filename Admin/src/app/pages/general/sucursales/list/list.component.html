@@ -25,9 +25,31 @@
             <span class="btn-text">Nuevo</span>
             <span class="btn-icon"><i class="ri-add-line"></i></span>
           </button>
-          <div class="search-box mb-2">
-            <input type="text" class="form-control search" placeholder="Buscar..." [(ngModel)]="table.searchTerm" (ngModelChange)="table.setSearchTerm($event)">
-            <i class="ri-search-line search-icon"></i>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <!-- Botones de exportación -->
+            <div class="export-buttons d-flex gap-1 mb-2">
+              <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarExcel()"
+                title="Exportar a Excel">
+                <span class="btn-text">Excel</span>
+                <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
+              </button>
+              <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarPDF()"
+                title="Exportar a PDF">
+                <span class="btn-text">PDF</span>
+                <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
+              </button>
+              <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarCSV()"
+                title="Exportar a CSV">
+                <span class="btn-text">CSV</span>
+                <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
+              </button>
+            </div>
+            <!-- Campo de búsqueda -->
+            <div class="search-box mb-2">
+              <input type="text" class="form-control search" placeholder="Buscar..." [(ngModel)]="table.searchTerm"
+                (ngModelChange)="table.setSearchTerm($event)">
+              <i class="ri-search-line search-icon"></i>
+            </div>
           </div>
         </div>
 
@@ -111,6 +133,19 @@
                       </span>
                     </span>
                   </th>
+                  <th class="gridjs-th" (click)="table.sortBy('sucu_Codigo')" style="cursor:pointer;">
+                    <span class="table-header-flex">
+                      Código
+                      <span style="display: flex; flex-direction: column;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="sortField === 'sucu_Codigo' && sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="sortField === 'sucu_Codigo' && sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
                   <th class="gridjs-th" (click)="table.sortBy('sucu_Telefono1')" style="cursor:pointer;">
                     <span class="table-header-flex">
                       Teléfono 1
@@ -155,6 +190,7 @@
                   <td><span class="fw-semibold">{{data.secuencia}}</span></td>
                   <td>{{data.sucu_Descripcion}}</td>
                   <td>{{data.sucu_DireccionExacta}}</td>
+                  <td>{{data.sucu_Codigo}}</td>
                   <td>{{data.sucu_Telefono1}}</td>
                   <td>{{data.sucu_Correo}}</td>
                 </tr>
