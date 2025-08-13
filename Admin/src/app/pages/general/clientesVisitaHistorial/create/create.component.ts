@@ -34,12 +34,12 @@ export class CreateComponent {
   mensajeError = '';
   direcciones: any;
   Clientes: any;
-  mostrarAlertaError = false; 
+  mostrarAlertaError = false;
 
   constructor(private http: HttpClient) {
     this.cargarCombos();
   }
-  
+
   cargarCombos() {
     // Cargar rutas
     this.http.get<any[]>(`${environment.apiBaseUrl}/Rutas/Listar`, {
@@ -57,32 +57,32 @@ export class CreateComponent {
     }).subscribe(data => this.estadosVisita = data);
   }
 
-      public dropzoneConfig: DropzoneConfigInterface = {
-      url: 'https://httpbin.org/post', // No subir a ningún endpoint automáticamente
-      clickable: true,
-      addRemoveLinks: true,
-      previewsContainer: false,
-      paramName: 'file',
-      maxFilesize: 50,
-      acceptedFiles: 'image/*',
+  public dropzoneConfig: DropzoneConfigInterface = {
+    url: 'https://httpbin.org/post', // No subir a ningún endpoint automáticamente
+    clickable: true,
+    addRemoveLinks: true,
+    previewsContainer: false,
+    paramName: 'file',
+    maxFilesize: 50,
+    acceptedFiles: 'image/*',
+  };
+
+  uploadedFiles: any[] = [];
+
+  // File Upload
+  imageURL: any;
+
+  onFileSelected(event: any) {
+    const file = Array.isArray(event) ? event[0] : event;
+    if (!file) return;
+
+    // Previsualización local inmediata
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.uploadedFiles = [{ ...file, dataURL: e.target.result, name: file.name, file: file }];
     };
-    
-    uploadedFiles: any[] = [];
-    
-    // File Upload
-    imageURL: any;
-
-    onFileSelected(event: any) {
-      const file = Array.isArray(event) ? event[0] : event;
-      if (!file) return;
-
-      // Previsualización local inmediata
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.uploadedFiles = [{ ...file, dataURL: e.target.result, name: file.name, file: file }];
-      };
-      reader.readAsDataURL(file);
-    }
+    reader.readAsDataURL(file);
+  }
 
   onImagenSeleccionada(event: any) {
     const file = event.target.files[0];
@@ -94,6 +94,9 @@ export class CreateComponent {
     reader.readAsDataURL(file);
   }
 
+  removeFile(event: any) {
+    this.uploadedFiles.splice(this.uploadedFiles.indexOf(event), 1);
+  }
   cerrarAlerta() {
     this.mensajeExito = '';
     this.mensajeWarning = '';
@@ -131,54 +134,50 @@ export class CreateComponent {
     });
   }
 
-    // ========== MÉTODOS DE CLIENTES (SIN CAMBIOS) ==========
-  
-    searchCliente = (term: string, item: any) => {
-      term = term.toLowerCase();
-      return (
-        item.clie_Codigo?.toLowerCase().includes(term) ||
-        item.clie_Nombres?.toLowerCase().includes(term) ||
-        item.clie_Apellidos?.toLowerCase().includes(term) ||
-        item.clie_NombreNegocio?.toLowerCase().includes(term)
-      );
-    };
-  
-    cargarClientes() {
-      this.http
-        .get<any>(`${environment.apiBaseUrl}/Cliente/Listar`, {
-          headers: { 'x-api-key': environment.apiKey },
-        })
-        .subscribe({
-          next: (data) => {
-            this.Clientes = data;
-            console.log('Clientes cargados:', this.Clientes);
-          },
-          error: (error) => {
-            console.error('Error al cargar clientes:', error);
-            this.mostrarAlertaError = true;
-            this.mensajeError =
-              'Error al cargar clientes. Por favor, intente nuevamente.';
-          },
-        });
-    }
-  
-    cargarDirecciones(clienteId: number) {
-      this.http
-        .get<any>(
-          `${environment.apiBaseUrl}/DireccionesPorCliente/Buscar/${clienteId}`,
-          {
-            headers: { 'x-api-key': environment.apiKey },
-          }
-        )
-        .subscribe((data) => (this.direcciones = data));
-    }
-  
-    onClienteSeleccionado(clienteId: number) {
-      this.cargarDirecciones(clienteId);
-      this.visita.diCl_Id = 0; // Reiniciar dirección seleccionada
-    }
+  // ========== MÉTODOS DE CLIENTES (SIN CAMBIOS) ==========
 
-    removeFile(event: any) {
-        this.uploadedFiles.splice(this.uploadedFiles.indexOf(event), 1);
-      }
+  searchCliente = (term: string, item: any) => {
+    term = term.toLowerCase();
+    return (
+      item.clie_Codigo?.toLowerCase().includes(term) ||
+      item.clie_Nombres?.toLowerCase().includes(term) ||
+      item.clie_Apellidos?.toLowerCase().includes(term) ||
+      item.clie_NombreNegocio?.toLowerCase().includes(term)
+    );
+  };
+
+  cargarClientes() {
+    this.http
+      .get<any>(`${environment.apiBaseUrl}/Cliente/Listar`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe({
+        next: (data) => {
+          this.Clientes = data;
+          console.log('Clientes cargados:', this.Clientes);
+        },
+        error: (error) => {
+          console.error('Error al cargar clientes:', error);
+          this.mostrarAlertaError = true;
+          this.mensajeError =
+            'Error al cargar clientes. Por favor, intente nuevamente.';
+        },
+      });
+  }
+
+  cargarDirecciones(clienteId: number) {
+    this.http
+      .get<any>(
+        `${environment.apiBaseUrl}/DireccionesPorCliente/Buscar/${clienteId}`,
+        {
+          headers: { 'x-api-key': environment.apiKey },
+        }
+      )
+      .subscribe((data) => (this.direcciones = data));
+  }
+
+  onClienteSeleccionado(clienteId: number) {
+    this.cargarDirecciones(clienteId);
+    this.visita.diCl_Id = 0; // Reiniciar dirección seleccionada
+  }
 }
