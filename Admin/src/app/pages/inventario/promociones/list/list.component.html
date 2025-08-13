@@ -255,18 +255,18 @@
                         }
                     </div>
                     <div class="modal-footer custom-modal-footer">
-                        <button type="button" class="btn btn-primary btn-sm btn-minw-5"
-                            (click)="cancelarEliminar()"><span class="btn-text">No</span><span class="btn-icon"><i
+                        <button type="button" class="btn btn-primary gold btn-sm btn-minw-5"
+                            (click)="cancelarEliminar()"><span class="btn-text">Cancelar</span><span class="btn-icon"><i
                                     class="ri-close-circle-line"></i></span></button>
                         @if(productoAEliminar?.prod_Estado){
-                        <button type="button" class="btn btn-primary green btn-sm btn-minw-5" (click)="eliminar()">
-                            <span class="btn-text">Si</span>
+                        <button type="button" class="btn btn-primary  btn-sm btn-minw-5" (click)="eliminar()">
+                            <span class="btn-text">Confirmar</span>
                             <span class="btn-icon"><i class="ri-check-line"></i></span>
                         </button>
                         }
                         @else if (!productoAEliminar?.prod_Estado) {
-                        <button type="button" class="btn btn-primary green btn-sm btn-minw-5" (click)="eliminar()">
-                            <span class="btn-text">Si</span>
+                        <button type="button" class="btn btn-primary btn-sm btn-minw-5" (click)="eliminar()">
+                            <span class="btn-text">Confirmar</span>
                             <span class="btn-icon"><i class="ri-check-line"></i></span>
                         </button>
                         }
