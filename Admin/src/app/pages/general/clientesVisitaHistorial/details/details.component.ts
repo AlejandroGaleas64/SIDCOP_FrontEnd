@@ -64,6 +64,7 @@ export class DetailsComponent implements OnChanges {
     setTimeout(() => {
       try {
         this.visitaDetalle = { ...data };
+        console.log(this.visitaDetalle);
         this.cargando = false;
       } catch (error) {
         console.error('Error al cargar detalles de la visita:', error);
