@@ -43,7 +43,7 @@ export class DetailsComponent implements OnChanges {
     }, 500);
   }
 
-  cerrar(): void {
+ cerrar(): void {
     this.onClose.emit();
   }
 
