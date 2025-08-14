@@ -14,6 +14,19 @@ import { getUserId } from 'src/app/core/utils/user-utils';
   styleUrl: './edit.component.scss'
 })
 export class EditComponent implements OnChanges {
+  // Devuelve la lista de cambios detectados para el modal de confirmación
+  obtenerListaCambios() {
+    const cambios = [];
+    if (this.marcasVehiculos.maVe_Marca?.trim() !== this.marcasVehiculosOriginal?.trim()) {
+      cambios.push({
+        label: 'Marca',
+        anterior: this.marcasVehiculosOriginal,
+        nuevo: this.marcasVehiculos.maVe_Marca
+      });
+    }
+    return cambios;
+  }
+
   @Input() marcasVehiculosData: MarcasVehiculos | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<MarcasVehiculos>();
