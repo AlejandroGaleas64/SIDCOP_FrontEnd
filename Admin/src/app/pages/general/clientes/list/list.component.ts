@@ -536,6 +536,10 @@ export class ListComponent {
   private cargarDatosSinConfirmar(state: boolean): void {
     this.clienteGrid = [];
     this.clientes = [];
+    this.showCreateForm = false;
+    this.showEditForm = false;
+    this.showDetailsForm = false;
+    this.listadoClientesSinConfirmar = true;
     this.mostrarOverlayCarga = state;
     this.http.get<Cliente[]>(`${environment.apiBaseUrl}/Cliente/ListarSinConfirmacion`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -584,6 +588,7 @@ export class ListComponent {
   }
 
   cerrarFormularioDetalles(): void {
+    this.cargarDatos(false);
     this.showDetailsForm = false;
     this.clienteDetalle = null;
   }
