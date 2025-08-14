@@ -552,11 +552,12 @@
             </ng-select>
             </div>
           </div>
-          <div class="col-md-2 d-flex align-items-center">
+          <div class="col-md-2 d-flex align-items-center" *ngIf="rutasVendedor.length > 1">
             <button type="button" class="btn btn-danger btn-sm" (click)="eliminarRuta(i)">
               <i class="ri-delete-bin-line"></i>
             </button>
           </div>
+          <div class="col-md-2" *ngIf="rutasVendedor.length === 1"></div>
         </div>
       </div>
     </div>
@@ -582,34 +583,117 @@
 </div>
 
 <!-- Modal de confirmación para editar -->
-<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }" [style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
-        <span>Confirmación</span>
-        <i class="ri-close-line custom-modal-close" (click)="cancelarEdicion()"></i>
+<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }"
+[style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
+<div class="modal-dialog modal-dialog-centered" role="document">
+  <div class="modal-content">
+    <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
+      <span>Confirmación</span>
+      <i class="ri-close-line custom-modal-close" (click)="cancelarEdicion()"></i>
+    </div>
+    <hr class="custom-modal-divider">
+    <div class="modal-body custom-modal-body">
+      <div class="text-center mb-3">
+        <p class="mt-2 custom-modal-text">
+          <i class="ri-edit-line me-2 custom-modal-alert-icon"></i>
+          ¿Estás seguro que deseas guardar los siguientes cambios en la configuración?
+        </p>
       </div>
-      <hr class="custom-modal-divider">
-      <div class="modal-body custom-modal-body">
-        <div class="text-center">
-          <p class="mt-2 custom-modal-text">
-            <i class="ri-edit-line me-2 custom-modal-alert-icon" (click)="cancelarEdicion()"></i>
-            ¿Estás seguro que deseas editar la bodega <strong>"{{ vendedorOriginal }}"</strong> por <strong>"{{ vendedor.vend_Nombres }} {{ vendedor.vend_Apellidos }}"</strong>?
-          </p>
+      
+      <!-- Lista de cambios detectados -->
+      <div class="changes-list" style="max-height: 300px; overflow-y: auto;">
+        <div *ngFor="let cambio of obtenerListaCambios()" class="change-item mb-3 p-3" 
+             style="border: 1px solid #e9ecef; border-radius: 8px; background-color: #f8f9fa;">
+          <div class="d-flex align-items-center mb-2">
+            <i class="ri-arrow-right-circle-line me-2 text-primary"></i>
+            <strong class="text-primary">{{ cambio.label }}</strong>
+          </div>
+          <div class="row">
+            <div class="col-6">
+              <small class="text-muted d-block">Original :</small>
+              <div class="p-2" style="background-color: #fff2f2; border-left: 3px solid #dc3545; border-radius: 4px;">
+                <span class="text-dark">{{ cambio.anterior }}</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block">Nuevo:</small>
+              <div class="p-2" style="background-color: #f0fff4; border-left: 3px solid #28a745; border-radius: 4px;">
+                <span class="text-dark">{{ cambio.nuevo }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="modal-footer custom-modal-footer">
-        <button type="button" class="btn btn-primary  btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
-          <span class="btn-text">No</span>
-          <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
-        </button>
-        <button type="button" class="btn btn-primary  btn-minw-5 btn-sm" (click)="confirmarEdicion()">
-          <span class="btn-text">Si</span>
-          <span class="btn-icon"><i class="ri-save-line"></i></span>
-        </button>
+
+        <!-- Detalle de cambios en Rutas -->
+        <div *ngIf="cambiosDetectados?.rutas?.detalle?.length" class="mt-3">
+          <small class="text-muted d-block mb-2">Detalle de cambios en rutas</small>
+          <div *ngFor="let det of cambiosDetectados.rutas.detalle" class="p-3 mb-2" style="border: 1px dashed #cbd3da; border-radius: 8px;">
+            <div class="d-flex align-items-center mb-2">
+              <i class="ri-route-line me-2 text-secondary"></i>
+              <strong>{{ det.accion }}: {{ det.ruta }}</strong>
+            </div>
+            <!-- Agregada/Eliminada muestran una sola fila de días -->
+            <div *ngIf="det.dias" class="mt-1">
+              <small class="text-muted d-block">Días:</small>
+              <div class="p-2" style="background:#f8f9fa; border-radius:6px;">{{ det.dias }}</div>
+            </div>
+            <!-- Modificada muestra antes y después -->
+            <div *ngIf="det.diasAnteriores || det.diasNuevos" class="row mt-1">
+              <div class="col-6">
+                <small class="text-muted d-block">Anterior:</small>
+                <div class="p-2" style="background:#fff2f2; border-left:3px solid #dc3545; border-radius:4px;">{{ det.diasAnteriores || '—' }}</div>
+              </div>
+              <div class="col-6">
+                <small class="text-muted d-block">Nuevo:</small>
+                <div class="p-2" style="background:#f0fff4; border-left:3px solid #28a745; border-radius:4px;">{{ det.diasNuevos || '—' }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      
+     
+      <div *ngIf="cambiosDetectados.imagen" class="mt-3 text-center">
+        <small class="text-muted d-block mb-2">Vista previa de la imagen:</small>
+        <div class="d-flex justify-content-center align-items-center gap-3">
+          <div class="text-center">
+            <small class="text-muted d-block">Anterior</small>
+            <img *ngIf="vendedorOriginal.vend_Imagen" 
+                 [src]="vendedorOriginal.vend_Imagen" 
+                 alt="Imagen anterior"
+                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6;">
+            <div *ngIf="!vendedorOriginal.vend_Imagen" 
+                 style="width: 60px; height: 60px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+              <i class="ri-image-line text-muted"></i>
+            </div>
+          </div>
+          <i class="ri-arrow-right-line text-primary"></i>
+          <div class="text-center">
+            <small class="text-muted d-block">Nuevo</small>
+            <img *ngIf="vendedor.vend_Imagen" 
+                 [src]="vendedor.vend_Imagen" 
+                 alt="Imagen nueva"
+                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6;">
+            <div *ngIf="!vendedor.vend_Imagen" 
+                 style="width: 60px; height: 60px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+              <i class="ri-image-line text-muted"></i>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+    <div class="modal-footer custom-modal-footer">
+      <button type="button" class="btn btn-primary btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
+        <span class="btn-text">No</span>
+        <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+      </button>
+      <button type="button" class="btn btn-primary btn-minw-5 btn-sm" (click)="confirmarEdicion()">
+        <span class="btn-text">Sí</span>
+        <span class="btn-icon"><i class="ri-save-line"></i></span>
+      </button>
+    </div>
   </div>
+</div>
 </div>
 
 <!-- Overlay para el modal -->
