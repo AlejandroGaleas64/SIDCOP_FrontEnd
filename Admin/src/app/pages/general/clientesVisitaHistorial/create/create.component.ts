@@ -87,20 +87,36 @@ export class CreateComponent implements OnInit {
   }
 
   cargarClientesPorRuta(rutaId: number) {
-    if (!rutaId) { this.clientesFiltrados = []; this.visita.cliente = null; return; }
+    if (!rutaId) { 
+      this.clientesFiltrados = [];
+      this.visita.cliente = null;
+      return; 
+    }
     this.cargando = true;
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/BuscarPorRuta/${rutaId}`, {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (data) => {
-        this.clientesFiltrados = data || [];
+        // Filtrar clientes por ruta_Id
+        this.clientesFiltrados = (data || []).filter(cliente => cliente.ruta_Id === rutaId);
         this.cargando = false;
-        if (this.clientesFiltrados.length === 1) { this.visita.cliente = this.clientesFiltrados[0]; this.onClienteSeleccionado(this.visita.cliente); }
-        else { this.visita.cliente = null; this.visita.direccion = null; this.direcciones = []; }
+        if (this.clientesFiltrados.length === 1) { 
+          this.visita.cliente = this.clientesFiltrados[0]; 
+          this.onClienteSeleccionado(this.visita.cliente); 
+        } else { 
+          this.visita.cliente = null; 
+          this.visita.direccion = null; 
+          this.direcciones = []; 
+        }
       },
-      error: () => { this.mostrarMensaje('Error al cargar la lista de clientes', 'error'); this.cargando = false; this.clientesFiltrados = []; }
+      error: () => { 
+        this.mostrarMensaje('Error al cargar la lista de clientes', 'error'); 
+        this.cargando = false; 
+        this.clientesFiltrados = []; 
+      }
     });
   }
+
 
   onClienteSeleccionado(cliente: any) {
     if (!cliente) { this.direcciones = []; this.visita.direccion = null; return; }
