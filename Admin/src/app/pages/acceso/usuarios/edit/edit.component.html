@@ -1,147 +1,303 @@
 <div class="d-flex flex-column" style="height: 100%; min-height: 250px;">
-    <h5 class="card-title mb-4">Editar Usuario</h5>
+  <h5 class="card-title mb-4">Editar Usuario</h5>
 
-    <div class="alert-container">
-        <div *ngIf="mostrarAlertaExito" class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
-            <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
-            <strong>¡Éxito!</strong> {{ mensajeExito }}
-            <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
-        </div>
-        <div *ngIf="mostrarAlertaWarning" class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
-            <i class="ri-alert-line me-3 align-middle fs-lg"></i>
-            <strong>¡Atención!</strong> {{ mensajeWarning }}
-            <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
-        </div>
-        <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
-            <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
-            <strong>¡Error!</strong> {{ mensajeError }}
-            <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
-        </div>
+  <div class="alert-container">
+    <div *ngIf="mostrarAlertaExito"
+      class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+      <strong>¡Éxito!</strong> {{ mensajeExito }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
     </div>
+    <div *ngIf="mostrarAlertaWarning"
+      class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+      <strong>¡Atención!</strong> {{ mensajeWarning }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+    <div *ngIf="mostrarAlertaError"
+      class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+      <strong>¡Error!</strong> {{ mensajeError }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+  </div>
 
-    <div class="d-flex justify-content-center mb-4">
-        <div style="position: relative;">
-            <img
-                [src]="usuario.usua_Imagen"
-                (error)="onImgError($event)"
-                alt="Foto de usuario"
-                class="rounded-circle"
-                style="width: 96px; height: 96px; object-fit: cover; border: 3px solid #d6b68a; background: #f5f5f5;"
-            />
-            <label for="inputImagen" style="position: absolute; bottom: 0; right: 0; background: #fff; border-radius: 50%; border: 1px solid #d6b68a; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-                <i class="ri-add-line" style="font-size: 1.5rem; color: #d6b68a;"></i>
-                <input id="inputImagen" type="file" accept="image/*" (change)="onImagenSeleccionada($event)" style="display: none;" />
-            </label>
-        </div>
-    </div>
-    <div class="text-center mb-3" style="font-size: 0.9rem;">
-        <label for="usua_Usuario" class="form-label">Usuario</label>
-    </div>
+  <div class="container-fluid">
+    <div class="row align-itemes-center">
 
-    <div class="flex-grow-1">
+      <!-- Imagen de Usuario -->
+      <div class="col-12 col-md-4 d-flex justify-content-center align-items-center mb-4 mb-md-0"
+        style="min-height: 220px;">
+        <div
+          [ngStyle]="{ border: '1px solid #d6b68a', borderRadius: '50%', position: 'relative', overflow: 'hidden', width: '120px', height: '120px', backgroundColor: '#f5f5f5'}"
+          class="mx-auto mb-3">
+          <input type="file" accept="image/*" (change)="onImagenSeleccionada($event)"
+            style="opacity: 0; position: absolute; width: 100%; height: 100%; left: 0; top: 0; cursor: pointer; z-index: 2;" />
+          <div *ngIf="!usuario.usua_Imagen"
+            style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1;">
+          </div>
+          <img *ngIf="usuario.usua_Imagen" [src]="usuario.usua_Imagen" alt="Previsualización"
+            style="width: 100%; height: 100%; object-fit: cover; z-index: 0;" />
+        </div>
+      </div>
+
+      <div class="col-12 col-md-8">
         <div class="row">
 
-            <!-- Usuario -->
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label for="usua_Usuario" class="form-label">Usuario</label>
-                    <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-                    <input type="text" class="form-control" id="usua_Usuario" [(ngModel)]="usuario.usua_Usuario" [class.is-invalid]="!usuario.usua_Usuario.trim() && mostrarErrores" placeholder="Ingrese el nombre de usuario" required/>
-                    <div class="text-danger mt-1" *ngIf="!usuario.usua_Usuario.trim() && mostrarErrores">
-                        <small>El campo Usuario es requerido</small>
-                    </div>
-                </div>
+          <!-- Usuario -->
+          <div class="col-12 col-md-6">
+            <div class="mb-3">
+              <label for="usua_Usuario" class="form-label">Usuario</label>
+              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-user-3-line"
+                  [ngStyle]="{
+                  border: (!usuario.usua_Usuario.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!usuario.usua_Usuario.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input type="text" class="form-control" id="usua_Usuario" [(ngModel)]="usuario.usua_Usuario"
+                  [class.is-invalid]="!usuario.usua_Usuario.trim() && mostrarErrores"
+                  placeholder="Ingrese el nombre de usuario" required />
+              </div>
             </div>
+            <div class="text-danger mt-1" *ngIf="!usuario.usua_Usuario.trim() && mostrarErrores">
+              <small>El campo Usuario es requerido</small>
+            </div>
+          </div>
 
-            <!-- Rol -->
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label for="role_Id" class="form-label">Rol</label>
-                    <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-                    <select id="role_Id" class="form-select" [(ngModel)]="usuario.role_Id" [class.is-invalid]="!usuario.role_Id && mostrarErrores" required>
-                        <option value=0 disabled selected>Seleccione un rol</option>
-                        <option *ngFor="let rol of roles" [value]="rol.role_Id">{{ rol.role_Descripcion }}</option>
+          <!-- Rol -->
+          <div class="col-12 col-md-6">
+            <div class="mb-3">
+              <label for="role_Id" class="form-label">Rol</label>
+              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-list-check-2"
+                  [ngStyle]="{
+                  border: (!usuario.role_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!usuario.role_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <ng-container *ngIf="usuario.usua_EsAdmin; else selectRol">
+                  <div class="form-control-plaintext ps-3"
+                    style="border-radius: 0.50rem;border: 1px solid #dde1ef;background-color: #f2f3f9d9;">Administrador
+                  </div>
+                </ng-container>
+
+                <ng-template #selectRol>
+                  <select id="role_Id" class="form-select" [(ngModel)]="usuario.role_Id" (change)="onRolChange($event)"
+                    [class.is-invalid]="!usuario.role_Id && mostrarErrores" required>
+                    <option value=0 disabled selected>Seleccione un rol</option>
+                    <option *ngFor="let rol of roles" [value]="rol.role_Id">{{ rol.role_Descripcion }}</option>
+                  </select>
+                </ng-template>
+              </div>
+              <div class="text-danger mt-1" *ngIf="!usuario.role_Id && mostrarErrores">
+                <small>El campo Rol es requerido</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empleado o Vendedor -->
+          <div class="col-12 col-md-6">
+            <div class="mb-3">
+              <ng-container *ngIf="!usuario.usua_EsAdmin; else adminEmpleado">
+                <div class="d-flex align-items-center mb-2">
+                  <label class="form-label mb-0 me-2">¿Es Vendedor?</label>
+                  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="usua_EsVendedor"
+                      [(ngModel)]="usuario.usua_EsVendedor" (change)="onVendedorToggle()"/>
+                  </div>
+                </div>
+
+                <div *ngIf="!usuario.usua_EsVendedor">
+                  <div class="d-flex align-items-center">
+                    <i class="ri-team-line"
+                      [ngStyle]="{
+                      border: (!usuario.usua_IdPersona && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                      backgroundColor: (!usuario.usua_IdPersona && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                      padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                    </i>
+                    <select id="usua_IdPersona" class="form-select" [(ngModel)]="usuario.usua_IdPersona"
+                      [class.is-invalid]="!usuario.usua_IdPersona && mostrarErrores" required>
+                      <option value=0 disabled>Seleccione un empleado</option>
+                      <option *ngFor="let emp of empleados" [value]="emp.empl_Id">{{ emp.empl_Nombres }} {{ emp.empl_Apellidos }} </option>
                     </select>
-                    <div class="text-danger mt-1" *ngIf="!usuario.role_Id && mostrarErrores">
-                        <small>El campo Rol es requerido</small>
-                    </div>
+                  </div>
+                  <div class="text-danger mt-1" *ngIf="!usuario.usua_IdPersona && mostrarErrores">
+                    <small>El campo Empleado es requerido</small>
+                  </div>
                 </div>
-            </div>
 
-            <!-- Empleado -->
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <div class="col-12" style="display: flex;">
-                        <div style="width: auto; margin-right: 10px;">
-                            <label class="form-label">¿Es Vendedor?</label>
-                            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-                        </div>
-                        <div class="form-check form-switch mb-2">
-                            <input
-                                class="form-check-input"
-                                type="checkbox"
-                                id="usua_EsVendedor"
-                                [(ngModel)]="usuario.usua_EsVendedor"
-                            />
-                        </div>
-                    </div>
-
-                    <div *ngIf="!usuario.usua_EsVendedor">
-                        <select id="usua_IdPersona" class="form-select" [(ngModel)]="usuario.usua_IdPersona" [class.is-invalid]="!usuario.usua_IdPersona && mostrarErrores" required>
-                            <option value=0 disabled selected>Seleccione un empleado</option>
-                            <option *ngFor="let emp of empleados" [value]="emp.empl_Id">{{ emp.empl_Nombres }}</option>
-                        </select>
-                        <div class="text-danger mt-1" *ngIf="!usuario.usua_IdPersona && mostrarErrores">
-                            <small>El campo Empleado es requerido</small>
-                        </div>
-                    </div>
-
-                    <div *ngIf="usuario.usua_EsVendedor">
-                        <select id="usua_IdPersona" class="form-select" [(ngModel)]="usuario.usua_IdPersona" [class.is-invalid]="!usuario.usua_IdPersona && mostrarErrores" required>
-                            <option value=0 disabled selected>Seleccione un vendedor</option>
-                            <option *ngFor="let ven of vendedores" [value]="ven.vend_Id">{{ ven.vend_Nombres }}</option>
-                        </select>
-                        <div class="text-danger mt-1" *ngIf="!usuario.usua_IdPersona && mostrarErrores">
-                            <small>El campo Vendedor es requerido</small>
-                        </div>
-                    </div>
+                <div *ngIf="usuario.usua_EsVendedor">
+                  <div class="d-flex align-items-center">
+                    <i class="ri-flag-line"
+                      [ngStyle]="{
+                      border: (!usuario.usua_IdPersona && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                      backgroundColor: (!usuario.usua_IdPersona && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                      padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                    </i>
+                    <select id="usua_IdPersona" class="form-select" [(ngModel)]="usuario.usua_IdPersona"
+                      [class.is-invalid]="!usuario.usua_IdPersona && mostrarErrores" required>
+                      <option value=0 disabled>Seleccione un vendedor</option>
+                      <option *ngFor="let ven of vendedores" [value]="ven.vend_Id">{{ ven.vend_Nombres }} {{ ven.vend_Apellidos }}</option>
+                    </select>
+                  </div>
+                  <div class="text-danger mt-1" *ngIf="!usuario.usua_IdPersona && mostrarErrores">
+                    <small>El campo Vendedor es requerido</small>
+                  </div>
                 </div>
-            </div>
+              </ng-container>
 
-            <!-- Es Admin -->
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label class="form-label">¿Es Administrador?</label>
-                    <div class="form-check form-switch">
-                        <input
-                            class="form-check-input"
-                            type="checkbox"
-                            id="usua_EsAdmin"
-                            [(ngModel)]="usuario.usua_EsAdmin"
-                        />
-                        <label class="form-check-label" for="usua_EsAdmin">
-                            {{ usuario.usua_EsAdmin ? 'Sí' : 'No' }}
-                        </label>
-                    </div>
+              <ng-template #adminEmpleado>
+                <label class="form-label">Empleado</label>
+                <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+                <div class="d-flex align-items-center">
+                  <i class="ri-user-settings-line"
+                    [ngStyle]="{
+                    border: (!usuario.usua_IdPersona && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                    backgroundColor: (!usuario.usua_IdPersona && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                  </i>
+                  <select id="usua_IdPersona" class="form-select" [(ngModel)]="usuario.usua_IdPersona" (change)="onEmpleadoChange($event)"
+                    [class.is-invalid]="!usuario.usua_IdPersona && mostrarErrores" required>
+                    <option value=0 disabled>Seleccione un empleado</option>
+                    <option *ngFor="let emp of empleados" [value]="emp.empl_Id">{{ emp.empl_Nombres }} {{ emp.empl_Apellidos }}</option>
+                  </select>
                 </div>
+                <div class="text-danger mt-1" *ngIf="!usuario.usua_IdPersona && mostrarErrores">
+                  <small>El campo Empleado es requerido</small>
+                </div>
+              </ng-template>
             </div>
+          </div>
+
+          <!-- Es Admin -->
+          <div class="col-12 col-md-6">
+            <div class="mb-3">
+              <label class="form-label">¿Es Administrador?</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="usua_EsAdmin" [(ngModel)]="usuario.usua_EsAdmin"
+                  (change)="onAdminToggle()" />
+                <label class="form-check-label" for="usua_EsAdmin">
+                  {{ usuario.usua_EsAdmin ? 'Sí' : 'No' }}
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tiene Permisos -->
+          <div class="col-12 col-md-6">
+            <div class="mb-3">
+              <label class="form-label">¿Tiene Permisos?</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="usua_TienePermisos" [(ngModel)]="usuario.usua_TienePermisos"/>
+                <label class="form-check-label" for="usua_TienePermisos">
+                  {{ usuario.usua_TienePermisos ? 'Sí' : 'No' }}
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
-
-    <div class="mt-auto pt-3">
-        <div class="row">
-            <div class="col-12">
-                <div class="d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-primary gold" (click)="cancelar()">
-                        <span class="btn-text">Cancelar</span>
-                        <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
-                    </button>
-                    <button type="button" class="btn btn-primary" (click)="guardar()">
-                        <span class="btn-text">Guardar</span>
-                        <span class="btn-icon"><i class="ri-save-line"></i></span>
-                    </button>
-                </div>
-            </div>
+  </div>
+  <div class="mt-auto pt-3">
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-primary gold" (click)="cancelar()">
+            <span class="btn-text">Cancelar</span>
+            <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+          </button>
+          <button type="button" class="btn btn-primary" (click)="validarEdicion()">
+            <span class="btn-text">Guardar</span>
+            <span class="btn-icon"><i class="ri-save-line"></i></span>
+          </button>
         </div>
+      </div>
     </div>
+  </div>
+</div>
+
+
+
+<div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEditar }" *ngIf="mostrarConfirmacionEditar">
+</div>
+<!-- Modal de confirmación -->
+<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }"
+  [style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
+        <span>Confirmación</span>
+        <i class="ri-close-line custom-modal-close" (click)="cancelarEdicion()"></i>
+      </div>
+      <hr class="custom-modal-divider">
+      <div class="modal-body custom-modal-body">
+        <div class="text-center mb-3">
+          <p class="mt-2 custom-modal-text">
+            <i class="ri-edit-line me-2 custom-modal-alert-icon"></i>
+            ¿Estás seguro que deseas guardar los siguientes cambios en el usuario?
+          </p>
+        </div>
+
+        <!-- Lista de cambios detectados -->
+        <div class="changes-list" style="max-height: 300px; overflow-y: auto;">
+          <div *ngFor="let cambio of obtenerListaCambios()" class="change-item mb-3 p-3"
+            style="border: 1px solid #e9ecef; border-radius: 8px; background-color: #f8f9fa;">
+            <div class="d-flex align-items-center mb-2">
+              <i class="ri-arrow-right-circle-line me-2 text-primary"></i>
+              <strong class="text-primary">{{ cambio.label }}</strong>
+            </div>
+            <div class="row">
+              <div class="col-6">
+                <small class="text-muted d-block">Original :</small>
+                <div class="p-2" style="background-color: #fff2f2; border-left: 3px solid #dc3545; border-radius: 4px;">
+                  <ng-container *ngIf="cambio.label !== 'Imagen de Usuario'; else imgAnterior">
+                    <span class="text-dark">{{ cambio.anterior }}</span>
+                  </ng-container>
+                  <ng-template #imgAnterior>
+                    <img *ngIf="cambio.anterior" [src]="cambio.anterior" alt="Imagen anterior"
+                      style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6;">
+                    <div *ngIf="!cambio.anterior"
+                      style="width: 60px; height: 60px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                      <i class="ri-image-line text-muted"></i>
+                    </div>
+                  </ng-template>
+                </div>
+              </div>
+              <div class="col-6">
+                <small class="text-muted d-block">Nuevo:</small>
+                <div class="p-2" style="background-color: #f0fff4; border-left: 3px solid #28a745; border-radius: 4px;">
+                  <ng-container *ngIf="cambio.label !== 'Imagen de Usuario'; else imgNuevo">
+                    <span class="text-dark">{{ cambio.nuevo }}</span>
+                  </ng-container>
+                  <ng-template #imgNuevo>
+                    <img *ngIf="cambio.nuevo" [src]="cambio.nuevo" alt="Imagen nueva"
+                      style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6;">
+                    <div *ngIf="!cambio.nuevo"
+                      style="width: 60px; height: 60px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                      <i class="ri-image-line text-muted"></i>
+                    </div>
+                  </ng-template>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer custom-modal-footer">
+        <button type="button" class="btn btn-primary btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
+          <span class="btn-text">No</span>
+          <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+        </button>
+        <button type="button" class="btn btn-primary btn-minw-5 btn-sm" (click)="confirmarEdicion()">
+          <span class="btn-text">Sí</span>
+          <span class="btn-icon"><i class="ri-save-line"></i></span>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

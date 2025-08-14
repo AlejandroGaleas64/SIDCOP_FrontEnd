@@ -18,6 +18,7 @@ import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { isTrustedHtml } from 'ngx-editor/lib/trustedTypesUtil';
 import { Empleado } from 'src/app/Modelos/general/Empleado.Model';
+import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
 
 import { ReactiveTableService } from 'src/app/shared/reactive-table.service';
 
@@ -75,6 +76,42 @@ import { EditComponent } from '../edit/edit.component';
 // Grid Component
 
 export class ListComponent {
+
+  private readonly exportConfig = {
+      // Configuración básica
+      title: 'Listado de Empleados',                    // Título del reporte
+      filename: 'Empleados',                           // Nombre base del archivo
+      department: 'General',                         // Departamento
+      additionalInfo: 'Sistema de Gestión',         // Información adicional
+      
+      // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
+      columns: [
+        { key: 'No', header: 'No.', width: 3, align: 'center' as const },
+        { key: 'Codigo', header: 'Codigo', width: 15, align: 'left' as const },
+        { key: 'DNI', header: 'DNI', width: 40, align: 'left' as const },
+        { key: 'Nombres', header: 'Nombres', width: 50, align: 'left' as const },
+        { key: 'Apellidos', header: 'Apellidos', width: 50, align: 'left' as const },
+        { key: 'Telefono', header: 'Telefono', width: 40, align: 'left' as const }
+      ] as ExportColumn[],
+      
+      // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
+      dataMapping: (empleado: Empleado, index: number) => ({
+        'No': empleado?.empl_Id || (index + 1),
+        'Codigo': this.limpiarTexto(empleado?.empl_Codigo),
+        'DNI': this.limpiarTexto(empleado?.empl_DNI),
+        'Nombres': this.limpiarTexto(empleado?.empl_Nombres),
+        'Apellidos': this.limpiarTexto(empleado?.empl_Apellidos),
+        'Telefono': this.limpiarTexto(empleado?.empl_Telefono)
+        // Agregar más campos aquí según necesites:
+        // 'Campo': this.limpiarTexto(modelo?.campo),
+      })
+    };
+
+
+
+
+  accionesDisponibles: string [] = [];
+
   activeActionRow: number | null = null;
   showEdit = true;
   showDetails = true;
@@ -124,6 +161,11 @@ export class ListComponent {
   files: File[] = [];
   deleteID: any;
 
+// Estado de exportación
+  exportando = false;
+  tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
+
+
   GridForm!: UntypedFormGroup;
   submitted = false;
   masterSelected: boolean = false;
@@ -133,7 +175,7 @@ export class ListComponent {
   @ViewChild('deleteRecordModal', { static: false }) deleteRecordModal?: ModalDirective;
   editData: any = null;
 
-  constructor(private formBuilder: UntypedFormBuilder, private http: HttpClient) {}
+  constructor(private formBuilder: UntypedFormBuilder, private http: HttpClient, private exportService: ExportService) {}
   
 
   ngOnInit(): void {
@@ -159,8 +201,38 @@ export class ListComponent {
       status: ['', [Validators.required]],
       img: ['']
     });
+    this.cargarAccionesUsuario();
     this.cargardatos();
     document.getElementById('elmLoader')?.classList.add('d-none');
+  }
+
+   private cargarAccionesUsuario(): void {
+    // Obtener permisosJson del localStorage
+    const permisosRaw = localStorage.getItem('permisosJson');
+    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+    let accionesArray: string[] = [];
+    if (permisosRaw) {
+      try {
+        const permisos = JSON.parse(permisosRaw);
+        // Buscar el módulo de Productos (ajusta el nombre si es diferente)
+        let modulo = null;
+        if (Array.isArray(permisos)) {
+          // Buscar por ID de pantalla (ajusta el ID si cambia en el futuro)
+          modulo = permisos.find((m: any) => m.Pant_Id === 25);
+        } else if (typeof permisos === 'object' && permisos !== null) {
+          // Si es objeto, buscar por clave
+          modulo = permisos['Productos'] || permisos['productos'] || null;
+        }
+        if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
+          // Extraer solo el nombre de la acción
+          accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
+        }
+      } catch (e) {
+        console.error('Error al parsear permisosJson:', e);
+      }
+    }
+    this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
+    console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   private cargardatos(): void {
@@ -465,4 +537,201 @@ export class ListComponent {
     const end = this.currentPage * this.itemsPerPage;
     return end > this.usuarioGrid.length ? this.usuarioGrid.length : end;
   }
+
+
+  //Permisos
+  accionPermitida(accion: string): boolean {
+    return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
+  }
+
+
+
+
+  //Exportar reportes
+  // ===== MÉTODOS DE EXPORTACIÓN OPTIMIZADOS =====
+
+  /**
+   * Método unificado para todas las exportaciones
+   */
+  async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
+    if (this.exportando) {
+      this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
+      return;
+    }
+
+    if (!this.validarDatosParaExport()) {
+      return;
+    }
+
+    try {
+      this.exportando = true;
+      this.tipoExportacion = tipo;
+      this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
+      
+      const config = this.crearConfiguracionExport();
+      let resultado;
+      
+      switch (tipo) {
+        case 'excel':
+          resultado = await this.exportService.exportToExcel(config);
+          break;
+        case 'pdf':
+          resultado = await this.exportService.exportToPDF(config);
+          break;
+        case 'csv':
+          resultado = await this.exportService.exportToCSV(config);
+          break;
+      }
+      
+      this.manejarResultadoExport(resultado);
+      
+    } catch (error) {
+      console.error(`Error en exportación ${tipo}:`, error);
+      this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
+    } finally {
+      this.exportando = false;
+      this.tipoExportacion = null;
+    }
+  }
+
+  /**
+   * Métodos específicos para cada tipo (para usar en templates)
+   */
+  async exportarExcel(): Promise<void> {
+    await this.exportar('excel');
+  }
+
+  async exportarPDF(): Promise<void> {
+    await this.exportar('pdf');
+  }
+
+  async exportarCSV(): Promise<void> {
+    await this.exportar('csv');
+  }
+
+  /**
+   * Verifica si se puede exportar un tipo específico
+   */
+  puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
+    if (this.exportando) {
+      return tipo ? this.tipoExportacion !== tipo : false;
+    }
+    return this.instructors?.length > 0;
+  }
+
+  // ===== MÉTODOS PRIVADOS DE EXPORTACIÓN =====
+
+  /**
+   * Crea la configuración de exportación de forma dinámica
+   */
+  private crearConfiguracionExport(): ExportConfig {
+    return {
+      title: this.exportConfig.title,
+      filename: this.exportConfig.filename,
+      data: this.obtenerDatosExport(),
+      columns: this.exportConfig.columns,
+      metadata: {
+        department: this.exportConfig.department,
+        additionalInfo: this.exportConfig.additionalInfo
+      }
+    };
+  }
+
+  /**
+   * Obtiene y prepara los datos para exportación
+   */
+ private obtenerDatosExport(): any[] {
+  try {
+    const datos = this.instructors; // Use the array for cards
+
+    if (!Array.isArray(datos) || datos.length === 0) {
+      throw new Error('No hay datos disponibles para exportar');
+    }
+
+    return datos.map((modelo, index) =>
+      this.exportConfig.dataMapping.call(this, modelo, index)
+    );
+  } catch (error) {
+    console.error('Error obteniendo datos:', error);
+    throw error;
+  }
+}
+
+
+  /**
+   * Maneja el resultado de las exportaciones
+   */
+  private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
+    if (resultado.success) {
+      this.mostrarMensaje('success', resultado.message);
+    } else {
+      this.mostrarMensaje('error', resultado.message);
+    }
+  }
+
+  /**
+   * Valida datos antes de exportar
+   */
+  private validarDatosParaExport(): boolean {
+    const datos = this.instructors;
+    
+    if (!Array.isArray(datos) || datos.length === 0) {
+      this.mostrarMensaje('warning', 'No hay datos disponibles para exportar');
+      return false;
+    }
+    
+    if (datos.length > 10000) {
+      const continuar = confirm(
+        `Hay ${datos.length.toLocaleString()} registros. ` +
+        'La exportación puede tomar varios minutos. ¿Desea continuar?'
+      );
+      if (!continuar) return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Limpia texto para exportación de manera más eficiente
+   */
+  private limpiarTexto(texto: any): string {
+    if (!texto) return '';
+    
+    return String(texto)
+      .replace(/\s+/g, ' ')
+      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
+      .trim()
+      .substring(0, 150);
+  }
+
+  /**
+   * Sistema de mensajes mejorado con tipos adicionales
+   */
+  private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
+    this.cerrarAlerta();
+    
+    const duracion = tipo === 'error' ? 5000 : 3000;
+    
+    switch (tipo) {
+      case 'success':
+        this.mostrarAlertaExito = true;
+        this.mensajeExito = mensaje;
+        setTimeout(() => this.mostrarAlertaExito = false, duracion);
+        break;
+        
+      case 'error':
+        this.mostrarAlertaError = true;
+        this.mensajeError = mensaje;
+        setTimeout(() => this.mostrarAlertaError = false, duracion);
+        break;
+        
+      case 'warning':
+      case 'info':
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = mensaje;
+        setTimeout(() => this.mostrarAlertaWarning = false, duracion);
+        break;
+    }
+  }
+
 }

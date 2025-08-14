@@ -629,8 +629,8 @@ confirmarGuardarCambios() {
           this.cargarListasPrecios();
           this.cancelarEliminar();
         } else if (response.data.code_Status === -1) {
-          // Está siendo utilizado
-          console.log('Lista de Precios está siendo utilizado');
+          
+          
           this.mostrarAlertaError = true;
           this.mensajeError = response.data.message_Status;
 
@@ -657,7 +657,7 @@ confirmarGuardarCambios() {
         // Respuesta inesperada
         console.log('Respuesta inesperada del servidor');
         this.mostrarAlertaError = true;
-        this.mensajeError = response.message || 'Error inesperado al eliminar el Subcategoria.';
+        this.mensajeError = response.message || 'Error inesperado al eliminar lista de precios.';
 
         setTimeout(() => {
           this.mostrarAlertaError = false;
@@ -668,9 +668,9 @@ confirmarGuardarCambios() {
       }
     },
     error: (error) => {
-      console.error('Error en la petición de eliminación:', error);
+      
       this.mostrarAlertaError = true;
-      this.mensajeError = 'Error al eliminar el Subcategoria. Por favor, intente nuevamente.';
+      this.mensajeError = 'Error al eliminar lista de precios. Por favor, intente nuevamente.';
 
       setTimeout(() => {
         this.mostrarAlertaError = false;

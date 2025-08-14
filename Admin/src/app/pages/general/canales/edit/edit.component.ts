@@ -14,6 +14,25 @@ import { FormsModule } from '@angular/forms';
   imports: [CommonModule, FormsModule]
 })
 export class EditComponent implements OnChanges {
+  // Devuelve la lista de cambios detectados para el modal de confirmación
+  obtenerListaCambios() {
+    const cambios = [];
+    if (this.canal.cana_Descripcion?.trim() !== this.canalOriginalDescripcion?.trim()) {
+      cambios.push({
+        label: 'Descripción',
+        anterior: this.canalOriginalDescripcion,
+        nuevo: this.canal.cana_Descripcion
+      });
+    }
+    if (this.canal.cana_Observaciones?.trim() !== this.canalOriginalObservaciones?.trim()) {
+      cambios.push({
+        label: 'Observaciones',
+        anterior: this.canalOriginalObservaciones,
+        nuevo: this.canal.cana_Observaciones
+      });
+    }
+    return cambios;
+  }
   @Input() canalData: Canal | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Canal>();
@@ -104,8 +123,8 @@ export class EditComponent implements OnChanges {
       usua_Modificacion: getUserId(),
       cana_FechaModificacion: new Date().toISOString(),
       cana_Estado: this.canal.cana_Estado,
-      UsuarioCreacion: this.canal.UsuarioCreacion || '',
-      UsuarioModificacion: this.canal.UsuarioModificacion || ''
+      UsuarioCreacion: this.canal.usuarioCreacion || '',
+      UsuarioModificacion: this.canal.usuarioModificacion || ''
     };
 
     if (canal.cana_Descripcion && canal.cana_Observaciones) {

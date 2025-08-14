@@ -27,7 +27,7 @@ export class MenuService {
     21: '/inventario/categorias',
     22: '/inventario/descuentos',
     23: '/inventario/inventariobodegas',
-    24: '/inventario/inventariosucursales',
+    24: '/inventario/inventario-sucursales',
     25: '/inventario/productos',
     26: '/inventario/promociones',
     27: '/inventario/subcategorias',
@@ -54,6 +54,18 @@ export class MenuService {
     61: '/reportes/reporteproductos',
     62: '/acceso/roles',
     63: '/acceso/usuarios',
+    71: '/general/visitas-clientes',
+    66: '/reportes/reporteclientesMasFacturados',
+    67: '/reportes/reporteProductosPorRuta',
+    68: '/reportes/reporteRecargasPorBodega',
+    69: '/reportes/reporteDevoluciones',
+    72: '/reportes/reporteProductosVendidos',
+    73: '/reportes/reporteVendedoresVentas',
+    74: '/reportes/reporteCuentasClientes',
+
+    76: '/reportes/reporteVendedoresPorRutas',
+    77: '/reportes/reporteClientes',
+    78: '/general/estadosvisita'
   };
 
   private menuItemsSubject: BehaviorSubject<MenuItem[]> = new BehaviorSubject<MenuItem[]>([]);

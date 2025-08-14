@@ -1,6 +1,7 @@
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Producto } from 'src/app/Modelos/inventario/Producto.Model';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-details',
@@ -24,6 +25,8 @@ export class DetailsComponent implements OnChanges{
       this.cargarDetallesSimulado(changes['productoData'].currentValue);
     }
   }
+
+  constructor(private http: HttpClient) {}
 
   // Simulación de carga
   cargarDetallesSimulado(data: Producto): void {
@@ -54,15 +57,30 @@ export class DetailsComponent implements OnChanges{
   
   formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
-    try {
-      const date = new Date(fecha);
-      return date.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      });
-    } catch {
-      return String(fecha);
-    }
+    const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
+    if (isNaN(dateObj.getTime())) return 'N/A';
+    return dateObj.toLocaleString('es-HN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
+
+  obtenerVendedoresPorCliente(clie_Id: number): void {
+  this.http.get<any[]>(`URL_DEL_ENDPOINT/VendedoresPorCliente/${clie_Id}`)
+    .subscribe({
+      next: (data) => {
+        this.vendedores = data;
+      },
+      error: (err) => {
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error al cargar los vendedores.';
+      }
+    });
+}
+
+  //Extra
+  vendedores: any[] = [];
 }

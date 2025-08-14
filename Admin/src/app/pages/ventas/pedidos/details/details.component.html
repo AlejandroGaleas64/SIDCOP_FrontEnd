@@ -123,7 +123,7 @@
             <th scope="col">Descripcion</th>
             <th scope="col">Precio</th>
             <th scope="col">Cantidad</th>
-            <th scope="col" class="text-end">Importe</th>
+            <!-- <th scope="col" class="text-end">Importe</th> -->
           </tr>
         </thead>
         <tbody id="products-list">
@@ -140,9 +140,9 @@
             </td>
             <td>{{ producto.precio | currency : "L. " }}</td>
             <td>{{ producto.cantidad }}</td>
-            <td class="text-end">
+            <!-- <td class="text-end">
               {{ (producto.precio * producto.cantidad) | currency : "L. " }}
-            </td>
+            </td> -->
           </tr>
         </tbody>
       </table><!--end table-->
@@ -184,9 +184,7 @@
   </ng-template>
 </div>
 
-<h4 class="details-title mt-4 mb-3" style="color: black">
-  Historial de acciones
-</h4>
+
 
 <!-- Tabla de auditoría -->
 <div class="audit-table-container">

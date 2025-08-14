@@ -1,0 +1,83 @@
+.modern-audit-table {
+  background: #fff;
+  border-radius: 14px;
+  border: 2px solid #D6B68A;
+  box-shadow: 0 2px 12px rgba(20,26,47,0.06);
+  margin-top: 2.2rem;
+  padding: 0;
+  overflow: hidden;
+}
+
+.modern-audit-table .audit-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.modern-audit-table .audit-header {
+  display: flex;
+  align-items: center;
+  background: #141A2F;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.08rem;
+  border-bottom: 2px solid #D6B68A;
+  padding: 0.7rem 0.5rem;
+}
+.modern-audit-table .audit-col {
+  flex: 1 1 0;
+  padding: 0.9rem 0.7rem;
+  display: flex;
+  align-items: center;
+  font-size: 1.01rem;
+  color: #222;
+}
+.modern-audit-table .audit-col-icon {
+  max-width: 52px;
+  min-width: 44px;
+  justify-content: center;
+  color: #D6B68A !important;
+  font-size: 1.5rem;
+}
+.modern-audit-table .audit-row {
+  display: flex;
+  align-items: center;
+  border-bottom: 1.5px solid #f3f4f7;
+  background: #fff;
+  transition: background 0.17s;
+}
+.modern-audit-table .audit-row:last-child {
+  border-bottom: none;
+}
+.modern-audit-table .audit-row:hover {
+  background: #f8f7f5;
+}
+.modern-audit-table .audit-action {
+  font-weight: 600;
+  color: #141A2F;
+  letter-spacing: 0.01em;
+}
+.modern-audit-table .audit-user {
+  color: #D6B68A;
+  font-weight: 500;
+}
+.modern-audit-table .audit-date {
+  color: #141A2F;
+  font-size: 0.98rem;
+}
+
+@media (max-width: 767px) {
+  .modern-audit-table .audit-header, .modern-audit-table .audit-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+  }
+  .modern-audit-table .audit-col {
+    padding: 0.5rem 0.3rem;
+    font-size: 0.97rem;
+  }
+  .modern-audit-table .audit-col-icon {
+    min-width: 36px;
+    font-size: 1.1rem;
+  }
+}

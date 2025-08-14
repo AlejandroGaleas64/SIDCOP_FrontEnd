@@ -1,0 +1,324 @@
+<div class="d-flex flex-column" style="height: 100%; min-height: 250px;">
+  <!-- Título -->
+  <h5 class="card-title mb-4">Confirmar Recarga</h5>
+
+  <!-- Alertas -->
+  <div class="alert-container mb-3">
+    <div *ngIf="mostrarAlertaExito" class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+      <strong>¡Éxito!</strong> {{ mensajeExito }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+    <div *ngIf="mostrarAlertaWarning" class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+      <strong>¡Atención!</strong> {{ mensajeWarning }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+    <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+      <strong>¡Error!</strong> {{ mensajeError }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <!-- Contenido Principal -->
+  <div class="flex-grow-1">
+    <div class="row g-3">
+      <!-- INFORMACIÓN DE LA RECARGA (Columna Izquierda) -->
+      <div class="col-12 col-lg-6">
+        <div class="card h-100">
+          <div class="card-header bg-light">
+            <h6 class="mb-0">
+              <i class="ri-information-line me-2 text-primary"></i>
+              Información de la Recarga
+            </h6>
+          </div>
+          <div class="card-body">
+            <!-- Bodega -->
+            <div class="mb-3">
+              <label class="form-label fw-bold text-muted small">BODEGA</label>
+              <div class="p-3 bg-light border rounded">
+                <i class="ri-store-2-line me-2 text-primary"></i>
+                {{ recarga.bode_Descripcion }}
+              </div>
+            </div>
+            
+            <!-- Fecha de Solicitud -->
+            <div class="mb-3" *ngIf="recarga.reca_Fecha">
+              <label class="form-label fw-bold text-muted small">FECHA DE SOLICITUD</label>
+              <div class="p-3 bg-light border rounded d-flex align-items-center">
+                <i class="ri-calendar-line me-2 text-primary"></i>
+                <span class="badge bg-primary me-2">{{ recarga.reca_Fecha }}</span>
+              </div>
+            </div>
+
+            <!-- Cliente -->
+            <div class="mb-3" *ngIf="recarga.reca_Cliente">
+              <label class="form-label fw-bold text-muted small">CLIENTE</label>
+              <div class="p-3 bg-light border rounded">
+                <i class="ri-user-line me-2 text-primary"></i>
+                {{ recarga.reca_Cliente }}
+              </div>
+            </div>
+
+            <!-- Detalle Productos -->
+            <div class="mb-0" *ngIf="recarga.detalleProductos">
+              <label class="form-label fw-bold text-muted small">DETALLE DE PRODUCTOS</label>
+              <div class="p-3 bg-light border rounded">
+                <i class="ri-shopping-cart-line me-2 text-primary"></i>
+                {{ recarga.detalleProductos }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORMULARIO DE CONFIRMACIÓN (Columna Derecha) -->
+      <div class="col-12 col-lg-6">
+        <div class="card h-100">
+          <div class="card-header bg-light">
+            <h6 class="mb-0">
+              <i class="ri-edit-line me-2 text-success"></i>
+              Confirmar Recarga
+            </h6>
+          </div>
+          <div class="card-body">
+            <!-- ESTADO DE CONFIRMACIÓN -->
+            <div class="mb-4">
+              <label class="form-label fw-bold">
+                Estado de Confirmación
+                <span class="text-danger ms-1">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text" 
+                      [ngStyle]="{
+                        backgroundColor: (!recarga.reca_Confirmacion && mostrarErrores) ? '#fff5f6' : '#f8f9fa',
+                        borderColor: (!recarga.reca_Confirmacion && mostrarErrores) ? '#f9bcc4' : '#dee2e6'
+                      }">
+                  <i class="ri-checkbox-circle-line"></i>
+                </span>
+                <select class="form-select" 
+                        [(ngModel)]="recarga.reca_Confirmacion"
+                        [class.is-invalid]="!recarga.reca_Confirmacion && mostrarErrores"
+                        (change)="onEstadoConfirmacionChange()"
+                        required>
+                  <option value="">Seleccione un estado</option>
+                  <option value="A">✓ Aprobar</option>
+                  <option value="R">✗ Rechazar</option>
+                </select>
+              </div>
+              <div class="invalid-feedback d-block" *ngIf="!recarga.reca_Confirmacion && mostrarErrores">
+                <small>
+                  <i class="ri-error-warning-line me-1"></i>
+                  Debe seleccionar un estado de confirmación
+                </small>
+              </div>
+            </div>
+
+            <!-- OBSERVACIONES -->
+            <div class="mb-0">
+              <label class="form-label fw-bold">
+                Observaciones
+                <span class="text-danger ms-1" *ngIf="recarga.reca_Confirmacion === 'R'">*</span>
+                <small class="text-muted fw-normal" *ngIf="recarga.reca_Confirmacion !== 'R'">(opcional)</small>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text align-self-start" 
+                      [ngStyle]="{
+                        backgroundColor: (!recarga.reca_Observaciones?.trim() && recarga.reca_Confirmacion === 'R' && mostrarErrores) ? '#fff5f6' : '#f8f9fa',
+                        borderColor: (!recarga.reca_Observaciones?.trim() && recarga.reca_Confirmacion === 'R' && mostrarErrores) ? '#f9bcc4' : '#dee2e6'
+                      }"
+                      style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                  <i class="ri-file-text-line"></i>
+                </span>
+                <textarea class="form-select" 
+                          rows="5"
+                          placeholder="Ingrese observaciones..."
+                          [(ngModel)]="recarga.reca_Observaciones"
+                          (input)="onObservacionesChange()"
+                          [class.is-invalid]="!recarga.reca_Observaciones?.trim() && recarga.reca_Confirmacion === 'R' && mostrarErrores"
+                          [required]="recarga.reca_Confirmacion === 'R'"
+                          maxlength="500"
+                          style="resize: vertical; min-height: 100px;"></textarea>
+              </div>
+              
+              <!-- Mensajes de validación y ayuda -->
+              <div class="invalid-feedback d-block" *ngIf="!recarga.reca_Observaciones?.trim() && recarga.reca_Confirmacion === 'R' && mostrarErrores">
+                <small>
+                  <i class="ri-error-warning-line me-1"></i>
+                  Las observaciones son requeridas cuando se rechaza una recarga
+                </small>
+              </div>
+              
+              <div class="form-text text-success" *ngIf="recarga.reca_Confirmacion === 'A'">
+                <i class="ri-information-line me-1"></i>
+                Puede agregar observaciones adicionales sobre la confirmación
+              </div>
+              
+              <!-- Contador de caracteres -->
+              <div class="d-flex justify-content-between align-items-center mt-2" *ngIf="recarga.reca_Observaciones?.length > 0">
+                <div></div>
+                <small class="text-muted">
+                  <i class="ri-character-recognition-line me-1"></i>
+                  {{ recarga.reca_Observaciones.length }}/500
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botones de Acción -->
+  
+  <div class="mt-auto pt-3">
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-primary gold" (click)="cancelar()">
+            <span class="btn-text">Cancelar</span>
+            <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+          </button>
+           <button type="button" class="btn btn-primary" (click)="validarConfirmacion()">
+            <i [class]="recarga.reca_Confirmacion === 'A' ? 'ri-check-line me-2' : 
+                        recarga.reca_Confirmacion === 'R' ? 'ri-close-line me-2' : 'ri-save-line me-2'"></i>
+            <span>
+              {{ recarga.reca_Confirmacion === 'A' ? 'Confirmar' : 
+                 recarga.reca_Confirmacion === 'R' ? 'Rechazar' : 'Guardar' }}
+            </span>
+          </button>
+        </div>
+      </div>
+  
+</div>
+
+<!-- Modal de confirmación -->
+<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }"
+     [style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header custom-modal-header">
+        <h5 class="modal-title">
+          <i [class]="recarga.reca_Confirmacion === 'A' ? 'ri-check-double-line text-success me-2' : 'ri-error-warning-line text-danger me-2'"></i>
+          Confirmación de Recarga
+        </h5>
+        <button type="button" class="btn-close" (click)="cancelarConfirmacion()" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="text-center mb-4">
+          <div class="mb-3">
+            <i [class]="recarga.reca_Confirmacion === 'A' ? 'ri-check-double-line text-success' : 'ri-error-warning-line text-danger'"
+               style="font-size: 4rem;"></i>
+          </div>
+          <h4 class="mb-3">
+            {{ recarga.reca_Confirmacion === 'A' ? '¿Confirmar esta recarga?' : '¿Rechazar esta recarga?' }}
+          </h4>
+          <p class="text-muted">
+            {{ recarga.reca_Confirmacion === 'A' 
+              ? 'La recarga será procesada y estará disponible para el cliente inmediatamente.' 
+              : 'La recarga será rechazada y no se procesará. Esta acción no se puede deshacer.' }}
+          </p>
+        </div>
+        
+        <!-- Resumen de la recarga -->
+        <div class="card mb-4">
+          <div class="card-header bg-light">
+            <h6 class="mb-0">
+              <i class="ri-information-line me-2"></i>
+              Resumen de la Recarga
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <strong>ID de Recarga:</strong>
+                <br>
+                <span class="badge bg-primary">{{ recarga.reca_Id }}</span>
+              </div>
+              <div class="col-md-6">
+                <strong>Bodega:</strong>
+                <br>
+                {{ recarga.bode_Descripcion }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de cambios detectados -->
+        <div class="card mb-4" *ngIf="obtenerListaCambios().length > 0">
+          <div class="card-header bg-light">
+            <h6 class="mb-0">
+              <i class="ri-list-check-line me-2"></i>
+              Cambios Detectados
+            </h6>
+          </div>
+          <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+            <div *ngFor="let cambio of obtenerListaCambios()" class="border rounded p-3 mb-3 bg-light">
+              <div class="d-flex align-items-center mb-2">
+                <i class="ri-arrow-right-circle-line me-2 text-primary"></i>
+                <strong class="text-primary">{{ cambio.label }}</strong>
+              </div>
+              <div class="row g-2">
+                <div class="col-md-6">
+                  <small class="text-muted d-block mb-1">Anterior:</small>
+                  <div class="p-2 bg-danger bg-opacity-10 border-start border-danger border-3 rounded-end">
+                    {{ cambio.anterior }}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <small class="text-muted d-block mb-1">Nuevo:</small>
+                  <div class="p-2 bg-success bg-opacity-10 border-start border-success border-3 rounded-end">
+                    {{ cambio.nuevo }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="card mb-4" *ngIf="recarga.reca_Observaciones?.trim()">
+          <div class="card-header bg-light">
+            <h6 class="mb-0">
+              <i class="ri-file-text-line me-2"></i>
+              Observaciones
+            </h6>
+          </div>
+          <div class="card-body">
+            <p class="mb-0">{{ recarga.reca_Observaciones }}</p>
+          </div>
+        </div>
+
+        <!-- Alerta final -->
+        <div class="alert" [ngClass]="{
+          'alert-success': recarga.reca_Confirmacion === 'A',
+          'alert-danger': recarga.reca_Confirmacion === 'R'
+        }" role="alert">
+          <i [class]="recarga.reca_Confirmacion === 'A' ? 'ri-check-line me-2' : 'ri-close-line me-2'"></i>
+          <strong>
+            {{ recarga.reca_Confirmacion === 'A' ? 'La recarga será confirmada y procesada' : 'La recarga será rechazada' }}
+          </strong>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="cancelarConfirmacion()">
+          <i class="ri-close-line me-2"></i>
+          Cancelar
+        </button>
+        <button type="button" class="btn" 
+                [class.btn-success]="recarga.reca_Confirmacion === 'A'"
+                [class.btn-danger]="recarga.reca_Confirmacion === 'R'"
+                (click)="confirmarAccion()">
+          <i [class]="recarga.reca_Confirmacion === 'A' ? 'ri-check-line me-2' : 'ri-close-line me-2'"></i>
+          {{ recarga.reca_Confirmacion === 'A' ? 'Confirmar Recarga' : 'Rechazar Recarga' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay modal -->
+<div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEditar }" *ngIf="mostrarConfirmacionEditar"></div>

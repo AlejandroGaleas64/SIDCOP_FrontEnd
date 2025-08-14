@@ -10,20 +10,38 @@
 
 <div class="card">
     <div class="card-body">
-        <div class="row align-items-center g-2" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+        <div class="row align-items-center g-2" >
   
 
 
-  <div class="d-flex justify-content-between mb-3 flex-wrap" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
-  <button type="button" class="btn btn-primary me-2 mb-2" (click)="crear()">
-    <span class="btn-text">Nuevo</span>
-    <span class="btn-icon"><i class="ri-add-line"></i></span>
-  </button>
-  <div class="search-box mb-2">
-    <input type="text" class="form-control search" placeholder="Buscar por nombre, correo..." [(ngModel)]="term" (keyup)="filterdata()">
-    <i class="ri-search-line search-icon"></i>
+  <div class="d-flex flex-wrap align-items-center justify-content-between mb-3" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+  <div class="d-flex align-items-center gap-2 mb-2">
+    <button *ngIf="accionPermitida('crear')" type="button" class="btn btn-primary me-2" (click)="crear()">
+      <span class="btn-text">Nuevo</span>
+      <span class="btn-icon"><i class="ri-add-line"></i></span>
+    </button>
   </div>
-        </div>
+  <div class="d-flex align-items-center gap-2 mb-2 ms-auto">
+    
+    <div class="export-buttons d-flex gap-1">
+      <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarExcel()" title="Exportar a Excel">
+        <span class="btn-text">Excel</span>
+        <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
+      </button>
+      <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarPDF()" title="Exportar a PDF">
+        <span class="btn-text">PDF</span>
+        <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
+      </button>
+      <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarCSV()" title="Exportar a CSV">
+        <span class="btn-text">CSV</span>
+        <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
+      </button>
+    </div>
+    <div class="search-box me-2">
+      <input type="text" class="form-control search" placeholder="Buscar por nombre, correo..." [(ngModel)]="term" (keyup)="filterdata()">
+      <i class="ri-search-line search-icon"></i>
+    </div>
+  </div>
 </div>
 
         <!-- Collapse para el formulario de creación -->
@@ -111,7 +129,7 @@
                     />
                 </div>
 
-                <div style="position: absolute; top: 0px; right: 0px; z-index:10000;" >
+                <div style="position: absolute; top: 0px; right: 0px; z-index:10000;" *ngIf="accionPermitida('editar') || accionPermitida('eliminar') || accionPermitida('detalles') ">
                                 <div class="dropdown-action-list" (document:click)="onDocumentClick($event, empleado.empl_Id)">
                                     <button class="buttonConfig"
                                         [attr.aria-expanded]="activeActionRow === empleado.empl_Id"
@@ -120,17 +138,17 @@
                                     </button>
                                     <span class="acciones-text">Acciones</span>
                                     <ul *ngIf="activeActionRow === empleado.empl_Id" class="dropdown-menu show" style="left: -100px;">
-                                        <li>
+                                        <li *ngIf="accionPermitida('editar')">
                                             <button class="dropdown-action-btn" (click)="editar(empleado)">Editar
                                                 <i class="ri-edit-line"></i></button>
                                         </li>
-                                        <li *ngIf="showDelete">
+                                        <li *ngIf="showDelete" >
                                           <button type="button" class="dropdown-action-btn" (click)="confirmarEliminar(empleado)">
                                             Eliminar <i class="ri-delete-bin-line"></i>
                                           </button>
                                         </li>
 
-                                        <li >
+                                        <li *ngIf="accionPermitida('detalle')">
                                             <button class="dropdown-action-btn" (click)="detalles(empleado)">Detalles
                                                 <i class="ri-error-warning-fill"></i></button>
                                         </li>
@@ -220,7 +238,7 @@
 <!-- Estilos CSS para el diseño mejorado -->
 <style>
 .noresult {
-  background: linear-gradient(135deg, #f8f9ff 0%, #f1f3ff 100%);
+  background: linear-gradient(135deg, #f8f9ff 0%, #f1f3f9 100%);
   border-radius: 20px;
   margin: 20px 0;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);

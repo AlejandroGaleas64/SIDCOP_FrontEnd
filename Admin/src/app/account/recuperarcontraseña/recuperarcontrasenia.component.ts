@@ -92,6 +92,7 @@ export class RecuperarcontraseniaComponent {
     usua_EsVendedor: false,
     usua_EsAdmin: false,
     usua_Imagen: '',
+    usua_TienePermisos: false,
     usua_Creacion: 0,
     usua_FechaCreacion: new Date(),
     usua_Modificacion: 0,

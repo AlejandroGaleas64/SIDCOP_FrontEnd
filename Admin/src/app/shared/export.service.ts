@@ -1,14 +1,10 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from 'src/environments/environment.prod';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { getUserId } from 'src/app/core/utils/user-utils';
 import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-
-// Declaración de tipos para jsPDF
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
 
 export interface ExportConfig {
   title: string;
@@ -39,22 +35,20 @@ interface ExportResult {
   providedIn: 'root'
 })
 export class ExportService {
-  
-  // Paleta de colores corporativos optimizada
-  private readonly COLORS = {
-    primary: { rgb: [20, 26, 47], hex: '#141a2f' },
-    secondary: { rgb: [214, 182, 138], hex: '#d6b68a' },
-    primaryLight: { rgb: [35, 45, 75], hex: '#232d4b' },
-    secondaryLight: { rgb: [234, 212, 182], hex: '#ead4b6' },
-    white: { rgb: [255, 255, 255], hex: '#ffffff' },
-    lightGray: { rgb: [248, 249, 250], hex: '#f8f9fa' },
-    mediumGray: { rgb: [203, 213, 225], hex: '#cbd5e1' },
-    textDark: { rgb: [15, 23, 42], hex: '#0f172a' },
-    accent: { rgb: [59, 130, 246], hex: '#3b82f6' },
-    success: { rgb: [34, 197, 94], hex: '#22c55e' }
-  } as const;
+  private configuracionEmpresa: any = null;
 
-  constructor() { }
+  // Colores del tema (mismos del PdfReportService)
+  private readonly COLORES = {
+    dorado: '#D6B68A',
+    azulOscuro: '#141a2f',
+    blanco: '#FFFFFF',
+    grisClaro: '#F8F9FA',
+    grisTexto: '#666666'
+  };
+
+  constructor(private http: HttpClient) {
+    this.cargarConfiguracionEmpresa();
+  }
 
   // ===== MÉTODOS PÚBLICOS DE EXPORTACIÓN =====
 
@@ -62,13 +56,22 @@ export class ExportService {
     try {
       this.validateConfig(config);
       
+      // Crear un nuevo workbook
       const workbook = XLSX.utils.book_new();
-      const worksheetData = this.buildExcelData(config);
+      
+      // Crear los datos de la hoja de cálculo
+      const worksheetData = await this.prepararDatosExcel(config);
+      
+      // Crear la hoja de trabajo
       const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
       
-      this.applyAdvancedExcelStyles(worksheet, config);
-      XLSX.utils.book_append_sheet(workbook, worksheet, this.sanitizeSheetName(config.title));
+      // Aplicar estilos y configuración
+      this.aplicarEstilosExcel(worksheet, config);
       
+      // Agregar la hoja al workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Datos');
+      
+      // Generar el archivo
       const filename = this.generateFilename(config.filename, 'xlsx');
       XLSX.writeFile(workbook, filename);
       
@@ -84,17 +87,13 @@ export class ExportService {
     try {
       this.validateConfig(config);
       
-      const doc = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = doc.internal.pageSize.width;
+      const doc = new jsPDF('portrait');
       
-      // Header profesional mejorado
-      this.createEnhancedPDFHeader(doc, config, pageWidth);
+      // Crear encabezado y obtener posición Y donde empezar la tabla
+      const startY = await this.crearEncabezado(doc, config);
       
-      // Información del reporte con mejor espaciado
-      this.createEnhancedPDFInfo(doc, config, pageWidth);
-      
-      // Tabla de datos
-      await this.createPDFTable(doc, config);
+      // Crear tabla de datos
+      await this.crearTabla(doc, config, startY);
       
       const filename = this.generateFilename(config.filename, 'pdf');
       doc.save(filename);
@@ -103,7 +102,7 @@ export class ExportService {
       
     } catch (error) {
       console.error('Error exportando PDF:', error);
-      return this.createBasicPDF(config);
+      return { success: false, message: 'Error al exportar archivo PDF' };
     }
   }
 
@@ -111,10 +110,12 @@ export class ExportService {
     try {
       this.validateConfig(config);
       
-      const csvContent = this.buildCSVContent(config);
-      const filename = this.generateFilename(config.filename, 'csv');
+      // Preparar los datos CSV
+      const csvContent = this.generarContenidoCSV(config);
       
-      this.downloadFile(csvContent, filename, 'text/csv');
+      // Crear y descargar el archivo
+      const filename = this.generateFilename(config.filename, 'csv');
+      this.descargarArchivo(csvContent, filename, 'text/csv');
       
       return { success: true, message: `Archivo CSV exportado: ${filename}` };
       
@@ -124,580 +125,516 @@ export class ExportService {
     }
   }
 
-  // ===== MÉTODOS PRIVADOS - EXCEL MEJORADO =====
+  // ===== MÉTODOS PRIVADOS PARA EXCEL =====
 
-  private buildExcelData(config: ExportConfig): any[][] {
-    const metadata = this.getReportMetadata(config);
+  private async prepararDatosExcel(config: ExportConfig): Promise<any[][]> {
+    const data: any[][] = [];
+    let currentRow = 0;
     
-    return [
-      // Título principal con espacio
-      [`REPORTE EMPRESARIAL`],
-      [config.title.toUpperCase()],
-      [],
-      // Sección de metadata con títulos
-      ['INFORMACIÓN DEL REPORTE'],
-      [],
-      ...metadata.map(item => [item]),
-      [],
-      // Sección de estadísticas
-      ['RESUMEN ESTADÍSTICO'],
-      [],
-      [`Total de registros: ${config.data.length}`],
-      [`Columnas incluidas: ${config.columns.length}`],
-      [`Fecha de generación: ${this.getCurrentDate()}`],
-      [],
-      // Separador visual
-      ['DATOS'],
-      [],
-      // Encabezados de tabla
-      config.columns.map(col => col.header),
-      // Datos
-      ...config.data.map(item => 
-        config.columns.map(col => this.cleanValue(item[col.key]))
-      )
-    ];
-  }
-
-  private applyAdvancedExcelStyles(worksheet: XLSX.WorkSheet, config: ExportConfig): void {
-    if (!worksheet['!ref']) return;
+    // Espacios para el logo y título
+    data[currentRow++] = [];
+    data[currentRow++] = [];
+    data[currentRow++] = [];
     
-    const range = XLSX.utils.decode_range(worksheet['!ref']);
-    const metadataRows = this.getReportMetadata(config).length;
-    const dataStartRow = metadataRows + 11; // Ajustado para el nuevo diseño
+    // Título de la empresa centrado
+    const nombreEmpresa = this.configuracionEmpresa?.coFa_NombreEmpresa || 'Nombre de Empresa';
+    data[currentRow++] = [nombreEmpresa];
     
-    // Título principal (fila 1)
-    this.setExcelCellStyle(worksheet, 'A1', {
-      font: { bold: true, sz: 24, color: { rgb: 'FFFFFF' } },
-      fill: { fgColor: { rgb: this.COLORS.primary.hex.substring(1) } },
-      alignment: { horizontal: 'center', vertical: 'center' }
-    });
+    // Título del reporte
+    data[currentRow++] = [config.title];
     
-    // Subtítulo (fila 2)
-    this.setExcelCellStyle(worksheet, 'A2', {
-      font: { bold: true, sz: 16, color: { rgb: this.COLORS.primary.hex.substring(1) } },
-      fill: { fgColor: { rgb: this.COLORS.secondaryLight.hex.substring(1) } },
-      alignment: { horizontal: 'center', vertical: 'center' }
-    });
+    // Espacios
+    data[currentRow++] = [];
     
-    // Título de sección "INFORMACIÓN DEL REPORTE" (fila 4)
-    this.setExcelCellStyle(worksheet, 'A4', {
-      font: { bold: true, sz: 14, color: { rgb: 'FFFFFF' } },
-      fill: { fgColor: { rgb: this.COLORS.secondary.hex.substring(1) } },
-      alignment: { horizontal: 'center', vertical: 'center' }
-    });
-    
-    // Estilos de metadata (filas 6 en adelante)
-    for (let row = 6; row <= 5 + metadataRows; row++) {
-      this.setExcelCellStyle(worksheet, `A${row}`, {
-        font: { sz: 11, color: { rgb: this.COLORS.textDark.hex.substring(1) } },
-        fill: { fgColor: { rgb: this.COLORS.lightGray.hex.substring(1) } },
-        alignment: { horizontal: 'left', vertical: 'center' }
-      });
-    }
-    
-    // Título "RESUMEN ESTADÍSTICO"
-    const statsRow = 6 + metadataRows + 1;
-    this.setExcelCellStyle(worksheet, `A${statsRow}`, {
-      font: { bold: true, sz: 14, color: { rgb: 'FFFFFF' } },
-      fill: { fgColor: { rgb: this.COLORS.accent.hex.substring(1) } },
-      alignment: { horizontal: 'center', vertical: 'center' }
-    });
-    
-    // Estadísticas (3 filas después del título)
-    for (let row = statsRow + 2; row <= statsRow + 4; row++) {
-      this.setExcelCellStyle(worksheet, `A${row}`, {
-        font: { sz: 10, color: { rgb: this.COLORS.textDark.hex.substring(1) } },
-        fill: { fgColor: { rgb: this.COLORS.white.hex.substring(1) } },
-        alignment: { horizontal: 'left', vertical: 'center' }
-      });
-    }
-    
-    // Título "DATOS"
-    const dataTitleRow = statsRow + 6;
-    this.setExcelCellStyle(worksheet, `A${dataTitleRow}`, {
-      font: { bold: true, sz: 14, color: { rgb: 'FFFFFF' } },
-      fill: { fgColor: { rgb: this.COLORS.success.hex.substring(1) } },
-      alignment: { horizontal: 'center', vertical: 'center' }
-    });
-    
-    // Encabezados de tabla
-    const headerRow = dataStartRow;
-    for (let col = 0; col < config.columns.length; col++) {
-      const cellRef = XLSX.utils.encode_cell({ r: headerRow, c: col });
-      this.setExcelCellStyle(worksheet, cellRef, {
-        font: { bold: true, sz: 12, color: { rgb: 'FFFFFF' } },
-        fill: { fgColor: { rgb: this.COLORS.primary.hex.substring(1) } },
-        alignment: { horizontal: 'center', vertical: 'center' },
-        border: {
-          top: { style: 'thin', color: { rgb: this.COLORS.mediumGray.hex.substring(1) } },
-          bottom: { style: 'thin', color: { rgb: this.COLORS.mediumGray.hex.substring(1) } },
-          left: { style: 'thin', color: { rgb: this.COLORS.mediumGray.hex.substring(1) } },
-          right: { style: 'thin', color: { rgb: this.COLORS.mediumGray.hex.substring(1) } }
-        }
-      });
-    }
-    
-    // Datos con filas alternas y bordes
-    for (let row = headerRow + 1; row <= range.e.r; row++) {
-      const isEvenRow = (row - headerRow - 1) % 2 === 0;
-      for (let col = 0; col < config.columns.length; col++) {
-        const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
-        this.setExcelCellStyle(worksheet, cellRef, {
-          font: { sz: 10, color: { rgb: this.COLORS.textDark.hex.substring(1) } },
-          fill: { fgColor: { rgb: isEvenRow ? 'FFFFFF' : this.COLORS.lightGray.hex.substring(1) } },
-          alignment: { horizontal: config.columns[col].align || 'left', vertical: 'center' },
-          border: {
-            top: { style: 'thin', color: { rgb: this.COLORS.mediumGray.hex.substring(1) } },
-            bottom: { style: 'thin', color: { rgb: this.COLORS.mediumGray.hex.substring(1) } },
-            left: { style: 'thin', color: { rgb: this.COLORS.mediumGray.hex.substring(1) } },
-            right: { style: 'thin', color: { rgb: this.COLORS.mediumGray.hex.substring(1) } }
-          }
-        });
+    // Metadata si existe
+    if (config.metadata) {
+      if (config.metadata.department) {
+        data[currentRow++] = [`Departamento: ${config.metadata.department}`];
       }
+      
+      if (config.metadata.user) {
+        data[currentRow++] = [`Usuario: ${config.metadata.user}`];
+      }
+      
+      if (config.metadata.additionalInfo) {
+        data[currentRow++] = [config.metadata.additionalInfo];
+      }
+      
+      data[currentRow++] = []; // Espacio adicional
     }
     
-    // Configurar anchos de columna mejorados
-    worksheet['!cols'] = config.columns.map(col => ({ wch: col.width || 25 }));
+    // Encabezados de la tabla
+    const headers = config.columns.map(col => col.header);
+    data[currentRow++] = headers;
     
-    // Fusiones de celdas mejoradas
-    worksheet['!merges'] = [
-      // Título principal
-      { s: { r: 0, c: 0 }, e: { r: 0, c: config.columns.length - 1 } },
-      // Subtítulo
-      { s: { r: 1, c: 0 }, e: { r: 1, c: config.columns.length - 1 } },
-      // Sección información
-      { s: { r: 3, c: 0 }, e: { r: 3, c: config.columns.length - 1 } },
-      // Metadata
-      ...Array.from({ length: metadataRows }, (_, i) => ({
-        s: { r: i + 5, c: 0 }, e: { r: i + 5, c: config.columns.length - 1 }
-      })),
-      // Sección estadísticas
-      { s: { r: statsRow - 1, c: 0 }, e: { r: statsRow - 1, c: config.columns.length - 1 } },
-      // Estadísticas
-      { s: { r: statsRow + 1, c: 0 }, e: { r: statsRow + 1, c: config.columns.length - 1 } },
-      { s: { r: statsRow + 2, c: 0 }, e: { r: statsRow + 2, c: config.columns.length - 1 } },
-      { s: { r: statsRow + 3, c: 0 }, e: { r: statsRow + 3, c: config.columns.length - 1 } },
-      // Título datos
-      { s: { r: dataTitleRow - 1, c: 0 }, e: { r: dataTitleRow - 1, c: config.columns.length - 1 } }
-    ];
-    
-    // Altura de filas para mejor presentación
-    worksheet['!rows'] = [
-      { hpt: 30 }, // Título principal
-      { hpt: 25 }, // Subtítulo
-      { hpt: 15 }, // Espacio
-      { hpt: 20 }, // Sección información
-      { hpt: 15 }, // Espacio
-      ...Array.from({ length: metadataRows }, () => ({ hpt: 18 })), // Metadata
-      { hpt: 15 }, // Espacio
-      { hpt: 20 }, // Sección estadísticas
-      { hpt: 15 }, // Espacio
-      { hpt: 18 }, // Estadística 1
-      { hpt: 18 }, // Estadística 2
-      { hpt: 18 }, // Estadística 3
-      { hpt: 15 }, // Espacio
-      { hpt: 20 }, // Título datos
-      { hpt: 15 }, // Espacio
-      { hpt: 22 }, // Headers
-      ...Array.from({ length: config.data.length }, () => ({ hpt: 20 })) // Data rows
-    ];
-  }
-
-  private setExcelCellStyle(worksheet: XLSX.WorkSheet, cellRef: string, style: any): void {
-    if (worksheet[cellRef]) {
-      worksheet[cellRef].s = style;
-    }
-  }
-
-  // ===== MÉTODOS PRIVADOS - PDF MEJORADO =====
-
-  private createEnhancedPDFHeader(doc: jsPDF, config: ExportConfig, pageWidth: number): void {
-    // Fondo principal con gradiente simulado
-    doc.setFillColor(...this.COLORS.primary.rgb);
-    doc.rect(0, 0, pageWidth, 50, 'F');
-    
-    // Franja superior decorativa
-    doc.setFillColor(...this.COLORS.secondary.rgb);
-    doc.rect(0, 0, pageWidth, 4, 'F');
-    
-    // Franja inferior decorativa
-    doc.setFillColor(...this.COLORS.secondary.rgb);
-    doc.rect(0, 46, pageWidth, 4, 'F');
-    
-    // Líneas decorativas internas
-    doc.setDrawColor(...this.COLORS.secondaryLight.rgb);
-    doc.setLineWidth(0.5);
-    doc.line(20, 8, pageWidth - 20, 8);
-    doc.line(20, 42, pageWidth - 20, 42);
-    
-    // Título principal
-    doc.setTextColor(...this.COLORS.white.rgb);
-    doc.setFontSize(22);
-    doc.setFont('helvetica', 'bold');
-    doc.text('REPORTE EMPRESARIAL', pageWidth / 2, 20, { align: 'center' });
-    
-    // Subtítulo
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'normal');
-    doc.text(config.title, pageWidth / 2, 30, { align: 'center' });
-    
-    // Fecha en el header
-    doc.setFontSize(10);
-    doc.setTextColor(...this.COLORS.secondaryLight.rgb);
-    doc.text(`Generado: ${this.getCurrentDate()}`, pageWidth / 2, 38, { align: 'center' });
-  }
-
-  private createEnhancedPDFInfo(doc: jsPDF, config: ExportConfig, pageWidth: number): void {
-    const startY = 55;
-    const metadata = this.getReportMetadata(config);
-    
-    // Fondo de información con bordes redondeados simulados
-    doc.setFillColor(...this.COLORS.lightGray.rgb);
-    doc.rect(15, startY, pageWidth - 30, 35, 'F');
-    
-    // Borde decorativo
-    doc.setDrawColor(...this.COLORS.secondary.rgb);
-    doc.setLineWidth(1);
-    doc.rect(15, startY, pageWidth - 30, 35);
-    
-    // Título de la sección
-    doc.setFillColor(...this.COLORS.primary.rgb);
-    doc.rect(20, startY + 3, pageWidth - 40, 8, 'F');
-    
-    doc.setTextColor(...this.COLORS.white.rgb);
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('INFORMACIÓN DEL REPORTE', pageWidth / 2, startY + 8, { align: 'center' });
-    
-    // Información en dos columnas con mejor espaciado
-    doc.setTextColor(...this.COLORS.textDark.rgb);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    
-    const leftColumn = metadata.slice(0, Math.ceil(metadata.length / 2));
-    const rightColumn = metadata.slice(Math.ceil(metadata.length / 2));
-    
-    // Columna izquierda
-    leftColumn.forEach((item, index) => {
-      doc.text(`• ${item}`, 25, startY + 18 + (index * 6));
+    // Datos de la tabla
+    config.data.forEach(item => {
+      const row = config.columns.map(col => {
+        const value = item[col.key];
+        return this.formatearValorExcel(value);
+      });
+      data[currentRow++] = row;
     });
     
-    // Columna derecha
-    rightColumn.forEach((item, index) => {
-      doc.text(`• ${item}`, pageWidth / 2 + 10, startY + 18 + (index * 6));
-    });
+    // Pie de página
+    data[currentRow++] = [];
+    const fecha = new Date();
+    const fechaTexto = fecha.toLocaleDateString('es-HN');
+    const horaTexto = fecha.toLocaleTimeString('es-HN');
+    const usuarioActual = this.obtenerUsuarioActual();
+    data[currentRow++] = [`Generado por: ${usuarioActual} | ${fechaTexto} ${horaTexto}`];
     
-    // Estadísticas adicionales
-    doc.setFillColor(...this.COLORS.accent.rgb);
-    doc.rect(20, startY + 28, pageWidth - 40, 5, 'F');
-    
-    doc.setTextColor(...this.COLORS.white.rgb);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${config.data.length} registros | ${config.columns.length} columnas | Sistema de Gestión Empresarial`, pageWidth / 2, startY + 31.5, { align: 'center' });
+    return data;
   }
 
-  private async createPDFTable(doc: jsPDF, config: ExportConfig): Promise<void> {
-    const columns = config.columns.map(col => ({
-      header: col.header,
-      dataKey: col.key
+  private aplicarEstilosExcel(worksheet: XLSX.WorkSheet, config: ExportConfig): void {
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+    
+    // Configurar anchos de columna
+    const colWidths = config.columns.map(col => ({
+      wch: col.width ? col.width / 5 : 15 // Convertir aproximado de puntos a caracteres
     }));
+    worksheet['!cols'] = colWidths;
     
-    const body = config.data.map(item => {
-      const row: any = {};
-      config.columns.forEach(col => {
-        row[col.key] = this.cleanValue(item[col.key]);
-      });
-      return row;
-    });
+    // Encontrar la fila de encabezados (buscar la primera fila que contenga todos los headers)
+    let headerRow = -1;
+    const headers = config.columns.map(col => col.header);
     
-    if (typeof doc.autoTable === 'function') {
-      doc.autoTable({
-        columns,
-        body,
-        startY: 95, // Ajustado para el nuevo header
-        theme: 'grid',
-        styles: {
-          fontSize: 9,
-          cellPadding: 4,
-          textColor: this.COLORS.textDark.rgb,
-          lineColor: this.COLORS.mediumGray.rgb,
-          lineWidth: 0.5
-        },
-        headStyles: {
-          fillColor: this.COLORS.primary.rgb,
-          textColor: this.COLORS.white.rgb,
-          fontSize: 10,
-          fontStyle: 'bold',
-          halign: 'center',
-          minCellHeight: 12
-        },
-        bodyStyles: {
-          minCellHeight: 10,
-          alternateRowStyles: {
-            fillColor: this.COLORS.lightGray.rgb
-          }
-        },
-        columnStyles: this.getColumnStyles(config.columns),
-        margin: { left: 15, right: 15 },
-        didDrawPage: (data: any) => {
-          this.addEnhancedPDFFooter(doc, data.pageNumber, data.pageCount || 1);
+    for (let row = 0; row <= range.e.r; row++) {
+      let matchCount = 0;
+      for (let col = 0; col < headers.length; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+        const cell = worksheet[cellAddress];
+        if (cell && cell.v === headers[col]) {
+          matchCount++;
         }
+      }
+      if (matchCount === headers.length) {
+        headerRow = row;
+        break;
+      }
+    }
+    
+    // Aplicar estilos a las celdas
+    for (let row = 0; row <= range.e.r; row++) {
+      for (let col = 0; col <= range.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+        const cell = worksheet[cellAddress];
+        
+        if (cell) {
+          // Inicializar el objeto de estilo si no existe
+          if (!cell.s) cell.s = {};
+          
+          // Estilos para el título de la empresa (fila 3, índice 3)
+          if (row === 3) {
+            cell.s = {
+              font: { bold: true, sz: 18, color: { rgb: '141a2f' } },
+              alignment: { horizontal: 'center' }
+            };
+          }
+          // Estilos para el título del reporte (fila 4, índice 4)
+          else if (row === 4) {
+            cell.s = {
+              font: { bold: true, sz: 14, color: { rgb: '141a2f' } },
+              alignment: { horizontal: 'center' }
+            };
+          }
+          // Estilos para los encabezados de la tabla
+          else if (row === headerRow) {
+            cell.s = {
+              font: { bold: true, color: { rgb: 'D6B68A' } },
+              fill: { fgColor: { rgb: '141a2f' } },
+              alignment: { horizontal: 'center' }
+            };
+          }
+          // Estilos para las filas de datos (alternadas)
+          else if (row > headerRow && row < range.e.r - 1) {
+            const isEvenRow = (row - headerRow) % 2 === 0;
+            cell.s = {
+              fill: isEvenRow ? { fgColor: { rgb: 'F8F9FA' } } : { fgColor: { rgb: 'FFFFFF' } },
+              alignment: { 
+                horizontal: config.columns[col]?.align || 'left',
+                vertical: 'center'
+              }
+            };
+          }
+        }
+      }
+    }
+    
+    // Ajustar el rango de impresión
+    worksheet['!printHeader'] = `1:${headerRow + 1}`;
+  }
+
+  private formatearValorExcel(valor: any): any {
+    if (valor === null || valor === undefined) {
+      return '';
+    }
+    
+    // Si es un número, mantenerlo como número para Excel
+    if (typeof valor === 'number') {
+      return valor;
+    }
+    
+    // Si es una fecha, convertirla apropiadamente
+    if (valor instanceof Date) {
+      return valor;
+    }
+    
+    // Para todo lo demás, convertir a string y limpiar
+    return String(valor).trim();
+  }
+
+  // ===== MÉTODOS PRIVADOS PARA CSV =====
+
+  private generarContenidoCSV(config: ExportConfig): string {
+    const rows: string[] = [];
+    
+    // Encabezados
+    const headers = config.columns.map(col => this.escaparCSV(col.header));
+    rows.push(headers.join(','));
+    
+    // Datos
+    config.data.forEach(item => {
+      const row = config.columns.map(col => {
+        const value = item[col.key];
+        return this.escaparCSV(this.formatearValorCSV(value));
       });
-    } else {
-      this.createManualTable(doc, config, 95);
+      rows.push(row.join(','));
+    });
+    
+    return rows.join('\n');
+  }
+
+  private formatearValorCSV(valor: any): string {
+    if (valor === null || valor === undefined) {
+      return '';
+    }
+    
+    return String(valor).trim();
+  }
+
+  private escaparCSV(valor: string): string {
+    if (!valor) return '';
+    
+    // Si el valor contiene coma, comillas o salto de línea, debe estar entre comillas
+    if (valor.includes(',') || valor.includes('"') || valor.includes('\n')) {
+      // Escapar las comillas duplicándolas
+      const valorEscapado = valor.replace(/"/g, '""');
+      return `"${valorEscapado}"`;
+    }
+    
+    return valor;
+  }
+
+  private descargarArchivo(contenido: string, nombreArchivo: string, tipoMime: string): void {
+    const blob = new Blob([contenido], { type: tipoMime + ';charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', nombreArchivo);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
   }
 
-  private addEnhancedPDFFooter(doc: jsPDF, pageNumber: number, totalPages: number): void {
-    const pageWidth = doc.internal.pageSize.width;
-    const pageHeight = doc.internal.pageSize.height;
-    
-    // Fondo del footer
-    doc.setFillColor(...this.COLORS.primary.rgb);
-    doc.rect(0, pageHeight - 18, pageWidth, 18, 'F');
-    
-    // Franja decorativa superior
-    doc.setFillColor(...this.COLORS.secondary.rgb);
-    doc.rect(0, pageHeight - 18, pageWidth, 2, 'F');
-    
-    // Información del footer con mejor espaciado
-    doc.setTextColor(...this.COLORS.white.rgb);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    
-    // Izquierda: Fecha
-    doc.text(`Generado: ${this.getCurrentDate()}`, 15, pageHeight - 8);
-    
-    // Centro: Sistema
-    doc.text('Sistema de Gestión Empresarial', pageWidth / 2, pageHeight - 8, { align: 'center' });
-    
-    // Derecha: Paginación
-    doc.text(`Página ${pageNumber} de ${totalPages}`, pageWidth - 15, pageHeight - 8, { align: 'right' });
-    
-    // Línea decorativa
-    doc.setDrawColor(...this.COLORS.secondaryLight.rgb);
-    doc.setLineWidth(0.3);
-    doc.line(15, pageHeight - 12, pageWidth - 15, pageHeight - 12);
+  // ===== MÉTODOS PRIVADOS PARA PDF (basados en PdfReportService) =====
+
+  private cargarConfiguracionEmpresa() {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/ConfiguracionFactura/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (data) => {
+        if (data && data.length > 0) {
+          this.configuracionEmpresa = data[0];
+        }
+      },
+      error: (error) => {
+        console.error('Error al cargar configuración de empresa:', error);
+      }
+    });
   }
 
-  private createBasicPDF(config: ExportConfig): ExportResult {
-    try {
-      const doc = new jsPDF('p', 'mm', 'a4');
-      
-      // Header básico mejorado
-      doc.setFillColor(...this.COLORS.primary.rgb);
-      doc.rect(0, 0, doc.internal.pageSize.width, 25, 'F');
-      
-      doc.setTextColor(...this.COLORS.white.rgb);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('REPORTE EMPRESARIAL', doc.internal.pageSize.width / 2, 12, { align: 'center' });
-      
-      doc.setFontSize(12);
-      doc.text(config.title, doc.internal.pageSize.width / 2, 19, { align: 'center' });
-      
-      this.createManualTable(doc, config, 35);
-      
-      const filename = this.generateFilename(config.filename, 'pdf');
-      doc.save(filename);
-      
-      return { success: true, message: `PDF básico exportado: ${filename}` };
-      
-    } catch (error) {
-      console.error('Error en PDF básico:', error);
-      return { success: false, message: 'Error crítico al generar PDF' };
+  private async cargarLogo(): Promise<string | null> {
+    if (!this.configuracionEmpresa?.coFa_Logo) {
+      console.log('No hay logo configurado');
+      return null;
     }
+
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          if (!ctx) {
+            console.error('No se pudo obtener el contexto del canvas');
+            resolve(null);
+            return;
+          }
+          
+          const maxWidth = 120;
+          const maxHeight = 60;
+          let { width, height } = img;
+          
+          if (width > height) {
+            if (width > maxWidth) {
+              height = height * (maxWidth / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = width * (maxHeight / height);
+              height = maxHeight;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const dataUrl = canvas.toDataURL('image/png', 0.8);
+          console.log('Logo procesado correctamente desde URL');
+          resolve(dataUrl);
+        } catch (e) {
+          console.error('Error al procesar el logo:', e);
+          resolve(null);
+        }
+      };
+      
+      img.onerror = (error) => {
+        console.error('Error al cargar el logo desde URL:', error);
+        resolve(null);
+      };
+      
+      try {
+        const logoUrl = this.configuracionEmpresa.coFa_Logo;
+        console.log('Intentando cargar logo desde:', logoUrl);
+        
+        if (logoUrl.startsWith('http')) {
+          img.src = logoUrl;
+        } else if (logoUrl.startsWith('data:')) {
+          img.src = logoUrl;
+        } else {
+          img.src = `data:image/png;base64,${logoUrl}`;
+        }
+      } catch (e) {
+        console.error('Error al configurar src del logo:', e);
+        resolve(null);
+      }
+    });
   }
 
-  private createManualTable(doc: jsPDF, config: ExportConfig, startY: number): void {
-    let yPosition = startY;
+  private async crearEncabezado(doc: jsPDF, config: ExportConfig): Promise<number> {
+    // Línea separadora en la parte inferior del encabezado
+    doc.setDrawColor(this.COLORES.dorado);
+    doc.setLineWidth(2);
+    doc.line(20, 35, doc.internal.pageSize.width - 20, 35);
+
+    // Cargar y agregar logo
+    const logoDataUrl = await this.cargarLogo();
+    if (logoDataUrl) {
+      try {
+        doc.addImage(logoDataUrl, 'PNG', 20, 5, 30, 25);
+        console.log('Logo agregado al PDF correctamente');
+      } catch (e) {
+        console.error('Error al agregar imagen al PDF:', e);
+      }
+    }
+
+    // Nombre de la empresa
+    doc.setTextColor(this.COLORES.azulOscuro);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(24);
+    const nombreEmpresa = this.configuracionEmpresa?.coFa_NombreEmpresa || 'Nombre de Empresa';
     const pageWidth = doc.internal.pageSize.width;
-    const colWidth = (pageWidth - 30) / config.columns.length; // Más margen
+    doc.text(nombreEmpresa, pageWidth / 2, 15, { align: 'center' });
     
-    // Headers con mejor diseño
-    doc.setFillColor(...this.COLORS.primary.rgb);
-    doc.rect(15, yPosition - 6, pageWidth - 30, 12, 'F');
-    
-    doc.setTextColor(...this.COLORS.white.rgb);
-    doc.setFontSize(10);
+    // Título del reporte
+    doc.setTextColor(this.COLORES.azulOscuro);
     doc.setFont('helvetica', 'bold');
-    
-    config.columns.forEach((col, index) => {
-      const x = 15 + (index * colWidth) + (colWidth / 2);
-      doc.text(col.header, x, yPosition, { align: 'center' });
-    });
-    
-    yPosition += 10;
-    
-    // Data rows con mejor espaciado
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(...this.COLORS.textDark.rgb);
-    
-    config.data.forEach((item, index) => {
-      if (yPosition > doc.internal.pageSize.height - 35) {
-        doc.addPage();
-        yPosition = 25;
+    doc.setFontSize(12);
+    doc.text(config.title, pageWidth / 2, 27, { align: 'center' });
+
+    let yPos = 38;
+
+    // Información adicional del reporte
+    if (config.metadata) {
+      doc.setTextColor(this.COLORES.grisTexto);
+      doc.setFontSize(10);
+      
+
+      
+      if (config.metadata.additionalInfo) {
+        doc.text(config.metadata.additionalInfo, 20, yPos);
+        yPos += 6;
       }
       
-      // Fila alterna con mejor contraste
-      if (index % 2 === 0) {
-        doc.setFillColor(...this.COLORS.lightGray.rgb);
-        doc.rect(15, yPosition - 4, pageWidth - 30, 10, 'F');
-      }
-      
-      config.columns.forEach((col, colIndex) => {
-        const x = 15 + (colIndex * colWidth) + 3;
-        const text = String(this.cleanValue(item[col.key])).substring(0, 30);
-        doc.text(text, x, yPosition + 2);
-      });
-      
-      yPosition += 10;
-    });
-    
-    this.addEnhancedPDFFooter(doc, 1, 1);
+      yPos += 3; // Espacio adicional
+    }
+
+    return yPos;
   }
 
-  // ===== MÉTODOS PRIVADOS - CSV =====
+  private crearPiePagina(doc: jsPDF, data: any) {
+    doc.setFontSize(8);
+    doc.setTextColor(this.COLORES.grisTexto);
+    
+    const fecha = new Date();
+    const fechaTexto = fecha.toLocaleDateString('es-HN');
+    const horaTexto = fecha.toLocaleTimeString('es-HN');
+    const totalPages = doc.getNumberOfPages();
+    
+    // Información del usuario y fecha
+    const usuarioCreacion = this.obtenerUsuarioActual();
+    doc.text(`Generado por: ${usuarioCreacion} | ${fechaTexto} ${horaTexto}`, 20, doc.internal.pageSize.height - 12);
+    
+    // Paginación
+    doc.text(`Página ${data.pageNumber}/${totalPages}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 12, { align: 'right' });
+  }
 
-  private buildCSVContent(config: ExportConfig): string {
-    const separator = '='.repeat(80);
-    const metadata = this.getReportMetadata(config);
+  private async crearTabla(doc: jsPDF, config: ExportConfig, startY: number) {
+    // Preparar datos de la tabla
+    const tableData = this.prepararDatosTabla(config);
     
-    const lines = [
-      separator,
-      `REPORTE EMPRESARIAL - ${config.title.toUpperCase()}`,
-      separator,
-      '',
-      'INFORMACIÓN DEL REPORTE:',
-      ''.padEnd(40, '-'),
-      ...metadata,
-      '',
-      'RESUMEN ESTADÍSTICO:',
-      ''.padEnd(40, '-'),
-      `Total de registros: ${config.data.length}`,
-      `Columnas incluidas: ${config.columns.length}`,
-      `Fecha de generación: ${this.getCurrentDate()}`,
-      '',
-      'DATOS DEL REPORTE:',
-      ''.padEnd(40, '-'),
-      '',
-      config.columns.map(col => col.header).join(','),
-      ...config.data.map(row => 
-        config.columns.map(col => this.escapeCSV(row[col.key])).join(',')
-      ),
-      '',
-      separator,
-      `Archivo generado por Sistema de Gestión Empresarial`,
-      `Fecha y hora: ${new Date().toISOString()}`,
-      separator
-    ];
+    // Crear la tabla con la configuración correcta de tipos
+    autoTable(doc, {
+      startY: startY,
+      head: [tableData.headers],
+      body: tableData.rows,
+      styles: {
+        fontSize: 8,
+        cellPadding: 3,
+        overflow: 'linebreak' as any,
+        halign: 'left' as any,
+        valign: 'middle' as any,
+        lineColor: false,
+        lineWidth: 0,
+      },
+      headStyles: {
+        fillColor: this.hexToRgb(this.COLORES.azulOscuro),
+        textColor: this.hexToRgb(this.COLORES.dorado),
+        fontStyle: 'bold',
+        fontSize: 9,
+        lineColor: false,
+        lineWidth: 0,
+      },
+      alternateRowStyles: {
+        fillColor: [248, 249, 250],
+      },
+      tableLineColor: false,
+      tableLineWidth: 0,
+      margin: { left: 15, right: 15, bottom: 30 },
+      tableWidth: 'auto' as any,
+      showHead: 'everyPage' as any,
+      pageBreak: 'auto' as any,
+      didDrawPage: (data: any) => {
+        this.crearPiePagina(doc, data);
+      }
+    });
+  }
+
+  private prepararDatosTabla(config: ExportConfig): { headers: string[], rows: any[][] } {
+    const headers = config.columns.map(col => col.header);
+    const rows = config.data.map(item => 
+      config.columns.map(col => {
+        const value = item[col.key];
+        return this.formatearValor(value);
+      })
+    );
     
-    return '\uFEFF' + lines.join('\n');
+    return { headers, rows };
+  }
+
+  private formatearValor(valor: any): string {
+    if (valor === null || valor === undefined) {
+      return '';
+    }
+    
+ 
+    return String(valor).trim();
+  }
+
+  private obtenerUsuarioActual(): string {
+    // Intentar obtener el usuario del localStorage o usar un valor por defecto
+    try {
+      const usuario = localStorage.getItem('currentUser');
+      if (usuario) {
+        const userData = JSON.parse(usuario);
+        return userData.usuarioCreacion || userData.usuarioCreacion || 'Usuario';
+      }
+    } catch (e) {
+      console.error('Error obteniendo usuario:', e);
+    }
+    return 'Sistema';
   }
 
   // ===== MÉTODOS DE UTILIDAD =====
 
   private validateConfig(config: ExportConfig): void {
-    if (!config.data || !Array.isArray(config.data) || config.data.length === 0) {
-      throw new Error('No hay datos para exportar');
+    if (!config.title) {
+      throw new Error('El título del reporte es requerido');
     }
-    if (!config.columns || config.columns.length === 0) {
-      throw new Error('No se han definido columnas');
+    
+    if (!config.filename) {
+      throw new Error('El nombre del archivo es requerido');
+    }
+    
+    if (!Array.isArray(config.data) || config.data.length === 0) {
+      throw new Error('Los datos para exportar son requeridos');
+    }
+    
+    if (!Array.isArray(config.columns) || config.columns.length === 0) {
+      throw new Error('Las columnas para exportar son requeridas');
     }
   }
 
-  private getReportMetadata(config: ExportConfig): string[] {
-    const metadata = [
-      `Fecha de Generación: ${this.getCurrentDate()}`,
-      `Total de Registros: ${config.data.length}`,
-    ];
-    
-    if (config.metadata?.department) {
-      metadata.push(`Departamento: ${config.metadata.department}`);
-    }
-    
-    if (config.metadata?.user) {
-      metadata.push(`Usuario: ${config.metadata.user}`);
-    }
-    
-    if (config.metadata?.additionalInfo) {
-      metadata.push(`Información: ${config.metadata.additionalInfo}`);
-    }
-    
-    return metadata;
+  private generateFilename(baseName: string, extension: string): string {
+    const fecha = new Date();
+    const timestamp = fecha.toISOString().slice(0, 19).replace(/[-:T]/g, '');
+    return `${baseName}_${timestamp}.${extension}`;
   }
 
-  private getColumnStyles(columns: ExportColumn[]): any {
-    const styles: any = {};
-    columns.forEach(col => {
-      styles[col.key] = {
-        halign: col.align || 'left',
-        cellWidth: col.width ? (col.width * 2.8) : 'auto'
-      };
-    });
-    return styles;
-  }
-
-  private cleanValue(value: any): string {
-    if (value === null || value === undefined) return '';
-    return String(value)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
-      .trim()
-      .substring(0, 100);
-  }
-
-  private escapeCSV(value: any): string {
-    if (!value) return '';
-    let stringValue = this.cleanValue(value);
-    
-    if (stringValue.includes(',') || stringValue.includes('"')) {
-      stringValue = `"${stringValue.replace(/"/g, '""')}"`;
+  private hexToRgb(hex: string): [number, number, number] {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (result) {
+      return [
+        parseInt(result[1], 16),
+        parseInt(result[2], 16),
+        parseInt(result[3], 16)
+      ];
     }
-    
-    return stringValue;
+    return [0, 0, 0];
   }
 
-  private getCurrentDate(): string {
-    return new Date().toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'America/Tegucigalpa'
+  // Método de utilidad para formatear números (compatible con PdfReportService)
+  formatearNumero(numero: number | null | undefined): string {
+    if (numero === null || numero === undefined || isNaN(numero)) {
+      return '0.00';
+    }
+    return numero.toLocaleString('es-HN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     });
   }
 
-  private generateFilename(base: string, extension: string): string {
-    const timestamp = new Date().toISOString()
-      .replace(/[:.]/g, '-')
-      .substring(0, 19);
-    return `${base}_${timestamp}.${extension}`;
+  // Método de utilidad para truncar texto (compatible con PdfReportService)
+  truncateText(text: string, maxLength: number): string {
+    if (!text) return '';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   }
 
-  private sanitizeSheetName(name: string): string {
-    return name
-      .replace(/[\\\/\?\*\[\]:]/g, '')
-      .replace(/[^\w\s\-]/g, '')
-      .substring(0, 31);
-  }
-
-  private downloadFile(content: string, filename: string, mimeType: string): void {
-    const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    
-    link.href = url;
-    link.download = filename;
-    link.style.display = 'none';
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    setTimeout(() => URL.revokeObjectURL(url), 100);
+  // Getter para acceder a los colores desde los componentes
+  get colores() {
+    return this.COLORES;
   }
 }

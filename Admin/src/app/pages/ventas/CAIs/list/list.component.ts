@@ -42,7 +42,6 @@ private readonly exportConfig = {
     title: 'Listado de CAIS',                    // Título del reporte
     filename: 'CAIS',                           // Nombre base del archivo
     department: 'Ventas',                         // Departamento
-    additionalInfo: 'Sistema de Gestión',         // Información adicional
     
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
@@ -220,8 +219,7 @@ private readonly exportConfig = {
       data: this.obtenerDatosExport(),
       columns: this.exportConfig.columns,
       metadata: {
-        department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
+        department: this.exportConfig.department
       }
     };
   }

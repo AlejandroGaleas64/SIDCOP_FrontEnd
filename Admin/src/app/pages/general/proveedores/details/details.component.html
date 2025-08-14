@@ -33,7 +33,7 @@
                   <i class="ri-hashtag"></i>
                 </div>
                 <div class="detail-content">
-                  <div class="detail-label">ID</div>
+                  <div class="detail-label">Código</div>
                   <div class="detail-value">
                     {{ proveedorDetalle.prov_Codigo }}
                   </div>
@@ -116,7 +116,7 @@
         </div>
       </div>
     </div>
-      <h4 class="details-title mt-4 mb-3" style="color: black ;">Historial de acciones</h4>  
+     
     <!-- Tabla de auditoría -->
     <div class="audit-table-container">
       <div class="audit-table">
@@ -129,26 +129,26 @@
       <!-- Fila de creación -->
       <div class="audit-row">
         <div class="audit-col">
-          <span class="audit-action"><i class="ri-user-add-line"></i> Creador</span>
+          <span class="audit-action"> Creador</span>
         </div>
         <div class="audit-col">
-          <span class="audit-user"><i class="ri-user-3-line"></i> {{ proveedorDetalle.usuarioCreacion}}</span>
+          <span class="audit-user">{{ proveedorDetalle.usuarioCreacion}}</span>
         </div>
         <div class="audit-col">
-          <span class="audit-date"><i class="ri-calendar-line"></i> {{ formatearFecha(proveedorDetalle.prov_FechaCreacion) }}</span>
+          <span class="audit-date"> {{ formatearFecha(proveedorDetalle.prov_FechaCreacion) }}</span>
         </div>
       </div>
       
       <!-- Fila de modificación -->
       <div class="audit-row">
         <div class="audit-col">
-          <span class="audit-action"><i class="ri-pencil-line"></i> Modificación</span>
+          <span class="audit-action"> Modificación</span>
         </div>
         <div class="audit-col">
-          <span class="audit-user"><i class="ri-user-3-line"></i> {{ proveedorDetalle.usuarioModificacion || 'N/A' }}</span>
+          <span class="audit-user"> {{ proveedorDetalle.usuarioModificacion || 'N/A' }}</span>
         </div>
         <div class="audit-col">
-          <span class="audit-date"><i class="ri-calendar-line"></i> {{ formatearFecha(proveedorDetalle.prov_FechaModificacion ?? null) }}</span>
+          <span class="audit-date"> {{ formatearFecha(proveedorDetalle.prov_FechaModificacion ?? null) }}</span>
         </div>
       </div>
     </div>

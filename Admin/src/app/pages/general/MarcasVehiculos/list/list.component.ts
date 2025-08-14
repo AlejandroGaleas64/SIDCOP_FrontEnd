@@ -158,28 +158,32 @@ export class ListComponent implements OnInit {
   // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
   marcasVehiculosAEliminar: MarcasVehiculos | null = null;
+formatearNumero(valor: number): string {
+  return Math.floor(valor).toString();
+}
 
   private readonly exportConfig = {
+    
     // Configuración básica
     title: 'Listado de Marcas de Vehículos',
     filename: 'MarcasVehiculos',
     department: 'General',
-    additionalInfo: 'Sistema de Gestión',
+    // additionalInfo: 'Sistema de Gestión',
     
     // Columnas a exportar
     columns: [
       { key: 'No', header: 'No.', width: 8, align: 'center' as const },
       { key: 'Marca', header: 'Marca', width: 35, align: 'left' as const },
-      { key: 'FechaCreacion', header: 'Fecha Creación', width: 25, align: 'center' as const },
-      { key: 'Estado', header: 'Estado', width: 15, align: 'center' as const }
+      // { key: 'FechaCreacion', header: 'Fecha Creación', width: 25, align: 'center' as const },
+      // { key: 'Estado', header: 'Estado', width: 15, align: 'center' as const }
     ] as ExportColumn[],
     
     // Mapeo de datos para la entidad MarcasVehiculos
     dataMapping: (marca: MarcasVehiculos, index: number) => ({
-      'No': marca?.secuencia || (index + 1),
+      'No': this.formatearNumero(marca?.secuencia || (index + 1)),
       'Marca': this.limpiarTexto(marca?.maVe_Marca),
-      'FechaCreacion': marca?.maVe_FechaCreacion ? new Date(marca.maVe_FechaCreacion).toLocaleDateString() : '',
-      'Estado': marca?.maVe_Estado ? 'Activo' : 'Inactivo'
+      // 'FechaCreacion': marca?.maVe_FechaCreacion ? new Date(marca.maVe_FechaCreacion).toLocaleDateString() : '',
+      // 'Estado': marca?.maVe_Estado ? 'Activo' : 'Inactivo'
     })
   };
 
@@ -421,7 +425,7 @@ export class ListComponent implements OnInit {
       columns: this.exportConfig.columns,
       metadata: {
         department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
+        // additionalInfo: this.exportConfig.additionalInfo
       }
     };
   }

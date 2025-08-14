@@ -92,6 +92,7 @@
                       class="form-select"
                       [class.is-invalid]="descuento.desc_Tipo == null"
                       [(ngModel)]="descuento.desc_Tipo"
+                      (ngModelChange)="onTipoCambio($event)"
                       required>
                           <option value="" disabled selected>Seleccione una opción</option>
                           <option value=true  selected>Monto Fijo</option>
@@ -538,6 +539,7 @@
               </div>
               <div class="text-danger mt-0 error-message-container" >
                     <small *ngIf="i > 0 && escala.deEs_Valor <= escalas[i - 1].deEs_Valor">El valor debe ser mayor al valor anterior</small>
+                    <small *ngIf="escala.deEs_Valor >= this.valorMaximoNumerico">El valor no puede ser mayor a ({{ valorMaximoPermitido }})</small>
                 </div>
                 
               </div>
@@ -596,7 +598,7 @@
           class="btn btn-primary  
           right ms-auto nexttab
             nexttab" data-nexttab="steparrow-description-info-tab" 
-            [disabled]="!validado"
+            [disabled]="!validado || !puedeAgregarNuevaEscala()"
             >
              <span class="btn-text">Guardar</span>
             <span class="btn-icon"><i class="ri-save-line label-icon align-middle fs-16 ms-2"></i></span>

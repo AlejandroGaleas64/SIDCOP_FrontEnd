@@ -47,7 +47,7 @@ export class EditComponent implements OnChanges {
       this.obtenerEstadosCiviles();
       this.obtenerCargos();
       this.listarColonias();
-    }
+  }
 
  empleado: Empleado = {
       empl_Id: 0,

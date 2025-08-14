@@ -31,6 +31,7 @@ export class EditComponent implements OnChanges {
       cate_FechaCreacion: new Date(),
       cate_FechaModificacion: new Date(),
       cate_Estado: false,
+      subc_Id: 0,
       code_Status: 0,
       message_Status: '',
       usuarioCreacion: '',

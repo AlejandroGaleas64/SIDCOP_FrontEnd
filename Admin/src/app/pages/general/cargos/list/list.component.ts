@@ -74,6 +74,9 @@ import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
 })
 
 export class ListComponent implements OnInit {
+formatearNumero(valor: number): string {
+  return valor % 1 === 0 ? valor.toString() : valor.toFixed(2).replace(/\.?0+$/, '');
+}
 
   // Overlay de carga animado
   mostrarOverlayCarga = false;
@@ -90,22 +93,23 @@ export class ListComponent implements OnInit {
     title: 'Listado de Cargos',                    // Título del reporte
     filename: 'Cargos',                           // Nombre base del archivo
     department: 'General',                         // Departamento
-    additionalInfo: 'Sistema de Gestión',         // Información adicional
+    // additionalInfo: 'Sistema de Gestión',         // Información adicional
     
     // Columnas a exportar - Configuradas para Cargos
     columns: [
       { key: 'No', header: 'No.', width: 8, align: 'center' as const },
       { key: 'Descripcion', header: 'Descripción', width: 40, align: 'left' as const },
-      { key: 'FechaCreacion', header: 'Fecha Creación', width: 25, align: 'center' as const },
-      { key: 'Estado', header: 'Estado', width: 15, align: 'center' as const }
+      // { key: 'FechaCreacion', header: 'Fecha Creación', width: 25, align: 'center' as const },
+      // { key: 'Estado', header: 'Estado', width: 15, align: 'center' as const }
     ] as ExportColumn[],
-    
+
+
     // Mapeo de datos para la entidad Cargos
     dataMapping: (cargo: Cargos, index: number) => ({
-      'No': cargo?.secuencia || (index + 1),
+      'No': this.formatearNumero(cargo?.secuencia || (index + 1)),
       'Descripcion': this.limpiarTexto(cargo?.carg_Descripcion),
-      'FechaCreacion': cargo?.carg_FechaCreacion ? new Date(cargo.carg_FechaCreacion).toLocaleDateString() : '',
-      'Estado': cargo?.carg_Estado ? 'Activo' : 'Inactivo'
+      // 'FechaCreacion': cargo?.carg_FechaCreacion ? new Date(cargo.carg_FechaCreacion).toLocaleDateString() : '',
+      // 'Estado': cargo?.carg_Estado ? 'Activo' : 'Inactivo'
     })
   };
 
@@ -227,7 +231,7 @@ export class ListComponent implements OnInit {
       columns: this.exportConfig.columns,
       metadata: {
         department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
+        // additionalInfo: this.exportConfig.additionalInfo
       }
     };
   }

@@ -455,3 +455,26 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+.codigo-cliente-mini {
+  background: #141a2f;
+  color: #d6b68a;
+  border-radius: 1.2em;
+  padding: 0.25em 1.1em;
+  font-size: 1em;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  border: 1.5px solid #d6b68a;
+  box-shadow: 0 1px 6px 0 rgba(20,26,47,0.06);
+  display: inline-block;
+  min-width: 11.5em;
+  text-align: center;
+  transition: background 0.3s, color 0.3s;
+  user-select: all;
+}
+
+.codigo-placeholder {
+  background: #f8f8f8;
+  color: #bdbdbd;
+  border: 1.5px dashed #d6b68a;
+}

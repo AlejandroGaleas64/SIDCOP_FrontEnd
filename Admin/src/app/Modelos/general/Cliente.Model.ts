@@ -12,7 +12,7 @@ export class Cliente{
     clie_NombreNegocio: string = '';
     clie_ImagenDelNegocio: string = '';
     clie_Telefono: string = '';
-    clie_Correo: string = '';
+    clie_Correo: string = ''; 
     clie_Sexo: string = '';
     clie_FechaNacimiento?: Date | null;
     tiVi_Id: number = 0;
@@ -35,7 +35,7 @@ export class Cliente{
     usua_Creacion: number = 0;
     clie_FechaCreacion: Date = new Date();
     usua_Modificacion: number = 0;
-    clie_FechaModificacion?: Date;
+    clie_FechaModificacion?: Date | null;
     clie_Estado: boolean = true;
 
     usuaC_Nombre: string = '';
@@ -45,6 +45,7 @@ export class Cliente{
     message_Status: string = '';
     // usuarioCreacion: string = '';
     // usuarioModificacion: string = '';
+    No?: number = 0;
     
     constructor(init?: Partial<Cliente>) {
     Object.assign(this, init);

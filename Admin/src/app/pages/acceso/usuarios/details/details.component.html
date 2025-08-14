@@ -111,6 +111,37 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-12 col-sm-6">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white">
+                                        @if(usuarioDetalle.usua_TienePermisos){
+                                        <i class="ri-user-follow-line"></i>
+                                        }
+                                        @else {
+                                        <i class="ri-user-unfollow-line"></i>
+                                        }
+                                    </div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Permisos Especiales</div>
+                                        <div class="detail-value">
+                                            @if (usuarioDetalle.usua_TienePermisos) {
+                                            <span class="badge fw-semibold mb-1 px-3 py-1 border"
+                                                style="font-size: 0.8rem; background-color: #CEE9C6; color: #365506">
+                                                <i class="ri-checkbox-blank-circle-fill" style="font-size: 0.6rem;"></i>
+                                                Sí
+                                            </span>
+                                            }
+                                            @else {
+                                            <span class="badge fw-semibold mb-1 px-3 py-1 border"
+                                                style="font-size: 0.8rem; background-color: #FBCFD4; color: #4E1212">
+                                                <i class="ri-close-fill" style="font-size: 0.6rem;"></i>
+                                                No
+                                            </span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -129,7 +160,7 @@
                         <span class="audit-action">Creador</span>
                     </div>
                     <div class="audit-col">
-                        <span class="audit-user">{{ usuarioDetalle.usua_Creacion || 'N/A' }}</span>
+                        <span class="audit-user">{{ usuarioDetalle.usuarioCreacion || 'N/A' }}</span>
                     </div>
                     <div class="audit-col">
                         <span class="audit-date">{{ formatearFecha(usuarioDetalle.usua_FechaCreacion || null) }}</span>
@@ -141,7 +172,7 @@
                         <span class="audit-action">Modificación</span>
                     </div>
                     <div class="audit-col">
-                        <span class="audit-user">{{ usuarioDetalle.usua_Modificacion || 'N/A' }}</span>
+                        <span class="audit-user">{{ usuarioDetalle.usuarioModificacion || 'N/A' }}</span>
                     </div>
                     <div class="audit-col">
                         <span class="audit-date">{{ formatearFecha(usuarioDetalle.usua_FechaModificacion || null) }}</span>

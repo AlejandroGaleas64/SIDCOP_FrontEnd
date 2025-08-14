@@ -4,12 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Cliente } from 'src/app/Modelos/general/Cliente.Model';
 import { environment } from 'src/environments/environment.prod';
-
+import { ChangeDetectorRef } from '@angular/core';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { MapaSelectorComponent } from '../mapa-selector/mapa-selector.component';
 import { Aval } from 'src/app/Modelos/general/Aval.Model';
-
-import { NgModule } from '@angular/core';
 import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente.Model';
 import { getUserId } from 'src/app/core/utils/user-utils';
 
@@ -28,8 +26,9 @@ export class CreateComponent {
   @ViewChild('tabsScroll', { static: false }) tabsScroll!: ElementRef<HTMLDivElement>;
   @ViewChild(MapaSelectorComponent)
   mapaSelectorComponent!: MapaSelectorComponent;
+
   entrando = true;
-  tabActual = 1;
+  activeTab = 1;
 
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -40,11 +39,7 @@ export class CreateComponent {
   mensajeWarning = '';
   mostrarMapa = false;
 
-  nuevaColonia: { muni_Codigo: string } = { muni_Codigo: '' };
-  direccion = { colo_Id: '' };
-  direccionAval = { colo_Id: '' };
-  activeTab = 1;
-
+  //Arreglos de las Listas
   nacionalidades: any[] = [];
   paises: any[] = [];
   tiposDeVivienda: any[] = [];
@@ -52,39 +47,24 @@ export class CreateComponent {
   canales: any[] = [];
   rutas: any[] = [];
   parentescos: any[] = [];
+  TodasColonias: any[] = [];
+  TodasColoniasAval: any[] = [];
+  colonias: any[] = [];
 
+  //Variables para el mapa
   latitudSeleccionada: number | null = null;
   longitudSeleccionada: number | null = null;
 
+  //Estados de carga
   cargando = false;
   cargandoColonias = false;
-  Departamentos: any[] = [];
-
-  TodosMunicipios: any[] = [];
-  Municipios: any[] = [];
-
-  TodasColonias: any[] = [];
-  Colonias: any[] = [];
-
-  selectedDepa: string = '';
-  selectedMuni: string = '';
-  selectedColonia: string = '';
-
-  idDelCliente: number = 0;
-  idDeLaDireccionDelCliente: number = 0;
-
-  nuevaColoniaAval: { muni_Codigo: string } = { muni_Codigo: '' };
   cargandoAval = false;
   cargandoColoniasAval = false;
 
-  DepartamentosAval: any[] = [];
-  TodosMunicipiosAval: any[] = [];
-  MunicipiosAval: any[] = [];
-  TodasColoniasAval: any[] = [];
-  ColoniasAval: any[] = [];
-  selectedDepaAval: string = '';
-  selectedMuniAval: string = '';
-  selectedColoniaAval: string = '';
+
+  //Id del cliente obtenido al crear el nuevo cliente
+  idDelCliente: number = 0;
+
 
   scrollToAval(index: number) {
     const container = this.tabsScroll.nativeElement;
@@ -102,6 +82,15 @@ export class CreateComponent {
     }
   }
 
+  esCorreoValido(correo: string): boolean {
+    if (!correo) return true;
+    // Solo acepta gmail.com y hotmail.com, y debe tener @ y .com
+    return /^[\w\.-]+@(gmail|hotmail|outlook)\.com$/.test(correo.trim());
+  }
+
+  //Declarado para validar la direccion
+  validarDireccion: boolean = false;
+  //Validacion para que no se desplace con el tab de arriba
   tabDeArriba(no: number) {
     if (no === this.activeTab) return;
 
@@ -117,7 +106,6 @@ export class CreateComponent {
     if (no === 1) {
       this.mostrarErrores = true;
       if (
-        this.cliente.clie_Codigo.trim() &&
         this.cliente.clie_Nacionalidad.trim() &&
         this.cliente.clie_RTN.trim() &&
         this.cliente.clie_Nombres.trim() &&
@@ -213,6 +201,7 @@ export class CreateComponent {
     );
   }
 
+  //Verifica si el aval es valido- Si nungo campo este vacio
   esAvalValido(aval: Aval): boolean {
     let fechaValida = false;
     if (aval.aval_FechaNacimiento) {
@@ -240,19 +229,17 @@ export class CreateComponent {
     return this.avales.length > 0 && this.avales.every(aval => this.esAvalValido(aval));
   }
 
-  validarDireccion: boolean = false;
   //Parametros para evaluar antes de pasar al siguiente tabulador
   tabuladores(no: number) {
     if (no == 1) {
       this.mostrarErrores = true
-      if (this.cliente.clie_Codigo.trim() && this.cliente.clie_Nacionalidad.trim() &&
+      if (this.cliente.clie_Nacionalidad.trim() &&
         this.cliente.clie_RTN.trim() && this.cliente.clie_Nombres.trim() &&
         this.cliente.clie_Apellidos.trim() && this.cliente.esCv_Id &&
         this.cliente.clie_FechaNacimiento && this.cliente.tiVi_Id &&
         this.cliente.clie_Telefono.trim()) {
         this.mostrarErrores = false;
         this.activeTab = 2;
-        this.tabActual = 2;
       }
       else {
         this.mostrarAlertaWarning = true;
@@ -265,16 +252,20 @@ export class CreateComponent {
     }
 
     if (no == 2) {
-      this.mostrarErrores = true
-      if (this.cliente.clie_NombreNegocio.trim() && this.cliente.clie_ImagenDelNegocio.trim() &&
-        this.cliente.ruta_Id && this.cliente.cana_Id && this.validarDireccion) {
+      this.mostrarErrores = true;
+      if (
+        this.cliente.clie_NombreNegocio.trim() &&
+        this.cliente.clie_ImagenDelNegocio.trim() &&
+        this.cliente.ruta_Id &&
+        this.cliente.cana_Id &&
+        this.validarDireccion
+      ) {
         this.mostrarErrores = false;
         this.activeTab = 3;
-      }
-      else {
+      } else {
         this.validarDireccion = true;
         this.mostrarAlertaWarning = true;
-        this.mensajeWarning = 'Por favor, complete todos los campos obligatorios.';
+        this.mensajeWarning = 'Por favor, complete todos los campos obligatorios del negocio.';
         setTimeout(() => {
           this.mostrarAlertaWarning = false;
           this.mensajeWarning = '';
@@ -348,13 +339,12 @@ export class CreateComponent {
     }
   }
 
-
-
   trackByIndex(index: number) { return index; }
 
   onCoordenadasSeleccionadas(coords: { lat: number, lng: number }) {
     this.direccionPorCliente.diCl_Latitud = coords.lat;
     this.direccionPorCliente.diCl_Longitud = coords.lng;
+    this.cdr.detectChanges();
   }
 
   coordenadaPrevia: { lat: number, lng: number } | null = null;
@@ -371,6 +361,7 @@ export class CreateComponent {
       diCl_Id: 0,
       clie_Id: 0,
       colo_Id: 0,
+      colo_Descripcion: '',
       diCl_DireccionExacta: '',
       diCl_Observaciones: '',
       diCl_Latitud: 0,
@@ -384,7 +375,7 @@ export class CreateComponent {
     }
   }
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {
     this.cargarPaises();
     this.cargarTiposDeVivienda();
     this.cargarEstadosCiviles();
@@ -392,7 +383,8 @@ export class CreateComponent {
     this.cargarRutas();
     this.cargarParentescos();
     this.cargarColoniasCliente();
-    this.cargarListadosAval();
+    this.cargarColoniasAval();
+    this.cargarColonias();
   }
 
   cargarPaises() {
@@ -439,69 +431,21 @@ export class CreateComponent {
     }).subscribe(data => this.TodasColonias = data);
   }
 
-  cargarListadosAval(): void {
-    this.http.get<any>(`${environment.apiBaseUrl}/Departamentos/Listar`, {
+  cargarColoniasAval() {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Colonia/ListarMunicipiosyDepartamentos`, {
       headers: { 'x-api-key': environment.apiKey }
-    }).subscribe({
-      next: (data) => this.DepartamentosAval = data,
-      error: (error) => console.error('Error cargando departamentos:', error)
-    });
+    }).subscribe(data => this.TodasColoniasAval = data);
+  }
 
-    this.http.get<any>(`${environment.apiBaseUrl}/Municipios/Listar`, {
+  cargarColonias() {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Colonia/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
-    }).subscribe({
-      next: (data) => this.TodosMunicipiosAval = data,
-      error: (error) => console.error('Error cargando municipios:', error)
-    });
-
-    this.http.get<any>(`${environment.apiBaseUrl}/Colonia/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe({
-      next: (data) => this.TodasColoniasAval = data,
-      error: (error) => console.error('Error cargando colonias:', error)
-    });
+    }).subscribe(data => this.colonias = data);
   }
 
-  onDepartamentoChange(): void {
-    this.cargarMunicipios(this.selectedDepa);
-    this.nuevaColonia.muni_Codigo = '';
-    this.direccion.colo_Id = '';
-    this.Colonias = [];
-    this.selectedMuni = '';
-    this.selectedColonia = '';
-  }
-
-  onDepartamentoAvalChange(): void {
-    this.cargarMunicipiosAval(this.selectedDepaAval);
-    this.nuevaColoniaAval.muni_Codigo = '';
-    this.direccionAval.colo_Id = '';
-    this.ColoniasAval = [];
-    this.selectedMuniAval = '';
-    this.selectedColoniaAval = '';
-  }
-
-  cargarMunicipios(codigoDepa: string): void {
-    this.Municipios = this.TodosMunicipios.filter(m => m.depa_Codigo === codigoDepa);
-    this.selectedMuni = '';
-  }
-
-  cargarColonias(codigoMuni: string): void {
-    console.log('Cargando colonias para municipio:', codigoMuni);
-    console.log('TodasColonias:', this.TodasColonias);
-    this.Colonias = this.TodasColonias.filter(c => c.muni_Codigo === codigoMuni);
-    this.selectedColonia = '';
-  }
-
-  cargarMunicipiosAval(codigoDepaAval: string): void {
-    this.MunicipiosAval = this.TodosMunicipiosAval.filter(m => m.depa_Codigo === codigoDepaAval);
-    this.selectedMuniAval = '';
-  }
-
-  cargarColoniasAval(codigoMuniAval: string): void {
-    console.log('Cargando colonias para municipio:', codigoMuniAval);
-    console.log('TodasColonias:', this.TodasColonias);
-    this.ColoniasAval = this.TodasColoniasAval.filter(c => c.muni_Codigo === codigoMuniAval);
-    this.selectedColoniaAval = '';
+  obtenerDescripcionColonia(colo_Id: number): string {
+    const colonia = this.colonias.find(c => c.colo_Id === colo_Id);
+    return colonia?.colo_Descripcion || 'Colonia no encontrada';
   }
 
   cliente: Cliente = {
@@ -527,7 +471,7 @@ export class CreateComponent {
     esCv_Descripcion: '',
     ruta_Id: 0,
     ruta_Descripcion: '',
-    clie_LimiteCredito: 0,
+    clie_LimiteCredito: 0.00,
     clie_DiasCredito: 0,
     clie_Saldo: 0,
     clie_Vencido: true,
@@ -551,6 +495,7 @@ export class CreateComponent {
     diCl_Id: 0,
     clie_Id: 0,
     colo_Id: 0,
+    colo_Descripcion: '',
     diCl_DireccionExacta: '',
     diCl_Observaciones: '',
     diCl_Latitud: 0,
@@ -685,6 +630,30 @@ export class CreateComponent {
     }
   }
 
+  generarCodigoClientePorRuta(ruta_Id: number): void {
+    const ruta = this.rutas.find(r => r.ruta_Id === +ruta_Id);
+    const codigoRuta = ruta?.ruta_Codigo
+      ? ruta.ruta_Codigo.padStart(3, '0')
+      : ruta_Id.toString().padStart(3, '0');
+
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(clientes => {
+      const clientesRuta = clientes.filter(c => c.ruta_Id === +ruta_Id);
+      let maxCorrelativo = 0;
+      clientesRuta.forEach(c => {
+        const match = c.clie_Codigo?.match(/CLIE-RT\d{3}-(\d{9})/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxCorrelativo) maxCorrelativo = num;
+        }
+      });
+
+      const siguiente = (maxCorrelativo + 1).toString().padStart(9, '0');
+      this.cliente.clie_Codigo = `CLIE-RT${codigoRuta}-${siguiente}`;
+    });
+  }
+
   guardarCliente(): void {
     this.mostrarErrores = true;
     if (this.entrando) {
@@ -721,8 +690,8 @@ export class CreateComponent {
         clie_ObservacionRetiro: this.cliente.clie_ObservacionRetiro.trim(),
         clie_Confirmacion: this.cliente.clie_Confirmacion,
         clie_Estado: true,
-        usua_Creacion: environment.usua_Id,
-        usua_Modificacion: environment.usua_Id,
+        usua_Creacion: getUserId(),
+        usua_Modificacion: getUserId(),
         secuencia: 0,
         clie_FechaCreacion: new Date(),
         clie_FechaModificacion: new Date(),
@@ -754,6 +723,7 @@ export class CreateComponent {
             this.idDelCliente = response.data.data;
             this.guardarDireccionesPorCliente(this.idDelCliente);
             this.guardarAvales(this.idDelCliente);
+            this.mostrarErrores = false;
             this.onSave.emit(this.cliente);
             this.cancelar();
           }
@@ -779,7 +749,7 @@ export class CreateComponent {
 
   agregarDireccion() {
     this.mostrarErrores = true;
-    if(!this.direccionPorCliente.diCl_Longitud && !this.direccionPorCliente.diCl_Latitud){
+    if (!this.direccionPorCliente.diCl_Longitud && !this.direccionPorCliente.diCl_Latitud) {
       this.mostrarErrores = true;
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'Por favor, seleccione una ubicación en el mapa.';
@@ -807,7 +777,7 @@ export class CreateComponent {
       this.limpiarDireccionModal();
       this.cerrarMapa();
     }
-    else{
+    else {
       this.mostrarErrores = true;
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'Por favor, complete todos los campos obligatorios de la dirección.';
@@ -837,6 +807,7 @@ export class CreateComponent {
       diCl_Id: 0,
       clie_Id: 0,
       colo_Id: 0,
+      colo_Descripcion: '',
       diCl_DireccionExacta: '',
       diCl_Observaciones: '',
       diCl_Latitud: 0,
@@ -854,10 +825,11 @@ export class CreateComponent {
     for (const direccion of this.direccionesPorCliente) {
       const direccionPorClienteGuardar = {
         ...direccion,
+        colo_Descripcion: direccion?.colo_Descripcion || '',
         clie_Id: clie_Id,
-        usua_Creacion: environment.usua_Id,
+        usua_Creacion: getUserId(),
         diCl_FechaCreacion: new Date(),
-        usua_Modificacion: environment.usua_Id,
+        usua_Modificacion: getUserId(),
         diCl_FechaModificacion: new Date()
       };
       this.http.post<any>(`${environment.apiBaseUrl}/DireccionesPorCliente/Insertar`, direccionPorClienteGuardar, {
@@ -868,7 +840,6 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          console.log(response);
         },
         error: (error) => {
           this.mostrarAlertaError = true;
@@ -912,9 +883,9 @@ export class CreateComponent {
       const avalGuardar = {
         ...aval,
         clie_Id: clie_Id,
-        usua_Creacion: environment.usua_Id,
+        usua_Creacion: getUserId(),
         aval_FechaCreacion: new Date(),
-        usua_Modificacion: environment.usua_Id,
+        usua_Modificacion: getUserId(),
         aval_FechaModificacion: new Date()
       };
       this.http.post<any>(`${environment.apiBaseUrl}/Aval/Insertar`, avalGuardar, {
@@ -925,7 +896,6 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          // Puedes manejar la respuesta aquí
         },
         error: (error) => {
           this.mostrarAlertaError = true;
@@ -938,4 +908,17 @@ export class CreateComponent {
       });
     }
   }
+
+  formatearLimiteCredito() {
+    let valor = this.cliente.clie_LimiteCredito;
+
+    if (valor === null || valor === undefined || isNaN(valor)) {
+      this.cliente.clie_LimiteCredito = 0.00;
+    } else {
+      // Redondear a dos decimales correctamente
+      this.cliente.clie_LimiteCredito = Math.round(valor * 100) / 100;
+    }
+  }
+
 }
+

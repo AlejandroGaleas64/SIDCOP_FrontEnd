@@ -4,32 +4,50 @@
     ]">
     <img class="breadcrumbs-icon ms-2 icon-breadcrumb" src="assets/images/svg/Vector.svg" alt="icono breadcrumb" />
 </app-breadcrumbs>
-    
+
 <div class="card">
     <div class="card-body">
         <div class="row align-items-center g-2" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
             <div class="col-lg-3 me-auto">
-                <button *ngIf="accionPermitida('crear')" type="button" class="btn btn-primary me-2 mb-2" (click)="crear()">
+                <button *ngIf="accionPermitida('crear')" type="button" class="btn btn-primary me-2 mb-2"
+                    (click)="crear()">
                     <span class="btn-text">Nuevo</span>
                     <span class="btn-icon"><i class="ri-add-line"></i></span>
-                </button>           
+                </button>
             </div>
-            <div class="col-2 ms-auto position-relative">
-                <input
-                    type="text"
-                    class="form-control ps-5"
-                    placeholder="Buscar..."
-                    [(ngModel)]="busqueda"
-                    (ngModelChange)="filtradorUsuarios()"
-                />
-                <i class="ri-search-line search-icon" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #aaa;"></i>
+
+            <div class="col-lg-5 d-flex align-items-center justify-content-end gap-2 mb-2">
+                <div class="export-buttons d-flex gap-1 mb-2">
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarExcel()"
+                        title="Exportar a Excel">
+                        <span class="btn-text">Excel</span>
+                        <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
+                    </button>
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarPDF()"
+                        title="Exportar a PDF">
+                        <span class="btn-text">PDF</span>
+                        <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
+                    </button>
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarCSV()"
+                        title="Exportar a CSV">
+                        <span class="btn-text">CSV</span>
+                        <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
+                    </button>
+                </div>
+                <div class="position-relative" style="min-width: 200px;">
+                    <input type="text" class="form-control ps-5" placeholder="Buscar..." [(ngModel)]="busqueda"
+                        (ngModelChange)="filtradorUsuarios()" />
+                    <i class="ri-search-line search-icon"
+                        style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #aaa;"></i>
+                </div>
             </div>
         </div>
 
         <div *ngIf="showCreateForm" [@fadeExpand]>
             <div class="mb-2 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
                 <div class="container-fluid flex-grow-1">
-                    <app-create-usuario (onCancel)="cerrarFormulario()" (onSave)="guardarUsuario($event)"></app-create-usuario>
+                    <app-create-usuario (onCancel)="cerrarFormulario()"
+                        (onSave)="guardarUsuario($event)"></app-create-usuario>
                 </div>
             </div>
         </div>
@@ -37,7 +55,8 @@
         <div *ngIf="showEditForm" [@fadeExpand]>
             <div class="mb-2 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
                 <div class="container-fluid flex-grow-1">
-                    <app-edit [usuarioData]="usuarioEditando" (onCancel)="cerrarFormularioEdicion()" (onSave)="actualizarUsuario($event)"></app-edit>
+                    <app-edit [usuarioData]="usuarioEditando" (onCancel)="cerrarFormularioEdicion()"
+                        (onSave)="actualizarUsuario($event)"></app-edit>
                 </div>
             </div>
         </div>
@@ -54,14 +73,18 @@
 
     <div *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
         <div class="row row-cols-xxl-5 g-4 mx-2 mb-4">
-            <ng-container *ngFor="let data of usuariosFiltrados; trackBy: trackByUsuarioId">
+            <ng-container *ngFor="let data of usuarios; trackBy: trackByUsuarioId">
                 <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4 mx-auto">
                     <div class="card card-empleado position-relative h-100">
-                        <div class="card-header p-0 position-relative" style="height: 90px; background: #141a2f; border-top-left-radius: 1rem; border-top-right-radius: 1rem; display: flex; justify-content: center; align-items: flex-end;">
-                            <div style="position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; background: #d6b68a; border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem;"></div>
+                        <div class="card-header p-0 position-relative"
+                            style="height: 90px; background: #141a2f; border-top-left-radius: 1rem; border-top-right-radius: 1rem; display: flex; justify-content: center; align-items: flex-end;">
+                            <div
+                                style="position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; background: #d6b68a; border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem;">
+                            </div>
 
                             <div style="position: absolute; top: 10px; left: 18px; z-index:1;">
-                                <svg width="32" height="12" viewBox="0 0 32 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <svg width="32" height="12" viewBox="0 0 32 12" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
                                     <circle cx="4" cy="6" r="2" fill="#D5B58A" fill-opacity="0.5" />
                                     <circle cx="12" cy="6" r="2" fill="#D5B58A" fill-opacity="0.3" />
                                     <circle cx="20" cy="6" r="2" fill="#D5B58A" fill-opacity="0.2" />
@@ -69,52 +92,52 @@
                                 </svg>
                             </div>
 
-                            <div style="background: #fff; border-radius: 50%; padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 2px solid #d6b68a; margin-bottom: -35px; z-index:1;">
-                                <img
-                                    [src]="data.usua_Imagen"
-                                    (error)="onImgError($event)"
-                                    alt="Usuarios"
+                            <div
+                                style="background: #fff; border-radius: 50%; padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 2px solid #d6b68a; margin-bottom: -35px; z-index:1;">
+                                <img [src]="data.usua_Imagen" (error)="onImgError($event)" alt="Usuarios"
                                     class="avatar-img rounded-circle"
-                                    style="width: 64px; height: 64px; object-fit: cover; display: block;"
-                                />
+                                    style="width: 64px; height: 64px; object-fit: cover; display: block;" />
                             </div>
 
-                            <div style="position: absolute; top: 0px; right: 0px; z-index:1;" *ngIf="accionPermitida('editar') || accionPermitida('cambiar estado') || accionPermitida('detalles') || accionPermitida('cambiar estado') || accionPermitida('restablecer contraseña') || accionPermitida('mostrar contraseña') ">
-                                <div class="dropdown-action-list" (document:click)="onDocumentClick($event, data.usua_Id)">
-                                    <button class="buttonConfig"
-                                        [attr.aria-expanded]="activeActionRow === data.usua_Id"
+                            <div style="position: absolute; top: 0px; right: 0px; z-index:1;"
+                                *ngIf="accionPermitida('editar') || accionPermitida('cambiar estado') || accionPermitida('detalles') || accionPermitida('cambiar estado') || accionPermitida('restablecer contraseña') || accionPermitida('mostrar contraseña') ">
+                                <div class="dropdown-action-list"
+                                    (document:click)="onDocumentClick($event, data.usua_Id)">
+                                    <button class="buttonConfig" [attr.aria-expanded]="activeActionRow === data.usua_Id"
                                         (click)="onActionMenuClick(data.usua_Id)">
                                         <i class="ri-settings-3-line" style="color: white; font-size: 1.4em;"></i>
                                     </button>
                                     <span class="acciones-text">Acciones</span>
-                                    <ul *ngIf="activeActionRow === data.usua_Id" class="dropdown-menu show" style="left: -100px;">
+                                    <ul *ngIf="activeActionRow === data.usua_Id" class="dropdown-menu show"
+                                        style="left: -100px;">
                                         <li *ngIf="accionPermitida('editar')">
                                             <button class="dropdown-action-btn" (click)="editar(data)">Editar
                                                 <i class="ri-edit-line"></i></button>
                                         </li>
                                         <li *ngIf="accionPermitida('mostrar contraseña')">
-                                            <button class="dropdown-action-btn" (click)="mostrarContrasena(data)">Ver Clave
+                                            <button class="dropdown-action-btn" (click)="mostrarContrasena(data)">Ver
+                                                Clave
                                                 <i class="ri-eye-fill"></i></button>
                                         </li>
                                         @if(data.usua_Estado){
-                                            <li *ngIf="accionPermitida('cambiar estado')">
-                                                <button class="dropdown-action-btn"
+                                        <li *ngIf="accionPermitida('cambiar estado')">
+                                            <button class="dropdown-action-btn"
                                                 (click)="confirmarEliminar(data)">Desactivar
                                                 <i class="ri-user-unfollow-fill"></i></button>
-                                            </li>
+                                        </li>
                                         }
                                         @else{
-                                            <li *ngIf="accionPermitida('cambiar estado')">
-                                                <button class="dropdown-action-btn"
+                                        <li *ngIf="accionPermitida('cambiar estado')">
+                                            <button class="dropdown-action-btn"
                                                 (click)="confirmarEliminar(data)">Activar
                                                 <i class="ri-user-follow-fill"></i></button>
-                                            </li>
+                                        </li>
                                         }
 
                                         <li *ngIf="accionPermitida('restablecer contraseña')">
-                                            <button class="dropdown-action-btn"
-                                            (click)="restablecer(data)">Cambiar Clave
-                                            <i class="ri-refresh-line"></i></button>
+                                            <button class="dropdown-action-btn" (click)="restablecer(data)">Cambiar
+                                                Clave
+                                                <i class="ri-refresh-line"></i></button>
                                         </li>
                                         <li *ngIf="accionPermitida('detalle')">
                                             <button class="dropdown-action-btn" (click)="detalles(data)">Detalles
@@ -128,46 +151,51 @@
 
                         <div class="card-body pt-5 mt-2 px-3 pb-0 text-center">
                             @if (data.usua_Estado) {
-                                <span class="badge fw-semibold mb-1 px-3 py-1 border" style="font-size: 0.8rem; background-color: #CEE9C6; color: #365506">
-                                    <i class="ri-checkbox-blank-circle-fill" style="font-size: 0.6rem;"></i>
-                                    Activo
-                                </span>
+                            <span class="badge fw-semibold mb-1 px-3 py-1 border"
+                                style="font-size: 0.8rem; background-color: #CEE9C6; color: #365506">
+                                <i class="ri-checkbox-blank-circle-fill" style="font-size: 0.6rem;"></i>
+                                Activo
+                            </span>
                             }
                             @else {
-                                <span class="badge fw-semibold mb-1 px-3 py-1 border" style="font-size: 0.8rem; background-color: #FBCFD4; color: #4E1212">
-                                    <i class="ri-close-fill" style="font-size: 0.6rem;"></i>
-                                    Inactivo
-                                </span>
+                            <span class="badge fw-semibold mb-1 px-3 py-1 border"
+                                style="font-size: 0.8rem; background-color: #FBCFD4; color: #4E1212">
+                                <i class="ri-close-fill" style="font-size: 0.6rem;"></i>
+                                Inactivo
+                            </span>
                             }
                             <h5 class="fw-bold mb-1 text-dark" style="font-size: 1.125rem;">
                                 {{ data.nombreCompleto }}
                             </h5>
 
-                            <ul class="list-unstyled mb-0 mt-4 ps-0" style="display: flex; flex-direction: column; align-items: center;">
+                            <ul class="list-unstyled mb-0 mt-4 ps-0"
+                                style="display: flex; flex-direction: column; align-items: center;">
                                 <li class="d-flex justify-content-center align-items-center" style="gap: 4px;">
-                                    <span class="text-break" style="font-size: 0.8em;">-Usuario<p class="text-muted" style="font-size: 1.5em;">{{ data.usua_Usuario }}</p></span>
+                                    <span class="text-break" style="font-size: 0.8em;">-Usuario<p class="text-muted"
+                                            style="font-size: 1.5em;">{{ data.usua_Usuario }}</p></span>
                                 </li>
                                 <li class="d-flex justify-content-center align-items-center" style="gap: 4px;">
-                                    <span class="text-break" style="font-size: 0.8em;">-Rol<p class="text-muted" style="font-size: 1.5em;">{{ data.role_Descripcion }}</p></span>
+                                    <span class="text-break" style="font-size: 0.8em;">-Rol<p class="text-muted"
+                                            style="font-size: 1.5em;">{{ data.role_Descripcion }}</p></span>
                                 </li>
                             </ul>
                         </div>
                         <div class="text-center mb-2">
                             @if (data.usua_EsAdmin) {
-                                <span class="badge fw-semibold px-3 py-2 border mb-3" 
-                                    style="font-size: 0.85rem; background:  #141a2e00; color: #141a2e">
-                                    <i class="ri-vip-crown-fill me-1" style="font-size: 0.9rem;"></i>
-                                    Administrador
-                                </span>
+                            <span class="badge fw-semibold px-3 py-2 border mb-3"
+                                style="font-size: 0.85rem; background:  #141a2e00; color: #141a2e">
+                                <i class="ri-vip-crown-fill me-1" style="font-size: 0.9rem;"></i>
+                                Administrador
+                            </span>
                             } @else {
-                                <span class="badge fw-semibold px-3 py-2 border mb-3" 
-                                    style="font-size: 0.85rem; background-color: #141a2e00; color: #141a2e;">
-                                    <i class="ri-user-line me-1" style="font-size: 0.9rem;"></i>
-                                    Usuario
-                                </span>
+                            <span class="badge fw-semibold px-3 py-2 border mb-3"
+                                style="font-size: 0.85rem; background-color: #141a2e00; color: #141a2e;">
+                                <i class="ri-user-line me-1" style="font-size: 0.9rem;"></i>
+                                Usuario
+                            </span>
                             }
                         </div>
-                        </div>
+                    </div>
                 </div>
             </ng-container>
         </div>
@@ -175,45 +203,47 @@
         <div class="row align-items-center mb-3 mx-2" id="pagination-element">
             <div class="col-sm">
                 <div class="text-sm-start">
-                    Mostrando del <span>{{startIndex}}</span> - <span>{{endIndex}}</span> de <span>{{usuarioGrid?.length}}</span> registros
+                    Mostrando del <span>{{startIndex}}</span> - <span>{{endIndex}}</span> de
+                    <span>{{usuarioGrid?.length}}</span> registros
                 </div>
             </div>
             <div class="col-sm-auto mt-3 mt-sm-0 text-md-right float-md-end gridjs-pagination">
-                <pagination 
-                    [totalItems]="usuarioGrid?.length" 
-                    [itemsPerPage]="itemsPerPage" 
-                    (pageChanged)="pageChanged($event)">
+                <pagination [(ngModel)]="currentPage" [totalItems]="usuariosFiltrados.length" [itemsPerPage]="itemsPerPage"(pageChanged)="pageChanged($event)">
                 </pagination>
             </div>
-        </div>        
+        </div>
 
         <div class="alert-container" style="z-index: 3000;">
-            <div *ngIf="mostrarAlertaExito" class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+            <div *ngIf="mostrarAlertaExito"
+                class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
                 <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
                 <strong>¡Éxito!</strong> {{ mensajeExito }}
                 <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
             </div>
-            <div *ngIf="mostrarAlertaWarning" class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+            <div *ngIf="mostrarAlertaWarning"
+                class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
                 <i class="ri-alert-line me-3 align-middle fs-lg"></i>
                 <strong>¡Atención!</strong> {{ mensajeWarning }}
                 <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
             </div>
-            <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+            <div *ngIf="mostrarAlertaError"
+                class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
                 <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
                 <strong>¡Error!</strong> {{ mensajeError }}
                 <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
             </div>
         </div>
 
-        <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEliminar }" [style.display]="mostrarConfirmacionEliminar ? 'block' : 'none'" tabindex="-1" role="dialog">
+        <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEliminar }"
+            [style.display]="mostrarConfirmacionEliminar ? 'block' : 'none'" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="text-center mt-3 mb-3">
                         @if (usuarioEliminar?.usua_Estado) {
-                            <i class="ri-user-unfollow-fill" style="font-size: 3rem; color: #AF1D1D;"></i>
+                        <i class="ri-user-unfollow-fill" style="font-size: 3rem; color: #AF1D1D;"></i>
                         }
                         @else {
-                            <i class="ri-user-follow-fill" style="font-size: 3rem; color: #7DE477;"></i>
+                        <i class="ri-user-follow-fill" style="font-size: 3rem; color: #7DE477;"></i>
                         }
                     </div>
                     <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
@@ -223,91 +253,125 @@
                     </div>
                     <div class="modal-body custom-modal-body">
                         @if(usuarioEliminar?.usua_Estado){
-                            <div class="text-center"> 
-                                <p class="mt-2 custom-modal-text">
-                                    ¿Estás seguro(a) que deseas desactivar el usuario:  <strong>{{ usuarioEliminar?.usua_Usuario }}</strong>?
-                                </p>
-                            </div>
+                        <div class="text-center">
+                            <p class="mt-2 custom-modal-text">
+                                ¿Estás seguro(a) que deseas desactivar el usuario: <strong>{{
+                                    usuarioEliminar?.usua_Usuario }}</strong>?
+                            </p>
+                        </div>
                         }
                         @else if(!usuarioEliminar?.usua_Estado){
-                            <div class="text-center"> 
-                                <p class="mt-2 custom-modal-text">
-                                    ¿Estás seguro(a) que deseas activar el usuario:  <strong>{{ usuarioEliminar?.usua_Usuario }}</strong>?
-                                </p>
-                            </div>
+                        <div class="text-center">
+                            <p class="mt-2 custom-modal-text">
+                                ¿Estás seguro(a) que deseas activar el usuario: <strong>{{ usuarioEliminar?.usua_Usuario
+                                    }}</strong>?
+                            </p>
+                        </div>
                         }
                     </div>
                     <div class="modal-footer custom-modal-footer">
-                        <button type="button" class="btn btn-primary btn-sm btn-minw-5" (click)="cancelarEliminar()"><span class="btn-text">No</span><span class="btn-icon"><i class="ri-close-circle-line"></i></span></button>
+                        <button type="button" class="btn btn-primary btn-sm btn-minw-5"
+                            (click)="cancelarEliminar()"><span class="btn-text">No</span><span class="btn-icon"><i
+                                    class="ri-close-circle-line"></i></span></button>
                         @if(usuarioEliminar?.usua_Estado){
-                            <button type="button" class="btn btn-primary green btn-sm btn-minw-5" (click)="eliminar()">
-                                <span class="btn-text">Si</span>
-                                <span class="btn-icon"><i class="ri-check-line"></i></span>
-                            </button>
+                        <button type="button" class="btn btn-primary green btn-sm btn-minw-5" (click)="eliminar()">
+                            <span class="btn-text">Si</span>
+                            <span class="btn-icon"><i class="ri-check-line"></i></span>
+                        </button>
                         }
                         @else if (!usuarioEliminar?.usua_Estado) {
-                            <button type="button" class="btn btn-primary green btn-sm btn-minw-5" (click)="eliminar()">
-                                <span class="btn-text">Si</span>
-                                <span class="btn-icon"><i class="ri-check-line"></i></span>
-                            </button>
+                        <button type="button" class="btn btn-primary green btn-sm btn-minw-5" (click)="eliminar()">
+                            <span class="btn-text">Si</span>
+                            <span class="btn-icon"><i class="ri-check-line"></i></span>
+                        </button>
                         }
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionRestablecer }" [style.display]="mostrarConfirmacionRestablecer ? 'block' : 'none'" tabindex="-1" role="dialog">
+
+
+        <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionRestablecer }"
+            [style.display]="mostrarConfirmacionRestablecer ? 'block' : 'none'" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="text-center mt-3 mb-3">
-                        <h6 class="text-muted">Cambiar clave del usuario:</h6> <h4>{{usuarioRestablecer?.usua_Usuario}}</h4>
+                        <h6 class="text-muted">Cambiar clave del usuario:</h6>
+                        <h4>{{usuarioRestablecer?.usua_Usuario}}</h4>
                         <hr>
                     </div>
-                    <!-- Cuerpo del modal -->
-                        <div class="modal-body custom-modal-body">
-                            <div class="row">
-                                <!-- Campo Contraseña -->
-                                <div class="col-md-12 mb-3">
-                                    <label for="usua_Clave2" class="form-label">
-                                        Contraseña
+                    <div class="modal-body custom-modal-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="usua_Clave2" class="form-label">
+                                    Contraseña
                                     <span class="text-danger">*</span>
-                                    </label>
-                                    <div class="d-flex align-items-center">
-                                        <i class="ri-lock-2-line"
-                                          [ngStyle]="{
-                                          border: (!usuario.usua_Clave.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                                          backgroundColor: (!usuario.usua_Clave.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                                          padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-                                        </i>
-                                        <input type="password" class="form-control" placeholder="Ingrese la contraseña" required [ngModel]="usuario.usua_Clave" (ngModelChange)="usuario.usua_Clave = $event"/>
-                                    </div>
-                                    <div class="text-danger mt-1" style="display: none;">
-                                        <small>El campo Contraseña es requerido</small>
-                                    </div>
+                                </label>
+                                <div class="d-flex align-items-center">
+                                    <i class="ri-lock-2-line"
+                                        [ngStyle]="{
+                                        border: (!usuario.usua_Clave.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                                        backgroundColor: (!usuario.usua_Clave.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                                        padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                                    </i>
+                                    <input type="password" class="form-control" placeholder="Ingrese la contraseña"
+                                        required [ngModel]="usuario.usua_Clave"
+                                        (ngModelChange)="usuario.usua_Clave = $event" 
+                                        (input)="corroborarClave(usuario.usua_Clave)"
+                                        (keydown.space)="$event.preventDefault()"/>
                                 </div>
-                            </div>
-                            <div class="row">
-                                <!-- Campo Confirmar Contraseña -->
-                                <div class="col-md-12 mb-3">
-                                    <label for="confirmar_Clave2" class="form-label">
-                                        Confirmar Contraseña
-                                    <span class="text-danger">*</span>
-                                    </label>
-                                    <div class="d-flex align-items-center">
-                                        <i class="ri-lock-2-line"
-                                          [ngStyle]="{
-                                          border: (!usuario.usua_Clave.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                                          backgroundColor: (!usuario.usua_Clave.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                                          padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-                                        </i>
-                                        <input type="password" class="form-control" placeholder="Confirme la contraseña" required [ngModel]="confirmaciondePassword" (ngModelChange)="confirmaciondePassword = $event"/>
+                                <div class="password-strength-bar mt-2" *ngIf="usuario.usua_Clave">
+                                  <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar"
+                                      [ngClass]="{
+                                        'bg-danger': claveDatos === 1,
+                                        'bg-warning': claveDatos === 2,
+                                        'bg-success': claveDatos === 3
+                                      }"
+                                      [style.width.%]="claveDatos * 33.33">
                                     </div>
-                                    <div class="text-danger mt-1" style="display: none;">
-                                        <small>El campo Confirmar Contraseña es requerido</small>
-                                    </div>
+                                  </div>
+                                  <small class="d-block mt-1 text-muted text-end" [ngClass]="{
+                                    'text-danger': claveDatos === 1,
+                                    'text-warning': claveDatos === 2,
+                                    'text-success': claveDatos === 3
+                                  }">
+                                    {{ claveMensaje }}
+                                  </small>
+                                </div>
+                                <div class="text-danger mt-1" style="display: none;">
+                                    <small>El campo Contraseña es requerido</small>
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="confirmar_Clave2" class="form-label">
+                                    Confirmar Contraseña
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="d-flex align-items-center">
+                                    <i class="ri-lock-2-line"
+                                      [ngStyle]="{
+                                        border: (!confirmaciondePassword.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                                        backgroundColor: (!confirmaciondePassword.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                                        padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                                    </i>
+                                    <input type="password" class="form-control" placeholder="Confirme la contraseña"
+                                      required [(ngModel)]="confirmaciondePassword" />
+                                </div>
+                                <small class="mt-1 d-block"
+                                    [ngClass]="{
+                                      'text-success': confirmaciondePassword && contrasenasCoinciden(),
+                                      'text-danger': confirmaciondePassword && !contrasenasCoinciden()
+                                    }"
+                                    *ngIf="confirmaciondePassword">
+                                    {{ contrasenasCoinciden() ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden' }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
                     <div class="modal-footer custom-modal-footer">
                         <button type="button" class="btn btn-primary gold" (click)="cancelarRestablecer()">
                             <span class="btn-text">Cancelar</span>
@@ -322,10 +386,15 @@
             </div>
         </div>
 
-        <div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEliminar || mostrarConfirmacionRestablecer || mostrarModalContrasena }" *ngIf="mostrarConfirmacionEliminar || mostrarConfirmacionRestablecer || mostrarModalContrasena"></div>
+
+
+        <div class="modal-backdrop fade"
+            [ngClass]="{ 'show': mostrarConfirmacionEliminar || mostrarConfirmacionRestablecer || mostrarModalContrasena }"
+            *ngIf="mostrarConfirmacionEliminar || mostrarConfirmacionRestablecer || mostrarModalContrasena"></div>
 
         <!-- Modal para mostrar contraseña -->
-        <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarModalContrasena }" [style.display]="mostrarModalContrasena ? 'block' : 'none'" tabindex="-1" role="dialog">
+        <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarModalContrasena }"
+            [style.display]="mostrarModalContrasena ? 'block' : 'none'" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="text-center mt-3 mb-3">

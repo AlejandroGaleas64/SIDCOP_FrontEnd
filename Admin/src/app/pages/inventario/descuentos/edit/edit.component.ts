@@ -268,7 +268,7 @@ hoy: string;
       canal,
       filtro: '', // Se agrega filtro para el buscador individual
       clientes: agrupados[canal],
-      collapsed: false // Inicialmente todos los canales están expandidos
+      collapsed: true // Inicialmente todos los canales están expandidos
     }));
   });
 }
@@ -425,46 +425,80 @@ seleccionarTodosClientes(grupo: any, seleccionar: boolean): void {
     this.alternarCliente(cliente.clie_Id, seleccionar);
   });
 }
+
 // Alternar el estado colapsado/expandido de un canal
 toggleCanal(grupo: any): void {
   grupo.collapsed = !grupo.collapsed;
 }
+
 // Obtener el precio más bajo de todos los items seleccionados
 getPrecioMinimoSeleccionados(): number {
   if (!this.descuento.desc_Tipo) { // Si es porcentaje, no hay límite de precio
     return Infinity;
   }
 
+  // Validaciones defensivas
+  if (!Array.isArray(this.productos)) {
+    return Infinity;
+  }
+  let seleccionadosIds: number[] = (this.seleccionados || [])
+    .map((id: any) => Number(id))
+    .filter((n: number) => !isNaN(n));
+
+  // Fallback: si aún no se han poblado 'seleccionados' pero existen referencias en el descuento, úsalas
+  if ((!seleccionadosIds || seleccionadosIds.length === 0) && typeof this.descuento?.referencias === 'string') {
+    try {
+      const refs = JSON.parse(this.descuento.referencias || '[]');
+      if (Array.isArray(refs)) {
+        seleccionadosIds = refs
+          .map((r: any) => Number(r?.id))
+          .filter((n: number) => !isNaN(n));
+      }
+    } catch { /* noop */ }
+  }
+
   let precios: number[] = [];
 
-  switch (this.descuento.desc_Aplicar) {
+  // Determinar el tipo de aplicación efectivo: usar desc_Aplicar si existe, de lo contrario derivar de seccionVisible
+  const aplicarEfectivo: 'P' | 'C' | 'S' | 'M' | '' = ((): any => {
+    const a = (this.descuento?.desc_Aplicar || '').trim();
+    if (a === 'P' || a === 'C' || a === 'S' || a === 'M') return a as any;
+    const sv = (this.seccionVisible || '').toLowerCase();
+    if (sv === 'productos') return 'P';
+    if (sv === 'categorias') return 'C';
+    if (sv === 'subcategorias') return 'S';
+    if (sv === 'marcas') return 'M';
+    return '';
+  })();
+
+  switch (aplicarEfectivo) {
     case 'P': // Productos
       precios = this.productos
-        .filter(p => this.seleccionados.includes(p.prod_Id))
-        .map(p => p.prod_PrecioUnitario || 0)
+        .filter(p => seleccionadosIds.includes(Number(p.prod_Id)))
+        .map(p => Number(p.prod_PrecioUnitario) || 0)
         .filter(precio => precio > 0);
       break;
 
     case 'C': // Categorías
       const productosDeCategoriasSeleccionadas = this.productos
-        .filter(p => this.seleccionados.includes(p.cate_Id))
-        .map(p => p.prod_PrecioUnitario || 0)
+        .filter(p => seleccionadosIds.includes(Number(p.cate_Id)))
+        .map(p => Number(p.prod_PrecioUnitario) || 0)
         .filter(precio => precio > 0);
       precios = productosDeCategoriasSeleccionadas;
       break;
 
     case 'S': // Subcategorías
       const productosDeSubcategoriasSeleccionadas = this.productos
-        .filter(p => this.seleccionados.includes(p.subc_Id))
-        .map(p => p.prod_PrecioUnitario || 0)
+        .filter(p => seleccionadosIds.includes(Number(p.subc_Id)))
+        .map(p => Number(p.prod_PrecioUnitario) || 0)
         .filter(precio => precio > 0);
       precios = productosDeSubcategoriasSeleccionadas;
       break;
 
     case 'M': // Marcas
       const productosDeMarcasSeleccionadas = this.productos
-        .filter(p => this.seleccionados.includes(p.marc_Id))
-        .map(p => p.prod_PrecioUnitario || 0)
+        .filter(p => seleccionadosIds.includes(Number(p.marc_Id)))
+        .map(p => Number(p.prod_PrecioUnitario) || 0)
         .filter(precio => precio > 0);
       precios = productosDeMarcasSeleccionadas;
       break;
@@ -485,7 +519,24 @@ get valorMaximoPermitido(): string {
   if (!this.descuento.desc_Tipo) {
     return '100%'; // Para porcentajes
   }
-  
+  // Si hay selecciones (en memoria o en JSON) pero aún no se han cargado productos, mostrar estado de carga
+  let seleccionadosIds: number[] = (this.seleccionados || [])
+    .map((id: any) => Number(id))
+    .filter((n: number) => !isNaN(n));
+  if ((!seleccionadosIds || seleccionadosIds.length === 0) && typeof this.descuento?.referencias === 'string') {
+    try {
+      const refs = JSON.parse(this.descuento.referencias || '[]');
+      if (Array.isArray(refs)) {
+        seleccionadosIds = refs
+          .map((r: any) => Number(r?.id))
+          .filter((n: number) => !isNaN(n));
+      }
+    } catch { /* noop */ }
+  }
+  if (seleccionadosIds.length > 0 && (!Array.isArray(this.productos) || this.productos.length === 0)) {
+    return 'Calculando precios...';
+  }
+
   const precioMinimo = this.getPrecioMinimoSeleccionados();
   if (precioMinimo === Infinity) {
     return 'Sin límite (seleccione items primero)';
@@ -563,6 +614,9 @@ tieneAyudante: boolean = false;
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['descuentoData'] && changes['descuentoData'].currentValue) {
       this.descuento = { ...changes['descuentoData'].currentValue };
+      // Normalizar campos que pueden venir como string desde la API
+      // Asegura que desc_Tipo sea booleano: true = monto fijo, false = porcentaje
+      (this.descuento as any).desc_Tipo = String((this.descuento as any).desc_Tipo) === 'true';
       const clientesLista = JSON.parse(this.descuento.clientes ?? '[]');
       const referenciasLista = JSON.parse(this.descuento.referencias ?? '[]');
       const escalasLista = JSON.parse(this.descuento.escalas ?? '[]');
@@ -618,6 +672,11 @@ tieneAyudante: boolean = false;
       this.descuentoOriginal = this.descuento.desc_Descripcion || '';
       this.mostrarErrores = false;
       this.cerrarAlerta();
+
+      // Asegurar que datos necesarios estén cargados para calcular precios mínimos
+      if (!Array.isArray(this.productos) || this.productos.length === 0) {
+        this.listarPorductos();
+      }
   
     
 
@@ -655,10 +714,39 @@ tieneAyudante: boolean = false;
   desc_TipoFactura:'',
 
     };
+    this.activeTab = 1;
     this.seleccionados = [];
     this.clientesSeleccionados = [];
     this.escalas = [];
     this.onCancel.emit();
+  }
+
+  // Disparado al cambiar el tipo (porcentaje/monto fijo) en el DDL
+  onTipoCambio(valor: any): void {
+    // Normalizar a booleano
+    const nuevoTipo = String(valor) === 'true';
+    this.descuento.desc_Tipo = nuevoTipo;
+
+    // Si es monto fijo y aún no hay productos cargados, cargarlos para calcular el máximo
+    if (this.descuento.desc_Tipo === true) {
+      if (!Array.isArray(this.productos) || this.productos.length === 0) {
+        this.listarPorductos();
+      }
+    }
+
+    // Recalcular/clamp de escalas según el tipo actual
+    const max = this.valorMaximoNumerico; // 100 para porcentaje, precio mínimo para monto fijo (o Infinity)
+    this.escalas = (this.escalas || []).map(e => {
+      const copia = { ...e };
+      if (copia.deEs_Valor == null || isNaN(copia.deEs_Valor as any)) return copia;
+      if (isFinite(max) && copia.deEs_Valor > max) {
+        copia.deEs_Valor = max;
+      }
+      return copia;
+    });
+
+    // Forzar refresco de mensajes/UI
+    this.validado = true;
   }
 
   cerrarAlerta(): void {
@@ -836,13 +924,34 @@ irAlSiguientePaso() {
 validado = true;
 
 limitarValor(valor: number, escala: any): void {
-  if (this.descuento.desc_Tipo === false && valor > 100) {
-    this.validado = false;
-  } else {
+  // Si es porcentaje (desc_Tipo === false), 0-100
+  if (this.descuento.desc_Tipo === false) {
+    if (valor == null || isNaN(valor as any)) {
+      this.validado = false;
+      return;
+    }
+    if (valor > 100) {
+      this.validado = false;
+      return;
+    }
     escala.deEs_Valor = valor;
     this.validado = true;
-
+    return;
   }
+
+  // Si es monto fijo (desc_Tipo === true), validar contra el precio mínimo dinámico
+  const max = this.valorMaximoNumerico; // puede ser Infinity si no hay selección
+  if (valor == null || isNaN(valor as any)) {
+    this.validado = false;
+    return;
+  }
+  if (isFinite(max) && valor > max) {
+    // Excede el máximo permitido por el precio mínimo del ítem más barato
+    this.validado = false;
+    return;
+  }
+  escala.deEs_Valor = valor;
+  this.validado = true;
 }
 
 puedeAgregarNuevaEscala(): boolean {
@@ -916,6 +1025,67 @@ validarClientesSeleccionadosAlLlegarATab(): void {
       this.mostrarAlertaWarning = false;
       this.mensajeWarning = '';
     }, 5000);
+  }
+}
+
+navegar(tabDestino: number) {
+  // Si intenta ir hacia atrás, permitir siempre
+  if (tabDestino < this.activeTab) {
+    this.activeTab = tabDestino;
+    this.mostrarErrores = false;
+    return;
+  }
+  
+  // Si intenta ir hacia adelante, validar todos los pasos intermedios
+  if (tabDestino > this.activeTab) {
+    // Validar todos los pasos desde el actual hasta el destino
+    for (let paso = this.activeTab; paso < tabDestino; paso++) {
+      if (!this.validarPaso(paso)) {
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = `Debe completar todos los campos del paso ${this.getNombrePaso(paso)} antes de continuar.`;
+        
+        setTimeout(() => {
+          this.mostrarAlertaWarning = false;
+          this.mensajeWarning = '';
+        }, 3000);
+        return;
+      }
+    }
+    
+    // Si todos los pasos intermedios están válidos, navegar
+    this.activeTab = tabDestino;
+    this.mostrarErrores = false;
+    return;
+  }
+  
+  // Si es el mismo tab, no hacer nada
+  if (tabDestino === this.activeTab) {
+    return;
+  }
+}
+
+validarPaso(paso: number): boolean {
+  switch (paso) {
+    case 1: // Información general
+      return this.validarPasoInformacionGeneral();
+    case 2: // Aplica para
+      return this.seleccionados.length > 0;
+    case 3: // Clientes
+      return this.clientesSeleccionados.length > 0;
+    case 4: // Escalas
+      return this.validarEscalas();
+    default:
+      return false;
+  }
+}
+
+getNombrePaso(paso: number): string {
+  switch (paso) {
+    case 1: return 'Información General';
+    case 2: return 'Aplicar para';
+    case 3: return 'Clientes';
+    case 4: return 'Escalas';
+    default: return 'Paso ' + paso;
   }
 }
 

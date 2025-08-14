@@ -26,12 +26,13 @@
   background-color: transparent;
 }
 
+
 .details-header-button .btn-text {
   padding: 0.5rem 1rem;
   // background-color: #f8f9fa;
-    background-color: rgb(187, 190, 202);
+  background-color: rgb(187, 190, 202);
   color: #212529;
-  border: 1px solidrgb(187, 190, 202);
+  border: 1px solid #bbbeca;
   border-right: none;
   border-radius: 4px 0 0 4px;
 }
@@ -48,7 +49,7 @@
 }
 
 .details-header-button .btn-primary:hover .btn-text {
-  background-color: #e9ecef;
+  background-color: #bbbeca;
 }
 
 .details-header-button .btn-primary:hover .btn-icon {
@@ -154,7 +155,7 @@
 
 .historial-header {
   display: flex;
-  background-color: #1a2352;
+  background-color: #141A2F;
   color: white;
   font-weight: 500;
 }

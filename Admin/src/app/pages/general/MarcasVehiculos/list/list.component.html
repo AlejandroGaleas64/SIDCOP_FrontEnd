@@ -124,21 +124,22 @@
                     </span>
                   </th>
                 </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let data of table.paginated$ | async; let i = index">
-                <td class="position-relative" *ngIf="accionPermitida('editar') || accionPermitida('eliminar') || accionPermitida('detalle')">
-                  <div class="dropdown-action-list">
-                    <button type="button" class="dropdown-toggle" [attr.aria-expanded]="false" (click)="floatingMenuService.open($event, data)">
-                      <span>Acciones</span>
-                      <i class="ri-settings-3-line"></i>
-                    </button>
+                <tr class="gridjs-th"*ngFor="let data of table.paginated$ | async; let i = index">
+                  <td class="position-relative" *ngIf="accionPermitida('editar') || accionPermitida('eliminar') || accionPermitida('detalle')">
+                    <div class="dropdown-action-list">
+                      <button type="button"
+                    class="dropdown-toggle"
+                    [attr.aria-expanded]="false"
+                    (click)="floatingMenuService.open($event, data)">
+                    <span>Acciones</span>
+                    <i class="ri-settings-3-line"></i>
+                  </button>
                   </div>
-                </td>
-                <td><span class="fw-semibold">{{data.secuencia}}</span></td>
-                <td>{{data.maVe_Marca}}</td>
-              </tr>
-            </tbody>
+                  </td>
+                  <td><span class="fw-semibold">{{data.secuencia}}</span></td>
+                  <td>{{data.maVe_Marca}}</td>
+                </tr>
+                </thead>
             </table>
           </div>
         </div>

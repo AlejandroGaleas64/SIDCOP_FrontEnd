@@ -30,12 +30,11 @@ export class CreateComponent {
   CAI: any[] = [];
   PE: any[] = [];
 
-   searchCAI = (term: string, item: any) => {
+  searchCAI = (term: string, item: any) => {
     term = term.toLowerCase();
     return (
       item.nCai_Codigo?.toLowerCase().includes(term) ||
-      item.nCai_Descripcion?.toLowerCase().includes(term) 
-    
+      item.nCai_Descripcion?.toLowerCase().includes(term)
     );
   };
 
@@ -179,39 +178,44 @@ export class CreateComponent {
   guardar(): void {
     this.mostrarErrores = true;
 
-    if (this.registroCai.regC_Descripcion.trim()) {
+    if (
+      this.registroCai.regC_Descripcion.trim() &&
+      this.registroCai.sucu_Id &&
+      this.registroCai.nCai_Id &&
+      this.registroCai.puEm_Id &&
+      this.registroCai.regC_RangoInicial.trim() &&
+      this.registroCai.regC_RangoFinal.trim() &&
+      this.registroCai.regC_FechaInicialEmision &&
+      this.registroCai.regC_FechaFinalEmision
+    ) {
       // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
 
       const registroscaisGuardar = {
         regC_Id: 0,
-        regC_Descripcion: this.registroCai.regC_Descripcion.trim(),
+        regC_Descripcion: this.registroCai.regC_Descripcion,
         sucu_Id: this.registroCai.sucu_Id,
-        sucu_Descripcion: '',
         puEm_Id: this.registroCai.puEm_Id,
-        // puEm_Codigo: this.registroCai.puEm_Codigo.trim(),
-        puEm_Descripcion: '',
         nCai_Id: this.registroCai.nCai_Id,
-        //nCai_Codigo: this.registroCai.nCai_Codigo.trim(),
-        nCai_Descripcion: '',
-
-        regC_RangoInicial: this.registroCai.regC_RangoInicial.trim(),
-        regC_RangoFinal: this.registroCai.regC_RangoFinal.trim(),
+        regC_RangoInicial: this.registroCai.regC_RangoInicial,
+        regC_RangoFinal: this.registroCai.regC_RangoFinal,
         regC_FechaInicialEmision: this.registroCai.regC_FechaInicialEmision,
         regC_FechaFinalEmision: this.registroCai.regC_FechaFinalEmision,
+        regC_Estado: true,
+        usua_creacion: getUserId(),
+        regC_FechaCreacion: new Date(),
+        usua_Modificacion: 0,
+        regC_FechaModificacion: new Date(),
         secuencia: 0,
         estado: '',
-        code_Status: 0,
-        message_Status: '',
-        regC_Estado: false,
-        usua_Creacion: getUserId(), // varibale global, obtiene el valor del environment, esto por mientras
-        regC_FechaCreacion: new Date().toISOString(),
-        usua_Modificacion: 0,
-        numero: '',
-        regC_FechaModificacion: new Date().toISOString(),
         usuarioCreacion: '',
         usuarioModificacion: '',
+        sucu_Descripcion: '',
+        puEm_Descripcion: '',
+        nCai_Descripcion: '',
+        puEm_Codigo: '',
+        nCai_Codigo: '',
       };
 
       console.log('Guardando registro:', registroscaisGuardar);
@@ -230,9 +234,24 @@ export class CreateComponent {
         )
         .subscribe({
           next: (response) => {
-            this.mostrarErrores = false;
-            this.onSave.emit(this.registroCai);
-            this.cancelar();
+            if (response.data.code_Status === 1) {
+              this.mostrarErrores = false;
+              this.onSave.emit(this.registroCai);
+              this.cancelar();
+            } else {
+              console.error(
+                'Error al guardar RC:' + Error
+              );
+              this.mostrarAlertaError = true;
+              this.mensajeError = response.data.message_Status;
+              this.mostrarAlertaExito = false;
+
+              // Ocultar la alerta de error después de 5 segundos
+              setTimeout(() => {
+                this.mostrarAlertaError = false;
+                this.mensajeError = '';
+              }, 5000);
+            }
           },
           error: (error) => {
             console.error('Error al guardar Registro CAI:', error);

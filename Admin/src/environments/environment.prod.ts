@@ -14,13 +14,13 @@ export const environment = {
     appId: "1:916438010670:web:c70cf404da6c0fe7b048bf",
     measurementId: "G-1N6FB2GG55"
   },
-
-  //  apiBaseUrl: 'http://200.59.27.115:8091', //cambiar si es necesario
-  apiBaseUrl: 'http://sidcop.somee.com', //cambiar si es necesario
-//apiBaseUrl: 'https://localhost:7071.com', //cambiar si es necesario
+   apiBaseUrl: 'http://192.168.1.146:8091', //cambiar si es necesario
+  // apiBaseUrl: 'http://200.59.27.115:8091', //cambiar si es necesario
+  // apiBaseUrl: 'https://localhost:7071', //cambiar si es necesario
+  // apiBaseUrl: 'http://sidcop.somee.com', //cambiar si es necesario
 
   apiKey: 'bdccf3f3-d486-4e1e-ab44-74081aefcdbc',
   usua_Id: idUsuario, // Se establecerá dinámicamente al iniciar sesión
 
-  googleMapsApiKey: 'AIzaSyA6bbij1_4crYsWVg6E1PnqGb17lNGdIjA'
+  googleMapsApiKey: 'AIzaSyA9EK4FIVnj-VGaI_CE9T4LFSe6GSm0GZg'
 };

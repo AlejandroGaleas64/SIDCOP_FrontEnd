@@ -33,30 +33,56 @@
     <div class="row">
 
 
-      <div class="col-md-6">
-        <div class="mb-3">
-          <label for="clie_Id" class="form-label">Cliente</label>
-          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-          <div class="d-flex align-items-center">
-            <i class="ri-user-3-line"
-              [ngStyle]="{
-                border: (!pedidoEditada.clie_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!pedidoEditada.clie_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-            </i>
-            <select id="clie_Id" name="clie_Id" class="form-select" [(ngModel)]="selectedCliente"
-              (change)="cargarMunicipios(selectedCliente)" required>
-              <option [ngValue]="0" disabled selected>{{ Clientes && Clientes.length > 0 ? 'Seleccione un Cliente' :
-                'Cargando clientes...' }}</option>
-              <option *ngFor="let cliente of Clientes" [ngValue]="cliente.clie_Id">{{ cliente.clie_NombreNegocio }}
-              </option>
-            </select>
+  <div class="col-md-6">
+  <label class="form-label">
+    Cliente <span class="text-danger">*</span>
+  </label>
+  <div class="mb-3">
+    <div class="d-flex align-items-center">
+      <i
+        class="ri-user-3-line"
+        [ngStyle]="{
+          border: (!pedidoEditada.clie_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+          backgroundColor: (!pedidoEditada.clie_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+          padding: '0.525rem 0.525rem',
+          position: 'relative',
+          left: '7px',
+          borderTopLeftRadius: '8px',
+          borderBottomLeftRadius: '8px'
+        }"
+      ></i>
 
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-          </div>
+      <ng-select
+        class="w-100"
+        [items]="Clientes"
+        bindLabel="clie_NombreNegocio"
+        bindValue="clie_Id"
+        [(ngModel)]="pedidoEditada.clie_Id"
+        [searchable]="true"
+        [clearable]="false"
+        [class.is-invalid]="!pedidoEditada.clie_Id && mostrarErrores"
+        placeholder="Seleccione un cliente"
+        [searchFn]="searchCliente"
+        (change)="cargarMunicipios(pedidoEditada.clie_Id)"
+        required
+      >
+        <ng-template ng-label-tmp let-item="item">
+          {{ item.clie_Codigo }} - {{ item.clie_Nombres }} {{ item.clie_Apellidos }} - {{ item.clie_NombreNegocio }}
+        </ng-template>
+        <ng-template ng-option-tmp let-item="item">
+          {{ item.clie_Codigo }} - {{ item.clie_Nombres }} {{ item.clie_Apellidos }} - {{ item.clie_NombreNegocio }}
+        </ng-template>
+      </ng-select>
 
-        </div>
-      </div>
+      <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+    </div>
+
+    <div class="text-danger mt-1" *ngIf="!pedidoEditada.clie_Id && mostrarErrores">
+      <small>El campo cliente es requerido</small>
+    </div>
+  </div>
+</div>
+
 
 
       <div class="col-md-6">
@@ -288,7 +314,7 @@
 </div>
 
 <!-- Modal de confirmación para editar -->
-<div class="modal fade custom-modal" [ngClass]="{ show: mostrarConfirmacionEditar }"
+<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }"
   [style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
@@ -296,13 +322,38 @@
         <span>Confirmación</span>
         <i class="ri-close-line custom-modal-close" (click)="cancelarEdicion()"></i>
       </div>
-      <hr class="custom-modal-divider" />
+      <hr class="custom-modal-divider">
       <div class="modal-body custom-modal-body">
-        <div class="text-center">
+        <div class="text-center mb-3">
           <p class="mt-2 custom-modal-text">
-            <i class="ri-edit-line me-2 custom-modal-alert-icon" (click)="cancelarEdicion()"></i>
-            ¿Estás seguro que deseas guardar los cambios en este pedido?
+            <i class="ri-edit-line me-2 custom-modal-alert-icon"></i>
+            ¿Estás seguro que deseas guardar los siguientes cambios?
           </p>
+        </div>
+
+        <!-- Lista de cambios detectados -->
+        <div class="changes-list" style="max-height: 300px; overflow-y: auto;">
+          <div *ngFor="let cambio of obtenerListaCambios()" class="change-item mb-3 p-3"
+            style="border: 1px solid #e9ecef; border-radius: 8px; background-color: #f8f9fa;">
+            <div class="d-flex align-items-center mb-2">
+              <i class="ri-arrow-right-circle-line me-2 text-primary"></i>
+              <strong class="text-primary">{{ cambio.label }}</strong>
+            </div>
+            <div class="row">
+              <div class="col-6">
+                <small class="text-muted d-block">Original :</small>
+                <div class="p-2" style="background-color: #fff2f2; border-left: 3px solid #dc3545; border-radius: 4px;">
+                  <span class="text-dark">{{ cambio.anterior }}</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <small class="text-muted d-block">Nuevo:</small>
+                <div class="p-2" style="background-color: #f0fff4; border-left: 3px solid #28a745; border-radius: 4px;">
+                  <span class="text-dark">{{ cambio.nuevo }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="modal-footer custom-modal-footer">
@@ -311,14 +362,13 @@
           <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
         </button>
         <button type="button" class="btn btn-primary btn-minw-5 btn-sm" (click)="confirmarEdicion()">
-          <span class="btn-text">Si</span>
+          <span class="btn-text">Sí</span>
           <span class="btn-icon"><i class="ri-save-line"></i></span>
         </button>
       </div>
     </div>
   </div>
 </div>
-
-<!-- Overlay para el modal -->
-<div class="modal-backdrop fade" [ngClass]="{ show: mostrarConfirmacionEditar }" *ngIf="mostrarConfirmacionEditar">
+<!-- Overlay modal -->
+<div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEditar }" *ngIf="mostrarConfirmacionEditar">
 </div>

@@ -1,0 +1,308 @@
+<div class="d-flex flex-column" style="height: 100%; min-height: 500px;">
+    <h5 class="card-title mb-4">
+        <i class="ri-store-3-line me-2"></i>
+        Gestión de Inventario por Sucursal
+    </h5>
+    <div class="alert-container">
+        <div *ngIf="mostrarAlertaExito"
+            class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+            <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+            <strong>¡Éxito!</strong> {{ mensajeExito }}
+            <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+        </div>
+        <div *ngIf="mostrarAlertaWarning"
+            class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+            <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+            <strong>¡Atención!</strong> {{ mensajeWarning }}
+            <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+        </div>
+        <div *ngIf="mostrarAlertaError"
+            class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+            <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+            <strong>¡Error!</strong> {{ mensajeError }}
+            <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row g-4 mb-4">
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header text-white fw-bold"
+                        style="background-color: #141a2f; border-bottom: 3px solid #d6b68a;">
+                        <i class="ri-building-line me-2"></i>
+                        Seleccionar Sucursal
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <i class="ri-map-pin-line"
+                                style="border: 1px solid #e9ecf5; background-color: #f2f3f9; padding: 0.525rem 0.525rem; position: relative; left: 7px; border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
+                            </i>
+                            <select class="form-select" (change)="onSucursalChange($any($event.target).value)">
+                                <option value="0" disabled selected>Seleccione una sucursal</option>
+                                <option *ngFor="let sucursal of sucursales" [value]="sucursal.sucu_Id">
+                                    {{ sucursal.sucu_Descripcion }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header text-white fw-bold"
+                        style="background-color: #141a2f; border-bottom: 3px solid #d6b68a;">
+                        <i class="ri-information-line me-2"></i>
+                        Información de Sucursal
+                    </div>
+                    <div class="card-body">
+                        <ng-container *ngIf="sucursalSeleccionada; else sinSeleccion">
+                            <h4 class="fw-bold" style="color: #d6b68a;">{{ sucursalSeleccionada.sucu_Descripcion }}</h4>
+                            <p class="mb-1 small">
+                                <i class="ri-map-pin-2-line me-2 text-muted"></i>
+                                {{ sucursalSeleccionada.depa_Descripcion }},
+                                {{ sucursalSeleccionada.muni_Descripcion }},
+                                {{ sucursalSeleccionada.colo_Descripcion }},
+                                {{ sucursalSeleccionada.sucu_DireccionExacta }}
+                            </p>
+                            <p class="mb-1 small" *ngIf="sucursalSeleccionada.sucu_Telefono1">
+                                <i class="ri-phone-line me-2 text-muted"></i>
+                                {{ sucursalSeleccionada.sucu_Telefono1 }}
+                            </p>
+                            <p class="mb-0 small" *ngIf="sucursalSeleccionada.sucu_Correo">
+                                <i class="ri-mail-line me-2 text-muted"></i>
+                                {{ sucursalSeleccionada.sucu_Correo }}
+                            </p>
+                        </ng-container>
+
+                        <ng-template #sinSeleccion>
+                            <div class="text-center text-muted py-4">
+                                <i class="ri-map-pin-off-line display-6 mb-2" style="color: #d6b68a;"></i>
+                                <p class="mb-0 fw-semibold">No hay sucursal seleccionada</p>
+                                <small>Por favor, seleccione una sucursal para ver su información.</small>
+                            </div>
+                        </ng-template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4" *ngIf="sucursalSeleccionada">
+            <div class="col-12 col-md-6 mb-3 mb-md-0">
+                <div class="d-flex align-items-center">
+                    <i class="ri-search-line"
+                        style="border: 1px solid #e9ecf5; background-color: #f2f3f9; padding: 0.525rem 0.525rem; position: relative; left: 7px; border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
+                    </i>
+                    <input type="text" class="form-control" placeholder="Buscar producto..."
+                        [(ngModel)]="terminoBusqueda" (input)="filtrarInventario()" />
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-primary" (click)="abrirModalClave('actualizar')">
+                        <span class="btn-text">Actualizar</span>
+                        <span class="btn-icon">
+                            <i class="ri-refresh-line"></i>
+                        </span>
+                    </button>
+                    <button type="button" class="btn btn-primary" (click)="mostrarConfirmacionCantidades()">
+                        <span class="btn-text">Guardar</span>
+                        <span class="btn-icon">
+                            <i class="ri-save-line"></i>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" *ngIf="sucursalSeleccionada">
+            <div class="col-12">
+                <div *ngIf="inventarioSucursal.length === 0" class="text-center py-5">
+                    <i class="ri-inbox-line display-4 text-muted"></i>
+                    <p class="mt-3 text-muted">No hay productos en el inventario de esta sucursal, Actualiza la sucursal
+                    </p>
+                </div>
+                <div *ngIf="inventarioFiltrado.length > 0" class="table-responsive" style="border-radius: 20px;">
+                    <table class="table table-hover align-middle">
+                        <thead style="background-color: #141a2f;">
+                            <tr>
+                                <th scope="col" class="px-3 py-3"
+                                    style="font-size: 1.1em; font-weight: 600;color: #d6b68a;">
+                                    Producto
+                                </th>
+                                <th scope="col" class="text-center px-3 py-3"
+                                    style="font-size: 1.1em; font-weight: 600;color: #d6b68a;">
+                                    Cantidad
+                                </th>
+                                <th scope="col" class="text-center px-3 py-3"
+                                    style="font-size: 1.1em; font-weight: 600;color: #d6b68a;">
+                                    Estado
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let item of inventarioFiltrado; let i = index"
+                                [class.table-warning]="item.cambio?.toLowerCase() === 'nuevo'"
+                                [class.table-danger]="item.cambio?.toLowerCase() === 'eliminado'">
+                                <td class="px-3 py-3">
+                                    <h6 class="mb-0">{{ item.prod_DescripcionCorta }}</h6>
+                                </td>
+                                <td class="text-center px-3 py-3">
+                                    <div class="d-flex justify-content-center">
+                                        <input type="number" class="form-control form-control-sm text-center"
+                                            style="max-width: 120px;" min="0" [value]="item.inSu_Cantidad"
+                                            (input)="onCantidadChange(i, +$any($event.target).value)"
+                                            [disabled]="item.cambio?.toLowerCase() === 'eliminado'" />
+                                    </div>
+                                </td>
+                                <td class="text-center px-3 py-3">
+                                    <span *ngIf="item.cambio?.toLowerCase() === 'agregado'" class="badge bg-success">
+                                        Agregado
+                                    </span>
+                                    <span *ngIf="item.cambio?.toLowerCase() === 'eliminado'" class="badge bg-danger">
+                                        Eliminado
+                                    </span>
+                                    <span *ngIf="item.cambio?.toLowerCase() === 'existente' || !item.cambio"
+                                        class="badge" style="background: #ffeeba; color: #856404;">
+                                        Existente
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div *ngIf="inventarioSucursal.length > 0 && inventarioFiltrado.length === 0" class="text-center py-5">
+                    <i class="ri-search-line display-4 text-muted"></i>
+                    <p class="mt-3 text-muted">No se encontraron productos que coincidan con "{{ terminoBusqueda }}"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" [class.show]="mostrarModal" [style.display]="mostrarModal ? 'block' : 'none'" tabindex="-1"
+    role="dialog" *ngIf="mostrarModal">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="ri-lock-line me-2"></i>
+                    Verificación de Seguridad
+                </h5>
+                <button type="button" class="btn-close" (click)="cerrarModal()"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">
+                    Para continuar con la acción de <strong>{{ accionPendiente }}</strong>,
+                    por favor ingrese su contraseña de autorización.
+                </p>
+                <div class="d-flex align-items-center">
+                    <i class="ri-key-line"
+                        style="border: 1px solid #e9ecf5; background-color: #f2f3f9; padding: 0.525rem 0.525rem; position: relative; left: 7px; border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
+                    </i>
+                    <input type="password" class="form-control" placeholder="Ingrese su contraseña"
+                        [(ngModel)]="claveIngresada" (keyup.enter)="validarClave()" autofocus />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary gold" (click)="cerrarModal()">
+                    <span class="btn-text">Cancelar</span>
+                    <span class="btn-icon"><i class="ri-close-line"></i></span>
+                </button>
+                <button type="button" class="btn btn-primary" (click)="validarClave()">
+                    <span class="btn-text">Confirmar</span>
+                    <span class="btn-icon"><i class="ri-check-line"></i></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" [class.show]="mostrarModalConfirmacion"
+    [style.display]="mostrarModalConfirmacion ? 'block' : 'none'" tabindex="-1" role="dialog"
+    *ngIf="mostrarModalConfirmacion">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content shadow-lg border-0" style="border-radius: 18px; overflow: hidden;">
+            <div class="modal-header py-3" style="background: linear-gradient(90deg, #141a2f, #1f2d47); border: none;">
+                <div class="fw-bold text-white d-flex align-items-center" style="font-size: 1.4rem;">
+                    <i class="ri-inventory-2-line me-2" style="font-size: 1.6rem; color: #d6b68a;"></i>
+                    Confirmar Actualización de Inventario
+                </div>
+                <button type="button" class="btn-close btn-close-white"
+                    (click)="mostrarModalConfirmacion = false"></button>
+            </div>
+            <div class="modal-body p-4" style="background: #f9fafc;">
+                <div class="mb-3">
+                    <span class="badge px-3 py-2 shadow-sm"
+                        style="background: #d6b68a; color: #141a2f; font-size: 1em; border-radius: 8px;">
+                        Cambios detectados: {{ productosModificados.length }}
+                    </span>
+                    <p class="mt-3 mb-2" style="color: #141a2f; font-size: 1.05rem;">
+                        Se actualizarán las siguientes cantidades en el inventario de
+                        <b style="color: #d6b68a;">{{ sucursalSeleccionada?.sucu_Descripcion }}</b>:
+                    </p>
+                </div>
+
+                <div class="table-responsive rounded shadow-sm" style="background: white;">
+                    <table class="table align-middle mb-0">
+                        <thead class="border-bottom" style="background: #f4f5f7;">
+                            <tr>
+                                <th style="font-size: 1.05em; font-weight: 600; color: #141a2f;">Producto</th>
+                                <th class="text-center" style="font-size: 1.05em; font-weight: 600; color: #141a2f;">
+                                    Cantidad actual</th>
+                                <th class="text-center" style="font-size: 1.05em; font-weight: 600; color: #141a2f;">
+                                    Nueva cantidad</th>
+                                <th class="text-center" style="font-size: 1.05em; font-weight: 600; color: #141a2f;">
+                                    Diferencia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let prod of productosModificados" class="border-bottom">
+                                <td>
+                                    <div class="fw-semibold" style="color: #141a2f;">{{ prod.nombre }}</div>
+                                </td>
+                                <td class="text-center" style="color: #6c757d;">{{ prod.anterior }}</td>
+                                <td class="text-center fw-bold" style="color: #d6b68a;">
+                                    {{ prod.nuevo }}
+                                </td>
+                                <td class="text-center">
+                                    <span *ngIf="prod.nuevo > prod.anterior" class="fw-semibold px-2 py-1 rounded"
+                                        style="color: #28a745; background: #e6f4ea;">
+                                        <i class="ri-arrow-up-line me-1"></i> +{{ prod.nuevo - prod.anterior }}
+                                    </span>
+                                    <span *ngIf="prod.nuevo < prod.anterior" class="fw-semibold px-2 py-1 rounded"
+                                        style="color: #dc3545; background: #fdecea;">
+                                        <i class="ri-arrow-down-line me-1"></i> {{ prod.nuevo - prod.anterior }}
+                                    </span>
+                                    <span *ngIf="prod.nuevo === prod.anterior" class="fw-semibold px-2 py-1 rounded"
+                                        style="color: #6c757d; background: #f2f2f2;">
+                                        Sin cambio
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-info mt-4 shadow-sm border-0"
+                    style="font-size: 0.95em; background: #f0f7ff; color: #0c5460;">
+                    <i class="ri-information-line me-2"></i>
+                    <b>Nota:</b> Verifica que las nuevas cantidades sean correctas antes de confirmar.
+                    Los cambios no se pueden deshacer.
+                </div>
+            </div>
+
+            <div class="modal-footer py-3" style="background: #fff; border-top: 1px solid #f0f0f0;">
+                <button type="button" class="btn btn-primary gold" (click)="mostrarModalConfirmacion = false">
+                    <span class="btn-text">Cancelar</span>
+                    <span class="btn-icon"><i class="ri-close-line"></i></span>
+                </button>
+                <button type="button" class="btn btn-primary" (click)="confirmarActualizarCantidades()">
+                    <span class="btn-text">Confirmar</span>
+                    <span class="btn-icon"><i class="ri-check-double-line"></i></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

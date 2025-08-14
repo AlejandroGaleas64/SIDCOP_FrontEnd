@@ -18,9 +18,19 @@ const routes: Routes = [
       import('./recargas/recarga.module').then(m => m.RecargaModule)
   },
   {
+    path: 'rutas',
+    loadChildren: () =>
+      import('./rutas/rutas.module').then(m => m.RutasModule) 
+  },
+  {
     path: 'reporteproductos',
     loadChildren: () =>
       import('./reporteProductos/reporteProductos.module').then(m => m.ReporteProductosModule)
+  },
+    {
+    path: 'reporteDevoluciones',
+    loadChildren: () =>
+      import('../reportes/reporteDevoluciones/reporteDevoluciones.module').then(m => m.reporteDevolucionesModule)
   }
 
 ];
