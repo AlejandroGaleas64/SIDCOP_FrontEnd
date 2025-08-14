@@ -73,11 +73,11 @@ private inicializar(): void {
   // Inicializar todos los campos obligatorios con valores por defecto
   this.venta = new VentaInsertar({
     fact_Numero: this.generarNumeroFactura(), // Generamos un número aleatorio
-    fact_TipoDeDocumento: '',
+    fact_TipoDeDocumento: 'FAC',
     regC_Id: 0,
     clie_Id: 0,
     fact_TipoVenta: '', // se llenará en el formulario
-    fact_FechaEmision: hoy,
+    fact_FechaEmision: hoy, // Fecha de emisión siempre es la fecha actual
     fact_FechaLimiteEmision: hoy,
     fact_RangoInicialAutorizado: '010111',
     fact_RangoFinalAutorizado: '01099999',
@@ -207,7 +207,7 @@ private inicializar(): void {
   }
 
   /**
-   * Filtra los vendedores por la sucursal seleccionada
+   * Filtra los vendedores por la sucursal seleccionada y captura el RegC_Id
    */
   getVendedoresPorSucursal(): any[] {
     if (!this.venta.regC_Id || this.venta.regC_Id === 0) {
@@ -223,20 +223,34 @@ private inicializar(): void {
     
     // Determinar qué propiedad usar para el filtrado
     let propiedadSucursal = '';
+    let propiedadRegCId = '';
     
-    // Buscar la propiedad correcta que contiene el ID de sucursal
+    // Buscar la propiedad correcta que contiene el ID de sucursal y RegC_Id
     if (this.vendedores && this.vendedores.length > 0) {
       const primerVendedor = this.vendedores[0];
-      const posiblesPropiedades = ['sucu_Id', 'sucuId', 'sucursalId', 'regC_Id'];
       
-      for (const prop of posiblesPropiedades) {
+      // Buscar propiedad de sucursal
+      const posiblesPropiedadesSucursal = ['sucu_Id', 'sucuId', 'sucursalId'];
+      for (const prop of posiblesPropiedadesSucursal) {
         if (primerVendedor[prop] !== undefined) {
           propiedadSucursal = prop;
           break;
         }
       }
       
-      // Si no encontramos ninguna propiedad conocida, buscar cualquiera que contenga 'sucu'
+      // Buscar propiedad de RegC_Id
+      if (primerVendedor['regC_Id'] !== undefined) {
+        propiedadRegCId = 'regC_Id';
+      } else {
+        const propiedadesRegC = Object.keys(primerVendedor).find(key => 
+          key.toLowerCase().includes('regc'));
+        
+        if (propiedadesRegC) {
+          propiedadRegCId = propiedadesRegC;
+        }
+      }
+      
+      // Si no encontramos ninguna propiedad conocida para sucursal, buscar cualquiera que contenga 'sucu'
       if (!propiedadSucursal) {
         const propiedadesSucursal = Object.keys(primerVendedor).find(key => 
           key.toLowerCase().includes('sucu'));
@@ -245,6 +259,10 @@ private inicializar(): void {
           propiedadSucursal = propiedadesSucursal;
         }
       }
+      
+      // Registrar las propiedades encontradas
+      console.log('Propiedad de sucursal encontrada:', propiedadSucursal);
+      console.log('Propiedad de RegC_Id encontrada:', propiedadRegCId);
     }
     
     // Si no se encontró ninguna propiedad relacionada con sucursal, mostrar advertencia
@@ -253,11 +271,23 @@ private inicializar(): void {
       return [];
     }
     
-    // Filtrar usando la propiedad encontrada
-    return this.vendedores.filter(vendedor => {
+    // Filtrar usando la propiedad encontrada y capturar RegC_Id si está disponible
+    const vendedoresFiltrados = this.vendedores.filter(vendedor => {
       const vendedorSucursalId = Number(vendedor[propiedadSucursal]);
       return vendedorSucursalId === sucursalId;
     });
+    
+    // Si encontramos la propiedad RegC_Id y hay vendedores filtrados, capturar el valor
+    if (propiedadRegCId && vendedoresFiltrados.length > 0) {
+      const regCIdVendedor = vendedoresFiltrados[0][propiedadRegCId];
+      if (regCIdVendedor) {
+        console.log('RegC_Id capturado del vendedor:', regCIdVendedor);
+        // Almacenar el RegC_Id del vendedor en una propiedad separada
+        this.venta.regC_Id_Vendedor = regCIdVendedor;
+      }
+    }
+    
+    return vendedoresFiltrados;
   }
 
   // ========== INVENTARIO POR SUCURSAL ==========
@@ -697,12 +727,19 @@ private crearVenta(): void {
   
   const detalles = this.obtenerDetallesVenta();
   
-  // Aseguramos que las fechas estén en formato ISO y preservamos el ID de sucursal
-  const sucursalId = this.venta.regC_Id; // Guardamos el ID de sucursal seleccionado
+  // Aseguramos que las fechas estén en formato ISO y utilizamos el ID de registro CAI del vendedor si está disponible
+  const sucursalId = this.venta.regC_Id; // ID de sucursal seleccionada en el formulario
+  const regCIdVendedor = this.venta.regC_Id_Vendedor; // ID de registro CAI capturado del vendedor
+  
+  // Determinar qué ID de registro CAI usar
+  const regCIdFinal = regCIdVendedor || sucursalId;
+  console.log('ID de sucursal seleccionada:', sucursalId);
+  console.log('ID de registro CAI del vendedor:', regCIdVendedor);
+  console.log('ID de registro CAI final a enviar:', regCIdFinal);
   
   const datosEnviar = {
     ...this.venta,
-    regC_Id: 20, // Aseguramos que se use el ID de sucursal seleccionado
+    regC_Id: regCIdFinal, // Usamos el ID de registro CAI del vendedor si está disponible, sino el de la sucursal
     fact_FechaEmision: this.venta.fact_FechaEmision.toISOString(),
     fact_FechaLimiteEmision: this.venta.fact_FechaLimiteEmision.toISOString(),
     detallesFacturaInput: detalles
@@ -764,7 +801,7 @@ private crearVenta(): void {
    */
   private generarNumeroFactura(): string {
     // Prefijo base (puedes ajustarlo según tus necesidades)
-    const prefijo = '010';
+    const prefijo = 'FACT-010';
     
     // Generar 5 dígitos aleatorios para completar el número
     const min = 10000;
