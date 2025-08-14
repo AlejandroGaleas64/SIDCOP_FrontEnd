@@ -260,14 +260,38 @@ export class CreateComponent implements OnInit {
       fechaVisita.setHours(0, 0, 0, 0);
 
       const visitaData = {
-        VeRu_Id: Number(this.visita.vendedor.ruta_Id),
-        DiCl_Id: Number(this.visita.direccion.diCl_Id),
-        EsVi_Id: Number(this.visita.esVi_Id),
-        ClVi_Observaciones: this.visita.clVi_Observaciones || '',
-        ClVi_Fecha: fechaVisita.toISOString(),
-        Usua_Creacion: Number(userId),
-        ClVi_FechaCreacion: fechaActual.toISOString()
+        clVi_Id: 0,                               
+        diCl_Id: Number(this.visita.direccion?.diCl_Id) || 0,
+        diCl_Latitud: 0,
+        diCl_Longitud: 0,
+        vend_Id: 0,
+        vend_Codigo: '',
+        vend_DNI: '',
+        vend_Nombres: '',
+        vend_Apellidos: '',
+        vend_Telefono: '',
+        vend_Tipo: '',
+        vend_Imagen: '',
+        ruta_Id: 0,
+        ruta_Descripcion: '',
+        veRu_Id: Number(this.visita.vendedor?.veRu_Id) || 0,
+        veRu_Dias: '',
+        clie_Id: Number(this.visita.cliente?.clie_Id) || 0,
+        clie_Codigo: this.visita.cliente?.clie_Codigo || '',
+        clie_Nombres: this.visita.cliente?.clie_Nombres || '',
+        clie_Apellidos: this.visita.cliente?.clie_Apellidos || '',
+        clie_NombreNegocio: this.visita.cliente?.clie_NombreNegocio || '',
+        imVi_Imagen: '',
+        clie_Telefono: this.visita.cliente?.clie_Telefono || '',
+        esVi_Id: Number(this.visita.esVi_Id) || 0,
+        esVi_Descripcion: '',
+        clVi_Observaciones: this.visita.clVi_Observaciones || '',
+        clVi_Fecha: fechaVisita.toISOString(),
+        usua_Creacion: Number(userId) || 0,
+        clVi_FechaCreacion: fechaActual.toISOString()
       };
+
+
 
       console.log('Enviando datos de visita:', visitaData);
 
