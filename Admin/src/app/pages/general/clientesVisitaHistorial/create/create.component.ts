@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { DropzoneModule, DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
 import { Router } from '@angular/router';
+import { getUserId } from 'src/app/core/utils/user-utils';
 
 @Component({
   selector: 'app-create',
@@ -166,19 +167,51 @@ export class CreateComponent implements OnInit {
 
   async guardar() {
     this.mostrarErrores = true;
-    if (!this.visita.vendedor || !this.visita.cliente || !this.visita.direccion || !this.visita.esVi_Id || !this.visita.clVi_Fecha) { this.mostrarMensaje('Por favor complete todos los campos obligatorios.', 'error'); return; }
-    if (this.uploadedFiles.length === 0) { this.mostrarMensaje('Debe subir al menos una imagen de la visita.', 'error'); return; }
+    if (!this.visita.vendedor || !this.visita.cliente || !this.visita.direccion || !this.visita.esVi_Id || !this.visita.clVi_Fecha) { 
+      this.mostrarMensaje('Por favor complete todos los campos obligatorios.', 'error'); 
+      return; 
+    }
+    
+    if (this.uploadedFiles.length === 0) { 
+      this.mostrarMensaje('Debe subir al menos una imagen de la visita.', 'error'); 
+      return; 
+    }
 
+    this.cargando = true;
+    
     try {
+      // 1. Subir las imágenes a Cloudinary
       const imageUrls = [];
       for (const file of this.uploadedFiles) {
         if (file.file) {
           const url = await this.uploadImageToCloudinary(file.file);
           imageUrls.push(url);
-        } else if (file.dataURL) { imageUrls.push(file.dataURL); }
+        } else if (file.dataURL) { 
+          imageUrls.push(file.dataURL); 
+        }
       }
-      await this.guardarVisita(imageUrls);
-    } catch { this.mostrarMensaje('Error al subir las imágenes. Por favor, intente nuevamente.', 'error'); }
+
+      // 2. Crear la visita
+      const visitaCreada = await this.crearVisita();
+      if (!visitaCreada || !visitaCreada.data) {
+        throw new Error(visitaCreada?.message_Status || 'Error al crear la visita');
+      }
+
+      // 3. Asociar las imágenes a la visita
+      await this.asociarImagenesAVisita(visitaCreada.data, imageUrls);
+      
+      // 4. Mostrar mensaje de éxito y limpiar formulario
+      this.mostrarMensaje('Visita creada exitosamente', 'exito');
+      this.onSave.emit(visitaCreada.data);
+      this.limpiarFormulario();
+      
+    } catch (error: any) {
+      console.error('Error al guardar la visita:', error);
+      const errorMessage = error?.message || 'Error al procesar la solicitud. Por favor, intente nuevamente.';
+      this.mostrarMensaje(errorMessage, 'error');
+    } finally {
+      this.cargando = false;
+    }
   }
 
   async uploadImageToCloudinary(file: File): Promise<string> {
@@ -192,20 +225,67 @@ export class CreateComponent implements OnInit {
     return data.secure_url;
   }
 
-  private async guardarVisita(imageUrls: string[]) {
+  private async crearVisita(): Promise<any> {
     const visitaData = {
-      clVi_Cliente: this.visita.cliente.clie_Id,
-      clVi_Direccion: this.visita.direccion.diCl_DireccionExacta,
-      clVi_Fecha: this.visita.clVi_Fecha,
-      clVi_Observaciones: this.visita.clVi_Observaciones || '',
-      clVi_Imagenes: imageUrls,
-      clVi_UsuarioCreador: 1,
-      esVi_Id: this.visita.esVi_Id,
-      vende_Id: this.visita.vendedor.vende_Id
+      VeRu_Id: this.visita.vendedor?.ruta_Id,
+      DiCl_Id: this.visita.direccion?.diCl_Id,
+      EsVi_Id: this.visita.esVi_Id,
+      ClVi_Observaciones: this.visita.clVi_Observaciones || '',
+      ClVi_Fecha: this.visita.clVi_Fecha,
+      Usua_Creacion: getUserId, // TODO: Reemplazar con el ID del usuario autenticado
+      ClVi_FechaCreacion: new Date().toISOString()
     };
-    const response = await this.http.post<any>(`${environment.apiBaseUrl}/ClientesVisitaHistorial/Insertar`, visitaData, { headers: { 'x-api-key': environment.apiKey, 'Content-Type': 'application/json' } }).toPromise();
-    if (response && response.success) { this.mostrarMensaje('Visita guardada exitosamente', 'exito'); this.onSave.emit(response.data); this.limpiarFormulario(); } 
-    else { this.mostrarMensaje('Error al guardar la visita: ' + (response?.message || 'Error desconocido'), 'error'); }
+
+    try {
+      const response = await this.http.post<any>(
+        `${environment.apiBaseUrl}/ClientesVisitaHistorial/Insertar`, 
+        visitaData, 
+        { 
+          headers: { 
+            'x-api-key': environment.apiKey, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      ).toPromise();
+
+      return response;
+    } catch (error) {
+      console.error('Error al crear la visita:', error);
+      throw new Error('Error al crear la visita. Por favor, intente nuevamente.');
+    }
+  }
+
+  private async asociarImagenesAVisita(visitaId: number, imageUrls: string[]): Promise<void> {
+    if (!visitaId || !imageUrls?.length) return;
+
+    try {
+      for (const imageUrl of imageUrls) {
+        const imagenData = {
+          ImVi_Imagen: imageUrl,
+          ClVi_Id: visitaId,
+          Usua_Creacion: getUserId, // TODO: Reemplazar con el ID del usuario autenticado
+          ImVi_FechaCreacion: new Date().toISOString()
+        };
+
+        const response = await this.http.post<any>(
+          `${environment.apiBaseUrl}/ImagenVisita/Insertar`,
+          imagenData,
+          {
+            headers: {
+              'x-api-key': environment.apiKey,
+              'Content-Type': 'application/json'
+            }
+          }
+        ).toPromise();
+
+        if (!response?.code_Status) {
+          console.warn('Advertencia: No se pudo asociar una imagen a la visita:', response?.message_Status);
+        }
+      }
+    } catch (error) {
+      console.error('Error al asociar imágenes a la visita:', error);
+      // No lanzamos el error para no fallar todo el proceso si hay un error con una imagen
+    }
   }
 
   limpiarFormulario() {
