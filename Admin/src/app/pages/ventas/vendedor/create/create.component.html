@@ -552,11 +552,12 @@
             </ng-select>
             </div>
           </div>
-          <div class="col-md-2 d-flex align-items-center">
+          <div class="col-md-2 d-flex align-items-center" *ngIf="rutasVendedor.length > 1">
             <button type="button" class="btn btn-danger btn-sm" (click)="eliminarRuta(i)">
               <i class="ri-delete-bin-line"></i>
             </button>
           </div>
+          <div class="col-md-2" *ngIf="rutasVendedor.length === 1"></div>
         </div>
       </div>
     </div>

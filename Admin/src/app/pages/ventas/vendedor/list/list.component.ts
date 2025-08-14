@@ -76,226 +76,227 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
 })
 export class ListComponent implements OnInit {
 
-   private readonly exportConfig = {
-        // Configuración básica
-        title: 'Listado de Vendedores',                    // Título del reporte
-        filename: 'Vendedores',                           // Nombre base del archivo
-        department: 'Ventas',                         // Departamento
-        
-        // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
-        columns: [
-          { key: 'No', header: 'No.', width: 8, align: 'center' as const },
-          { key: 'Codigo', header: 'Codigo', width: 25, align: 'left' as const },
-          { key: 'DNI', header: 'DNI', width: 17, align: 'left' as const },
-          { key: 'Nombre', header: 'Nombre', width: 20, align: 'left' as const },
-          { key: 'Telefono', header: 'Telefono', width: 15, align: 'left' as const },
-          { key: 'Correo', header: 'Correo', width: 40, align: 'left' as const },
-          { key: 'Sexo', header: 'Sexo', width: 15, align: 'left' as const },
-          { key: 'Direccion Exacta', header: 'Direccion Exacta', width: 50, align: 'left' as const }
-          
-        ] as ExportColumn[],
-        
-        // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
-        dataMapping: (vendedor: Vendedor, index: number) => ({
-          'No': vendedor?.secuencia || (index + 1),
-          'Codigo': this.limpiarTexto(vendedor?.vend_Codigo),
-          'DNI': this.limpiarTexto(vendedor?.vend_DNI),
-          'Nombre': this.limpiarTexto(vendedor?.vend_Nombres) + ' ' + this.limpiarTexto(vendedor?.vend_Apellidos),
-          'Telefono': this.limpiarTexto( vendedor.vend_Telefono),
-          'Correo': this.limpiarTexto(vendedor?.vend_Correo),
-          'Sexo': this.limpiarTexto(vendedor?.vend_Sexo == 'M'? 'Masculino' : 'Femenino') ,
-          'Direccion Exacta': [
-              this.limpiarTexto(vendedor?.vend_DireccionExacta),
-              this.limpiarTexto(vendedor?.muni_Descripcion),
-              this.limpiarTexto(vendedor?.depa_Descripcion)
-            ].filter(Boolean).join(' - '), // Combina dirección, municipio y departamento
-          // Agregar más campos aquí según necesites:
-          // 'Campo': this.limpiarTexto(modelo?.campo),
-        })
-      };
-  
-       async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
-      if (this.exportando) {
-        this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
-        return;
-      }
-  
-      if (!this.validarDatosParaExport()) {
-        return;
-      }
-  
-      try {
-        this.exportando = true;
-        this.tipoExportacion = tipo;
-        this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
-        
-        const config = this.crearConfiguracionExport();
-        let resultado;
-        
-        switch (tipo) {
-          case 'excel':
-            resultado = await this.exportService.exportToExcel(config);
-            break;
-          case 'pdf':
-            resultado = await this.exportService.exportToPDF(config);
-            break;
-          case 'csv':
-            resultado = await this.exportService.exportToCSV(config);
-            break;
-        }
-        
-        this.manejarResultadoExport(resultado);
-        
-      } catch (error) {
-        console.error(`Error en exportación ${tipo}:`, error);
-        this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
-      } finally {
-        this.exportando = false;
-        this.tipoExportacion = null;
-      }
+
+  private readonly exportConfig = {
+    // Configuración básica
+    title: 'Listado de Vendedores',                    // Título del reporte
+    filename: 'Vendedores',                           // Nombre base del archivo
+    department: 'Ventas',                         // Departamento
+
+    // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
+    columns: [
+      { key: 'No', header: 'No.', width: 8, align: 'center' as const },
+      { key: 'Codigo', header: 'Codigo', width: 25, align: 'left' as const },
+      { key: 'DNI', header: 'DNI', width: 17, align: 'left' as const },
+      { key: 'Nombre', header: 'Nombre', width: 20, align: 'left' as const },
+      { key: 'Telefono', header: 'Telefono', width: 15, align: 'left' as const },
+      { key: 'Correo', header: 'Correo', width: 40, align: 'left' as const },
+      { key: 'Sexo', header: 'Sexo', width: 15, align: 'left' as const },
+      { key: 'Direccion Exacta', header: 'Direccion Exacta', width: 50, align: 'left' as const }
+
+    ] as ExportColumn[],
+
+    // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
+    dataMapping: (vendedor: Vendedor, index: number) => ({
+      'No': vendedor?.secuencia || (index + 1),
+      'Codigo': this.limpiarTexto(vendedor?.vend_Codigo),
+      'DNI': this.limpiarTexto(vendedor?.vend_DNI),
+      'Nombre': this.limpiarTexto(vendedor?.vend_Nombres) + ' ' + this.limpiarTexto(vendedor?.vend_Apellidos),
+      'Telefono': this.limpiarTexto(vendedor.vend_Telefono),
+      'Correo': this.limpiarTexto(vendedor?.vend_Correo),
+      'Sexo': this.limpiarTexto(vendedor?.vend_Sexo == 'M'? 'Masculino' : 'Femenino') ,
+      'Direccion Exacta': [
+          this.limpiarTexto(vendedor?.vend_DireccionExacta),
+          this.limpiarTexto(vendedor?.muni_Descripcion),
+          this.limpiarTexto(vendedor?.depa_Descripcion)
+        ].filter(Boolean).join(' - '), // Combina dirección, municipio y departamento
+      // Agregar más campos aquí según necesites:
+      // 'Campo': this.limpiarTexto(modelo?.campo),
+    })
+  };
+
+  async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
+    if (this.exportando) {
+      this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
+      return;
     }
-  
-    /**
-     * Métodos específicos para cada tipo (para usar en templates)
-     */
-    async exportarExcel(): Promise<void> {
-      await this.exportar('excel');
+
+    if (!this.validarDatosParaExport()) {
+      return;
     }
-  
-    async exportarPDF(): Promise<void> {
-      await this.exportar('pdf');
-    }
-  
-    async exportarCSV(): Promise<void> {
-      await this.exportar('csv');
-    }
-  
-    /**
-     * Verifica si se puede exportar un tipo específico
-     */
-    puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
-      if (this.exportando) {
-        return tipo ? this.tipoExportacion !== tipo : false;
-      }
-      return this.table.data$.value?.length > 0;
-    }
-  
-    // ===== MÉTODOS PRIVADOS DE EXPORTACIÓN =====
-  
-    /**
-     * Crea la configuración de exportación de forma dinámica
-     */
-    private crearConfiguracionExport(): ExportConfig {
-      return {
-        title: this.exportConfig.title,
-        filename: this.exportConfig.filename,
-        data: this.obtenerDatosExport(),
-        columns: this.exportConfig.columns,
-        metadata: {
-          department: this.exportConfig.department
-        }
-      };
-    }
-  
-    /**
-     * Obtiene y prepara los datos para exportación
-     */
-    private obtenerDatosExport(): any[] {
-      try {
-        const datos = this.table.data$.value;
-        
-        if (!Array.isArray(datos) || datos.length === 0) {
-          throw new Error('No hay datos disponibles para exportar');
-        }
-        
-        // Usar el mapeo configurado
-        return datos.map((modelo, index) => 
-          this.exportConfig.dataMapping.call(this, modelo, index)
-        );
-        
-      } catch (error) {
-        console.error('Error obteniendo datos:', error);
-        throw error;
-      }
-    }
-  
-  
-    /**
-     * Maneja el resultado de las exportaciones
-     */
-    private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
-      if (resultado.success) {
-        this.mostrarMensaje('success', resultado.message);
-      } else {
-        this.mostrarMensaje('error', resultado.message);
-      }
-    }
-  
-    /**
-     * Valida datos antes de exportar
-     */
-    private validarDatosParaExport(): boolean {
-      const datos = this.table.data$.value;
-      
-      if (!Array.isArray(datos) || datos.length === 0) {
-        this.mostrarMensaje('warning', 'No hay datos disponibles para exportar');
-        return false;
-      }
-      
-      if (datos.length > 10000) {
-        const continuar = confirm(
-          `Hay ${datos.length.toLocaleString()} registros. ` +
-          'La exportación puede tomar varios minutos. ¿Desea continuar?'
-        );
-        if (!continuar) return false;
-      }
-      
-      return true;
-    }
-  
-    /**
-     * Limpia texto para exportación de manera más eficiente
-     */
-    private limpiarTexto(texto: any): string {
-      if (!texto) return '';
-      
-      return String(texto)
-        .replace(/\s+/g, ' ')
-        .replace(/[^\w\s\-.,;:()\[\]]/g, '')
-        .trim()
-        .substring(0, 150);
-    }
-  
-    /**
-     * Sistema de mensajes mejorado con tipos adicionales
-     */
-    private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
-      this.cerrarAlerta();
-      
-      const duracion = tipo === 'error' ? 5000 : 3000;
-      
+
+    try {
+      this.exportando = true;
+      this.tipoExportacion = tipo;
+      this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
+
+      const config = this.crearConfiguracionExport();
+      let resultado;
+
       switch (tipo) {
-        case 'success':
-          this.mostrarAlertaExito = true;
-          this.mensajeExito = mensaje;
-          setTimeout(() => this.mostrarAlertaExito = false, duracion);
+        case 'excel':
+          resultado = await this.exportService.exportToExcel(config);
           break;
-          
-        case 'error':
-          this.mostrarAlertaError = true;
-          this.mensajeError = mensaje;
-          setTimeout(() => this.mostrarAlertaError = false, duracion);
+        case 'pdf':
+          resultado = await this.exportService.exportToPDF(config);
           break;
-          
-        case 'warning':
-        case 'info':
-          this.mostrarAlertaWarning = true;
-          this.mensajeWarning = mensaje;
-          setTimeout(() => this.mostrarAlertaWarning = false, duracion);
+        case 'csv':
+          resultado = await this.exportService.exportToCSV(config);
           break;
       }
+
+      this.manejarResultadoExport(resultado);
+
+    } catch (error) {
+      console.error(`Error en exportación ${tipo}:`, error);
+      this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
+    } finally {
+      this.exportando = false;
+      this.tipoExportacion = null;
     }
-exportando = false;
+  }
+
+  /**
+   * Métodos específicos para cada tipo (para usar en templates)
+   */
+  async exportarExcel(): Promise<void> {
+    await this.exportar('excel');
+  }
+
+  async exportarPDF(): Promise<void> {
+    await this.exportar('pdf');
+  }
+
+  async exportarCSV(): Promise<void> {
+    await this.exportar('csv');
+  }
+
+  /**
+   * Verifica si se puede exportar un tipo específico
+   */
+  puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
+    if (this.exportando) {
+      return tipo ? this.tipoExportacion !== tipo : false;
+    }
+    return this.table.data$.value?.length > 0;
+  }
+
+  // ===== MÉTODOS PRIVADOS DE EXPORTACIÓN =====
+
+  /**
+   * Crea la configuración de exportación de forma dinámica
+   */
+  private crearConfiguracionExport(): ExportConfig {
+    return {
+      title: this.exportConfig.title,
+      filename: this.exportConfig.filename,
+      data: this.obtenerDatosExport(),
+      columns: this.exportConfig.columns,
+      metadata: {
+        department: this.exportConfig.department
+      }
+    };
+  }
+
+  /**
+   * Obtiene y prepara los datos para exportación
+   */
+  private obtenerDatosExport(): any[] {
+    try {
+      const datos = this.table.data$.value;
+
+      if (!Array.isArray(datos) || datos.length === 0) {
+        throw new Error('No hay datos disponibles para exportar');
+      }
+
+      // Usar el mapeo configurado
+      return datos.map((modelo, index) => 
+        this.exportConfig.dataMapping.call(this, modelo, index)
+      );
+
+    } catch (error) {
+      console.error('Error obteniendo datos:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Maneja el resultado de las exportaciones
+   */
+  private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
+    if (resultado.success) {
+      this.mostrarMensaje('success', resultado.message);
+    } else {
+      this.mostrarMensaje('error', resultado.message);
+    }
+  }
+
+  /**
+   * Valida datos antes de exportar
+   */
+  private validarDatosParaExport(): boolean {
+    const datos = this.table.data$.value;
+
+    if (!Array.isArray(datos) || datos.length === 0) {
+      this.mostrarMensaje('warning', 'No hay datos disponibles para exportar');
+      return false;
+    }
+
+    if (datos.length > 10000) {
+      const continuar = confirm(
+        `Hay ${datos.length.toLocaleString()} registros. ` +
+        'La exportación puede tomar varios minutos. ¿Desea continuar?'
+      );
+      if (!continuar) return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Limpia texto para exportación de manera más eficiente
+   */
+  private limpiarTexto(texto: any): string {
+    if (!texto) return '';
+
+    return String(texto)
+      .replace(/\s+/g, ' ')
+      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
+      .trim()
+      .substring(0, 150);
+  }
+
+  /**
+   * Sistema de mensajes mejorado con tipos adicionales
+   */
+  private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
+    this.cerrarAlerta();
+
+    const duracion = tipo === 'error' ? 5000 : 3000;
+
+    switch (tipo) {
+      case 'success':
+        this.mostrarAlertaExito = true;
+        this.mensajeExito = mensaje;
+        setTimeout(() => this.mostrarAlertaExito = false, duracion);
+        break;
+
+      case 'error':
+        this.mostrarAlertaError = true;
+        this.mensajeError = mensaje;
+        setTimeout(() => this.mostrarAlertaError = false, duracion);
+        break;
+
+      case 'warning':
+      case 'info':
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = mensaje;
+        setTimeout(() => this.mostrarAlertaWarning = false, duracion);
+        break;
+    }
+  }
+
+  exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
 
   breadCrumbItems!: Array<{}>;
@@ -315,15 +316,16 @@ exportando = false;
     }
   }
 
-   ngOnInit(): void {
+  ngOnInit(): void {
     this.breadCrumbItems = [
       { label: 'Ventas' },
       { label: 'Vendedores', active: true }
     ];
 
-     this.cargarAccionesUsuario();
+    this.cargarAccionesUsuario();
     console.log('Acciones disponibles:', this.accionesDisponibles);
   }
+
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
     console.log('Toggleando formulario de creación...');
@@ -354,6 +356,7 @@ exportando = false;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.activeActionRow = null; // Cerrar menú de acciones
   }
+
   activeActionRow: number | null = null;
   showEdit = true;
   showDetails = true;
@@ -363,16 +366,16 @@ exportando = false;
   showDetailsForm = false; // Control del collapse de detalles
   vendedorEditando: Vendedor | null = null;
   vendedorDetalle: Vendedor | null = null;
-  
+
   // Propiedades para alertas
-    mostrarOverlayCarga = false;
+  mostrarOverlayCarga = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
   mostrarAlertaError = false;
   mensajeError = '';
   mostrarAlertaWarning = false;
   mensajeWarning = '';
-  
+
   // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
   vendedorEliminar: Vendedor | null = null;
@@ -382,7 +385,7 @@ exportando = false;
 
   }
 
-   accionesDisponibles: string[] = [];
+  accionesDisponibles: string[] = [];
 
   // Método robusto para validar si una acción está permitida
   accionPermitida(accion: string): boolean {
@@ -396,6 +399,26 @@ exportando = false;
   // (navigateToCreate eliminado, lógica movida a crear)
 
   // (navigateToEdit y navigateToDetails eliminados, lógica movida a editar y detalles)
+
+
+  // Obtener URL de avatar si existiera en el modelo; de lo contrario, null para usar iniciales
+  getAvatarUrl(v: Vendedor): string | null {
+    const anyV = v as any;
+    const url = anyV?.vend_Imagen || anyV?.vend_FotoUrl || anyV?.fotoUrl || null;
+    return typeof url === 'string' && url.trim().length > 0 ? url : null;
+  }
+
+  // Derivar iniciales a partir de nombres y apellidos
+  getInitials(v: Vendedor): string {
+    const nombre = (v?.vend_Nombres || '').toString().trim();
+    const apellido = (v?.vend_Apellidos || '').toString().trim();
+    const n = nombre.split(/\s+/).filter(Boolean);
+    const a = apellido.split(/\s+/).filter(Boolean);
+    const first = n[0]?.[0] || '';
+    const last = a[0]?.[0] || '';
+    const initials = (first + last).toUpperCase();
+    return initials || 'V';
+  }
 
   cerrarFormulario(): void {
     this.showCreateForm = false;
@@ -587,5 +610,17 @@ exportando = false;
       }, 500);
 
     });
+  }
+
+  formatDNI(dni: any): string {
+    const s = (dni ?? '').toString().replace(/\D/g, '');
+    if (!s) return '—';
+    // Honduras (13 dígitos): 0000-0000-00000
+    if (s.length === 13) return s.replace(/(\d{4})(\d{4})(\d{5})/, '$1-$2-$3');
+    // DNI 8 dígitos (p.ej. PE): 12.345.678
+    if (s.length === 8) return s.replace(/(\d{2})(\d{3})(\d{3})/, '$1.$2.$3');
+    // 9 dígitos: 123.456.789
+    if (s.length === 9) return s.replace(/(\d{3})(\d{3})(\d{3})/, '$1.$2.$3');
+    return s; // fallback sin formato
   }
 }

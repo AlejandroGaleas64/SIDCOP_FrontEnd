@@ -912,6 +912,28 @@ puedeAgregarNuevaEscala(): boolean {
 }
 
 
+// Opciones dinámicas para currencyMask
+opcionesMontoFijo: any = {
+  prefix: 'L. ',
+  suffix: '',
+  thousands: ',',
+  decimal: '.',
+  precision: 2,
+  allowNegative: false,
+  align: 'right'
+};
+
+opcionesPorcentaje: any = {
+  prefix: '',
+  suffix: ' %',
+  thousands: ',',
+  decimal: '.',
+  precision: 2,
+  allowNegative: false,
+  align: 'right'
+};
+
+
 
 
 }

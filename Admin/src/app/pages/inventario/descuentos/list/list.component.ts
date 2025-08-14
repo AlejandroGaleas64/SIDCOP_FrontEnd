@@ -22,7 +22,7 @@ import {
   animate
 } from '@angular/animations';
 import { set } from 'lodash';
-import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
+import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/exportHori.service';
 
 @Component({
   selector: 'app-list',
@@ -102,8 +102,8 @@ export class ListComponent implements OnInit {
             'Tipo': this.limpiarTexto(descuento?.desc_Tipo == true? 'Monto Fijo' : 'Porcentaje'),
             'Aplica en': this.limpiarTexto(descuento?.desc_Aplicar == 'M'? 'Marcas' : descuento.desc_Aplicar == 'C'? 'Categorias' : descuento.desc_Aplicar == 'S'? 'Subcategoria' : 'Productos'),
             'Tipo de Factura': this.limpiarTexto( descuento.desc_TipoFactura == 'CR'? 'Credito' : descuento.desc_TipoFactura == 'CO'? 'Contado' : descuento.desc_TipoFactura == 'AM'? 'Ambas' : 'N/A'),
-            'Fecha Inicio': this.limpiarTexto(descuento?.desc_FechaInicio),
-            'Fecha fin': this.limpiarTexto(descuento?.desc_FechaFin) ,
+            'Fecha Inicio': this.formatearFecha(descuento?.desc_FechaInicio),
+            'Fecha Fin': this.formatearFecha(descuento?.desc_FechaFin),
             'Observaciones': this.limpiarTexto(descuento?.desc_Observaciones),
              // Combina dirección, municipio y departamento
             // Agregar más campos aquí según necesites:
@@ -262,6 +262,18 @@ export class ListComponent implements OnInit {
           .replace(/[^\w\s\-.,;:()\[\]]/g, '')
           .trim()
           .substring(0, 150);
+      }
+
+       formatearFecha(fecha: any): string {
+        if (!fecha) return '';
+        const d = new Date(fecha);
+        if (isNaN(d.getTime())) return '';
+        // dd/MM/yyyy
+        return new Intl.DateTimeFormat('es-HN', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }).format(d);
       }
     
       /**
