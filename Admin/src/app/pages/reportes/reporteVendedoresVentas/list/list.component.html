@@ -1,3 +1,15 @@
+
+<app-breadcrumbs
+  [title]="'Ventas Vendedores'"
+  [breadcrumbItems]="[
+    { label: 'Reportes' },
+    { label: 'Ventas Vendedores', active: true }
+  ]"
+>
+<img class="icon-breadcrumb" style="width: 10vh; height: 10vh;" src="assets/images/svg/Vector.svg" alt="breadcrumb icon" />
+</app-breadcrumbs>
+
+
 <div class="container">
   <div class="card">
     <div class="card-header">
@@ -23,7 +35,7 @@
           <div class="d-flex align-items-center gap-2 flex-wrap">
             <!-- Botones de exportación -->
             <div class="export-buttons d-flex gap-1 mb-2">
-              <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="generarReporte()"
+              <button type="button" class="btn btn-primary blue btn-sm btn-minw-5-1" (click)="generarReporte()"
                 title="Generar Reporte">
                 <span class="btn-text">Generar Reporte</span>
                 <span class="btn-icon"><i class="ri-file-text-fill" style="font-weight: 100;"></i></span>

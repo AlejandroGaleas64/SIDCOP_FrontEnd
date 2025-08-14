@@ -5,13 +5,15 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Ruta } from 'src/app/Modelos/logistica/Rutas.Model'; 
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
+import { NgxMaskDirective, NgxMaskPipe, provideNgxMask } from 'ngx-mask';
 
 @Component({
   selector: 'app-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgxMaskDirective, NgxMaskPipe],
   templateUrl: './create.component.html',
-  styleUrl: './create.component.scss'
+  styleUrl: './create.component.scss',
+  providers: [provideNgxMask()]
 })
 export class CreateComponent {
   @Output() onCancel = new EventEmitter<void>();
@@ -25,8 +27,25 @@ export class CreateComponent {
   mensajeError = '';
   mostrarAlertaWarning = false;
   mensajeWarning = '';
+  rutas: any[] = [];
 
   constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {
+    this.cargarRutas();
+  }
+
+  cargarRutas() {
+      this.http.get<any[]>(`${environment.apiBaseUrl}/Rutas/Listar`, {
+        headers: { 'x-api-key': environment.apiKey }
+      }).subscribe(data => {
+        this.rutas = data; 
+        this.ruta.ruta_Codigo = this.generarSiguienteCodigo();
+      },
+      error => {
+        console.error('Error al cargar las rutas:', error);
+      });
+    }
 
   ruta: Ruta = {
     ruta_Id: 0,
@@ -68,6 +87,7 @@ export class CreateComponent {
       usuarioCreacion: '',
       usuarioModificacion: ''
     };
+    this.ruta.ruta_Codigo = this.generarSiguienteCodigo();
     this.onCancel.emit();
   }
 
@@ -79,6 +99,13 @@ export class CreateComponent {
     this.mostrarAlertaWarning = false;
     this.mensajeWarning = '';
   }
+
+  bloquearCodigo(valor: string) {
+    if (this.ruta.ruta_Codigo !== this.generarSiguienteCodigo()) {
+      this.ruta.ruta_Codigo = this.generarSiguienteCodigo();
+    }
+  }
+
 
   guardar(): void {
     this.mostrarErrores = true;
@@ -92,7 +119,7 @@ export class CreateComponent {
         ruta_Id: 0,
         ruta_Codigo: this.ruta.ruta_Codigo.trim(),
         ruta_Descripcion: this.ruta.ruta_Descripcion.trim(),
-        ruta_Observaciones: this.ruta.ruta_Observaciones.trim(),
+        ruta_Observaciones: this.ruta.ruta_Observaciones.trim() || 'N/A',
         usua_Creacion: getUserId(),// varibale global, obtiene el valor del environment, esto por mientras
         ruta_FechaCreacion: new Date().toISOString(),
         usua_Modificacion: 0,
@@ -157,5 +184,24 @@ export class CreateComponent {
         this.mensajeWarning = '';
       }, 4000);
     }
+  }
+
+  generarSiguienteCodigo(): string {
+    if (!this.rutas || this.rutas.length === 0) return 'RT-001';
+
+    // Tomar solo los códigos que tengan el formato RT-XXX
+    const codigos = this.rutas
+      .map(r => r.ruta_Codigo)
+      .filter(c => /^RT-\d{3}$/.test(c));
+
+    if (codigos.length === 0) return 'RT-001';
+
+    // Obtener el número más alto
+    const numeros = codigos.map(c => parseInt(c.split('-')[1], 10));
+    const maxNumero = Math.max(...numeros);
+
+    // Generar siguiente código con ceros a la izquierda
+    const siguienteNumero = (maxNumero + 1).toString().padStart(3, '0');
+    return `RT-${siguienteNumero}`;
   }
 }
