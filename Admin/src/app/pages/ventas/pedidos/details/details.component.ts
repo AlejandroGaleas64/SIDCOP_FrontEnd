@@ -169,6 +169,7 @@ export class DetailsComponent implements OnChanges {
       next: (data) => {
         if (data && data.length > 0) {
           this.configuracionEmpresa = data[0];
+          console.log('Configuración de empresa cargada:', this.configuracionEmpresa);
         }
       },
       error: (error) => {
@@ -177,30 +178,146 @@ export class DetailsComponent implements OnChanges {
     });
   }
 
-  imprimirPedido(): void {
-    const doc = new jsPDF();
+imprimirPedido(): void {
+  const doc = new jsPDF();
 
-    // Crear encabezado
-    this.crearEncabezado(doc).then((yPos) => {
-      // Detalles del pedido
-      this.agregarDetallesPedido(doc, yPos);
+  this.crearEncabezado(doc).then(() => {
+    const pageWidth = doc.internal.pageSize.width;
+    let y = 40;
 
-      // Detalles de los productos
-      this.agregarProductos(doc, yPos + 20);
+    doc.setFontSize(10); // Fuente reducida
 
-      // Agregar pie de página
-      this.crearPiePagina(doc, { pageNumber: 1 });
+    // ==============================
+    // ENCABEZADO DEL PEDIDO
+    // ==============================
+    doc.setFont('helvetica', 'bold');
+    doc.text(`No. Pedido:`, 14, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${this.PedidoDetalle?.pedi_Id}`, 37, y);
+    y += 6;
 
-      // Generar el PDF
-      const blobUrl = doc.output('bloburl');
-window.open(blobUrl, '_blank');
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Fecha Emisión:`, 14, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${this.formatearFecha(this.PedidoDetalle?.pedi_FechaPedido ?? null)}`, 42, y);
+    y += 5;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Fecha Entrega:`, 14, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${this.formatearFecha(this.PedidoDetalle?.pedi_FechaEntrega ?? null)}`, 42, y);
+    y += 5;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Tipo Documento:`, 14, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Pedido`, 44, y);
+    y += 4;
+
+    doc.line(14, y, 196, y); // Línea horizontal
+    y += 8;
+
+    // ==============================
+    // INFORMACIÓN DEL CLIENTE
+    // ==============================
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Cliente:`, 14, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${this.PedidoDetalle?.clie_Nombres} ${this.PedidoDetalle?.clie_Apellidos}`, 30, y);
+    y += 5;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Dirección:`, 14, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${this.PedidoDetalle?.diCl_DireccionExacta || 'Dirección no especificada'}`, 32, y);
+    y += 5;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Vendedor:`, 14, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${this.PedidoDetalle?.vend_Nombres || 'Vendedor no especificado'}`, 32, y);
+    y += 6;
+
+    doc.line(14, y, 196, y); // Línea horizontal
+    y += 6;
+
+    // ==============================
+    // ENCABEZADO DE PRODUCTOS
+    // ==============================
+    doc.setFont('helvetica', 'bold');
+    doc.text('Producto', 14, y);
+    doc.text('Precio', 120, y);
+    doc.text('Und', 145, y);
+    doc.text('Monto', 170, y);
+    y += 4;
+    doc.setFont('helvetica', 'normal');
+    doc.line(14, y, 196, y); // Línea horizontal
+    y += 5;
+
+    // ==============================
+    // LISTADO DE PRODUCTOS
+    // ==============================
+    let subtotal = 0;
+    this.productos.forEach((p) => {
+      const monto = p.precio * p.cantidad;
+      subtotal += monto;
+
+      doc.text(`${p.descripcion}`, 14, y);
+      doc.text(`L. ${p.precio.toFixed(2)}`, 120, y);
+      doc.text(`${p.cantidad}`, 145, y);
+      doc.text(`L. ${monto.toFixed(2)}`, 170, y);
+      y += 5;
     });
-  }
+
+    doc.line(14, y, 196, y); // Línea horizontal
+    y += 5;
+
+    // ==============================
+    // TOTALES
+    // ==============================
+    const impuestos = subtotal * 0.15;
+    const total = subtotal + impuestos;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Sub-total:`, 140, y);
+    doc.text(`L. ${subtotal.toFixed(2)}`, 170, y);
+    y += 5;
+
+    doc.text(`Impuestos (15%):`, 140, y);
+    doc.text(`L. ${impuestos.toFixed(2)}`, 170, y);
+    y += 5;
+
+    doc.text(`Total:`, 140, y);
+    doc.text(`L. ${total.toFixed(2)}`, 170, y);
+    y += 5;
+
+    // ==============================
+    // PREVIEW EN NUEVA PESTAÑA
+    // ==============================
+    const blobUrl = doc.output('bloburl');
+    window.open(blobUrl, '_blank');
+  });
+}
+
+
+get subtotal(): number {
+  return this.productos.reduce((acc, p) => acc + (p.precio * p.cantidad), 0);
+}
+
+get impuesto(): number {
+  return this.subtotal * 0.15;
+}
+
+get total(): number {
+  return this.subtotal + this.impuesto;
+}
+
+
 
  private async crearEncabezado(doc: jsPDF): Promise<number> {
-  doc.setDrawColor(this.COLORES.dorado);
-  doc.setLineWidth(2);
-  doc.line(20, 35, doc.internal.pageSize.width - 20, 35);
+//  doc.setDrawColor(this.COLORES.dorado);
+  doc.setLineWidth(0.5);
+  //doc.line(14, 35, 196, 35);
 
   const logoDataUrl = await this.cargarLogo();
   if (logoDataUrl) {
@@ -213,11 +330,22 @@ window.open(blobUrl, '_blank');
   doc.setFont('times', 'bold');
   doc.setFontSize(22);
   const nombreEmpresa = this.configuracionEmpresa?.coFa_NombreEmpresa || 'Empresa S.A.';
+  const telefono = this.configuracionEmpresa?.coFa_Telefono1 || '9825-6556';
+  const correo = this.configuracionEmpresa?.coFa_Correo || '@';
+  const ubicacion = this.configuracionEmpresa?.colo_Descripcion + ', ' + this.configuracionEmpresa?.muni_Descripcion + ', ' + this.configuracionEmpresa?.depa_Descripcion|| 'Celular';
   doc.text(nombreEmpresa, pageWidth / 2, 15, { align: 'center' });
+
+
+   doc.setFont('times', 'normal');
+  doc.setFontSize(10);
+  doc.text(ubicacion, pageWidth / 2, 20, { align: 'center' });
+  doc.text('Telefono: ' + telefono, pageWidth / 2, 25, { align: 'center' });
+  doc.text('Correo: ' + correo, pageWidth / 2, 30, { align: 'center' });
+
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
-  doc.text(`Factura No. ${this.PedidoData?.pedi_Id}`, pageWidth / 2, 27, { align: 'center' });
+ // doc.text(`Factura No. ${this.PedidoData?.pedi_Id}`, pageWidth / 2, 27, { align: 'center' });
 
   return 40;
 }
@@ -293,7 +421,7 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
   doc.text(`${subtotal.toFixed(2)}`, 160, yPos);
   yPos += 6;
 
-  doc.text('Impuesto (15%):', 130, yPos);
+  doc.text('Impuesto (15%): ', 130, yPos);
   doc.text(`${impuesto.toFixed(2)}`, 160, yPos);
   yPos += 6;
 
