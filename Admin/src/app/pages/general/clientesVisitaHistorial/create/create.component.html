@@ -26,128 +26,175 @@
       <!-- Selector de Vendedor -->
       <div class="col-12 col-md-6 mb-3">
         <label for="vendedor" class="form-label">Vendedor <span class="text-danger">*</span></label>
-        <ng-select id="vendedor" [items]="vendedores"  
-            bindLabel="vendedorNombre"
-            [loading]="cargando"
-            [clearable]="false"
-            [searchable]="true"
-            [(ngModel)]="visita.vendedor"
-            (change)="onVendedorSeleccionado($event)"
-            [class.is-invalid]="!visita.vendedor && mostrarErrores"
-            placeholder="Seleccione un vendedor"
-            required>
+        <div class="d-flex align-items-center">
+          <i class="ri-user-2-line" [ngStyle]="{
+            border: (!visita.vendedor && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (!visita.vendedor && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.525rem 0.525rem',
+            borderTopLeftRadius: '8px',
+            borderBottomLeftRadius: '8px'
+          }"></i>
+          <ng-select id="vendedor" [items]="vendedores"  
+              bindLabel="vendedorNombre"
+              [loading]="cargando"
+              [clearable]="false"
+              [searchable]="true"
+              [(ngModel)]="visita.vendedor"
+              (change)="onVendedorSeleccionado($event)"
+              [class.is-invalid]="!visita.vendedor && mostrarErrores"
+              placeholder="Seleccione un vendedor"
+              required
+              style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
             <ng-template ng-label-tmp let-item="item">
                 {{ item.vendedorNombre }}
             </ng-template>
             <ng-template ng-option-tmp let-item="item">
                 {{ item.vendedorNombre }} {{ item.vendedorApellido }} - {{ item.rutaDescripcion }}
             </ng-template>
-        </ng-select>
+          </ng-select>
+        </div>
         <div class="text-danger mt-1" *ngIf="!visita.vendedor && mostrarErrores">
-            <small>El campo Vendedor es requerido</small>
+           <small>El campo Vendedor es requerido</small>
         </div>
       </div>
 
       <!-- Selector de Cliente -->
       <div class="col-12 col-md-6 mb-3">
         <label class="form-label">Cliente <span class="text-danger">*</span></label>
-        <ng-select class="w-100" 
-            [items]="clientesFiltrados" 
-            bindLabel="clie_NombreNegocio"
-            bindValue="clie_Id"
-            [loading]="cargando"
-            [clearable]="false"
-            [searchable]="true"
-            [(ngModel)]="visita.cliente"
-            (change)="onClienteSeleccionado($event)"
-            [class.is-invalid]="!visita.cliente && mostrarErrores"
-            placeholder="Seleccione un cliente"
-            [disabled]="!visita.vendedor"
-            [searchFn]="searchCliente"
-            required>
-            <ng-template ng-label-tmp let-item="item">
-                {{ item.clie_Codigo }} - {{ item.clie_Nombres }} {{ item.clie_Apellidos }}
-            </ng-template>
-            <ng-template ng-option-tmp let-item="item">
-                <div>
-                    <div><strong>{{ item.clie_Codigo }}</strong> - {{ item.clie_Nombres }} {{ item.clie_Apellidos }}</div>
-                    <small class="text-muted">{{ item.clie_NombreNegocio }}</small>
-                </div>
-            </ng-template>
-        </ng-select>
+        <div class="d-flex align-items-center">
+          <i class="ri-user-line" [ngStyle]="{
+            border: (!visita.cliente && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (!visita.cliente && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.525rem 0.525rem',
+            borderTopLeftRadius: '8px',
+            borderBottomLeftRadius: '8px'
+          }"></i>
+          <ng-select class="w-100"
+              [items]="clientesFiltrados"
+              bindLabel="clie_NombreNegocio"
+              bindValue="clie_Id"
+              [loading]="cargando"
+              [clearable]="false"
+              [searchable]="true"
+              [(ngModel)]="visita.cliente"
+              (change)="onClienteSeleccionado($event)"
+              [class.is-invalid]="!visita.cliente && mostrarErrores"
+              placeholder="Seleccione un cliente"
+              [disabled]="!visita.vendedor"
+              [searchFn]="searchCliente"
+              required
+              style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+              <ng-template ng-label-tmp let-item="item">
+                  {{ item.clie_Codigo }} - {{ item.clie_Nombres }} {{ item.clie_Apellidos }}
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                  <div>
+                      <div><strong>{{ item.clie_Codigo }}</strong> - {{ item.clie_Nombres }} {{ item.clie_Apellidos }}</div>
+                      <small class="text-muted">{{ item.clie_NombreNegocio }}</small>
+                  </div>
+              </ng-template>
+          </ng-select>
+        </div>
         <div class="text-danger mt-1" *ngIf="!visita.cliente && mostrarErrores">
-            <small>El campo Cliente es requerido</small>
+           <small>El campo Cliente es requerido</small>
         </div>
       </div>
 
       <!-- Selector de Dirección -->
       <div class="col-12 col-md-6 mb-3">
         <label for="direccion" class="form-label">Dirección <span class="text-danger">*</span></label>
-        <ng-select id="direccion" 
-            [items]="direcciones" 
-            bindLabel="diCl_DireccionExacta"
-            [loading]="cargando"
-            [clearable]="false"
-            [searchable]="true"
-            [(ngModel)]="visita.direccion"
-            [class.is-invalid]="!visita.direccion && mostrarErrores"
-            placeholder="Seleccione una dirección"
-            [disabled]="!visita.cliente"
-            required>
-            <ng-template ng-label-tmp let-item="item">
-                {{ item.diCl_DireccionExacta }}
-            </ng-template>
-            <ng-template ng-option-tmp let-item="item">
-                <div>
-                    <div>{{ item.diCl_DireccionExacta }}</div>
-                    <small class="text-muted">{{ item.diCl_Referencia || 'Sin referencia' }}</small>
-                </div>
-            </ng-template>
-        </ng-select>
+        <div class="d-flex align-items-center">
+          <i class="ri-map-pin-line" [ngStyle]="{
+            border: (!visita.direccion && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (!visita.direccion && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.525rem 0.525rem',
+            borderTopLeftRadius: '8px',
+            borderBottomLeftRadius: '8px'
+          }"></i>
+          <ng-select id="direccion"
+              [items]="direcciones"
+              bindLabel="diCl_DireccionExacta"
+              [loading]="cargando"
+              [clearable]="false"
+              [searchable]="true"
+              [(ngModel)]="visita.direccion"
+              [class.is-invalid]="!visita.direccion && mostrarErrores"
+              placeholder="Seleccione una dirección"
+              [disabled]="!visita.cliente"
+              required
+              style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+              <ng-template ng-label-tmp let-item="item">
+                  {{ item.diCl_DireccionExacta }}
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                  <div>
+                      <div>{{ item.diCl_DireccionExacta }}</div>
+                      <small class="text-muted">{{ item.diCl_Referencia || 'Sin referencia' }}</small>
+                  </div>
+              </ng-template>
+          </ng-select>
+        </div>
         <div class="text-danger mt-1" *ngIf="!visita.direccion && mostrarErrores">
-            <small>El campo Dirección es requerido</small>
+           <small>El campo Dirección es requerido</small>
         </div>
       </div>
 
       <!-- Estado de Visita -->
       <div class="col-12 col-md-6 mb-3">
         <label for="esVi_Id" class="form-label">Estado de Visita <span class="text-danger">*</span></label>
-        <ng-select id="esVi_Id" 
-            [items]="estadosVisita" 
-            bindLabel="esVi_Descripcion"
-            bindValue="esVi_Id"
-            [clearable]="true"
-            [searchable]="false"
-            [(ngModel)]="visita.esVi_Id"
-            [class.is-invalid]="!visita.esVi_Id && mostrarErrores"
-            placeholder="Seleccione un estado"
-            notFoundText="No se encontraron estados"
-            loadingText="Cargando..."
-            typeToSearchText="Escriba para buscar..."
-            required>
-            <ng-template ng-label-tmp let-item="item">
-              {{ item.esVi_Descripcion }}
-            </ng-template>
-        </ng-select>
+        <div class="d-flex align-items-center">
+          <i class="ri-checkbox-circle-line" [ngStyle]="{
+            border: (!visita.esVi_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (!visita.esVi_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.525rem 0.525rem',
+            borderTopLeftRadius: '8px',
+            borderBottomLeftRadius: '8px'
+          }"></i>
+          <ng-select id="esVi_Id"
+              [items]="estadosVisita"
+              bindLabel="esVi_Descripcion"
+              bindValue="esVi_Id"
+              [clearable]="true"
+              [searchable]="false"
+              [(ngModel)]="visita.esVi_Id"
+              [class.is-invalid]="!visita.esVi_Id && mostrarErrores"
+              placeholder="Seleccione un estado"
+              required
+              style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.esVi_Descripcion }}
+              </ng-template>
+          </ng-select>
+        </div>
         <div class="text-danger mt-1" *ngIf="!visita.esVi_Id && mostrarErrores">
-            <small>El campo Estado es requerido</small>
+           <small>El campo Estado es requerido</small>
         </div>
       </div>
 
       <!-- Fecha de Visita -->
       <div class="col-12 col-md-6 mb-3">
         <label for="clVi_Fecha" class="form-label">Fecha de Visita <span class="text-danger">*</span></label>
-        <input type="date" 
-            id="clVi_Fecha" 
-            class="form-control" 
-            [class.is-invalid]="!visita.clVi_Fecha && mostrarErrores"
-            [(ngModel)]="visita.clVi_Fecha" 
-            [max]="maxDate"
-            [attr.min]="minDate"
-            placeholder="Seleccione una fecha"
-            required />
+        <div class="d-flex align-items-center">
+          <i class="ri-calendar-line" [ngStyle]="{
+            border: (!visita.clVi_Fecha && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (!visita.clVi_Fecha && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.525rem 0.525rem',
+            borderTopLeftRadius: '8px',
+            borderBottomLeftRadius: '8px'
+          }"></i>
+          <input type="date" 
+              id="clVi_Fecha" 
+              class="form-control"
+              [class.is-invalid]="!visita.clVi_Fecha && mostrarErrores"
+              [(ngModel)]="visita.clVi_Fecha"
+              [max]="maxDate"
+              [attr.min]="minDate"
+              placeholder="Seleccione una fecha"
+              required
+              style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;" />
+        </div>
         <div class="text-danger mt-1" *ngIf="!visita.clVi_Fecha && mostrarErrores">
-            <small>El campo Fecha es requerido</small>
+           <small>El campo Fecha es requerido</small>
         </div>
       </div>
 
@@ -164,40 +211,41 @@
       </div>
 
       <!-- Imagen de la visita (Dropzone igual empleados) -->
-        <div class="col-lg-12">
-            <div class="mb-3">
-                <label class="form-label">Imagen de la visita<span class="text-danger">*</span></label>
-                <dropzone
-                class="dropzone"
-                [config]="dropzoneConfig"
-                [message]="'Selecciona una imagen para subir.'"
-                (success)="onFileSelected($event)">
-                </dropzone>
+      <div class="col-lg-12">
+        <div class="mb-3">
+          <label class="form-label">Imagen de la visita<span class="text-danger">*</span></label>
+          <dropzone
+            class="dropzone"
+            [config]="dropzoneConfig"
+            [message]="'Selecciona una imagen para subir.'"
+            (success)="onFileSelected($event)">
+          </dropzone>
 
-                <ul class="list-unstyled mb-0" *ngIf="uploadedFiles.length > 0" id="dropzone-preview">
-                <li class="mt-2" *ngFor="let file of uploadedFiles">
-                    <div class="border rounded">
-                    <div class="d-flex flex-wrap gap-2 p-2">
-                        <div class="flex-shrink-0 me-3">
-                        <div class="avatar-sm bg-light rounded p-2">
-                            <img class="img-fluid rounded d-block" [src]="file.dataURL || file" alt="Imagen-Visita" />
-                        </div>
-                        </div>
-                        <div class="flex-grow-1">
-                        <div class="pt-1">
-                            <h5 class="fs-md mb-1" *ngIf="file.name">{{ file.name }}</h5>
-                            <p class="fs-sm text-muted mb-0" *ngIf="file.size">{{ file.size }}</p>
-                        </div>
-                        </div>
-                        <div class="flex-shrink-0 ms-3">
-                        <button (click)="removeFile(file)" class="btn btn-sm btn-danger">Eliminar</button>
-                        </div>
+          <ul class="list-unstyled mb-0" *ngIf="uploadedFiles.length > 0" id="dropzone-preview">
+            <li class="mt-2" *ngFor="let file of uploadedFiles">
+              <div class="border rounded">
+                <div class="d-flex flex-wrap gap-2 p-2">
+                  <div class="flex-shrink-0 me-3">
+                    <div class="avatar-sm bg-light rounded p-2">
+                      <img class="img-fluid rounded d-block" [src]="file.dataURL || file" alt="Imagen-Visita" />
                     </div>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="pt-1">
+                      <h5 class="fs-md mb-1" *ngIf="file.name">{{ file.name }}</h5>
+                      <p class="fs-sm text-muted mb-0" *ngIf="file.size">{{ file.size }}</p>
                     </div>
-                </li>
-                </ul>
-            </div>
+                  </div>
+                  <div class="flex-shrink-0 ms-3">
+                    <button (click)="removeFile(file)" class="btn btn-sm btn-danger">Eliminar</button>
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
         </div>
+      </div>
+
     </div>
   </div>
 
