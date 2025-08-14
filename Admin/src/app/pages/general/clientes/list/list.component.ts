@@ -465,7 +465,7 @@ export class ListComponent {
       this.clientesFiltrados = this.clienteGrid.filter((cliente: any) =>
         (cliente.clie_Codigo || '').toLowerCase().includes(termino) ||
         (cliente.clie_Nombres || '').toLowerCase().includes(termino) ||
-        (cliente.cana_Descripcion || '').toLowerCase().includes(termino)
+        (cliente.clie_NombreNegocio || '').toLowerCase().includes(termino)
       );
     }
     this.currentPage = 1;
@@ -559,8 +559,18 @@ export class ListComponent {
       setTimeout(() => {
         this.mostrarOverlayCarga = false;
         this.cargandoDatos = false;
-        this.clienteGrid = data || [];
-        this.clientes = this.clienteGrid.slice(0, 10);
+        const tienePermisoListar = this.accionPermitida('listar');
+        const userId = getUserId();
+
+        const datosFiltrados = tienePermisoListar
+          ? data
+          : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
+
+        this.clienteGrid = datosFiltrados || [];
+        this.busqueda = '';
+        this.currentPage = 1;
+        this.itemsPerPage = 10;
+        this.clientesFiltrados = [...this.clienteGrid];
         this.filtradorClientes();
       }, 500);
     });
