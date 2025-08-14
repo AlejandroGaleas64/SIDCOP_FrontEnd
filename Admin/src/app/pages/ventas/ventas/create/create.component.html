@@ -1,0 +1,1035 @@
+<div class="d-flex flex-column" style="height: 100%; min-height: 250px">
+  <!-- Título del componente -->
+  <h5 class="card-title mb-4">Crear Nueva Venta</h5>
+
+  <!-- Contenedor de alertas flotantes -->
+  <div class="alert-container">
+    <!-- Alerta de éxito -->
+    <div
+      *ngIf="mostrarAlertaExito"
+      class="alert alert-success alert-border-left alert-dismissible fade show floating-alert"
+      role="alert"
+    >
+      <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+      <strong>¡Éxito!</strong> {{ mensajeExito }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="cerrarAlerta()"
+        aria-label="Close"
+      ></button>
+    </div>
+
+    <!-- Alerta de advertencia -->
+    <div
+      *ngIf="mostrarAlertaWarning"
+      class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert"
+      role="alert"
+    >
+      <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+      <strong>¡Atención!</strong> {{ mensajeWarning }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="cerrarAlerta()"
+        aria-label="Close"
+      ></button>
+    </div>
+
+    <!-- Alerta de error -->
+    <div
+      *ngIf="mostrarAlertaError"
+      class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert"
+      role="alert"
+    >
+      <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+      <strong>¡Error!</strong> {{ mensajeError }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="cerrarAlerta()"
+        aria-label="Close"
+      ></button>
+    </div>
+  </div>
+
+  <!-- Navegación de Tabs -->
+  <ul class="nav nav-tabs mb-3 justify-content-center" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        [class.active]="tabActivo === 1"
+        (click)="cambiarTab(1)"
+        type="button"
+        role="tab"
+      >
+        Datos y Productos
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        [class.active]="tabActivo === 2"
+        [class.disabled]="!puedeAvanzarAResumen"
+        (click)="cambiarTab(2)"
+        type="button"
+        role="tab"
+      >
+        Resumen
+      </button>
+    </li>
+  </ul>
+
+  <div class="flex-grow-1">
+    <!-- TAB 1: Datos y Productos -->
+    <div class="tab-content" id="nav-tabContent">
+      <div
+        class="tab-pane fade"
+        [class.show]="tabActivo === 1"
+        [class.active]="tabActivo === 1"
+        id="nav-datos"
+        role="tabpanel"
+      >
+        <!-- Formulario de datos básicos -->
+        <div class="row mb-4">
+          <!-- Dropdown de Sucursal -->
+          <div class="col-md-6">
+            <label class="form-label"
+              >Sucursal<span class="text-danger">*</span></label
+            >
+            <div class="mb-3">
+              <div class="d-flex align-items-center">
+                <i
+                  class="ri-store-2-line"
+                  [ngStyle]="{
+                    border:
+                      (!venta.regC_Id || venta.regC_Id == 0) && mostrarErrores
+                        ? '1px solid #f9bcc4'
+                        : '1px solid #e9ecf5',
+                    backgroundColor:
+                      (!venta.regC_Id || venta.regC_Id == 0) && mostrarErrores
+                        ? '#fff5f6'
+                        : '#f2f3f9',
+                    padding: '0.525rem 0.525rem',
+                    position: 'relative',
+                    left: '7px',
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px'
+                  }"
+                ></i>
+                <select
+                  id="sucursal"
+                  name="sucursal"
+                  class="form-select"
+                  [class.is-invalid]="
+                    (!venta.regC_Id || venta.regC_Id == 0) && mostrarErrores
+                  "
+                  [(ngModel)]="venta.regC_Id"
+                  (change)="onSucursalChange()"
+                  required
+                >
+                  <option value="0" disabled selected>
+                    Seleccione sucursal
+                  </option>
+                  <option
+                    *ngFor="let sucursal of sucursales"
+                    [value]="sucursal.sucu_Id"
+                  >
+                    {{ sucursal.sucu_Descripcion }}
+                  </option>
+                </select>
+                <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              </div>
+              <!-- Indicador de carga de inventario -->
+              <div *ngIf="cargandoInventario" class="ms-2">
+                <div
+                  class="spinner-border spinner-border-sm text-primary"
+                  role="status"
+                >
+                  <span class="visually-hidden">Cargando inventario...</span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="text-danger mt-1"
+              *ngIf="(!venta.regC_Id || venta.regC_Id == 0) && mostrarErrores"
+            >
+              <small>La sucursal es requerida</small>
+            </div>
+          </div>
+
+          <!-- Tipo de Venta -->
+          <div class="col-md-6">
+            <label class="form-label"
+              >Tipo de Venta<span class="text-danger">*</span></label
+            >
+            <div class="mb-3">
+              <div class="d-flex align-items-center">
+                <i
+                  class="ri-exchange-dollar-line"
+                  [ngStyle]="{
+                    border:
+                      !venta.fact_TipoVenta && mostrarErrores
+                        ? '1px solid #f9bcc4'
+                        : '1px solid #e9ecf5',
+                    backgroundColor:
+                      !venta.fact_TipoVenta && mostrarErrores
+                        ? '#fff5f6'
+                        : '#f2f3f9',
+                    padding: '0.525rem 0.525rem',
+                    position: 'relative',
+                    left: '7px',
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px'
+                  }"
+                ></i>
+                <select
+                  id="tipoVenta"
+                  name="tipoVenta"
+                  class="form-select"
+                  [class.is-invalid]="!venta.fact_TipoVenta && mostrarErrores"
+                  [(ngModel)]="venta.fact_TipoVenta"
+                  required
+                >
+                  <option value="" disabled selected>Seleccione tipo</option>
+                  <option value="CONTADO">Contado</option>
+                  <option value="CREDITO">Crédito</option>
+                </select>
+                <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              </div>
+            </div>
+            <div
+              class="text-danger mt-1"
+              *ngIf="!venta.fact_TipoVenta && mostrarErrores"
+            >
+              <small>El tipo de venta es requerido</small>
+            </div>
+          </div>
+
+          <!-- Fecha de Emisión -->
+          <div class="col-md-6">
+            <label class="form-label"
+              >Fecha de Emisión<span class="text-danger">*</span></label
+            >
+            <div class="mb-3">
+              <div class="d-flex align-items-center">
+                <i
+                  class="ri-calendar-2-line"
+                  [ngStyle]="{
+                    border:
+                      !venta.fact_FechaEmision && mostrarErrores
+                        ? '1px solid #f9bcc4'
+                        : '1px solid #e9ecf5',
+                    backgroundColor:
+                      !venta.fact_FechaEmision && mostrarErrores
+                        ? '#fff5f6'
+                        : '#f2f3f9',
+                    padding: '0.525rem 0.525rem',
+                    position: 'relative',
+                    left: '7px',
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px'
+                  }"
+                ></i>
+                <input
+                  type="date"
+                  class="form-control"
+                  [class.is-invalid]="
+                    !venta.fact_FechaEmision && mostrarErrores
+                  "
+                  id="fechaEmision"
+                  [value]="
+                    venta.fact_FechaEmision
+                      ? (venta.fact_FechaEmision | date : 'yyyy-MM-dd')
+                      : ''
+                  "
+                  (input)="onFechaEmisionChange($event)"
+                  required
+                />
+              </div>
+              <div
+                class="text-danger mt-1"
+                *ngIf="!venta.fact_FechaEmision && mostrarErrores"
+              >
+                <small>La fecha de emisión es requerida</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Cliente<span class="text-danger">*</span></label>
+            <div class="mb-3">
+              <div class="d-flex align-items-center">
+                <i
+                  class="ri-user-line"
+                  [ngStyle]="{
+                    border:
+                      (!venta.clie_Id || venta.clie_Id == 0) && mostrarErrores
+                        ? '1px solid #f9bcc4'
+                        : '1px solid #e9ecf5',
+                    backgroundColor:
+                      (!venta.clie_Id || venta.clie_Id == 0) && mostrarErrores
+                        ? '#fff5f6'
+                        : '#f2f3f9',
+                    padding: '0.525rem 0.525rem',
+                    position: 'relative',
+                    left: '7px',
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px'
+                  }"
+                ></i>
+                <select
+                  id="cliente"
+                  name="cliente"
+                  class="form-select"
+                  [class.is-invalid]="
+                    (!venta.clie_Id || venta.clie_Id == 0) && mostrarErrores
+                  "
+                  [(ngModel)]="venta.clie_Id"
+                  required
+                >
+                  <option value="0" disabled selected>
+                    Seleccione cliente
+                  </option>
+                  <option
+                    *ngFor="let cliente of clientes"
+                    [value]="cliente.clie_Id"
+                  >
+                    {{ cliente.clie_Nombres }} {{ cliente.clie_Apellidos }}
+                  </option>
+                </select>
+                <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              </div>
+            </div>
+            <div
+              class="text-danger mt-1"
+              *ngIf="(!venta.clie_Id || venta.clie_Id == 0) && mostrarErrores"
+            >
+              <small>El cliente es requerido</small>
+            </div>
+          </div>
+          
+          <!-- Selector de Vendedor -->
+          <div class="col-md-6">
+            <label class="form-label">Vendedor<span class="text-danger">*</span></label>
+            <div class="mb-3">
+              <div class="d-flex align-items-center">
+                <i
+                  class="ri-user-star-line"
+                  [ngStyle]="{
+                    border:
+                      (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
+                        ? '1px solid #f9bcc4'
+                        : '1px solid #e9ecf5',
+                    backgroundColor:
+                      (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
+                        ? '#fff5f6'
+                        : '#f2f3f9',
+                    padding: '0.525rem 0.525rem',
+                    position: 'relative',
+                    left: '7px',
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px'
+                  }"
+                ></i>
+                <select
+                  id="vendedor"
+                  name="vendedor"
+                  class="form-select"
+                  [class.is-invalid]="
+                    (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
+                  "
+                  [(ngModel)]="venta.vend_Id"
+                  [disabled]="!venta.regC_Id || venta.regC_Id === 0 || getVendedoresPorSucursal().length === 0"
+                  required
+                >
+                  <option value="0" disabled selected>
+                    Seleccione vendedor
+                  </option>
+                  <option
+                    *ngFor="let vendedor of getVendedoresPorSucursal()"
+                    [value]="vendedor.vend_Id"
+                  >
+                    {{ vendedor.vend_Nombres }} {{ vendedor.vend_Apellidos }}
+                  </option>
+                </select>
+                <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              </div>
+            </div>
+            <div
+              class="text-danger mt-1"
+              *ngIf="(!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores"
+            >
+              <small>El vendedor es requerido</small>
+            </div>
+          </div>
+          
+          <!-- Campo de Referencia -->
+          <div class="col-md-6">
+            <label class="form-label">Referencia</label>
+            <div class="mb-3">
+              <div class="d-flex align-items-center">
+                <i
+                  class="ri-map-pin-line"
+                  [ngStyle]="{
+                    border: '1px solid #e9ecf5',
+                    backgroundColor: '#f2f3f9',
+                    padding: '0.525rem 0.525rem',
+                    position: 'relative',
+                    left: '7px',
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px'
+                  }"
+                ></i>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="referencia"
+                  name="referencia"
+                  [(ngModel)]="venta.fact_Referencia"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <!-- Información de Ubicación -->
+          <div class="col-md-6">
+            <label class="form-label">Ubicación</label>
+            <div class="mb-3">
+              <div class="d-flex align-items-center">
+                <i
+                  class="ri-map-2-line"
+                  [ngStyle]="{
+                    border: '1px solid #e9ecf5',
+                    backgroundColor: '#f2f3f9',
+                    padding: '0.525rem 0.525rem',
+                    position: 'relative',
+                    left: '7px',
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px'
+                  }"
+                ></i>
+                <div class="form-control d-flex justify-content-between align-items-center">
+                  <span *ngIf="!obteniendoUbicacion && !errorUbicacion">
+                    <i class="ri-checkbox-circle-line text-success me-1"></i>
+                    Ubicación obtenida
+                  </span>
+                  <span *ngIf="obteniendoUbicacion">
+                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                    Obteniendo ubicación...
+                  </span>
+                  <span *ngIf="!obteniendoUbicacion && errorUbicacion" class="text-danger">
+                    <i class="ri-error-warning-line me-1"></i>
+                    {{ errorUbicacion }}
+                  </span>
+                  <button 
+                    type="button" 
+                    class="btn btn-sm btn-outline-primary" 
+                    (click)="obtenerUbicacionActual()"
+                    [disabled]="obteniendoUbicacion"
+                  >
+                    <i class="ri-refresh-line"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección de Productos -->
+        <div class="row">
+          <div class="col-12">
+            <h6 class="mb-3">
+              <i class="ri-box-3-line me-2"></i>
+              Seleccionar Productos
+            </h6>
+
+            <!-- Mensaje informativo -->
+            <div
+              class="alert alert-info d-flex align-items-center mb-3"
+              *ngIf="!venta.regC_Id || venta.regC_Id === 0"
+            >
+              <i class="ri-information-fill me-2"></i>
+              <span
+                >Seleccione una sucursal para ver los productos
+                disponibles</span
+              >
+            </div>
+
+            <!-- Buscador de productos -->
+            <div class="row mb-3" *ngIf="venta.regC_Id && venta.regC_Id > 0">
+              <div class="col-md-6">
+                <div class="search-container">
+                  <div class="input-group">
+                    <span class="input-group-text search-icon">
+                      <i class="ri-search-line"></i>
+                    </span>
+                    <input
+                      type="text"
+                      class="form-control search-input"
+                      placeholder="Buscar productos por nombre..."
+                      [(ngModel)]="busquedaProducto"
+                      (input)="buscarProductos()"
+                    />
+                    <button
+                      class="btn btn-outline-secondary"
+                      type="button"
+                      *ngIf="busquedaProducto"
+                      (click)="limpiarBusqueda()"
+                    >
+                      <i class="ri-close-line"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div
+                  class="d-flex align-items-center justify-content-end gap-3"
+                >
+                  <span class="text-muted">
+                    <i class="ri-information-line me-1"></i>
+                    {{ productosFiltrados.length }} producto(s) encontrado(s)
+                  </span>
+                  <span
+                    class="badge bg-primary"
+                    *ngIf="getTotalProductosSeleccionados() > 0"
+                  >
+                    {{ getTotalProductosSeleccionados() }} seleccionado(s)
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contenedor de tarjetas de productos -->
+            <div
+              class="productos-container"
+              *ngIf="venta.regC_Id && venta.regC_Id > 0"
+            >
+              <div class="row g-3">
+                <div
+                  class="col-xl-3 col-lg-4 col-md-6 col-sm-12"
+                  *ngFor="
+                    let producto of getProductosPaginados();
+                    let i = index
+                  "
+                >
+                  <div
+                    class="card producto-card-premium h-100"
+                    [class.sin-stock]="!producto.tieneStock"
+                    [class.selected]="producto.cantidad > 0"
+                  >
+                    <!-- Header de la tarjeta -->
+                    <div
+                      class="card-header-premium"
+                      [class.selected]="producto.cantidad > 0"
+                    >
+                      <div
+                        class="selection-indicator"
+                        *ngIf="producto.cantidad > 0"
+                      >
+                        <i class="ri-check-line"></i>
+                      </div>
+                      <!-- Badge de stock -->
+                      <div
+                        class="stock-badge"
+                        [class.sin-stock]="!producto.tieneStock"
+                      >
+                        <span *ngIf="producto.tieneStock" class="text-success">
+                          <i class="ri-check-line me-1"></i
+                          >{{ producto.stockDisponible }} disponibles
+                        </span>
+                        <span *ngIf="!producto.tieneStock" class="text-danger">
+                          <i class="ri-close-line me-1"></i>Sin stock
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="card-body-premium p-3">
+                      <!-- Imagen del producto -->
+                      <div
+                        class="producto-imagen-premium mb-3"
+                        [class.disabled]="!producto.tieneStock"
+                      >
+                        <img
+                          [src]="
+                            producto.prod_Imagen ||
+                            'assets/images/default-product.png'
+                          "
+                          [alt]="producto.prod_Descripcion"
+                          class="producto-img"
+                          onerror="this.src='assets/images/default-product.png'"
+                        />
+                        <div
+                          class="image-overlay"
+                          [class.active]="producto.cantidad > 0"
+                        >
+                          <div class="overlay-content">
+                            <i class="ri-check-double-line"></i>
+                          </div>
+                        </div>
+                        <!-- Overlay para productos sin stock -->
+                        <div
+                          class="sin-stock-overlay"
+                          *ngIf="!producto.tieneStock"
+                        >
+                          <div class="sin-stock-content">
+                            <i class="ri-forbid-line"></i>
+                            <span>Sin Stock</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Nombre del producto -->
+                      <h6
+                        class="producto-titulo-premium mb-3"
+                        [class.text-muted]="!producto.tieneStock"
+                      >
+                        {{ producto.prod_Descripcion }}
+                      </h6>
+
+                      <!-- Controles de cantidad -->
+                      <div class="cantidad-controls-premium">
+                        <label class="form-label-premium">Cantidad</label>
+                        <div class="input-group-premium">
+                          <button
+                            class="btn-cantidad-premium btn-minus"
+                            type="button"
+                            (click)="disminuirCantidad(i)"
+                            [disabled]="
+                              producto.cantidad <= 0 || !producto.tieneStock
+                            "
+                          >
+                            <i class="ri-subtract-line"></i>
+                          </button>
+                          <input
+                            type="number"
+                            class="cantidad-input-premium"
+                            [(ngModel)]="producto.cantidad"
+                            (change)="validarCantidad(i)"
+                            min="0"
+                            [max]="producto.stockDisponible"
+                            [disabled]="!producto.tieneStock"
+                            readonly
+                          />
+                          <button
+                            class="btn-cantidad-premium btn-plus"
+                            type="button"
+                            (click)="aumentarCantidad(i)"
+                            [disabled]="
+                              !producto.tieneStock ||
+                              producto.cantidad >= producto.stockDisponible
+                            "
+                          >
+                            <i class="ri-add-line"></i>
+                          </button>
+                        </div>
+                        <!-- Información de límite de stock -->
+                        <div
+                          class="stock-info mt-2"
+                          *ngIf="producto.tieneStock && producto.cantidad > 0"
+                        >
+                          <small class="text-muted">
+                            <i class="ri-information-line me-1"></i>
+                            {{ producto.cantidad }} de
+                            {{ producto.stockDisponible }} disponibles
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Footer con badge de cantidad -->
+                    <div
+                      class="card-footer-premium"
+                      [class.visible]="producto.cantidad > 0"
+                    >
+                      <div class="cantidad-badge">
+                        <span class="badge-text">{{ producto.cantidad }}</span>
+                        <span class="badge-label">{{
+                          producto.cantidad === 1 ? "unidad" : "unidades"
+                        }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mensaje cuando no hay productos -->
+              <div
+                class="text-center py-5"
+                *ngIf="productosFiltrados.length === 0"
+              >
+                <i class="ri-search-line display-4 text-muted mb-3"></i>
+                <h6 class="text-muted">No se encontraron productos</h6>
+                <p class="text-muted mb-0">
+                  <span *ngIf="busquedaProducto"
+                    >Intenta con otros términos de búsqueda</span
+                  >
+                  <span *ngIf="!busquedaProducto"
+                    >No hay productos disponibles</span
+                  >
+                </p>
+              </div>
+            </div>
+
+            <!-- Paginación -->
+            <div
+              class="d-flex justify-content-between align-items-center mt-4"
+              *ngIf="
+                productosFiltrados.length > productosPorPagina &&
+                venta.regC_Id &&
+                venta.regC_Id > 0
+              "
+            >
+              <div class="pagination-info">
+                <span class="text-muted">
+                  Mostrando {{ getInicioRegistro() }} -
+                  {{ getFinRegistro() }} de
+                  {{ productosFiltrados.length }} productos
+                </span>
+              </div>
+              <nav aria-label="Paginación de productos">
+                <ul class="pagination pagination-sm mb-0">
+                  <li class="page-item" [class.disabled]="paginaActual === 1">
+                    <a
+                      class="page-link"
+                      href="#"
+                      (click)="
+                        cambiarPagina(paginaActual - 1); $event.preventDefault()
+                      "
+                    >
+                      <i class="ri-arrow-left-line"></i>
+                    </a>
+                  </li>
+
+                  <li
+                    class="page-item"
+                    *ngFor="let pagina of getPaginasVisibles()"
+                    [class.active]="pagina === paginaActual"
+                  >
+                    <a
+                      class="page-link"
+                      href="#"
+                      (click)="cambiarPagina(pagina); $event.preventDefault()"
+                    >
+                      {{ pagina }}
+                    </a>
+                  </li>
+
+                  <li
+                    class="page-item"
+                    [class.disabled]="paginaActual === getTotalPaginas()"
+                  >
+                    <a
+                      class="page-link"
+                      href="#"
+                      (click)="
+                        cambiarPagina(paginaActual + 1); $event.preventDefault()
+                      "
+                    >
+                      <i class="ri-arrow-right-line"></i>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: Resumen -->
+      <div
+        class="tab-pane fade"
+        [class.show]="tabActivo === 2"
+        [class.active]="tabActivo === 2"
+        id="nav-resumen"
+        role="tabpanel"
+      >
+        <!-- Resumen de datos básicos -->
+        <div class="row mb-4">
+          <div class="col-12">
+            <div class="card resumen-card border-0">
+              <div class="card-header resumen-header">
+                <h6 class="mb-0 resumen-title">
+                  <i class="ri-information-line me-2"></i>
+                  Información de la Venta
+                </h6>
+              </div>
+              <div class="card-body resumen-body">
+                <div class="row">
+                  <div class="col-md-3">
+                    <div class="info-item">
+                      <strong class="info-label">Sucursal:</strong>
+                      <p class="info-value">{{ getNombreSucursal() }}</p>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="info-item">
+                      <strong class="info-label">Tipo:</strong>
+                      <p class="info-value">{{ venta.fact_TipoVenta }}</p>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="info-item">
+                      <strong class="info-label">Fecha:</strong>
+                      <p class="info-value">
+                        {{ venta.fact_FechaEmision | date : "dd/MM/yyyy" }}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="info-item">
+                      <strong class="info-label">Total Productos:</strong>
+                      <p class="info-value highlight">
+                        {{ getTotalProductosSeleccionados() }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumen de productos seleccionados -->
+        <div class="row">
+          <div class="col-12">
+            <div class="card resumen-card border-0">
+              <div class="card-header resumen-header">
+                <h6 class="mb-0 resumen-title">
+                  <i class="ri-box-3-line me-2"></i>
+                  Productos Seleccionados
+                </h6>
+              </div>
+              <div class="card-body resumen-body">
+                <div
+                  class="table-responsive"
+                  *ngIf="
+                    getProductosSeleccionados().length > 0;
+                    else noProductos
+                  "
+                >
+                  <table class="table resumen-table align-middle">
+                    <thead class="resumen-table-header">
+                      <tr>
+                        <th>Producto</th>
+                        <th class="text-center">Imagen</th>
+                        <th class="text-center">Cantidad</th>
+                        <th class="text-center">Stock Disponible</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        *ngFor="let producto of getProductosSeleccionados()"
+                        class="resumen-table-row"
+                      >
+                        <td>
+                          <strong class="producto-name">{{
+                            producto.prod_Descripcion
+                          }}</strong>
+                        </td>
+                        <td class="text-center">
+                          <img
+                            [src]="
+                              producto.prod_Imagen ||
+                              'assets/images/default-product.png'
+                            "
+                            [alt]="producto.prod_Descripcion"
+                            class="rounded producto-image-small"
+                            onerror="this.src='assets/images/default-product.png'"
+                          />
+                        </td>
+                        <td class="text-center">
+                          <div
+                            class="d-flex align-items-center justify-content-center"
+                          >
+                            <button
+                              type="button"
+                              class="btn btn-sm btn-outline-secondary"
+                              (click)="
+                                disminuirCantidadEnResumen(producto.prod_Id)
+                              "
+                              [disabled]="producto.cantidad <= 0"
+                            >
+                              <i class="ri-subtract-line"></i>
+                            </button>
+                            <input
+                              type="number"
+                              class="form-control form-control-sm text-center mx-2"
+                              style="width: 60px"
+                              [(ngModel)]="producto.cantidad"
+                              (change)="validarCantidadEnResumen(producto)"
+                              min="0"
+                              [max]="
+                                producto.stockDisponible +
+                                (producto.cantidad || 0)
+                              "
+                            />
+                            <button
+                              type="button"
+                              class="btn btn-sm btn-outline-secondary"
+                              (click)="
+                                aumentarCantidadEnResumen(producto.prod_Id)
+                              "
+                              [disabled]="
+                                producto.cantidad >= producto.stockDisponible
+                              "
+                            >
+                              <i class="ri-add-line"></i>
+                            </button>
+                          </div>
+                        </td>
+                        <td class="text-center">
+                          <span class="badge bg-info">{{
+                            producto.stockDisponible
+                          }}</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <ng-template #noProductos>
+                  <div class="text-center py-4 no-productos">
+                    <i class="ri-box-3-line display-4 no-productos-icon"></i>
+                    <p class="text-muted mt-2">
+                      No hay productos seleccionados
+                    </p>
+                  </div>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botones de navegación -->
+  <div class="mt-auto pt-3">
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex justify-content-between">
+          <!-- Botón Cancelar -->
+          <button
+            type="button"
+            class="btn btn-primary gold"
+            (click)="cancelar()"
+          >
+            <span class="btn-text">Cancelar</span>
+            <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+          </button>
+
+          <!-- Botones de navegación -->
+          <div class="d-flex gap-2">
+            <!-- Botón Anterior -->
+            <button
+              type="button"
+              class="btn btn-primary gold"
+              (click)="cambiarTab(1)"
+              *ngIf="tabActivo === 2"
+            >
+              <span class="btn-text">Anterior</span>
+              <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
+            </button>
+
+            <!-- Botón Siguiente -->
+            <button
+              type="button"
+              class="btn btn-primary"
+              (click)="irAResumen()"
+              *ngIf="tabActivo === 1"
+            >
+              <span class="btn-text">Siguiente</span>
+              <span class="btn-icon"><i class="ri-arrow-right-line"></i></span>
+            </button>
+
+            <!-- Botón Guardar -->
+            <button
+              type="button"
+              class="btn btn-primary"
+              (click)="guardar()"
+              *ngIf="tabActivo === 2"
+            >
+              <span class="btn-text">Guardar</span>
+              <span class="btn-icon"><i class="ri-save-line"></i></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Estilos reutilizados -->
+<style>
+  /* Estilos adicionales para el manejo de inventario */
+  .producto-card-premium.sin-stock {
+    opacity: 0.6;
+    border-color: #dc3545;
+  }
+
+  .stock-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .stock-badge.sin-stock {
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+  }
+
+  .producto-imagen-premium.disabled {
+    position: relative;
+  }
+
+  .sin-stock-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(220, 53, 69, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+  }
+
+  .sin-stock-content {
+    text-align: center;
+    color: white;
+    font-weight: bold;
+  }
+
+  .sin-stock-content i {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .stock-info {
+    text-align: center;
+  }
+
+  .btn-cantidad-premium:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .cantidad-input-premium:disabled {
+    background-color: #f8f9fa;
+    opacity: 0.8;
+  }
+
+  .spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+  }
+</style>
