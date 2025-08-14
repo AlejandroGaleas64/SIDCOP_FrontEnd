@@ -28,9 +28,9 @@ export class CreateComponent implements OnInit {
     vendedor: null,
     cliente: null,
     direccion: null,
-    esVi_Id: '',
+    esVi_Id: null,
     clVi_Observaciones: '',
-    clVi_Fecha: new Date().toISOString().split('T')[0]
+    clVi_Fecha: ''
   };
 
   cargando = false;
@@ -39,6 +39,7 @@ export class CreateComponent implements OnInit {
   mensajeWarning = '';
   mensajeError = '';
   maxDate = new Date().toISOString().split('T')[0];
+  minDate = '2000-01-01'; // Fecha mínima para el selector de fechas
 
   uploadedFiles: any[] = [];
   maxImages = 5;

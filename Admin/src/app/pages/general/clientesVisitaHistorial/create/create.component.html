@@ -116,12 +116,18 @@
             [items]="estadosVisita" 
             bindLabel="esVi_Descripcion"
             bindValue="esVi_Id"
-            [clearable]="false"
-            [searchable]="true"
+            [clearable]="true"
+            [searchable]="false"
             [(ngModel)]="visita.esVi_Id"
             [class.is-invalid]="!visita.esVi_Id && mostrarErrores"
             placeholder="Seleccione un estado"
+            notFoundText="No se encontraron estados"
+            loadingText="Cargando..."
+            typeToSearchText="Escriba para buscar..."
             required>
+            <ng-template ng-label-tmp let-item="item">
+              {{ item.esVi_Descripcion }}
+            </ng-template>
         </ng-select>
         <div class="text-danger mt-1" *ngIf="!visita.esVi_Id && mostrarErrores">
             <small>El campo Estado es requerido</small>
@@ -137,6 +143,8 @@
             [class.is-invalid]="!visita.clVi_Fecha && mostrarErrores"
             [(ngModel)]="visita.clVi_Fecha" 
             [max]="maxDate"
+            [attr.min]="minDate"
+            placeholder="Seleccione una fecha"
             required />
         <div class="text-danger mt-1" *ngIf="!visita.clVi_Fecha && mostrarErrores">
             <small>El campo Fecha es requerido</small>
