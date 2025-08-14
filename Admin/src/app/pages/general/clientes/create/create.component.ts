@@ -622,10 +622,10 @@ export class CreateComponent {
         .then(response => response.json())
         .then(data => {
           this.cliente.clie_ImagenDelNegocio = data.secure_url;
-          console.log(this.cliente.clie_ImagenDelNegocio)
+          //console.log(this.cliente.clie_ImagenDelNegocio)
         })
         .catch(error => {
-          console.error('Error al subir la imagen a Cloudinary:', error);
+          //console.error('Error al subir la imagen a Cloudinary:', error);
         });
     }
   }
@@ -633,24 +633,23 @@ export class CreateComponent {
   generarCodigoClientePorRuta(ruta_Id: number): void {
     const ruta = this.rutas.find(r => r.ruta_Id === +ruta_Id);
     const codigoRuta = ruta?.ruta_Codigo
-      ? ruta.ruta_Codigo.padStart(3, '0')
+      ? ruta.ruta_Codigo.replace(/^RT-/, '')
       : ruta_Id.toString().padStart(3, '0');
-
     this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(clientes => {
       const clientesRuta = clientes.filter(c => c.ruta_Id === +ruta_Id);
       let maxCorrelativo = 0;
+    
       clientesRuta.forEach(c => {
-        const match = c.clie_Codigo?.match(/CLIE-RT\d{3}-(\d{9})/);
+        const match = c.clie_Codigo?.match(/CLIE-RT-\d{3}-(\d{6})/);
         if (match) {
           const num = parseInt(match[1], 10);
           if (num > maxCorrelativo) maxCorrelativo = num;
         }
       });
-
-      const siguiente = (maxCorrelativo + 1).toString().padStart(9, '0');
-      this.cliente.clie_Codigo = `CLIE-RT${codigoRuta}-${siguiente}`;
+      const siguiente = (maxCorrelativo + 1).toString().padStart(6, '0');
+      this.cliente.clie_Codigo = `CLIE-RT-${codigoRuta}-${siguiente}`;
     });
   }
 
