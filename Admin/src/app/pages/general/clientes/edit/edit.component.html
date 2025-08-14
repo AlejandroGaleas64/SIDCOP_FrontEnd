@@ -799,7 +799,7 @@
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <select id="colo_Id" name="colo_Id" class="form-select" [(ngModel)]="aval.colo_Id"
-                  [class.is-invalid]="!aval.colo_Id && mostrarErrores" [required]="tieneDatosCredito()" (change)="cargarColoniasAval()">
+                  [class.is-invalid]="!aval.colo_Id && mostrarErrores" [required]="tieneDatosCredito()">
                   <option value="0" disabled>Seleccione una Colonia</option>
                   <option *ngFor="let coloniaAval of TodasColoniasAval" [value]="coloniaAval.colo_Id">
                     {{ coloniaAval.colo_Descripcion }}, {{ coloniaAval.muni_Descripcion }}, {{
@@ -1048,8 +1048,7 @@
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <select id="colo_Id" name="colo_Id" class="form-select" [(ngModel)]="direccionPorCliente.colo_Id"
-                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores" required
-                  (change)="cargarColoniasCliente()">
+                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores" required>
                   <option value="0" disabled>Seleccione una Colonia</option>
                   <option *ngFor="let colonia of TodasColonias" [value]="colonia.colo_Id">
                     {{ colonia.colo_Descripcion }}, {{ colonia.muni_Descripcion }}, {{ colonia.depa_Descripcion }}

@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, ViewChild, ElementRef, Input, OnChanges, SimpleChanges} from '@angular/core';
+import { Component, Output, EventEmitter, ViewChild, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -247,9 +247,9 @@ export class EditComponent implements OnChanges {
     }
 
     if (no === 4) {
-      console.log('2do',4);      
+      //console.log('2do',4);      
       if (this.tieneDatosCredito()) {
-        console.log('2do',this.tieneDatosCredito());      
+        //console.log('2do',this.tieneDatosCredito());      
         this.mostrarErrores = true;
         if (
           this.avales.length > 0 &&
@@ -414,9 +414,9 @@ export class EditComponent implements OnChanges {
     }
 
     if (no == 4) {
-      console.log(4);
+      //console.log(4);
       if (this.tieneDatosCredito()) {
-        console.log('tieneDatosCredito');
+        //console.log('tieneDatosCredito');
         this.mostrarErrores = true;
         if (
           this.avales.length > 0 &&
@@ -587,7 +587,7 @@ export class EditComponent implements OnChanges {
           this.validarDireccion = this.direccionesPorCliente.length === 0;
         },
         error: (error) => {
-          console.error('Error cargando direcciones:', error);
+          //console.error('Error cargando direcciones:', error);
         },
       });
   }
@@ -616,7 +616,7 @@ export class EditComponent implements OnChanges {
           }
         },
         error: (error) => {
-          console.error('Error cargando avales:', error);
+          //console.error('Error cargando avales:', error);
         },
       });
   }
@@ -758,10 +758,10 @@ export class EditComponent implements OnChanges {
         .then((response) => response.json())
         .then((data) => {
           this.cliente.clie_ImagenDelNegocio = data.secure_url;
-          console.log(this.cliente.clie_ImagenDelNegocio);
+          //console.log(this.cliente.clie_ImagenDelNegocio);
         })
         .catch((error) => {
-          console.error('Error al subir la imagen a Cloudinary:', error);
+          //console.error('Error al subir la imagen a Cloudinary:', error);
         });
     }
   }
@@ -776,7 +776,7 @@ export class EditComponent implements OnChanges {
     }).subscribe(clientes => {
       const clientesRuta = clientes.filter(c => c.ruta_Id === +ruta_Id);
       let maxCorrelativo = 0;
-    
+
       clientesRuta.forEach(c => {
         const match = c.clie_Codigo?.match(/CLIE-RT-\d{3}-(\d{6})/);
         if (match) {
@@ -837,7 +837,7 @@ export class EditComponent implements OnChanges {
         usuaM_Nombre: this.cliente.usuaM_Nombre,
       };
 
-      console.log('cliente', clienteActualizar );
+      //console.log('cliente', clienteActualizar );
       this.http
         .put<any>(
           `${environment.apiBaseUrl}/Cliente/Actualizar`,
@@ -862,16 +862,7 @@ export class EditComponent implements OnChanges {
               }, 3000);
               return;
             }
-
-            // Actualizar direcciones y avales
             this.actualizarDireccionesYAvales();
-
-            this.mostrarAlertaExito = true;
-            this.mensajeExito = 'Cliente actualizado correctamente';
-            setTimeout(() => {
-              this.onSave.emit(this.cliente);
-              this.cancelar();
-            }, 2000);
           },
           error: (error) => {
             this.mostrarAlertaError = true;
@@ -954,10 +945,10 @@ export class EditComponent implements OnChanges {
       )
       .subscribe({
         next: (response) => {
-          console.log('Dirección insertada correctamente:', response);
+          //console.log('Dirección insertada correctamente:', response);
         },
         error: (error) => {
-          console.error('Error al insertar dirección:', error);
+          //console.error('Error al insertar dirección:', error);
         },
       });
   }
@@ -984,10 +975,10 @@ export class EditComponent implements OnChanges {
       )
       .subscribe({
         next: (response) => {
-          console.log('Dirección actualizada correctamente:', response);
+          //console.log('Dirección actualizada correctamente:', response);
         },
         error: (error) => {
-          console.error('Error al actualizar dirección:', error);
+          //console.error('Error al actualizar dirección:', error);
         },
       });
   }
@@ -1007,10 +998,10 @@ export class EditComponent implements OnChanges {
       )
       .subscribe({
         next: (response) => {
-          console.log('Dirección eliminada correctamente:', response);
+          //console.log('Dirección eliminada correctamente:', response);
         },
         error: (error) => {
-          console.error('Error al eliminar dirección:', error);
+          //console.error('Error al eliminar dirección:', error);
         },
       });
   }
@@ -1053,10 +1044,10 @@ export class EditComponent implements OnChanges {
       })
       .subscribe({
         next: (response) => {
-          console.log('Aval insertado correctamente:', response);
+          //console.log('Aval insertado correctamente:', response);
         },
         error: (error) => {
-          console.error('Error al insertar aval:', error);
+          //console.error('Error al insertar aval:', error);
         },
       });
   }
@@ -1088,7 +1079,7 @@ export class EditComponent implements OnChanges {
       Aval_FechaModificacion: new Date(),
       Aval_Estado: true,
     };
-    console.log(avalActualizar);
+    //console.log(avalActualizar);
     this.http
       .put<any>(`${environment.apiBaseUrl}/Aval/Actualizar`, avalActualizar, {
         headers: {
@@ -1099,10 +1090,10 @@ export class EditComponent implements OnChanges {
       })
       .subscribe({
         next: (response) => {
-          console.log('Aval actualizado correctamente:', response);
+          //console.log('Aval actualizado correctamente:', response);
         },
         error: (error) => {
-          console.error('Error al actualizar aval:', error);
+          //console.error('Error al actualizar aval:', error);
         },
       });
   }
@@ -1122,15 +1113,15 @@ export class EditComponent implements OnChanges {
       )
       .subscribe({
         next: (response) => {
-          console.log('Aval eliminado correctamente:', response);
+          //console.log('Aval eliminado correctamente:', response);
         },
         error: (error) => {
-          console.error('Error al eliminar aval:', error);
+          //console.error('Error al eliminar aval:', error);
         },
       });
   }
 
-  
+
   agregarDireccion() {
     this.mostrarErrores = true;
     if (
@@ -1435,78 +1426,12 @@ export class EditComponent implements OnChanges {
         label: 'Observaciones'
       };
     }
-
-    //Tab 4
-    // if (e.aval_DNI !== f.aval_DNI) {
-    //   this.cambiosDetectados.dniAval = {
-    //     anterior: f.aval_DNI,
-    //     nuevo: e.aval_DNI,
-    //     label: 'DNI del Aval'
-    //   };
-    // }
-
-    // if (e.aval_Nombres !== f.aval_Nombres) {
-    //   this.cambiosDetectados.nombresAval = {
-    //     anterior: f.aval_Nombres,
-    //     nuevo: e.aval_Nombres,
-    //     label: 'Nombres del Aval'
-    //   };
-    // }
-
-    // if (e.aval_Apellidos !== f.aval_Apellidos) {
-    //   this.cambiosDetectados.apellidosAval = {
-    //     anterior: f.aval_Apellidos,
-    //     nuevo: e.aval_Apellidos,
-    //     label: 'Apellidos del Aval'
-    //   };
-    // }
-
-    // if (e.pare_Id !== f.pare_Id) {
-    //   this.cambiosDetectados.parentescoAval = {
-    //     anterior: f.pare_Descripcion,
-    //     nuevo: e.pare_Descripcion,
-    //     label: 'Parentesco del Aval'
-    //   };
-    // }
-
-    // if (e.aval_Sexo !== f.aval_Sexo) {
-    //   this.cambiosDetectados.sexoAval = {
-    //     anterior: f.aval_Sexo,
-    //     nuevo: e.aval_Sexo,
-    //     label: 'Sexo del Aval'
-    //   };
-    // }
-
-    // if (e.tiVi_Id !== f.tiVi_Id) {
-    //   this.cambiosDetectados.tipoViviendaAval = {
-    //     anterior: f.tiVi_Descripcion,
-    //     nuevo: e.tiVi_Descripcion,
-    //     label: 'Tipo de Vivienda del Aval'
-    //   };
-    // }
-
-    // if (e.aval_Telefono !== f.aval_Telefono) {
-    //   this.cambiosDetectados.telefonoAval = {
-    //     anterior: f.aval_Telefono,
-    //     nuevo: e.aval_Telefono,
-    //     label: 'Teléfono del Aval'
-    //   };
-    // }
-
-    // if (e.aval_FechaNacimiento !== f.aval_FechaNacimiento) {
-    //   this.cambiosDetectados.fechaNacimientoAval = {
-    //     anterior: f.aval_FechaNacimiento,
-    //     nuevo: e.aval_FechaNacimiento,
-    //     label: 'Fecha de Nacimiento del Aval'
-    //   };
-    // }
-  console.log('Cambios detectados:', this.cambiosDetectados);
-  return Object.keys(this.cambiosDetectados).length > 0;
+    return Object.keys(this.cambiosDetectados).length > 0;
   }
 
   validarEdicion(): void {
     this.mostrarErrores = true;
-   // debugger
+    // debugger
     if (this.validarCampos()) {
       if (this.hayDiferencias()) {
         this.mostrarConfirmacionEditar = true;
