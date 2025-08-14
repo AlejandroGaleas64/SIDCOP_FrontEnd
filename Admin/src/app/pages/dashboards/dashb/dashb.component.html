@@ -1,9 +1,9 @@
 <div class="container-fluid">
     <app-breadcrumbs
-        [title]="'Dashboards'"
+        [title]="'Dashboard'"
         [breadcrumbItems]="[
             { label: 'Dashboards' },
-            { label: 'Dashboards', active: true }
+            { label: 'Dashboard', active: true }
         ]"
         >
         <!-- <img class="breadcrumbs-icon ms-2 icon-breadcrumb" style="width: 10vh; height: 10vh;" src="assets/images/svg/subcategoriasIcon.svg" alt="icono breadcrumb" /> -->
@@ -124,7 +124,7 @@
                         <apx-chart [series]="multipleRadialbarChart.series" [chart]="multipleRadialbarChart.chart"
                         [plotOptions]="multipleRadialbarChart.plotOptions" [labels]="multipleRadialbarChart.labels"
                         [legend]="multipleRadialbarChart.legend" [dataLabels]="multipleRadialbarChart.dataLabels"
-                        [colors]="multipleRadialbarChart.colors" dir="ltr"></apx-chart>
+                        [colors]="multipleRadialbarChart.colors" [tooltip]="multipleRadialbarChart.tooltip" dir="ltr"></apx-chart>
 
                     </div>
             </div>
@@ -151,13 +151,32 @@
 
                 <div class="card-body">
                     <div class="row align-items-center">
-                        <div class="col-lg-12">
-
+                        <div *ngIf="(categoriaSelected !=null && productosCategoriasData.length > 0)" class="col-lg-12">                            
                             <apx-chart [series]="simplePieChart.series" [chart]="simplePieChart.chart"
                             [labels]="simplePieChart.labels" [legend]="simplePieChart.legend"
                             [dataLabels]="simplePieChart.dataLabels" [responsive]="simplePieChart.responsive"
                             [colors]="simplePieChart.colors" dir="ltr"></apx-chart>
+
+                        </div>
+
+                        <div *ngIf="(categoriaSelected !=null && productosCategoriasData.length <= 0)" class="col-lg-12">                            
                             
+                            <div class="alert alert-warning" role="alert" style="height: 280px;">
+                                <strong>Categoria sin datos</strong> 
+                                <br>
+                                No hay ventas registradas en la categoria seleccionada.
+                            </div>
+
+                        </div>
+
+                        <div *ngIf="(categoriaSelected == null && productosCategoriasData.length <= 0)" class="col-lg-12">                            
+                            
+                            <div class="alert alert-warning" role="alert" style="height: 280px;" >
+                                <strong>Selecciona una Categoria. </strong> 
+                                <br>
+                                No se ha seleccionado una categoria para ver los productos.
+                            </div>
+
                         </div>
                     </div>
 

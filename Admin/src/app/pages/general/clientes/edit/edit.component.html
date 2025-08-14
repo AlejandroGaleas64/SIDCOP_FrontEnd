@@ -848,9 +848,12 @@
                 backgroundColor: (!aval.aval_FechaNacimiento && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
-                <input type="date" id="avalFechaNacimiento" class="form-control"
+                <input type="date" 
+                  id="avalFechaNacimiento" 
+                  class="form-control"
                   [class.is-invalid]="!aval.aval_FechaNacimiento && mostrarErrores"
-                  [value]="aval.aval_FechaNacimiento ? (aval.aval_FechaNacimiento | date:'yyyy-MM-dd') : ''" [required]="tieneDatosCredito()"  />
+                  [(ngModel)]="aval.aval_FechaNacimiento"
+                  [required]="tieneDatosCredito()"  />
               </div>
               <div class="text-danger mt-1" *ngIf="!aval.aval_FechaNacimiento && mostrarErrores">
                 <small>El campo Fecha Nacimiento es requerido</small>

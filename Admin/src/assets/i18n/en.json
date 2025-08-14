@@ -82,7 +82,8 @@
         "CRM": "CRM",
         "ECOMMERCE": "Ecommerce",
         "LEARNING": "Learning",
-        "REALESTATE": "Real Estate"
+        "REALESTATE": "Real Estate",
+        "DASHBOARD": "Dashboard"
       }
     },
     "APPS": {
