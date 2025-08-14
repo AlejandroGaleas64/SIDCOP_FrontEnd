@@ -606,12 +606,13 @@ export class ListComponent {
   }
 
   cerrarFormularioEdicion(): void {
+    this.cargarDatos(true);
     this.showEditForm = false;
     this.clienteEditando = null;
   }
 
   cerrarFormularioDetalles(): void {
-    this.cargarDatos(false);
+    this.cargarDatos(true);
     this.showDetailsForm = false;
     this.clienteDetalle = null;
   }
