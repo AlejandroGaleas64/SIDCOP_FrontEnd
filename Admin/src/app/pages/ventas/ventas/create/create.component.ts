@@ -761,11 +761,17 @@ private crearVenta(): void {
         this.guardando = false;
         const id = this.extraerId(response);
         if (id > 0) {
-          this.mostrarExito(`Venta guardada con éxito (${detalles.length} productos)`);
+          this.mostrarExito(`Venta guardada con éxito (${detalles.length} productos). Mostrando detalles...`);
+          
+          // Emitir evento para notificar al componente padre con el ID de la factura
+          // y la acción 'detalles' para que muestre automáticamente los detalles
           setTimeout(() => {
-            this.onSave.emit(this.venta);
-            this.cancelar();
-          }, 3000);
+            this.onSave.emit({ 
+              fact_Id: id, 
+              action: 'detalles',
+              mostrarDetalles: true // Indicador explícito para mostrar detalles
+            });
+          }, 2000);
         } else {
           this.mostrarError('No se pudo obtener el ID de la venta');
         }

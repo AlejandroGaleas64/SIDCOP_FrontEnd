@@ -19,8 +19,8 @@ export const environment = {
     measurementId: "G-1N6FB2GG55"
   },
 
-  // apiBaseUrl: 'https://localhost:7071', //cambiar si es necesario
-   apiBaseUrl: 'http://192.168.1.146:8091', //cambiar si es necesario
+  apiBaseUrl: 'https://localhost:7071', //cambiar si es necesario
+  //  apiBaseUrl: 'http://192.168.1.146:8091', //cambiar si es necesario
 //  apiBaseUrl: 'http://200.59.27.115:8091', //cambiar si es necesario
 
   // apiBaseUrl: 'http://sidcop.somee.com', //cambiar si es necesario
