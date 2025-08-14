@@ -1,0 +1,283 @@
+<app-breadcrumbs [title]="'Estados de Visita'" [breadcrumbItems]="[
+    { label: 'General' },
+    { label: 'Estados de Visita', active: true }
+  ]">
+  <img class="icon-breadcrumb" style="width: 10vh; height: 10vh;" src="assets/images/svg/estadoVisitaIcon.svg"
+    alt="breadcrumb icon" />
+</app-breadcrumbs>
+
+<!-- Loading Overlay -->
+<div *ngIf="mostrarOverlayCarga" class="overlay-carga">
+  <div class="typing-indicator">
+    <div class="typing-circle"></div>
+    <div class="typing-circle"></div>
+    <div class="typing-circle"></div>
+    <div class="typing-shadow"></div>
+    <div class="typing-shadow"></div>
+    <div class="typing-shadow"></div>
+  </div>
+</div>
+
+
+
+
+<div class="row">
+  <div class="col-lg-12">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-3 flex-wrap"
+          *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+          <button *ngIf="accionPermitida('crear')" type="button" class="btn btn-primary me-2 mb-2" (click)="crear()">
+            <span class="btn-text">Nuevo</span>
+            <span class="btn-icon"><i class="ri-add-line"></i></span>
+          </button>
+          
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <!-- Botones de exportación -->
+            <div class="export-buttons d-flex gap-1 mb-2">
+              <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarExcel()" title="Exportar a Excel">
+                <span class="btn-text">Excel</span>
+                <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
+              </button>
+              <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarPDF()" title="Exportar a PDF">
+                <span class="btn-text">PDF</span>
+                <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
+              </button>
+              <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarCSV()" title="Exportar a CSV">
+                <span class="btn-text">CSV</span>
+                <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
+              </button>
+            </div>
+            
+            <!-- Campo de búsqueda -->
+            <div class="search-box mb-2 position-relative">
+              <input type="text" class="form-control search pe-5" placeholder="Buscar..." [(ngModel)]="table.searchTerm" (ngModelChange)="table.setSearchTerm($event)">
+              <i class="ri-search-line search-icon position-absolute end-0 top-50 translate-middle-y me-2"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formulario de creación -->
+        <div *ngIf="showCreateForm" [@fadeExpand]>
+          <div class="card card-body mb-3 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
+            <div class="container-fluid flex-grow-1">
+              <app-create (onCancel)="cerrarFormulario()" (onSave)="guardarEstadoVisita($event)"></app-create>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formulario de edición -->
+        <div *ngIf="showEditForm" [@fadeExpand]>
+          <div class="card card-body mb-3 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
+            <div class="container-fluid flex-grow-1">
+              <app-edit [estadoVisitaData]="estadoVisitaEditando" (onCancel)="cerrarFormularioEdicion()"
+                (onSave)="actualizarEstadoVisita($event)">
+              </app-edit>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formulario de detalles -->
+        <div *ngIf="showDetailsForm" [@fadeExpand]>
+          <div class="card card-body mb-3 d-flex flex-column" style="min-height: 400px; padding: 0.5rem;">
+            <div class="container-fluid flex-grow-1">
+              <app-details [estadoVisitaData]="estadoVisitaDetalle" (onClose)="cerrarFormularioDetalles()">
+              </app-details>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-radius-container" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+          <table class="table table-gridjs table-style">
+            <thead>
+              <tr>
+                <th class="gridjs-th"
+                  *ngIf="accionPermitida('editar') || accionPermitida('eliminar') || accionPermitida('detalle')">
+                  Acciones</th>
+                <th class="gridjs-th" (click)="table.sortBy('secuencia')" style="cursor:pointer;">
+                  <span class="table-header-flex">
+                    No
+                    <!-- iconos para ordenar -->
+                    <span style="display: flex; flex-direction: column;">
+                      <i class="ri-arrow-up-s-line icon-sort"
+                        [ngStyle]="table.sortField === 'secuencia' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                      </i>
+                      <i class="ri-arrow-down-s-line icon-sort"
+                        [ngStyle]="table.sortField === 'secuencia' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                      </i>
+                    </span>
+                  </span>
+                </th>
+                <th class="gridjs-th" (click)="table.sortBy('esVi_Descripcion')" style="cursor:pointer;">
+                  <span class="table-header-flex">
+                    Descripción
+                    <!-- iconos para ordenar -->
+                    <span style="display: flex; flex-direction: column;">
+                      <i class="ri-arrow-up-s-line icon-sort"
+                        [ngStyle]="table.sortField === 'esVi_Descripcion' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                      </i>
+                      <i class="ri-arrow-down-s-line icon-sort"
+                        [ngStyle]="table.sortField === 'esVi_Descripcion' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                      </i>
+                    </span>
+                  </span>
+                </th>
+              </tr>
+                <tr class="gridjs-th"*ngFor="let data of table.paginated$ | async; let i = index">
+                  <td class="position-relative" *ngIf="accionPermitida('editar') || accionPermitida('eliminar') || accionPermitida('detalle')">
+                    <div class="dropdown-action-list">
+                      <button type="button"
+                    class="dropdown-toggle"
+                    [attr.aria-expanded]="false"
+                    (click)="floatingMenuService.open($event, data)">
+                    <span>Acciones</span>
+                    <i class="ri-settings-3-line"></i>
+                  </button>
+                  </div>
+                  </td>
+                  <td><span class="fw-semibold">{{data.secuencia}}</span></td>
+                  <td>{{data.esVi_Descripcion}}</td>
+                </tr>
+                </thead>
+          </table>
+
+          <!-- Alertas flotantes -->
+          <div class="alert-container">
+            <!-- Alerta de éxito -->
+            <div *ngIf="mostrarAlertaExito"
+              class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+              <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+              <strong>¡Éxito!</strong> {{ mensajeExito }}
+              <button type="button" class="btn-close" (click)="mostrarAlertaExito = false" aria-label="Close"></button>
+            </div>
+
+            <!-- Alerta de error -->
+            <div *ngIf="mostrarAlertaError"
+              class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+              <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+              <strong>Error:</strong> {{ mensajeError }}
+              <button type="button" class="btn-close" (click)="mostrarAlertaError = false" aria-label="Close"></button>
+            </div>
+
+            <!-- Alerta de advertencia -->
+            <div *ngIf="mostrarAlertaWarning"
+              class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+              <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+              <strong>Advertencia:</strong> {{ mensajeWarning }}
+              <button type="button" class="btn-close" (click)="mostrarAlertaWarning = false"
+                aria-label="Close"></button>
+            </div>
+          </div>
+        </div>
+        <div class="row justify-content-md-between align-items-md-center"
+          *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+          <ng-container *ngIf="(table.paginated$ | async) as paginados">
+            <div class="col-sm-12 col-md-5">
+              <div class="dataTables_info mb-2" role="status" aria-live="polite">
+                Mostrando
+                {{ (table.page - 1) * table.pageSizeValue + paginados.length }} de {{ table. total$ | async }}
+                registros
+              </div>
+            </div>
+            <div class="col-sm-12 col-md-5">
+              <div class="text-md-right float-md-end gridjs-pagination">
+                <pagination [totalItems]="(table.total$ | async) || 0" [(ngModel)]="table.page"
+                  [itemsPerPage]="table.pageSizeValue" (pageChanged)="table.setPage($event.page)"></pagination>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Contenedor de alertas flotantes -->
+<div class="alert-container">
+  <!-- Alerta de éxito -->
+  <div *ngIf="mostrarAlertaExito"
+    class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+    <strong>¡Éxito!</strong> {{ mensajeExito }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
+
+  <!-- Alerta de advertencia -->
+  <div *ngIf="mostrarAlertaWarning"
+    class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+    <strong>¡Atención!</strong> {{ mensajeWarning }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
+
+  <!-- Alerta de error -->
+  <div *ngIf="mostrarAlertaError"
+    class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+    <strong>¡Error!</strong> {{ mensajeError }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
+</div>
+
+<!-- Modal de confirmación para eliminar -->
+<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEliminar }"
+  [style.display]="mostrarConfirmacionEliminar ? 'block' : 'none'" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
+        <span>Confirmación</span>
+        <i class="ri-close-line custom-modal-close" (click)="cancelarEliminar()"></i>
+      </div>
+      <hr class="custom-modal-divider">
+      <div class="modal-body custom-modal-body">
+        <div class="text-center">
+          <p class="mt-2 custom-modal-text">
+            <i class="ri-alert-line me-2 custom-modal-alert-icon" (click)="cancelarEliminar()"></i>¿Está seguro(a) que
+            desea eliminar el estado de visita <strong>{{ estadoVisitaAEliminar?.esVi_Descripcion }}</strong>?
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer custom-modal-footer">
+        <button type="button" class="btn btn-minw-5 btn-primary gray btn-sm " (click)="cancelarEliminar()"><span
+            class="btn-text">No</span><span class="btn-icon"><i class="ri-close-circle-line"></i></span></button>
+        <button type="button" class="btn btn-minw-5 btn-primary red btn-sm " (click)="eliminar()">
+          <span class="btn-text">Si</span>
+          <span class="btn-icon"><i class="ri-delete-bin-line"></i></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay para el modal -->
+<div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEliminar }"
+  *ngIf="mostrarConfirmacionEliminar"></div>
+
+<!-- Menú flotante de acciones -->
+<ul *ngIf="floatingMenuService.show" class="dropdown-menu show" [ngStyle]="{
+    position: 'absolute',
+    top: floatingMenuService.top + 'px',
+    left: floatingMenuService.left + 'px',
+    'z-index': '1050'
+  }">
+  <li *ngIf="accionPermitida('editar')">
+    <button type="button" class="dropdown-action-btn"
+      (click)="editar(floatingMenuService.data); floatingMenuService.close()">
+      Editar <i class="ri-edit-line"></i>
+    </button>
+  </li>
+  <li *ngIf="accionPermitida('eliminar')">
+    <button type="button" class="dropdown-action-btn"
+      (click)="confirmarEliminar(floatingMenuService.data); floatingMenuService.close()">
+      Eliminar <i class="ri-delete-bin-line"></i>
+    </button>
+  </li>
+  <li *ngIf="accionPermitida('detalle')">
+    <button type="button" class="dropdown-action-btn"
+      (click)="detalles(floatingMenuService.data); floatingMenuService.close()">
+      Detalles <i class="ri-error-warning-fill"></i>
+    </button>
+  </li>
+</ul>
+
+<!-- end row -->

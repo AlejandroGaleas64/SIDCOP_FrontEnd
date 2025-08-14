@@ -15,6 +15,7 @@ import { EditComponent as EditUsuarioComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { set } from 'lodash';
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
+
 import {
   trigger,
   state,

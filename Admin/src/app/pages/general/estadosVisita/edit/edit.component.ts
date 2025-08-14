@@ -2,7 +2,7 @@ import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Marcas } from 'src/app/Modelos/general/Marcas.Model';
+import { EstadoVisita } from 'src/app/Modelos/general/EstadoVisita.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 
@@ -13,32 +13,20 @@ import { getUserId } from 'src/app/core/utils/user-utils';
   templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss'
 })
+
+
 export class EditComponent implements OnChanges {
-  // Devuelve la lista de cambios detectados para el modal de confirmación
-  obtenerListaCambios() {
-    const cambios = [];
-    if (this.marca.marc_Descripcion?.trim() !== this.marcaOriginal?.trim()) {
-      cambios.push({
-        label: 'Descripción',
-        anterior: this.marcaOriginal,
-        nuevo: this.marca.marc_Descripcion
-      });
-    }
-    return cambios;
-  }
-
-  @Input() marcaData: Marcas | null = null;
+  @Input() estadoVisitaData: EstadoVisita | null = null;
   @Output() onCancel = new EventEmitter<void>();
-  @Output() onSave = new EventEmitter<Marcas>();
+  @Output() onSave = new EventEmitter<EstadoVisita>();
 
- marca: Marcas = {
-    marc_Id: 0,
-    marc_Descripcion: '',
+ estadoVisita: EstadoVisita = {
+    esVi_Id: 0,
+    esVi_Descripcion: '',
     usua_Creacion: 0,
     usua_Modificacion: 0,
-    marc_Estado: true,
-    marc_FechaCreacion: new Date(),
-    marc_FechaModificacion: new Date(),
+    esVi_FechaCreacion: new Date(),
+    esVi_FechaModificacion: new Date(),
     code_Status: 0,
     message_Status: '',
     usuarioCreacion: '',
@@ -46,7 +34,7 @@ export class EditComponent implements OnChanges {
     secuencia: 0,
   };
 
-  marcaOriginal = '';
+  estadoVisitaOriginal = '';
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -59,9 +47,9 @@ export class EditComponent implements OnChanges {
   constructor(private http: HttpClient) {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['marcaData'] && changes['marcaData'].currentValue) {
-      this.marca = { ...changes['marcaData'].currentValue };
-      this.marcaOriginal = this.marca.marc_Descripcion || '';
+    if (changes['estadoVisitaData'] && changes['estadoVisitaData'].currentValue) {
+      this.estadoVisita = { ...changes['estadoVisitaData'].currentValue };
+      this.estadoVisitaOriginal = this.estadoVisita.esVi_Descripcion || '';
       this.mostrarErrores = false;
       this.cerrarAlerta();
     }
@@ -84,8 +72,8 @@ export class EditComponent implements OnChanges {
   validarEdicion(): void {
     this.mostrarErrores = true;
 
-    if (this.marca.marc_Descripcion.trim()) {
-      if (this.marca.marc_Descripcion.trim() !== this.marcaOriginal) {
+    if (this.estadoVisita.esVi_Descripcion.trim()) {
+      if (this.estadoVisita.esVi_Descripcion.trim() !== this.estadoVisitaOriginal) {
         this.mostrarConfirmacionEditar = true;
       } else {
         this.mostrarAlertaWarning = true;
@@ -111,20 +99,20 @@ export class EditComponent implements OnChanges {
   private guardar(): void {
     this.mostrarErrores = true;
 
-    if (this.marca.marc_Descripcion.trim()) {
-      const marcaActualizar = {
-        marc_Id: this.marca.marc_Id,
-        marc_Descripcion: this.marca.marc_Descripcion.trim(),
-        usua_Creacion: this.marca.usua_Creacion,
-        marc_FechaCreacion: this.marca.marc_FechaCreacion,
+    if (this.estadoVisita.esVi_Descripcion.trim()) {
+      const estadoVisitaActualizar = {
+        esVi_Id: this.estadoVisita.esVi_Id,
+        esVi_Descripcion: this.estadoVisita.esVi_Descripcion.trim(),
+        usua_Creacion: this.estadoVisita.usua_Creacion,
+        esVi_FechaCreacion: this.estadoVisita.esVi_FechaCreacion,
         usua_Modificacion: getUserId(),
-        numero: this.marca.marc_Id  || '',
-        marc_FechaModificacion: new Date().toISOString(),
+        numero: this.estadoVisita.esVi_Id  || '',
+        esVi_FechaModificacion: new Date().toISOString(),
         usuarioCreacion: '',
         usuarioModificacion: ''
       };
 
-      this.http.put<any>(`${environment.apiBaseUrl}/Marcas/Actualizar`, marcaActualizar, {
+      this.http.put<any>(`${environment.apiBaseUrl}/EstadoVisita/Actualizar`, estadoVisitaActualizar, {
         headers: {
           'X-Api-Key': environment.apiKey,
           'Content-Type': 'application/json',
@@ -132,20 +120,20 @@ export class EditComponent implements OnChanges {
         }
       }).subscribe({
         next: (response) => {
-          this.mensajeExito = `Marca "${this.marca.marc_Descripcion}" actualizada exitosamente`;
+          this.mensajeExito = `Estado de Visita "${this.estadoVisita.esVi_Descripcion}" actualizada exitosamente`;
           this.mostrarAlertaExito = true;
           this.mostrarErrores = false;
 
           setTimeout(() => {
             this.mostrarAlertaExito = false;
-            this.onSave.emit(this.marca);
+            this.onSave.emit(this.estadoVisita);
             this.cancelar();
           }, 3000);
         },
         error: (error) => {
-          console.error('Error al actualizar marca:', error);
+          console.error('Error al actualizar estadoVisita:', error);
           this.mostrarAlertaError = true;
-          this.mensajeError = 'Error al actualizar la marca. Por favor, intente nuevamente.';
+          this.mensajeError = 'Error al actualizar la estadoVisita. Por favor, intente nuevamente.';
           setTimeout(() => this.cerrarAlerta(), 5000);
         }
       });

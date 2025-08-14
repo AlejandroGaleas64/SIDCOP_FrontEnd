@@ -18,35 +18,38 @@
       </button>
     </div>
 
-    <div *ngIf="!cargando && marcasVehiculosDetalle" class="details-content">
+    
+
+    <!-- Contenido de detalles -->
+    <div *ngIf="!cargando && estadoVisitaDetalle" class="details-content">
       <div class="details-card">  
         <div class="details-card-header">
-          <i class="ri-roadster-line"></i> <!-- Icono para marcas de vehiculos -->
-          <span>Detalles de Marca de Vehículo</span>
+          <i class="ri-navigation-fill"></i> <!-- Icono relevante para marcas -->
+          <span>Detalles del Estado Visita</span>
         </div>
         
         <div class="details-card-body">
-          <div class="detail-row row">
-            <div class="col-4">
+          <div class="row g-4">
+            <div class="col-12 col-md-4">
               <div class="detail-box">
                 <div class="detail-icon">
-                  <i class="ri-list-ordered"></i>
+                  <i class="ri-hashtag"></i>
                 </div>
                 <div class="detail-info">
-                  <div class="detail-label">Secuencia</div>
-                  <div class="detail-value">{{ marcasVehiculosDetalle.secuencia }}</div>
+                  <div class="detail-label">Código</div>
+                  <div class="detail-value">{{ estadoVisitaDetalle?.esVi_Id }}</div>
                 </div>
               </div>
             </div>
-            
-            <div class="col-4">
+
+            <div class="col-12 col-md-4">
               <div class="detail-box">
                 <div class="detail-icon">
                   <i class="ri-file-list-3-line"></i>
                 </div>
                 <div class="detail-info">
-                  <div class="detail-label">Marca</div>
-                  <div class="detail-value">{{ marcasVehiculosDetalle.maVe_Marca || 'N/A' }}</div>
+                  <div class="detail-label">Descripción</div>
+                  <div class="detail-value">{{ estadoVisitaDetalle?.esVi_Descripcion || 'N/A' }}</div>
                 </div>
               </div>
             </div>
@@ -54,7 +57,7 @@
         </div>
       </div>
   
-      
+     
       <div class="historial-table">
         <div class="historial-header">
           <div class="historial-col">Acción</div>
@@ -67,10 +70,10 @@
             <span>Creador</span>
           </div>
           <div class="historial-col">
-            <span>{{ marcasVehiculosDetalle.usuarioCreacion || 'N/A' }}</span>
+            <span>{{ estadoVisitaDetalle?.usuarioCreacion || 'N/A' }}</span>
           </div>
           <div class="historial-col">
-            <span>{{ formatearFecha(marcasVehiculosDetalle.maVe_FechaCreacion) }}</span>
+            <span>{{ formatearFecha(estadoVisitaDetalle?.esVi_FechaModificacion ?? null) }}</span>
           </div>
         </div>
         <!-- Fila de modificación -->
@@ -79,10 +82,10 @@
             <span>Modificación</span>
           </div>
           <div class="historial-col">
-            <span>{{ marcasVehiculosDetalle.usuarioModificacion || 'N/A' }}</span>
+            <span>{{ estadoVisitaDetalle?.usuarioModificacion || 'N/A' }}</span>
           </div>
           <div class="historial-col">
-            <span>{{ formatearFecha(marcasVehiculosDetalle.maVe_FechaModificacion ?? null) }}</span>
+            <span>{{ formatearFecha(estadoVisitaDetalle?.esVi_FechaModificacion ?? null) }}</span>
           </div>
         </div>
       </div>

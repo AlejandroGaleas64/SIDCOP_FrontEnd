@@ -6,6 +6,7 @@ import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { InventarioSucursal } from 'src/app/Modelos/inventario/InventarioSucursal';
 import { Sucursales } from 'src/app/Modelos/general/Sucursales.Model';
+import { obtenerUsuario } from 'src/app/core/utils/user-utils';
 
 @Component({
   selector: 'app-inventariado',
@@ -22,6 +23,8 @@ export class InventariadoComponent implements OnInit {
   mensajeError = '';
   mostrarAlertaWarning = false;
   mensajeWarning = '';
+
+  mensajeErrorClave = false;
 
   // Datos
   sucursales: Sucursales[] = [];
@@ -150,20 +153,47 @@ export class InventariadoComponent implements OnInit {
       return;
     }
 
-    if (this.claveIngresada !== 'Admin123') {
-      this.mostrarAlertaError = true;
-      this.mensajeError = 'Contraseña incorrecta';
-      this.ocultarAlertas(3000);
-      return;
-    }
-
-    if (this.accionPendiente === 'actualizar') {
-      this.actualizarInventario();
-    } else if (this.accionPendiente === 'cantidades') {
-      this.actualizarCantidades();
-    }
-
-    this.cerrarModal();
+    const usuarioGuardar = {
+      usua_Id: 0,
+      usua_Usuario: obtenerUsuario(),
+      usua_Clave: this.claveIngresada.trim(),
+      role_Id: 0,
+      role_Descripcion: "string",
+      usua_IdPersona: 0,
+      usua_EsVendedor: true,
+      usua_EsAdmin: true,
+      usua_Imagen: "string",
+      usua_TienePermisos: true,
+      usua_Creacion: getUserId(),
+      usua_FechaCreacion: new Date().toISOString(),
+      usua_Modificacion: getUserId(),
+      usua_FechaModificacion: new Date().toISOString(),
+      usua_Estado: true,
+      permisosJson: "string"
+    };
+    this.http.post<any>(`${environment.apiBaseUrl}/Usuarios/IniciarSesion`, usuarioGuardar, {
+      headers: {
+        'X-Api-Key': environment.apiKey,
+        'Content-Type': 'application/json',
+        'accept': '*/*'
+      }
+    }).subscribe({
+      next: (resp) => {
+        if (resp?.data?.code_Status === 1) {
+          this.mensajeErrorClave = false;
+          if (this.accionPendiente === 'actualizar') {
+            this.actualizarInventario();
+          } else if (this.accionPendiente === 'cantidades') {
+            this.actualizarCantidades();
+          }
+          this.cerrarModal();   
+        }
+        else if (resp?.data?.code_Status === -1) {
+          this.mensajeErrorClave = true;
+          return;
+        }
+      },
+    });
   }
 
   mostrarConfirmacionCantidades(): void {
