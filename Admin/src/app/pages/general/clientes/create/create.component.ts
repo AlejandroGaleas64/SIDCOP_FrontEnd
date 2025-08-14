@@ -135,7 +135,7 @@ export class CreateComponent {
         this.cliente.clie_ImagenDelNegocio.trim() &&
         this.cliente.ruta_Id &&
         this.cliente.cana_Id &&
-        this.validarDireccion
+        this.direccionesPorCliente.length > 0
       ) {
         this.mostrarErrores = false;
         this.activeTab = 3;
@@ -258,12 +258,12 @@ export class CreateComponent {
         this.cliente.clie_ImagenDelNegocio.trim() &&
         this.cliente.ruta_Id &&
         this.cliente.cana_Id &&
-        this.validarDireccion
+        this.direccionesPorCliente.length > 0
       ) {
         this.mostrarErrores = false;
         this.activeTab = 3;
       } else {
-        this.validarDireccion = true;
+        this.validarDireccion = this.direccionesPorCliente.length === 0;
         this.mostrarAlertaWarning = true;
         this.mensajeWarning = 'Por favor, complete todos los campos obligatorios del negocio.';
         setTimeout(() => {
