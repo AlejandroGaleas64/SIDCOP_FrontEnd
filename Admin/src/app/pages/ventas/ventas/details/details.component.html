@@ -357,66 +357,7 @@
       </div>
     </div>
 
-    <!-- Información de CAI y Rango -->
-    <div class="row mt-4">
-      <div class="col-12">
-        <div class="card shadow-sm">
-          <div class="card-header d-flex align-items-center">
-            <i class="ri-shield-check-line me-2 fs-4"></i>
-            <h5 class="mb-0">Información de CAI y Rango Autorizado</h5>
-          </div>
-          <div class="card-body">
-            <div class="row g-3">
-              <div class="col-12 col-sm-6 col-md-4">
-                <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-file-shield-line"></i></div>
-                  <div class="detail-content">
-                    <div class="detail-label">CAI</div>
-                    <div class="detail-value">{{ facturaDetalle.regC_Descripcion || 'N/A' }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-12 col-sm-6 col-md-4">
-                <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-calendar-check-line"></i></div>
-                  <div class="detail-content">
-                    <div class="detail-label">Fecha Inicial CAI</div>
-                    <div class="detail-value">{{ formatearFecha(facturaDetalle.regC_FechaInicialEmision) }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-12 col-sm-6 col-md-4">
-                <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-calendar-close-line"></i></div>
-                  <div class="detail-content">
-                    <div class="detail-label">Fecha Final CAI</div>
-                    <div class="detail-value">{{ formatearFecha(facturaDetalle.regC_FechaFinalEmision) }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-12 col-sm-6">
-                <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-numbers-line"></i></div>
-                  <div class="detail-content">
-                    <div class="detail-label">Rango Inicial Autorizado</div>
-                    <div class="detail-value">{{ facturaDetalle.fact_RangoInicialAutorizado || 'N/A' }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-12 col-sm-6">
-                <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-numbers-line"></i></div>
-                  <div class="detail-content">
-                    <div class="detail-label">Rango Final Autorizado</div>
-                    <div class="detail-value">{{ facturaDetalle.fact_RangoFinalAutorizado || 'N/A' }}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+
 
     <!-- Información de Ubicación (si está disponible) -->
     <div class="row mt-4" *ngIf="facturaDetalle.fact_Latitud && facturaDetalle.fact_Longitud">
