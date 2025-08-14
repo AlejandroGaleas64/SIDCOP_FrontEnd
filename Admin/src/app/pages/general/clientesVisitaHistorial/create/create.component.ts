@@ -7,6 +7,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
 import { DropzoneModule, DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
 import { Router } from '@angular/router';
 import { getUserId } from 'src/app/core/utils/user-utils';
+import { lastValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-create',
@@ -40,9 +41,19 @@ export class CreateComponent implements OnInit {
   mensajeWarning = '';
   mensajeError = '';
   maxDate = new Date().toISOString().split('T')[0];
-  minDate = '2000-01-01'; // Fecha mínima para el selector de fechas
+  minDate = '2000-01-01';
 
   uploadedFiles: any[] = [];
+
+  dropzoneConfig: DropzoneConfigInterface = {
+    url: 'https://httpbin.org/post',
+    clickable: true,
+    addRemoveLinks: true,
+    previewsContainer: false,
+    paramName: 'file',
+    maxFilesize: 50,
+    acceptedFiles: 'image/*',
+  };
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -113,40 +124,39 @@ export class CreateComponent implements OnInit {
     this.mensajeWarning = tipo === 'advertencia' ? mensaje : '';
   }
 
-  dropzoneConfig: DropzoneConfigInterface = {
-    url: 'https://httpbin.org/post',
-    clickable: true,
-    addRemoveLinks: true,
-    previewsContainer: false,
-    paramName: 'file',
-    maxFilesize: 50,
-    acceptedFiles: 'image/*',
-  };
-
-  // Cambiar onFileAdded a onFileSelected para que coincida con el HTML
   onFileSelected(event: any) {
-    if (!event || !event[0]) return;
+    try {
+      let files: File[] = [];
+      if (event?.addedFiles) files = Array.from(event.addedFiles);
+      else if (event?.target?.files) files = Array.from(event.target.files);
+      else if (Array.isArray(event)) files = event;
+      else if (event?.file) files = [event.file];
+      else if (event instanceof File) files = [event];
 
-    Array.from(event).forEach((file: any) => {
-      if (!file.type.match('image.*')) {
-        this.mostrarMensaje('Solo se permiten archivos de imagen', 'error');
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        const fileData = {
-          name: file.name,
-          size: this.formatFileSize(file.size),
-          type: file.type,
-          dataURL: e.target.result,
-          file: file,
-          id: Date.now() + Math.random().toString(36).substr(2, 9)
+      files.forEach((file: File) => {
+        if (!file || !(file instanceof File)) return;
+        if (!file.type || !file.type.startsWith('image/')) {
+          this.mostrarMensaje(`El archivo ${file.name} no es una imagen válida`, 'error');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          const fileData = {
+            name: file.name,
+            size: this.formatFileSize(file.size),
+            type: file.type,
+            dataURL: e.target.result,
+            file: file,
+            id: Date.now() + Math.random().toString(36).substr(2, 9)
+          };
+          this.uploadedFiles = [...this.uploadedFiles, fileData];
         };
-        this.uploadedFiles = [...this.uploadedFiles, fileData];
-      };
-      reader.readAsDataURL(file);
-    });
+        reader.readAsDataURL(file);
+      });
+    } catch (error) {
+      this.mostrarMensaje('Error al procesar los archivos', 'error');
+      console.error('Error en onFileSelected:', error);
+    }
   }
 
   removeFile(file: any) {
@@ -180,7 +190,6 @@ export class CreateComponent implements OnInit {
     this.cargando = true;
     
     try {
-      // 1. Subir las imágenes a Cloudinary
       const imageUrls = [];
       for (const file of this.uploadedFiles) {
         if (file.file) {
@@ -191,16 +200,13 @@ export class CreateComponent implements OnInit {
         }
       }
 
-      // 2. Crear la visita
       const visitaCreada = await this.crearVisita();
-      if (!visitaCreada || !visitaCreada.data) {
-        throw new Error(visitaCreada?.message_Status || 'Error al crear la visita');
-      }
-
-      // 3. Asociar las imágenes a la visita
-      await this.asociarImagenesAVisita(visitaCreada.data, imageUrls);
+      const visitaId = visitaCreada?.data?.clVi_Id || visitaCreada?.data?.id;
       
-      // 4. Mostrar mensaje de éxito y limpiar formulario
+      if (!visitaId) throw new Error('No se pudo obtener el ID de la visita creada');
+
+      if (imageUrls.length > 0) await this.asociarImagenesAVisita(visitaId, imageUrls);
+
       this.mostrarMensaje('Visita creada exitosamente', 'exito');
       this.onSave.emit(visitaCreada.data);
       this.limpiarFormulario();
@@ -226,70 +232,88 @@ export class CreateComponent implements OnInit {
   }
 
   private async crearVisita(): Promise<any> {
-    const visitaData = {
-      VeRu_Id: this.visita.vendedor?.ruta_Id,
-      DiCl_Id: this.visita.direccion?.diCl_Id,
-      EsVi_Id: this.visita.esVi_Id,
-      ClVi_Observaciones: this.visita.clVi_Observaciones || '',
-      ClVi_Fecha: this.visita.clVi_Fecha,
-      Usua_Creacion: getUserId, // TODO: Reemplazar con el ID del usuario autenticado
-      ClVi_FechaCreacion: new Date().toISOString()
-    };
-
     try {
-      const response = await this.http.post<any>(
-        `${environment.apiBaseUrl}/ClientesVisitaHistorial/Insertar`, 
-        visitaData, 
-        { 
-          headers: { 
-            'x-api-key': environment.apiKey, 
-            'Content-Type': 'application/json' 
-          } 
-        }
-      ).toPromise();
+      if (!this.visita.vendedor?.ruta_Id) throw new Error('Falta el ID de ruta del vendedor');
+      if (!this.visita.direccion?.diCl_Id) throw new Error('Falta el ID de dirección');
+      if (!this.visita.esVi_Id) throw new Error('Falta el estado de la visita');
+      if (!this.visita.clVi_Fecha) throw new Error('Falta la fecha de la visita');
 
+      const userId = getUserId();
+      const fechaActual = new Date();
+      const fechaVisita = new Date(this.visita.clVi_Fecha);
+      fechaVisita.setHours(0, 0, 0, 0);
+
+      const visitaData = {
+        VeRu_Id: Number(this.visita.vendedor.ruta_Id),
+        DiCl_Id: Number(this.visita.direccion.diCl_Id),
+        EsVi_Id: Number(this.visita.esVi_Id),
+        ClVi_Observaciones: this.visita.clVi_Observaciones || '',
+        ClVi_Fecha: fechaVisita.toISOString(),
+        Usua_Creacion: Number(userId),
+        ClVi_FechaCreacion: fechaActual.toISOString()
+      };
+
+      console.log('Enviando datos de visita:', visitaData);
+
+      const response = await lastValueFrom(
+        this.http.post<any>(
+          `${environment.apiBaseUrl}/ClientesVisitaHistorial/Insertar`,
+          visitaData,
+          { headers: { 'x-api-key': environment.apiKey, 'Content-Type': 'application/json' } }
+        )
+      );
+
+      if (!response) throw new Error('No se recibió respuesta del servidor');
       return response;
-    } catch (error) {
-      console.error('Error al crear la visita:', error);
-      throw new Error('Error al crear la visita. Por favor, intente nuevamente.');
+
+    } catch (error: any) {
+      console.error('Error en crearVisita:', error);
+      throw new Error(error.message || 'Error al crear la visita');
     }
   }
 
   private async asociarImagenesAVisita(visitaId: number, imageUrls: string[]): Promise<void> {
     if (!visitaId || !imageUrls?.length) return;
 
-    try {
-      for (const imageUrl of imageUrls) {
-        const imagenData = {
-          ImVi_Imagen: imageUrl,
-          ClVi_Id: visitaId,
-          Usua_Creacion: getUserId, // TODO: Reemplazar con el ID del usuario autenticado
-          ImVi_FechaCreacion: new Date().toISOString()
-        };
+    const userId = getUserId();
+    const fechaActual = new Date().toISOString();
 
-        const response = await this.http.post<any>(
-          `${environment.apiBaseUrl}/ImagenVisita/Insertar`,
-          imagenData,
-          {
-            headers: {
-              'x-api-key': environment.apiKey,
-              'Content-Type': 'application/json'
-            }
-          }
-        ).toPromise();
+    for (const imageUrl of imageUrls) {
+      const imagenData = {
+        ImVi_Imagen: imageUrl,
+        ClVi_Id: Number(visitaId),
+        Usua_Creacion: Number(userId),
+        ImVi_FechaCreacion: fechaActual
+      };
 
-        if (!response?.code_Status) {
-          console.warn('Advertencia: No se pudo asociar una imagen a la visita:', response?.message_Status);
-        }
+      console.log('Enviando imagen a asociar:', imagenData);
+
+      try {
+        const response = await lastValueFrom(
+          this.http.post<any>(
+            `${environment.apiBaseUrl}/ImagenVisita/Insertar`,
+            imagenData,
+            { headers: { 'x-api-key': environment.apiKey, 'Content-Type': 'application/json' } }
+          )
+        );
+
+        console.log('Respuesta de imagen asociada:', response);
+
+      } catch (error) {
+        console.error('Error al asociar imagen:', error);
       }
-    } catch (error) {
-      console.error('Error al asociar imágenes a la visita:', error);
-      // No lanzamos el error para no fallar todo el proceso si hay un error con una imagen
     }
   }
 
   limpiarFormulario() {
-    this.visita = { vendedor: null, cliente: null, direccion: null, esVi_Id: '', clVi_Observaciones: '', clVi_Fecha: new Date().toISOString().split('T')[0] };
+    this.visita = {
+      vendedor: null,
+      cliente: null,
+      direccion: null,
+      esVi_Id: null,
+      clVi_Observaciones: '',
+      clVi_Fecha: new Date().toISOString().split('T')[0]
+    };
     this.clientesFiltrados = [];
     this.direcciones = [];
     this.uploadedFiles = [];
