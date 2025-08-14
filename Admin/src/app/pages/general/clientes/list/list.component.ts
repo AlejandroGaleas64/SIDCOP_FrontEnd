@@ -133,6 +133,7 @@ export class ListComponent {
   isLoading = true;
 
   // Propiedades para alertas
+  cargandoDatos = false;
   mostrarAlertaExito = false;
   mostrarOverlayCarga = false;
   mensajeExito = '';
@@ -483,6 +484,13 @@ export class ListComponent {
   }
 
   private cargarDatos(state: boolean): void {
+    this.cargandoDatos = true;
+    this.clienteGrid = [];
+    this.clientes = [];
+    this.showCreateForm = false;
+    this.showEditForm = false;
+    this.showDetailsForm = false;
+    this.listadoClientesSinConfirmar = false;
     this.mostrarOverlayCarga = state;
     this.http.get<Cliente[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -501,7 +509,7 @@ export class ListComponent {
         this.currentPage = 1;
         this.itemsPerPage = 10;
         this.clientesFiltrados = [...this.clienteGrid];
-
+        this.cargandoDatos = false;
         this.actualizarClientesVisibles();
       }, 500);
     });
@@ -518,12 +526,12 @@ export class ListComponent {
 
   abrirListado() {
     this.listadoClientesSinConfirmar = true;
-    this.cargarDatosSinConfirmar(false);
+    this.cargarDatosSinConfirmar(true);
   }
 
   cerrarListado() {
     this.listadoClientesSinConfirmar = false;
-    this.cargarDatos(false);
+    this.cargarDatos(true);
   }
 
   notificacionesSinConfirmar: number = 0;
@@ -537,6 +545,7 @@ export class ListComponent {
 
 
   private cargarDatosSinConfirmar(state: boolean): void {
+    this.cargandoDatos = true;
     this.clienteGrid = [];
     this.clientes = [];
     this.showCreateForm = false;
@@ -549,6 +558,7 @@ export class ListComponent {
     }).subscribe(data => {
       setTimeout(() => {
         this.mostrarOverlayCarga = false;
+        this.cargandoDatos = false;
         this.clienteGrid = data || [];
         this.clientes = this.clienteGrid.slice(0, 10);
         this.filtradorClientes();

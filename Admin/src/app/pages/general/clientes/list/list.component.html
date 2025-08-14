@@ -5,7 +5,7 @@
   <img class="breadcrumbs-icon ms-2 icon-breadcrumb" src="assets/images/svg/clientes.svg" alt="icono breadcrumb" />
 </app-breadcrumbs>
 
-<div class="card">
+<div class="card" *ngIf="!cargandoDatos">
   <div class="card-body">
     <div class="row align-items-center g-2"
       *ngIf="!showCreateForm && !showEditForm && !showDetailsForm && !listadoClientesSinConfirmar">
