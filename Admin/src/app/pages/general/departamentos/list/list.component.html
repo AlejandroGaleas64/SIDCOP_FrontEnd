@@ -77,7 +77,7 @@
     </div>
   </div>
 </div>
-
+<div class="table-radius-container">
         <div class="table-responsive" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
           <table class="table table-gridjs table-style">
             <thead>
@@ -146,6 +146,7 @@
               </tr>
             </tbody>
           </table>
+        </div>
         </div>
         <div class="row justify-content-md-between align-items-md-center" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
           <ng-container *ngIf="(table.paginated$ | async) as paginados">
