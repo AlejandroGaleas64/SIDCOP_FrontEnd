@@ -1,25 +1,13 @@
-import {
-  Component,
-  Output,
-  EventEmitter,
-  ViewChild,
-  ElementRef,
-  Input,
-  OnChanges,
-  SimpleChanges,
-} from '@angular/core';
+import { Component, Output, EventEmitter, ViewChild, ElementRef, Input, OnChanges, SimpleChanges} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Cliente } from 'src/app/Modelos/general/Cliente.Model';
 import { environment } from 'src/environments/environment.prod';
 import { ChangeDetectorRef } from '@angular/core';
-
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { MapaSelectorComponent } from '../mapa-selector/mapa-selector.component';
 import { Aval } from 'src/app/Modelos/general/Aval.Model';
-
-import { NgModule } from '@angular/core';
 import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente.Model';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { Router } from '@angular/router';
@@ -142,26 +130,6 @@ export class EditComponent implements OnChanges {
       this.cliente.pais_Descripcion = '';
     }
   }
-
-  // onParentescoChange(event: any) {
-  //   const selectedId = +event.target.value;
-  //   const parentescoSeleccionado = this.parentescos.find(p => p.pare_Id === selectedId);
-  //   if (parentescoSeleccionado) {
-  //     this.avales.pare_Descripcion = parentescoSeleccionado.pare_Descripcion;
-  //   } else {
-  //     this.aval.pare_Descripcion = '';
-  //   }
-  // }
-
-  // onColoniaChangeCliente(event: any) {
-  //   const selectedId = +event.target.value;
-  //   const coloniaSeleccionada = this.TodasColonias.find(c => c.colo_Id === selectedId);
-  //   if (coloniaSeleccionada) {
-  //     this.direccionPorCliente.colo_Descripcion = coloniaSeleccionada.colo_Descripcion;
-  //   } else {
-  //     this.coloniaSeleccionada.colo_Descripcion = '';
-  //   }
-  // }
 
   esCorreoValido(correo: string): boolean {
     if (!correo) return true;
@@ -796,6 +764,29 @@ export class EditComponent implements OnChanges {
           console.error('Error al subir la imagen a Cloudinary:', error);
         });
     }
+  }
+
+  generarCodigoClientePorRuta(ruta_Id: number): void {
+    const ruta = this.rutas.find(r => r.ruta_Id === +ruta_Id);
+    const codigoRuta = ruta?.ruta_Codigo
+      ? ruta.ruta_Codigo.replace(/^RT-/, '')
+      : ruta_Id.toString().padStart(3, '0');
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(clientes => {
+      const clientesRuta = clientes.filter(c => c.ruta_Id === +ruta_Id);
+      let maxCorrelativo = 0;
+    
+      clientesRuta.forEach(c => {
+        const match = c.clie_Codigo?.match(/CLIE-RT-\d{3}-(\d{6})/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxCorrelativo) maxCorrelativo = num;
+        }
+      });
+      const siguiente = (maxCorrelativo + 1).toString().padStart(6, '0');
+      this.cliente.clie_Codigo = `CLIE-RT-${codigoRuta}-${siguiente}`;
+    });
   }
 
   guardarCliente(): void {
