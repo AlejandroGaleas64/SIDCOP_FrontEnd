@@ -697,15 +697,19 @@ private crearVenta(): void {
   
   const detalles = this.obtenerDetallesVenta();
   
-  // Aseguramos que las fechas estén en formato ISO
+  // Aseguramos que las fechas estén en formato ISO y preservamos el ID de sucursal
+  const sucursalId = this.venta.regC_Id; // Guardamos el ID de sucursal seleccionado
+  
   const datosEnviar = {
     ...this.venta,
+    regC_Id: 20, // Aseguramos que se use el ID de sucursal seleccionado
     fact_FechaEmision: this.venta.fact_FechaEmision.toISOString(),
     fact_FechaLimiteEmision: this.venta.fact_FechaLimiteEmision.toISOString(),
     detallesFacturaInput: detalles
   };
 
   // Verifica en consola lo que se envía
+  console.log('ID de sucursal seleccionada:', this.venta.regC_Id);
   console.log('Datos enviados al backend:', datosEnviar);
 
   // Enviar al backend
@@ -740,6 +744,17 @@ private crearVenta(): void {
   private extraerId(response: any): number {
     const data = response?.data;
     if (!data || data.code_Status !== 1) return 0;
+    
+    // Intentar extraer el ID del mensaje de estado
+    if (data.message_Status) {
+      // El formato esperado es: "Venta insertada correctamente. ID: 102. Factura creada exitosamente. Total: 5.00"
+      const match = data.message_Status.match(/ID:\s*(\d+)/i);
+      if (match && match[1]) {
+        return parseInt(match[1], 10);
+      }
+    }
+    
+    // Si no se encuentra en el mensaje, intentar con los campos tradicionales
     return data.fact_Id || data.Fact_Id || data.id || 0;
   }
 
