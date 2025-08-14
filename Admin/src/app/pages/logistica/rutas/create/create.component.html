@@ -28,7 +28,7 @@
   
   <div class="flex-grow-1">
     <div class="row">
-      <div class="col-md-6">
+      <!-- <div class="col-md-6">
         <label  class="form-label">Código<span class="text-danger">*</span></label>
         <div class="mb-3">
           <div class="d-flex align-items-center">
@@ -49,6 +49,29 @@
           <div class="text-danger mt-1" *ngIf="!ruta.ruta_Codigo.trim() && mostrarErrores">
             <small>El campo Código de la Ruta es requerido</small> 
           </div>
+        </div>
+      </div> -->
+
+      <div class="col-lg-6">
+        <div class="mb-3">
+          <label for="codigo-input"  class="form-label">Código<span class="text-danger">*</span></label>
+          <div class="d-flex align-items-center">
+            <i class="ri-road-map-line" [ngStyle]="{
+            border: (!ruta.ruta_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (!ruta.ruta_Codigo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+            borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            </i>
+            <input type="text" id="codigo-input" [(ngModel)]="ruta.ruta_Codigo"
+                  class="form-control"
+                  placeholder="Código generado automáticamente"
+                  readonly
+                  disabled
+                  (ngModelChange)="bloquearCodigo($event)">
+          </div>
+            <div class="text-danger" *ngIf="!ruta.ruta_Codigo.trim() && mostrarErrores">
+                <small>El código es requerido</small>
+            </div>
         </div>
       </div>
 
