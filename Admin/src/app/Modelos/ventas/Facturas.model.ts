@@ -49,7 +49,8 @@ export class Factura {
 export class VentaInsertar {
   fact_Numero: string = '';
   fact_TipoDeDocumento: string = '';
-  regC_Id: number = 0;
+  regC_Id: number = 0;           // ID de sucursal seleccionada en el formulario
+  regC_Id_Vendedor?: number;     // ID de registro CAI capturado del vendedor
   clie_Id: number = 0;
   vend_Id: number = 0;
   fact_TipoVenta: string = ''; // CONTADO o CREDITO

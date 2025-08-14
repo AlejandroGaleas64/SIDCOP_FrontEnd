@@ -166,11 +166,11 @@
                         class="form-check-input"
                         type="checkbox"
                         id="prod_PagaImpuesto"
-                        [(ngModel)]="producto.prod_PagaImpuesto"
+                        [(ngModel)]="pagaImpuestoBool"
                         (change)="onPagaImpuestoChange()"
                       />
                       <label class="form-check-label" for="prod_PagaImpuesto">
-                        {{ producto.prod_PagaImpuesto ? 'Sí' : 'No' }}
+                        {{ pagaImpuestoBool ? 'Sí' : 'No' }}
                       </label>
                     </div>
                   </div>
@@ -186,7 +186,7 @@
                         backgroundColor: '#f2f3f9',
                         padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                       </i>
-                      <select id="impu_Id" class="form-select" [(ngModel)]="producto.impu_Id" [disabled]="!producto.prod_PagaImpuesto">
+                      <select id="impu_Id" class="form-select" [(ngModel)]="producto.impu_Id" [disabled]="!pagaImpuestoBool">
                         <option value="0" disabled selected>Seleccione un impuesto</option>
                         <option *ngFor="let imp of impuestos" [value]="imp.impu_Id">{{ imp.impu_Descripcion }}</option>
                       </select>

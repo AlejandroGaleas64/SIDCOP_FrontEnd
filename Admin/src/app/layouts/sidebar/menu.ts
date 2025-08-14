@@ -17,6 +17,12 @@ export const MENU: MenuItem[] = [
         link: '/',
         parentId: 2,
       },
+      {
+        id: 5,
+        label: 'MENUITEMS.DASHBOARD.LIST.DASHBOARD',
+        link: '/dashboard0',
+        parentId: 2,
+      },
     ],
   },
   {

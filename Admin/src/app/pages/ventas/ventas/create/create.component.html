@@ -206,55 +206,7 @@
             </div>
           </div>
 
-          <!-- Fecha de Emisión -->
-          <div class="col-md-6">
-            <label class="form-label"
-              >Fecha de Emisión<span class="text-danger">*</span></label
-            >
-            <div class="mb-3">
-              <div class="d-flex align-items-center">
-                <i
-                  class="ri-calendar-2-line"
-                  [ngStyle]="{
-                    border:
-                      !venta.fact_FechaEmision && mostrarErrores
-                        ? '1px solid #f9bcc4'
-                        : '1px solid #e9ecf5',
-                    backgroundColor:
-                      !venta.fact_FechaEmision && mostrarErrores
-                        ? '#fff5f6'
-                        : '#f2f3f9',
-                    padding: '0.525rem 0.525rem',
-                    position: 'relative',
-                    left: '7px',
-                    borderTopLeftRadius: '8px',
-                    borderBottomLeftRadius: '8px'
-                  }"
-                ></i>
-                <input
-                  type="date"
-                  class="form-control"
-                  [class.is-invalid]="
-                    !venta.fact_FechaEmision && mostrarErrores
-                  "
-                  id="fechaEmision"
-                  [value]="
-                    venta.fact_FechaEmision
-                      ? (venta.fact_FechaEmision | date : 'yyyy-MM-dd')
-                      : ''
-                  "
-                  (input)="onFechaEmisionChange($event)"
-                  required
-                />
-              </div>
-              <div
-                class="text-danger mt-1"
-                *ngIf="!venta.fact_FechaEmision && mostrarErrores"
-              >
-                <small>La fecha de emisión es requerida</small>
-              </div>
-            </div>
-          </div>
+
 
           <div class="col-md-6">
             <label class="form-label">Cliente<span class="text-danger">*</span></label>
@@ -295,8 +247,8 @@
                     *ngFor="let cliente of clientes"
                     [value]="cliente.clie_Id"
                   >
-                    {{ cliente.clie_Nombres }} {{ cliente.clie_Apellidos }}
-                  </option>
+                    {{cliente.clie_NombreNegocio}}
+ ({{ cliente.clie_Nombres }} {{ cliente.clie_Apellidos }} )                  </option>
                 </select>
                 <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
               </div>

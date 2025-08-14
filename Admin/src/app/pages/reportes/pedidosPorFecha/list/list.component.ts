@@ -413,7 +413,7 @@ private generarFilasConRowSpan(): any[][] {
     console.log(filasConRowSpan);
     
     const config: ReportConfig = {
-      titulo: 'Pedidos Segun Fecha',
+      titulo: 'Pedidos Según Fecha',
       orientacion: 'landscape',
       mostrarResumen: true,
       textoResumen: `Total de pedidos: ${this.contadorpedidos}`,
@@ -427,9 +427,9 @@ private generarFilasConRowSpan(): any[][] {
         [
           { content: '#', styles: { halign: 'center', cellWidth: 15 } },
           { content: 'Fecha', styles: { cellWidth: 40 } },
-          { content: 'Vendedor', styles: { cellWidth: 40 } },
-          { content: 'Negocio', styles: { cellWidth: 60 } },
-          { content: 'Cliente', styles: { cellWidth: 35 } },
+          { content: 'Vendedor', styles: { cellWidth: 45 } },
+          { content: 'Negocio', styles: { cellWidth: 50 } },
+          { content: 'Cliente', styles: { cellWidth: 50 } },
           { content: 'Producto', styles: {cellWidth: 40 } },
           { content: 'Cantidad', styles: { halign: 'right', cellWidth: 20 } }
         ]
