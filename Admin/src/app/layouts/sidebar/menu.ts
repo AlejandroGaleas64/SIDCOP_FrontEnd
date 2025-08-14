@@ -25,17 +25,17 @@ export const MENU: MenuItem[] = [
     icon: 'ri-lock-line',
     subItems: [
       {
-        id: 63,
-        label: 'MENUITEMS.ACCESO.LIST.USUARIOS',
-        link: '/acceso/usuarios',
-        parentId: 1,
-      },
-      {
         id: 62,
         label: 'MENUITEMS.ACCESO.LIST.ROLES',
         link: '/acceso/roles',
         parentId: 1,
       },
+      {
+        id: 63,
+        label: 'MENUITEMS.ACCESO.LIST.USUARIOS',
+        link: '/acceso/usuarios',
+        parentId: 1,
+      }
     ],
   },
   {
@@ -67,10 +67,10 @@ export const MENU: MenuItem[] = [
     subItems: [
       { id: 21, label: 'MENUITEMS.INVENTARIO.LIST.CATEGORIAS',         link: '/inventario/categorias',         parentId: 3, icon: 'ri-truck-line' },
       { id: 22, label: 'MENUITEMS.INVENTARIO.LIST.DESCUENTOS',         link: '/inventario/descuentos',         parentId: 3, icon: 'ri-truck-line' },
-      { id: 25, label: 'MENUITEMS.INVENTARIO.LIST.PRODUCTOS',          link: '/inventario/productos',          parentId: 3, icon: 'ri-truck-line' },
+      { id: 24, label: 'MENUITEMS.INVENTARIO.LIST.INVENTARIOSUCURSAL', link: '/inventario/inventario-sucursal',parentId: 3, icon: 'ri-truck-line' },
       { id: 27, label: 'MENUITEMS.INVENTARIO.LIST.SUBCATEGORIAS',      link: '/inventario/subcategorias',      parentId: 3, icon: 'ri-truck-line' },
+      { id: 25, label: 'MENUITEMS.INVENTARIO.LIST.PRODUCTOS',          link: '/inventario/productos',          parentId: 3, icon: 'ri-truck-line' },
       { id: 26, label: 'MENUITEMS.INVENTARIO.LIST.PROMOCIONES',        link: '/inventario/promociones',        parentId: 3, icon: 'ri-truck-line' },
-      { id: 24, label: 'MENUITEMS.INVENTARIO.LIST.INVENTARIOSUCURSAL', link: '/inventario/inventario-sucursal',parentId: 3, icon: 'ri-truck-line' }
     ],
   },
   {
