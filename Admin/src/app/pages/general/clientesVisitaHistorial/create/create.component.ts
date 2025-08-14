@@ -42,7 +42,6 @@ export class CreateComponent implements OnInit {
   minDate = '2000-01-01'; // Fecha mínima para el selector de fechas
 
   uploadedFiles: any[] = [];
-  maxImages = 5;
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -126,10 +125,6 @@ export class CreateComponent implements OnInit {
   // Cambiar onFileAdded a onFileSelected para que coincida con el HTML
   onFileSelected(event: any) {
     if (!event || !event[0]) return;
-    if (this.uploadedFiles.length + event.length > this.maxImages) {
-      this.mostrarMensaje(`Solo puedes subir un máximo de ${this.maxImages} imágenes`, 'advertencia');
-      return;
-    }
 
     Array.from(event).forEach((file: any) => {
       if (!file.type.match('image.*')) {
