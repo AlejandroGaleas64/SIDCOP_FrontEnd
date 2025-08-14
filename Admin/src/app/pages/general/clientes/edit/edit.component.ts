@@ -97,7 +97,7 @@ export class EditComponent implements OnChanges {
       } else {
         this.cliente.clie_FechaNacimiento = null;
       }
-
+      this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
       this.cargarDireccionesExistentes();
       this.cargarAvalesExistentes();
     }
