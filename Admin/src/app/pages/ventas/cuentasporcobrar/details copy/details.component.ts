@@ -18,7 +18,7 @@ import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
   templateUrl: './details.component.html',
   styleUrls: ['./details.component.scss'],
 })
-export class DetailssComponent implements OnInit {
+export class DetailsComponent implements OnInit {
   cuentaPorCobrarId: number = 0;
   cuentaPorCobrarDetalle: CuentaPorCobrar | null = null;
   pagos: PagoCuentaPorCobrar[] = [];

@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { VentaInsertar, VentaDetalle } from 'src/app/Modelos/ventas/Facturas.model';
 import { environment } from 'src/environments/environment';
-import {obtenerUsuarioId} from 'src/app/core/utils/user-utils';
+import { obtenerUsuarioId } from 'src/app/core/utils/user-utils';
+import { forkJoin } from 'rxjs';
 @Component({
   selector: 'app-create',
   standalone: true,
@@ -14,7 +15,7 @@ import {obtenerUsuarioId} from 'src/app/core/utils/user-utils';
 })
 export class CreateComponent implements OnInit {
   @Output() onCancel = new EventEmitter<void>();
-  @Output() onSave = new EventEmitter<VentaInsertar>();
+  @Output() onSave = new EventEmitter<any>();
 
   // Estados de alertas
   mostrarErrores = false;
@@ -25,16 +26,25 @@ export class CreateComponent implements OnInit {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
   fechaActual = '';
+  cargando = false;
+  guardando = false;
 
   // Control de tabs
   tabActivo = 1;
   puedeAvanzarAResumen = false;
 
   // Datos del formulario
+  clientes: any[] = []; // Lista de clientes tipada correctamente
+  clienteSeleccionado: number = 0; // ID del cliente seleccionado
   venta: VentaInsertar = new VentaInsertar();
   sucursales: any[] = [];
   productos: any[] = [];
+  vendedores: any[] = [];
   usuarioId: number = 0;
+  
+  // Ubicación
+  obteniendoUbicacion = false;
+  errorUbicacion = '';
   // Inventario por sucursal
   inventarioSucursal: any[] = [];
   cargandoInventario = false;
@@ -55,28 +65,80 @@ export class CreateComponent implements OnInit {
     this.usuarioId = obtenerUsuarioId();
   }
 
-  private inicializar(): void {
-    this.fechaActual = new Date().toISOString().split('T')[0];
-    this.venta.fact_FechaEmision = new Date();
-    this.venta.fact_FechaLimiteEmision = new Date();
-    this.venta.usua_Creacion = this.usuarioId;
-  }
+private inicializar(): void {
+  const hoy = new Date();
+
+  this.fechaActual = hoy.toISOString().split('T')[0];
+
+  // Inicializar todos los campos obligatorios con valores por defecto
+  this.venta = new VentaInsertar({
+    fact_Numero: this.generarNumeroFactura(), // Generamos un número aleatorio
+    fact_TipoDeDocumento: '',
+    regC_Id: 0,
+    clie_Id: 0,
+    fact_TipoVenta: '', // se llenará en el formulario
+    fact_FechaEmision: hoy,
+    fact_FechaLimiteEmision: hoy,
+    fact_RangoInicialAutorizado: '010111',
+    fact_RangoFinalAutorizado: '01099999',
+    fact_Latitud: 0,
+    fact_Longitud: 0,
+    fact_Referencia: '',
+    fact_AutorizadoPor: 'CARLOS',
+    vend_Id: 0,
+    usua_Creacion: obtenerUsuarioId(),
+    detallesFacturaInput: []
+  });
+  
+  // Obtener ubicación actual
+  this.obtenerUbicacionActual();
+}
 
   private cargarDatosIniciales(): void {
+    this.cargando = true;
     const headers = { 'x-api-key': environment.apiKey };
 
-    // Cargar sucursales
-    this.http
-      .get<any>(`${environment.apiBaseUrl}/Sucursales/Listar`, { headers })
-      .subscribe({
-        next: (data) => {
-          this.sucursales = data;
-        },
-        error: (error) => {
-          this.mostrarError('Error al cargar las sucursales');
-          console.error('Error:', error);
-        },
-      });
+    // Cargar datos en paralelo usando forkJoin
+    forkJoin({
+      sucursales: this.http.get<any>(`${environment.apiBaseUrl}/Sucursales/Listar`, { headers }),
+      clientes: this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/Listar`, { headers }),
+      vendedores: this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, { headers })
+    }).subscribe({
+      next: (data) => {
+        this.sucursales = data.sucursales;
+        this.clientes = data.clientes;
+        this.vendedores = data.vendedores;
+        this.cargando = false;
+        console.log('Vendedores cargados:', this.vendedores);
+        
+        // Verificar la estructura de los datos para depuración
+        if (this.vendedores && this.vendedores.length > 0) {
+          const primerVendedor = this.vendedores[0];
+          console.log('Propiedades del primer vendedor:', Object.keys(primerVendedor));
+          
+          // Verificar si los vendedores tienen alguna propiedad relacionada con sucursal
+          const propiedadesSucursal = Object.keys(primerVendedor).filter(key => 
+            key.toLowerCase().includes('sucu') || 
+            key.toLowerCase().includes('sucur') || 
+            key.toLowerCase().includes('regc'));
+          
+          if (propiedadesSucursal.length === 0) {
+            console.warn('ADVERTENCIA: No se encontró ninguna propiedad relacionada con sucursal en los vendedores');
+            console.log('Esto podría causar problemas al filtrar vendedores por sucursal');
+            
+            // Mostrar toda la estructura para análisis
+            console.log('Estructura completa del primer vendedor:', primerVendedor);
+          } else {
+            console.log('Propiedades relacionadas con sucursal encontradas:', propiedadesSucursal);
+          }
+        }
+      },
+      error: (error) => {
+        this.mostrarError('Error al cargar datos iniciales');
+        console.error('Error:', error);
+        this.cargando = false;
+      }
+    });
 
     // Cargar productos
     this.listarProductos();
@@ -101,8 +163,121 @@ export class CreateComponent implements OnInit {
       });
   }
 
+  /**
+   * Obtiene la ubicación actual del usuario
+   */
+  public obtenerUbicacionActual(): void {
+    this.obteniendoUbicacion = true;
+    this.errorUbicacion = '';
+    
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          this.venta.fact_Latitud = position.coords.latitude;
+          this.venta.fact_Longitud = position.coords.longitude;
+          this.obteniendoUbicacion = false;
+          console.log('Ubicación obtenida:', this.venta.fact_Latitud, this.venta.fact_Longitud);
+        },
+        (error) => {
+          this.obteniendoUbicacion = false;
+          this.errorUbicacion = 'No se pudo obtener la ubicación: ' + this.getErrorUbicacion(error);
+          console.error('Error de geolocalización:', error);
+        }
+      );
+    } else {
+      this.obteniendoUbicacion = false;
+      this.errorUbicacion = 'La geolocalización no está soportada por este navegador';
+    }
+  }
+
+  /**
+   * Obtiene un mensaje de error legible para errores de geolocalización
+   */
+  private getErrorUbicacion(error: GeolocationPositionError): string {
+    switch (error.code) {
+      case error.PERMISSION_DENIED:
+        return 'Usuario denegó la solicitud de geolocalización';
+      case error.POSITION_UNAVAILABLE:
+        return 'La información de ubicación no está disponible';
+      case error.TIMEOUT:
+        return 'La solicitud para obtener la ubicación expiró';
+      default:
+        return 'Error desconocido';
+    }
+  }
+
+  /**
+   * Filtra los vendedores por la sucursal seleccionada
+   */
+  getVendedoresPorSucursal(): any[] {
+    if (!this.venta.regC_Id || this.venta.regC_Id === 0) {
+      return [];
+    }
+    
+    // Si no hay vendedores cargados, retornar array vacío
+    if (!this.vendedores || this.vendedores.length === 0) {
+      return [];
+    }
+    
+    const sucursalId = Number(this.venta.regC_Id);
+    
+    // Determinar qué propiedad usar para el filtrado
+    let propiedadSucursal = '';
+    
+    // Buscar la propiedad correcta que contiene el ID de sucursal
+    if (this.vendedores && this.vendedores.length > 0) {
+      const primerVendedor = this.vendedores[0];
+      const posiblesPropiedades = ['sucu_Id', 'sucuId', 'sucursalId', 'regC_Id'];
+      
+      for (const prop of posiblesPropiedades) {
+        if (primerVendedor[prop] !== undefined) {
+          propiedadSucursal = prop;
+          break;
+        }
+      }
+      
+      // Si no encontramos ninguna propiedad conocida, buscar cualquiera que contenga 'sucu'
+      if (!propiedadSucursal) {
+        const propiedadesSucursal = Object.keys(primerVendedor).find(key => 
+          key.toLowerCase().includes('sucu'));
+        
+        if (propiedadesSucursal) {
+          propiedadSucursal = propiedadesSucursal;
+        }
+      }
+    }
+    
+    // Si no se encontró ninguna propiedad relacionada con sucursal, mostrar advertencia
+    if (!propiedadSucursal) {
+      console.warn('No se pudo determinar la propiedad de sucursal en los vendedores');
+      return [];
+    }
+    
+    // Filtrar usando la propiedad encontrada
+    return this.vendedores.filter(vendedor => {
+      const vendedorSucursalId = Number(vendedor[propiedadSucursal]);
+      return vendedorSucursalId === sucursalId;
+    });
+  }
+
   // ========== INVENTARIO POR SUCURSAL ==========
   onSucursalChange(): void {
+    // Filtrar vendedores por sucursal seleccionada
+    const vendedoresFiltrados = this.getVendedoresPorSucursal();
+    
+    // Si hay vendedores disponibles, seleccionar el primero por defecto
+    if (vendedoresFiltrados.length > 0) {
+      this.venta.vend_Id = Number(vendedoresFiltrados[0].vend_Id);
+    } else {
+      this.venta.vend_Id = 0;
+      
+      // Si no hay vendedores para esta sucursal pero hay vendedores en general,
+      // usar todos los vendedores como alternativa
+      if (this.vendedores && this.vendedores.length > 0) {
+        // Mostrar mensaje en consola
+        console.warn('No se encontraron vendedores para la sucursal seleccionada. Mostrando todos los vendedores.');
+      }
+    }
     if (this.sucursalSeleccionadaAnterior !== this.venta.regC_Id) {
       this.limpiarCantidadesSeleccionadas();
       this.sucursalSeleccionadaAnterior = this.venta.regC_Id;
@@ -114,6 +289,9 @@ export class CreateComponent implements OnInit {
       this.limpiarInventario();
     }
   }
+
+
+
 
   private cargarInventarioSucursal(): void {
     this.cargandoInventario = true;
@@ -326,6 +504,8 @@ export class CreateComponent implements OnInit {
     const errores = [];
 
     if (!this.venta.regC_Id || this.venta.regC_Id == 0) errores.push('Sucursal');
+    if (!this.venta.clie_Id || this.venta.clie_Id == 0) errores.push('Cliente');
+    if (!this.venta.vend_Id || this.venta.vend_Id == 0) errores.push('Vendedor');
     if (!this.venta.fact_TipoVenta) errores.push('Tipo de venta (Contado/Crédito)');
     if (!this.venta.fact_FechaEmision) errores.push('Fecha de emisión');
 
@@ -452,7 +632,9 @@ export class CreateComponent implements OnInit {
     this.venta.usua_Creacion = this.usuarioId;
     this.venta.fact_FechaEmision = new Date();
     this.venta.fact_FechaLimiteEmision = new Date();
-
+    this.venta.regC_Id = 19;
+    this.venta.clie_Id =111;
+    this.venta.vend_Id = 1;
     this.productos.forEach((p) => {
       p.cantidad = 0;
       p.stockDisponible = 0;
@@ -494,42 +676,88 @@ export class CreateComponent implements OnInit {
     return true;
   }
 
-  private crearVenta(): void {
-    const detalles = this.obtenerDetallesVenta();
-
-    const datos = {
-      ...this.venta,
-      fact_FechaEmision: new Date(this.venta.fact_FechaEmision).toISOString(),
-      fact_FechaLimiteEmision: new Date(this.venta.fact_FechaLimiteEmision).toISOString(),
-      usua_Creacion: environment.usua_Id,
-      detallesFacturaInput: detalles,
-    };
-
-    this.http
-      .post<any>(`${environment.apiBaseUrl}/VentaInsertar/Insertar`, datos, {
-        headers: this.obtenerHeaders(),
-      })
-      .subscribe({
-        next: (response) => {
-          const id = this.extraerId(response);
-          if (id > 0) {
-            this.mostrarExito(`Venta guardada con éxito (${detalles.length} productos)`);
-            setTimeout(() => {
-              this.onSave.emit(this.venta);
-              this.cancelar();
-            }, 3000);
-          } else {
-            this.mostrarError('No se pudo obtener el ID de la venta');
-          }
-        },
-        error: () => this.mostrarError('Error al guardar la venta'),
-      });
+onFechaEmisionChange(event: any): void {
+  const value = event.target.value; // string en formato "YYYY-MM-DD"
+  if (value) {
+    this.venta.fact_FechaEmision = new Date(value); // Convierte a Date
+  } else {
+    this.venta.fact_FechaEmision = new Date(); // Valor por defecto
   }
+}
+
+
+private crearVenta(): void {
+  if (!this.validarDatosBasicos()) return;
+
+  this.guardando = true;
+  
+  // Generar un nuevo número de factura para este intento
+  this.venta.fact_Numero = this.generarNumeroFactura();
+  console.log('Número de factura generado:', this.venta.fact_Numero);
+  
+  const detalles = this.obtenerDetallesVenta();
+  
+  // Aseguramos que las fechas estén en formato ISO
+  const datosEnviar = {
+    ...this.venta,
+    fact_FechaEmision: this.venta.fact_FechaEmision.toISOString(),
+    fact_FechaLimiteEmision: this.venta.fact_FechaLimiteEmision.toISOString(),
+    detallesFacturaInput: detalles
+  };
+
+  // Verifica en consola lo que se envía
+  console.log('Datos enviados al backend:', datosEnviar);
+
+  // Enviar al backend
+  this.http
+    .post<any>(
+      `${environment.apiBaseUrl}/Facturas/Insertar`, 
+      datosEnviar,
+      { headers: this.obtenerHeaders() }
+    )
+    .subscribe({
+      next: (response) => {
+        this.guardando = false;
+        const id = this.extraerId(response);
+        if (id > 0) {
+          this.mostrarExito(`Venta guardada con éxito (${detalles.length} productos)`);
+          setTimeout(() => {
+            this.onSave.emit(this.venta);
+            this.cancelar();
+          }, 3000);
+        } else {
+          this.mostrarError('No se pudo obtener el ID de la venta');
+        }
+      },
+      error: (err) => {
+        this.guardando = false;
+        console.error('Error al guardar la venta:', err);
+        this.mostrarError('Error al guardar la venta');
+      },
+    });
+}
 
   private extraerId(response: any): number {
     const data = response?.data;
     if (!data || data.code_Status !== 1) return 0;
     return data.fact_Id || data.Fact_Id || data.id || 0;
+  }
+
+  /**
+   * Genera un número de factura aleatorio con formato XXXXXXXX (8 dígitos)
+   * Utiliza el prefijo del rango inicial autorizado y genera los dígitos restantes
+   */
+  private generarNumeroFactura(): string {
+    // Prefijo base (puedes ajustarlo según tus necesidades)
+    const prefijo = '010';
+    
+    // Generar 5 dígitos aleatorios para completar el número
+    const min = 10000;
+    const max = 99999;
+    const numeroAleatorio = Math.floor(Math.random() * (max - min + 1)) + min;
+    
+    // Combinar prefijo con número aleatorio
+    return prefijo + numeroAleatorio.toString();
   }
 
   private obtenerHeaders(): any {
