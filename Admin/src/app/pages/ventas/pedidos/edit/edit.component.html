@@ -33,15 +33,13 @@
     <div class="row">
 
 
-  <div class="col-md-6">
-  <label class="form-label">
-    Cliente <span class="text-danger">*</span>
-  </label>
-  <div class="mb-3">
-    <div class="d-flex align-items-center">
-      <i
-        class="ri-user-3-line"
-        [ngStyle]="{
+      <div class="col-md-6">
+        <label class="form-label">
+          Cliente <span class="text-danger">*</span>
+        </label>
+        <div class="mb-3">
+          <div class="d-flex align-items-center">
+            <i class="ri-user-3-line" [ngStyle]="{
           border: (!pedidoEditada.clie_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
           backgroundColor: (!pedidoEditada.clie_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
           padding: '0.525rem 0.525rem',
@@ -49,39 +47,30 @@
           left: '7px',
           borderTopLeftRadius: '8px',
           borderBottomLeftRadius: '8px'
-        }"
-      ></i>
+        }"></i>
 
-      <ng-select
-        class="w-100"
-        [items]="Clientes"
-        bindLabel="clie_NombreNegocio"
-        bindValue="clie_Id"
-        [(ngModel)]="pedidoEditada.clie_Id"
-        [searchable]="true"
-        [clearable]="false"
-        [class.is-invalid]="!pedidoEditada.clie_Id && mostrarErrores"
-        placeholder="Seleccione un cliente"
-        [searchFn]="searchCliente"
-        (change)="cargarMunicipios(pedidoEditada.clie_Id)"
-        required
-      >
-        <ng-template ng-label-tmp let-item="item">
-          {{ item.clie_Codigo }} - {{ item.clie_Nombres }} {{ item.clie_Apellidos }} - {{ item.clie_NombreNegocio }}
-        </ng-template>
-        <ng-template ng-option-tmp let-item="item">
-          {{ item.clie_Codigo }} - {{ item.clie_Nombres }} {{ item.clie_Apellidos }} - {{ item.clie_NombreNegocio }}
-        </ng-template>
-      </ng-select>
+            <ng-select class="w-100" [items]="Clientes" bindLabel="clie_NombreNegocio" bindValue="clie_Id"
+              [(ngModel)]="pedidoEditada.clie_Id" [searchable]="true" [clearable]="false"
+              [class.is-invalid]="!pedidoEditada.clie_Id && mostrarErrores" placeholder="Seleccione un cliente"
+              [searchFn]="searchCliente" (change)="cargarMunicipios(pedidoEditada.clie_Id)" required>
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.clie_Codigo }} - {{ item.clie_Nombres }} {{ item.clie_Apellidos }} - {{ item.clie_NombreNegocio
+                }}
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                {{ item.clie_Codigo }} - {{ item.clie_Nombres }} {{ item.clie_Apellidos }} - {{ item.clie_NombreNegocio
+                }}
+              </ng-template>
+            </ng-select>
 
-      <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-    </div>
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          </div>
 
-    <div class="text-danger mt-1" *ngIf="!pedidoEditada.clie_Id && mostrarErrores">
-      <small>El campo cliente es requerido</small>
-    </div>
-  </div>
-</div>
+          <div class="text-danger mt-1" *ngIf="!pedidoEditada.clie_Id && mostrarErrores">
+            <small>El campo cliente es requerido</small>
+          </div>
+        </div>
+      </div>
 
 
 
@@ -203,8 +192,16 @@
 
                     <!-- Nombre del producto -->
                     <h6 class="producto-titulo-premium mb-3">
-                      {{ producto.prod_Descripcion }}
+                      {{ producto.prod_DescripcionCorta }}
                     </h6>
+
+                     <div class="precio-producto mb-3">
+                      <span class="text-muted">Precio:</span>
+                     <span class="fw-bold text-dark">
+  L {{ getPrecioPorCantidad(producto, producto.cantidad).toFixed(2) }}
+</span>
+
+                    </div>
 
                     <!-- Controles de cantidad -->
                     <div class="cantidad-controls-premium">

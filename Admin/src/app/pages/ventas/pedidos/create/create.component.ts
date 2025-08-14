@@ -147,122 +147,138 @@ export class CreateComponent {
 
   // ========== MÉTODOS DE CANTIDAD MEJORADOS ==========
 
-aumentarCantidad(prodId: number): void {
-  const index = this.getProductoIndex(prodId);
-  if (index >= 0 && index < this.productos.length) {
-    const producto = this.productos[index];
-    producto.cantidad = (producto.cantidad || 0) + 1;
+  aumentarCantidad(prodId: number): void {
+    const index = this.getProductoIndex(prodId);
+    if (index >= 0 && index < this.productos.length) {
+      const producto = this.productos[index];
+      producto.cantidad = (producto.cantidad || 0) + 1;
+      producto.precio = this.getPrecioPorCantidad(producto, producto.cantidad);
+    }
+  }
+
+  disminuirCantidad(prodId: number): void {
+    const index = this.getProductoIndex(prodId);
+    if (
+      index >= 0 &&
+      index < this.productos.length &&
+      this.productos[index].cantidad > 0
+    ) {
+      const producto = this.productos[index];
+      producto.cantidad--;
+      producto.precio = this.getPrecioPorCantidad(producto, producto.cantidad);
+    }
+  }
+
+  actualizarPrecio(producto: any): void {
     producto.precio = this.getPrecioPorCantidad(producto, producto.cantidad);
   }
-}
 
-disminuirCantidad(prodId: number): void {
-  const index = this.getProductoIndex(prodId);
-  if (index >= 0 && index < this.productos.length && this.productos[index].cantidad > 0) {
-    const producto = this.productos[index];
-    producto.cantidad--;
-    producto.precio = this.getPrecioPorCantidad(producto, producto.cantidad);
+  validarCantidad(prodId: number): void {
+    const index = this.getProductoIndex(prodId);
+    if (index >= 0 && index < this.productos.length) {
+      const producto = this.productos[index];
+      const cantidad = producto.cantidad || 0;
+      producto.cantidad = Math.max(0, Math.min(999, cantidad));
+      producto.precio = this.getPrecioPorCantidad(producto, producto.cantidad);
+    }
   }
-}
-
-actualizarPrecio(producto: any): void {
-  producto.precio = this.getPrecioPorCantidad(producto, producto.cantidad);
-}
-
-
-validarCantidad(prodId: number): void {
-  const index = this.getProductoIndex(prodId);
-  if (index >= 0 && index < this.productos.length) {
-    const producto = this.productos[index];
-    const cantidad = producto.cantidad || 0;
-    producto.cantidad = Math.max(0, Math.min(999, cantidad));
-    producto.precio = this.getPrecioPorCantidad(producto, producto.cantidad);
-  }
-}
-
 
   //Codigo de precios
 
+  getPrecioPorCantidad(producto: any, cantidad: number): number {
+    let precioBase = producto.prod_PrecioUnitario || 0;
 
-getPrecioPorCantidad(producto: any, cantidad: number): number {
-  let precioBase = producto.prod_PrecioUnitario || 0;
+    // Si hay lista de precios y cantidad válida
+    if (producto.listasPrecio_JSON && cantidad > 0) {
+      let escalaAplicada = null;
 
-  // Si hay lista de precios y cantidad válida
-  if (producto.listasPrecio_JSON  && cantidad > 0) {
-    let escalaAplicada = null;
+      for (const lp of producto.listasPrecio_JSON) {
+        if (cantidad >= lp.PreP_InicioEscala && cantidad <= lp.PreP_FinEscala) {
+          escalaAplicada = lp;
+          break;
+        }
+      }
 
-    for (const lp of producto.listasPrecio_JSON) {
-      if (cantidad >= lp.PreP_InicioEscala  && cantidad <= lp.PreP_FinEscala) {
-        escalaAplicada = lp;
+      // Si no encontró escala, usa la última si la cantidad excede
+      if (!escalaAplicada && producto.listasPrecio_JSON.length > 0) {
+        const ultimaEscala =
+          producto.listasPrecio_JSON[producto.listasPrecio_JSON.length - 1];
+        if (cantidad > ultimaEscala.PreP_FinEscala) {
+          escalaAplicada = ultimaEscala;
+        }
+      }
+
+      if (escalaAplicada) {
+        precioBase = escalaAplicada.PreP_PrecioContado;
+      }
+    }
+
+    // Aplica descuento si corresponde
+    return this.aplicarDescuento(producto, cantidad, precioBase);
+  }
+
+  aplicarDescuento(
+    producto: any,
+    cantidad: number,
+    precioBase: number
+  ): number {
+    const descEsp = producto.desc_EspecificacionesJSON || {};
+
+    if (
+      !producto.descuentosEscala_JSON ||
+      !descEsp ||
+      descEsp.Desc_TipoFactura !== 'AM'
+    ) {
+      return precioBase;
+    }
+
+    const descuentosEscala = producto.descuentosEscala_JSON;
+
+    let descuentoAplicado = null;
+
+    for (const desc of descuentosEscala) {
+      if (
+        cantidad >= desc.DeEs_InicioEscala &&
+        cantidad <= desc.DeEs_FinEscala
+      ) {
+        descuentoAplicado = desc;
         break;
       }
     }
 
-    // Si no encontró escala, usa la última si la cantidad excede
-    if (!escalaAplicada && producto.listasPrecio_JSON.length > 0) {
-      const ultimaEscala = producto.listasPrecio_JSON[producto.listasPrecio_JSON.length - 1];
-      if (cantidad > ultimaEscala.PreP_FinEscala) {
-        escalaAplicada = ultimaEscala;
+    // Si no encontró descuento, usa el último si la cantidad excede
+    if (!descuentoAplicado && descuentosEscala.length > 0) {
+      const ultimoDescuento = descuentosEscala[descuentosEscala.length - 1];
+      if (cantidad > ultimoDescuento.DeEs_FinEscala) {
+        descuentoAplicado = ultimoDescuento;
       }
     }
 
-    if (escalaAplicada) {
-      precioBase = escalaAplicada.PreP_PrecioContado;
+    if (descuentoAplicado) {
+      return this.calcularDescuento(
+        precioBase,
+        descEsp,
+        descuentoAplicado.DeEs_Valor
+      );
     }
-  }
 
-  // Aplica descuento si corresponde
-  return this.aplicarDescuento(producto, cantidad, precioBase);
-}
-
-aplicarDescuento(producto: any, cantidad: number, precioBase: number): number {
-const descEsp = producto.desc_EspecificacionesJSON  || {};
-
-  if (!producto.descuentosEscala_JSON || !descEsp || descEsp.Desc_TipoFactura !== 'AM') {
     return precioBase;
   }
 
-  const descuentosEscala = producto.descuentosEscala_JSON;
-
-  let descuentoAplicado = null;
-
-  for (const desc of descuentosEscala) {
-    if (cantidad >= desc.DeEs_InicioEscala  && cantidad <= desc.DeEs_FinEscala ) {
-      descuentoAplicado = desc;
-      break;
+  calcularDescuento(
+    precioBase: number,
+    descEsp: any,
+    valorDescuento: number
+  ): number {
+    if (descEsp.Desc_Tipo === 0) {
+      // Descuento por porcentaje
+      return precioBase - precioBase * (valorDescuento / 100);
+    } else if (descEsp.Desc_Tipo === 1) {
+      // Descuento por monto fijo
+      return precioBase - valorDescuento;
     }
+    return precioBase;
   }
-
-  // Si no encontró descuento, usa el último si la cantidad excede
-  if (!descuentoAplicado && descuentosEscala.length > 0) {
-    const ultimoDescuento = descuentosEscala[descuentosEscala.length - 1];
-    if (cantidad > ultimoDescuento.DeEs_FinEscala) {
-      descuentoAplicado = ultimoDescuento;
-    }
-  }
-
-  if (descuentoAplicado) {
-    return this.calcularDescuento(precioBase, descEsp, descuentoAplicado.DeEs_Valor);
-  }
-
-  return precioBase;
-}
-
-calcularDescuento(
-  precioBase: number,
-  descEsp: any,
-  valorDescuento: number
-): number {
-  if (descEsp.Desc_Tipo === 0) {
-    // Descuento por porcentaje
-    return precioBase - precioBase * (valorDescuento / 100);
-  } else if (descEsp.Desc_Tipo === 1) {
-    // Descuento por monto fijo
-    return precioBase - valorDescuento;
-  }
-  return precioBase;
-}
-
 
   //Codigo de precios end
 
@@ -272,16 +288,16 @@ calcularDescuento(
     return producto ? producto.cantidad || 0 : 0;
   }
 
-obtenerProductosSeleccionados(): any[] {
-  return this.productos
-    .filter((p) => p.cantidad > 0)
-    .map((p) => ({
-      prod_Id: p.prod_Id,
-      peDe_Cantidad: p.cantidad,
-      peDe_ProdPrecio: p.precio || p.prod_PrecioUnitario || 0, // Precio unitario base
-      peDe_ProdPrecioFinal: this.getPrecioPorCantidad(p, p.cantidad), // Precio final con descuento/escalas
-    }));
-}
+  obtenerProductosSeleccionados(): any[] {
+    return this.productos
+      .filter((p) => p.cantidad > 0)
+      .map((p) => ({
+        prod_Id: p.prod_Id,
+        peDe_Cantidad: p.cantidad,
+        peDe_ProdPrecio: p.prod_PrecioUnitario || 0, // Precio unitario base
+        peDe_ProdPrecioFinal: this.getPrecioPorCantidad(p, p.cantidad), // Precio final con descuento/escalas
+      }));
+  }
 
   // ========== MÉTODOS DE CLIENTES (SIN CAMBIOS) ==========
 
@@ -329,46 +345,54 @@ obtenerProductosSeleccionados(): any[] {
     this.cargarDirecciones(clienteId);
     this.pedido.diCl_Id = 0; // Reiniciar dirección seleccionada
 
-     this.cargarProductosPorCliente(clienteId);
+    this.cargarProductosPorCliente(clienteId);
   }
 
-cargarProductosPorCliente(clienteId: number): void {
-  this.http.get<any>(`${environment.apiBaseUrl}/Productos/ListaPrecio/${clienteId}`, {
-    headers: { 'x-api-key': environment.apiKey }
-  }).subscribe({
-    next: (productos) => {
-      // Mapear productos para agregar cantidad y precio
-      this.productos = productos.map((producto: any) => ({
-        ...producto,
-        cantidad: 0,
-        precio: producto.precio || producto.prod_PrecioUnitario || 0,
-          listasPrecio_JSON: typeof producto.listasPrecio_JSON === 'string'
-    ? JSON.parse(producto.listasPrecio_JSON)
-    : producto.listasPrecio_JSON,
-  descuentosEscala_JSON: typeof producto.descuentosEscala_JSON === 'string'
-    ? JSON.parse(producto.descuentosEscala_JSON)
-    : producto.descuentosEscala_JSON,
-      desc_EspecificacionesJSON: typeof producto.desc_EspecificacionesJSON === 'string'
-    ? JSON.parse(producto.desc_EspecificacionesJSON)
-    : producto.desc_EspecificacionesJSON,
-      }));
-      this.aplicarFiltros();
-      console.log('Productos cargados para el cliente:', this.productos);
-      console.log('Productos cargados para el cliente:', this.productos);
-     // console.log("Listas de precio del producto:", productos.listasPrecio);
-    },
-    error: (error) => {
-      console.error('Error al obtener productos:', error);
-      this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'No se pudieron obtener los productos para el cliente seleccionado.';
-    }
-  });
-}
-
+  cargarProductosPorCliente(clienteId: number): void {
+    this.http
+      .get<any>(
+        `${environment.apiBaseUrl}/Productos/ListaPrecio/${clienteId}`,
+        {
+          headers: { 'x-api-key': environment.apiKey },
+        }
+      )
+      .subscribe({
+        next: (productos) => {
+          // Mapear productos para agregar cantidad y precio
+          this.productos = productos.map((producto: any) => ({
+            ...producto,
+            cantidad: 0,
+            precio: producto.precio || producto.prod_PrecioUnitario || 0,
+            listasPrecio_JSON:
+              typeof producto.listasPrecio_JSON === 'string'
+                ? JSON.parse(producto.listasPrecio_JSON)
+                : producto.listasPrecio_JSON,
+            descuentosEscala_JSON:
+              typeof producto.descuentosEscala_JSON === 'string'
+                ? JSON.parse(producto.descuentosEscala_JSON)
+                : producto.descuentosEscala_JSON,
+            desc_EspecificacionesJSON:
+              typeof producto.desc_EspecificacionesJSON === 'string'
+                ? JSON.parse(producto.desc_EspecificacionesJSON)
+                : producto.desc_EspecificacionesJSON,
+          }));
+          this.aplicarFiltros();
+          console.log('Productos cargados para el cliente:', this.productos);
+          console.log('Productos cargados para el cliente:', this.productos);
+          // console.log("Listas de precio del producto:", productos.listasPrecio);
+        },
+        error: (error) => {
+          console.error('Error al obtener productos:', error);
+          this.mostrarAlertaWarning = true;
+          this.mensajeWarning =
+            'No se pudieron obtener los productos para el cliente seleccionado.';
+        },
+      });
+  }
 
   constructor(private http: HttpClient) {
     this.cargarClientes();
-   // this.listarProductos();
+    // this.listarProductos();
   }
 
   // Agregar al componente TypeScript
