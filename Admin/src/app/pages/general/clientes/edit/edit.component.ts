@@ -83,6 +83,9 @@ export class EditComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['clienteData']?.currentValue) {
       this.cliente = { ...changes['clienteData'].currentValue };
+      //Hacer lo mismo con canales, estados civiles y demas
+      const rutaActual = this.rutas.find(ruta => ruta.ruta_Id === this.cliente.ruta_Id);
+      this.cliente.ruta_Descripcion = rutaActual ? rutaActual.ruta_Descripcion : '';
       this.clienteOriginal = { ...changes['clienteData'].currentValue };
       this.idDelCliente = this.cliente.clie_Id;
 
@@ -129,6 +132,17 @@ export class EditComponent implements OnChanges {
     } else {
       this.cliente.pais_Descripcion = '';
     }
+  }
+
+  onRutaChange(event: any) {
+    const selectedId = +event.target.value;
+    const rutaSeleccionada = this.rutas.find(r => r.ruta_Id === selectedId);
+    if (rutaSeleccionada) {
+      this.cliente.ruta_Descripcion = rutaSeleccionada.ruta_Descripcion;
+    } else {
+      this.cliente.ruta_Descripcion = '';
+    }
+    this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
   }
 
   esCorreoValido(correo: string): boolean {
@@ -863,6 +877,7 @@ export class EditComponent implements OnChanges {
               return;
             }
             this.actualizarDireccionesYAvales();
+            this.onSave.emit(this.cliente);
           },
           error: (error) => {
             this.mostrarAlertaError = true;

@@ -424,7 +424,7 @@
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
               <select id="ruta_Id" class="form-select" [(ngModel)]="cliente.ruta_Id"
-                (change)="generarCodigoClientePorRuta(cliente.ruta_Id)"
+                (change)="onRutaChange($event)"
                 [class.is-invalid]="!cliente.ruta_Id && mostrarErrores" required>
                 <option value="0" disabled>Seleccione una ruta</option>
                 <option *ngFor="let ruta of rutas" [value]="ruta.ruta_Id">
