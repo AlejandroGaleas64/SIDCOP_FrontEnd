@@ -622,10 +622,10 @@ export class CreateComponent {
         .then(response => response.json())
         .then(data => {
           this.cliente.clie_ImagenDelNegocio = data.secure_url;
-          console.log(this.cliente.clie_ImagenDelNegocio)
+          //console.log(this.cliente.clie_ImagenDelNegocio)
         })
         .catch(error => {
-          console.error('Error al subir la imagen a Cloudinary:', error);
+          //console.error('Error al subir la imagen a Cloudinary:', error);
         });
     }
   }

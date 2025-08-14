@@ -140,10 +140,12 @@ export class ListComponent {
   mensajeError = '';
   mostrarAlertaWarning = false;
   mensajeWarning = '';
+  mostrarModalActivacion = false;
 
 
   clienteDetalle: Cliente | null = null;
   clienteEditando: Cliente | null = null;
+  clienteSeleccionado: Cliente | null = null;
 
   // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
@@ -441,6 +443,7 @@ export class ListComponent {
     this.showEditForm = true;
     this.showCreateForm = false;
     this.showDetailsForm = false;
+    this.listadoClientesSinConfirmar = false;
     this.activeActionRow = null;
   }
 
@@ -591,6 +594,23 @@ export class ListComponent {
     this.cargarDatos(false);
     this.showDetailsForm = false;
     this.clienteDetalle = null;
+  }
+
+  activar(cliente: Cliente):void{
+    this.clienteSeleccionado = cliente;
+    this.mostrarModalActivacion = true;
+  }
+
+  confirmarEdicion(): void {
+    if (this.clienteSeleccionado) {
+      this.editar(this.clienteSeleccionado);
+      this.cerrarModalActivacion();
+    }
+  }
+
+  cerrarModalActivacion(): void {
+    this.mostrarModalActivacion = false;
+    this.clienteSeleccionado = null;
   }
 
   guardarCliente(cliente: Cliente): void {
