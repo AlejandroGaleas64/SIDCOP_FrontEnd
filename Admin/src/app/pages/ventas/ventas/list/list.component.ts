@@ -451,17 +451,34 @@ export class ListComponent implements OnInit {
     this.facturaIdDetalle = null; // Limpiar también el ID
   }
 
-  guardarFactura(factura: VentaInsertar): void {
+  guardarFactura(datos: any): void {
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
-      console.log(
-        'Factura guardado exitosamente desde create component:',
-        factura
-      );
+      console.log('Datos recibidos del componente create:', datos);
+      
+      // Recargar los datos de la tabla
       this.cargardatos();
+      
+      // Cerrar el formulario de creación
       this.showCreateForm = false;
-      this.mensajeExito = `Factura guardado exitosamente`;
+      
+      // Mostrar mensaje de éxito
+      this.mensajeExito = `Factura guardada exitosamente`;
       this.mostrarAlertaExito = true;
+      
+      // Si se solicitó mostrar detalles y tenemos un ID válido
+      if (datos.mostrarDetalles && datos.fact_Id > 0) {
+        console.log('Mostrando detalles de la factura:', datos.fact_Id);
+        
+        // Configurar el ID para el componente de detalles
+        this.facturaIdDetalle = datos.fact_Id;
+        this.facturaDetalle = null; // Limpiar datos previos
+        
+        // Mostrar el formulario de detalles
+        this.showDetailsForm = true;
+      }
+      
+      // Ocultar el mensaje de éxito después de un tiempo
       setTimeout(() => {
         this.mostrarAlertaExito = false;
         this.mensajeExito = '';
