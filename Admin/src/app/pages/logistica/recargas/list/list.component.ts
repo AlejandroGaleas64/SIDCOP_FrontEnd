@@ -173,25 +173,50 @@ export class ListComponent implements OnInit {
   private cargarDatosSesion(): void {
     try {
       const userId = getUserId();
+      console.log('User ID from getUserId():', userId);
+      
+      // Get the currentUser object from localStorage
+      const currentUserStr = localStorage.getItem('currentUser');
+      let currentUser = null;
+      let esAdmin = false;
+      
+      if (currentUserStr) {
+        try {
+          currentUser = JSON.parse(currentUserStr);
+          esAdmin = currentUser?.usua_EsAdmin === true;
+          console.log('Current user from localStorage:', currentUser);
+          console.log('Is admin from currentUser:', esAdmin);
+        } catch (e) {
+          console.error('Error parsing currentUser:', e);
+        }
+      }
+  
       if (!userId) {
         console.error('No se pudo obtener el ID del usuario');
         this.mostrarMensaje('error', 'Error al cargar datos del usuario');
         return;
       }
-
+  
+      // Set the current user with proper type conversion
       this.currentUser = {
         usua_Id: userId,
-        sucu_Id: localStorage.getItem('sucu_Id') ? parseInt(localStorage.getItem('sucu_Id')!) : 0,
-        usua_EsAdmin: localStorage.getItem('usua_EsAdmin') === 'true'
+        sucu_Id: currentUser?.sucu_Id || 0,
+        usua_EsAdmin: esAdmin
       };
-
+  
+      // Set the component property
       this.EsAdmin = this.currentUser.usua_EsAdmin;
+      
+      // Debug log to verify the value
+      console.log('Final admin status:', this.EsAdmin);
+      console.log('Current user object:', this.currentUser);
     } catch (error) {
       console.error('Error al cargar datos de sesión:', error);
       this.mostrarMensaje('error', 'Error al cargar configuración del usuario');
     }
   }
 
+  
    //Carga las acciones/permisos disponibles del usuario para este módulo
     private cargarAccionesUsuario(): void {
     const permisosRaw = localStorage.getItem('permisosJson');
@@ -513,51 +538,54 @@ export class ListComponent implements OnInit {
    * Carga los datos de recargas desde la API
    * @param state - Indica si mostrar overlay de carga
    */
-  private cargardatos(state: boolean): void {
-    this.mostrarOverlayCarga = state;
+// REEMPLAZA TU MÉTODO cargardatos CON ESTE
+private cargardatos(state: boolean): void {
+  this.mostrarOverlayCarga = state;
 
-    // Verificar que tenemos datos de usuario cargados
-    if (!this.currentUser) {
-      console.error('Error: No hay datos de usuario disponibles');
-      this.mostrarMensaje('error', 'Error al cargar datos de usuario');
-      this.mostrarOverlayCarga = false;
-      return;
-    }
-
-    // Usar los datos del usuario actual
-    const sucuId = this.currentUser.sucu_Id || 0; // ID de sucursal del usuario
-    const esAdmin = this.currentUser.usua_EsAdmin || false; // Si es administrador
-    console.log(`Cargando datos para Sucursal ID: ${sucuId}, Es Admin: ${esAdmin}`);
-
-    this.http.get<Recargas[]>(`${environment.apiBaseUrl}/Recargas/ListarsPorSucursal/${sucuId}/${esAdmin}`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe({
-      
-      next: (data) => {
-        console.log("date" + sucuId + esAdmin + data);
-        data.forEach((recargas, index) => {
-          recargas.secuencia = index + 1;
-        });
-
-        // Actualizar tabla y estado
-        this.table.setData(data);
-        this.tieneRegistros = data.length > 0;
-      },
-      error: (error) => {
-        console.error('Error al cargar los datos:', error);
-        this.mostrarOverlayCarga = false;
-        this.mostrarMensaje('error', this.obtenerMensajeError(error));
-        this.table.setData([]);
-        this.tieneRegistros = false;
-      },
-      complete: () => {
-        setTimeout(() => {
-          this.mostrarOverlayCarga = false;
-        }, 500);
-      }
-    });
+  // Verificar que tenemos datos de usuario cargados
+  if (!this.currentUser) {
+    console.error('Error: No hay datos de usuario disponibles');
+    this.mostrarMensaje('error', 'Error al cargar datos de usuario');
+    this.mostrarOverlayCarga = false;
+    return;
   }
-  
+
+  // Usar los datos del usuario actual
+  const sucuId = this.currentUser.sucu_Id || 0;
+  const esAdmin = this.currentUser.usua_EsAdmin || false;
+  console.log(`Cargando datos para Sucursal ID: ${sucuId}, Es Admin: ${esAdmin}`);
+
+  this.http.get<Recargas[]>(`${environment.apiBaseUrl}/Recargas/ListarsPorSucursal/${sucuId}/${esAdmin}`, {
+    headers: { 'x-api-key': environment.apiKey }
+  }).subscribe({
+    
+    next: (data) => {
+      console.log("Datos recibidos:", data);
+      console.log("XML de primera recarga:", data[0]?.detalleProductos);
+      
+      // Agregar secuencia a cada recarga
+      data.forEach((recarga, index) => {
+        recarga.secuencia = index + 1;
+      });
+
+      // Actualizar tabla y estado
+      this.table.setData(data);
+      this.tieneRegistros = data.length > 0;
+    },
+    error: (error) => {
+      console.error('Error al cargar los datos:', error);
+      this.mostrarOverlayCarga = false;
+      this.mostrarMensaje('error', this.obtenerMensajeError(error));
+      this.table.setData([]);
+      this.tieneRegistros = false;
+    },
+    complete: () => {
+      setTimeout(() => {
+        this.mostrarOverlayCarga = false;
+      }, 500);
+    }
+  });
+}
     //Maneja errores de carga de imágenes - pone imagen por defecto
 
   onImgError(event: Event): void {

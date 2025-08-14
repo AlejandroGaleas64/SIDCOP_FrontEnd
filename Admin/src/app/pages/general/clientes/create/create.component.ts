@@ -5,12 +5,9 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Cliente } from 'src/app/Modelos/general/Cliente.Model';
 import { environment } from 'src/environments/environment.prod';
 import { ChangeDetectorRef } from '@angular/core';
-
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { MapaSelectorComponent } from '../mapa-selector/mapa-selector.component';
 import { Aval } from 'src/app/Modelos/general/Aval.Model';
-
-import { NgModule } from '@angular/core';
 import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente.Model';
 import { getUserId } from 'src/app/core/utils/user-utils';
 
@@ -109,7 +106,6 @@ export class CreateComponent {
     if (no === 1) {
       this.mostrarErrores = true;
       if (
-        this.cliente.clie_Codigo.trim() &&
         this.cliente.clie_Nacionalidad.trim() &&
         this.cliente.clie_RTN.trim() &&
         this.cliente.clie_Nombres.trim() &&
@@ -237,7 +233,7 @@ export class CreateComponent {
   tabuladores(no: number) {
     if (no == 1) {
       this.mostrarErrores = true
-      if (this.cliente.clie_Codigo.trim() && this.cliente.clie_Nacionalidad.trim() &&
+      if (this.cliente.clie_Nacionalidad.trim() &&
         this.cliente.clie_RTN.trim() && this.cliente.clie_Nombres.trim() &&
         this.cliente.clie_Apellidos.trim() && this.cliente.esCv_Id &&
         this.cliente.clie_FechaNacimiento && this.cliente.tiVi_Id &&
@@ -447,7 +443,7 @@ export class CreateComponent {
     }).subscribe(data => this.colonias = data);
   }
 
-   obtenerDescripcionColonia(colo_Id: number): string {
+  obtenerDescripcionColonia(colo_Id: number): string {
     const colonia = this.colonias.find(c => c.colo_Id === colo_Id);
     return colonia?.colo_Descripcion || 'Colonia no encontrada';
   }
@@ -634,6 +630,30 @@ export class CreateComponent {
     }
   }
 
+  generarCodigoClientePorRuta(ruta_Id: number): void {
+    const ruta = this.rutas.find(r => r.ruta_Id === +ruta_Id);
+    const codigoRuta = ruta?.ruta_Codigo
+      ? ruta.ruta_Codigo.padStart(3, '0')
+      : ruta_Id.toString().padStart(3, '0');
+
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(clientes => {
+      const clientesRuta = clientes.filter(c => c.ruta_Id === +ruta_Id);
+      let maxCorrelativo = 0;
+      clientesRuta.forEach(c => {
+        const match = c.clie_Codigo?.match(/CLIE-RT\d{3}-(\d{9})/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxCorrelativo) maxCorrelativo = num;
+        }
+      });
+
+      const siguiente = (maxCorrelativo + 1).toString().padStart(9, '0');
+      this.cliente.clie_Codigo = `CLIE-RT${codigoRuta}-${siguiente}`;
+    });
+  }
+
   guardarCliente(): void {
     this.mostrarErrores = true;
     if (this.entrando) {
@@ -703,6 +723,7 @@ export class CreateComponent {
             this.idDelCliente = response.data.data;
             this.guardarDireccionesPorCliente(this.idDelCliente);
             this.guardarAvales(this.idDelCliente);
+            this.mostrarErrores = false;
             this.onSave.emit(this.cliente);
             this.cancelar();
           }
@@ -819,7 +840,6 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          console.log(response);
         },
         error: (error) => {
           this.mostrarAlertaError = true;
@@ -876,7 +896,6 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          // Puedes manejar la respuesta aquí
         },
         error: (error) => {
           this.mostrarAlertaError = true;

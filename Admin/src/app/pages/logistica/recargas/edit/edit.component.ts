@@ -5,6 +5,15 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 
+// Interface para productos de recarga
+interface ProductosRecarga {
+  prod_Codigo: string;
+  prod_DescripcionCorta: string;
+  reDe_Cantidad: number;
+  prod_Id?: number;
+  reDe_Observaciones?: string;
+}
+
 @Component({
   selector: 'app-edit-recarga',
   standalone: true,
@@ -26,6 +35,7 @@ export class EditRecargaComponent implements OnChanges {
 
   recargaOriginal: any = {};
   cambiosDetectados: any = {};
+  productos: ProductosRecarga[] = []; // Array para productos parseados
 
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -37,18 +47,26 @@ export class EditRecargaComponent implements OnChanges {
   mensajeError = '';
   mensajeWarning = '';
 
-
   constructor(private http: HttpClient) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['recargaData']?.currentValue) {
       this.recarga = { 
         ...changes['recargaData'].currentValue,
-        reca_Confirmacion: changes['recargaData'].currentValue.reca_Confirmacion || '',
+        reca_Confirmacion: '', // Siempre iniciar con "Seleccione una opción"
         reca_Observaciones: changes['recargaData'].currentValue.reca_Observaciones || ''
       };
       this.recargaOriginal = { ...this.recarga };
+      
+      // Parsear productos del XML
+      if (this.recarga.detalleProductos) {
+        this.productos = this.parsearXMLProductos(this.recarga.detalleProductos);
+      } else {
+        this.productos = [];
+      }
+      
       this.resetAlerts();
+      this.mostrarErrores = false;
     }
   }
 
@@ -78,8 +96,7 @@ export class EditRecargaComponent implements OnChanges {
     }
   }
 
- 
-private validarCampos(): boolean {
+  private validarCampos(): boolean {
     const errores: string[] = [];
     const confirmacion = this.recarga.reca_Confirmacion?.toUpperCase();
 
@@ -110,29 +127,52 @@ private validarCampos(): boolean {
   private hayDiferencias(): boolean {
     if (!this.recarga || !this.recargaOriginal) return false;
 
-    const cambios = {
-      confirmacion: this.recarga.reca_Confirmacion !== this.recargaOriginal.reca_Confirmacion,
-      observaciones: this.recarga.reca_Observaciones !== this.recargaOriginal.reca_Observaciones
-    };
+    this.cambiosDetectados = {};
 
-    return cambios.confirmacion || cambios.observaciones;
+    // Verificar cambio en confirmación
+    if (this.recarga.reca_Confirmacion !== this.recargaOriginal.reca_Confirmacion) {
+      const getEstadoLabel = (estado: string) => {
+        switch (estado?.toUpperCase()) {
+          case 'A': return 'Aprobado/Confirmada';
+          case 'R': return 'Rechazado/Rechazada';
+          case 'P': return 'Pendiente';
+          default: return 'Sin estado';
+        }
+      };
+
+      this.cambiosDetectados.confirmacion = {
+        anterior: getEstadoLabel(this.recargaOriginal.reca_Confirmacion),
+        nuevo: getEstadoLabel(this.recarga.reca_Confirmacion),
+        label: 'Estado de Confirmación'
+      };
+    }
+
+    // Verificar cambio en observaciones
+    if (this.recarga.reca_Observaciones !== this.recargaOriginal.reca_Observaciones) {
+      this.cambiosDetectados.observaciones = {
+        anterior: this.recargaOriginal.reca_Observaciones || 'Sin observaciones',
+        nuevo: this.recarga.reca_Observaciones || 'Sin observaciones',
+        label: 'Observaciones'
+      };
+    }
+
+    return Object.keys(this.cambiosDetectados).length > 0;
   }
-
-  confirmarAccion(): void {
-    this.mostrarConfirmacionEditar = false;
-    this.guardar();
-  }
-
 
   obtenerListaCambios(): any[] {
     return Object.values(this.cambiosDetectados);
   }
 
-  cancelarConfirmacion(): void {
+  cancelarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
   }
 
- private guardar(): void {
+  confirmarEdicion(): void {
+    this.mostrarConfirmacionEditar = false;
+    this.guardar();
+  }
+
+  private guardar(): void {
     if (!this.validarCampos()) return;
 
     const userId = getUserId();
@@ -147,6 +187,7 @@ private validarCampos(): boolean {
         Reca_Confirmacion: String(this.recarga.reca_Confirmacion).substring(0, 1).toUpperCase(),
         Reca_Observaciones: String(this.recarga.reca_Observaciones || '').substring(0, 200),
         Usua_Modificacion: Number(userId),
+        Usua_Confirmacion : Number(userId),
         Recarga : "",
         detalles :  [], 
         Reca_FechaModificacion: new Date().toISOString()
@@ -253,5 +294,59 @@ private validarCampos(): boolean {
     this.mensajeExito = '';
     this.mensajeError = '';
     this.mensajeWarning = '';
+  }
+
+  // Método para parsear XML de productos
+  private parsearXMLProductos(xmlString: string): ProductosRecarga[] {
+    if (!xmlString) {
+      return [];
+    }
+
+    try {
+      // Crear parser XML
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
+      
+      // Verificar errores de parsing
+      const parseError = xmlDoc.querySelector('parsererror');
+      if (parseError) {
+        console.error('Error parsing XML:', parseError.textContent);
+        return [];
+      }
+
+      // Extraer productos del XML
+      const productos: ProductosRecarga[] = [];
+      const productosNodes = xmlDoc.querySelectorAll('Producto');
+      
+      productosNodes.forEach((productoNode) => {
+        const producto: ProductosRecarga = {
+          prod_Codigo: productoNode.getAttribute('Codigo') || '',
+          prod_DescripcionCorta: productoNode.getAttribute('Descripcion') || '',
+          reDe_Cantidad: parseInt(productoNode.getAttribute('Cantidad') || '0'),
+          prod_Id: parseInt(productoNode.getAttribute('ProdId') || '0')
+        };
+        
+        productos.push(producto);
+      });
+
+      return productos;
+      
+    } catch (error) {
+      console.error('Error al parsear XML de productos:', error);
+      return [];
+    }
+  }
+
+  // Método para obtener total de productos
+  getTotalProductos(): number {
+    if (!this.productos) return 0;
+    return this.productos.reduce((total: number, producto: ProductosRecarga) => {
+      return total + (producto.reDe_Cantidad || 0);
+    }, 0);
+  }
+
+  // TrackBy function para optimizar el rendering de la tabla
+  trackByProducto(index: number, producto: ProductosRecarga): any {
+    return producto.prod_Id || index;
   }
 }

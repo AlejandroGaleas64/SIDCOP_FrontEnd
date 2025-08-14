@@ -14,10 +14,8 @@ import { getUserId } from 'src/app/core/utils/user-utils';
   styleUrl: './edit.component.scss'
 })
 
-
-
 export class EditComponent implements OnChanges {
-@Input() impuestoData: Impuestos | null = null;
+  @Input() impuestoData: Impuestos | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Impuestos>();
 
@@ -49,15 +47,15 @@ export class EditComponent implements OnChanges {
 
   constructor(private http: HttpClient) {}
 
-ngOnChanges(changes: SimpleChanges): void {
-  if (changes['impuestoData'] && changes['impuestoData'].currentValue) {
-    this.impuestos = { ...changes['impuestoData'].currentValue };
-    this.ImpuestoOriginal = this.impuestos.impu_Descripcion || '';
-    this.ImpuestoValorOriginal = this.impuestos.impu_Valor; // ← ESTO FALTABA
-    this.mostrarErrores = false;
-    this.cerrarAlerta();
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['impuestoData'] && changes['impuestoData'].currentValue) {
+      this.impuestos = { ...changes['impuestoData'].currentValue };
+      this.ImpuestoOriginal = this.impuestos.impu_Descripcion || '';
+      this.ImpuestoValorOriginal = this.impuestos.impu_Valor; 
+      this.mostrarErrores = false;
+      this.cerrarAlerta();
+    }
   }
-}
 
   cancelar(): void {
     this.cerrarAlerta();
@@ -104,19 +102,25 @@ ngOnChanges(changes: SimpleChanges): void {
   private guardar(): void {
     this.mostrarErrores = true;
 
-    if (this.impuestos.impu_Descripcion.trim()) {
-     const ImpuestosActualizar = {
-  impu_Id: this.impuestos.impu_Id,
-  impu_Descripcion: this.impuestos.impu_Descripcion.trim(),
-  impu_Valor: this.impuestos.impu_Valor, 
-  usua_Creacion: this.impuestos.usua_Creacion,
-  impu_FechaCreacion: this.impuestos.impu_FechaCreacion,
-  usua_Modificacion: getUserId(),
-  impu_FechaModificacion: new Date().toISOString(),
-  usuarioCreacion: '',
-  usuarioModificacion: ''
-};
+    // Validar que el valor no sea negativo
+    if (this.impuestos.impu_Valor < 0) {
+      this.mostrarAlertaError = true;
+      this.mensajeError = 'El valor del impuesto no puede ser negativo';
+      return;
+    }
 
+    if (this.impuestos.impu_Descripcion.trim()) {
+      const ImpuestosActualizar = {
+        impu_Id: this.impuestos.impu_Id,
+        impu_Descripcion: this.impuestos.impu_Descripcion.trim(),
+        impu_Valor: this.impuestos.impu_Valor, 
+        usua_Creacion: this.impuestos.usua_Creacion,
+        impu_FechaCreacion: this.impuestos.impu_FechaCreacion,
+        usua_Modificacion: getUserId(),
+        impu_FechaModificacion: new Date().toISOString(),
+        usuarioCreacion: '',
+        usuarioModificacion: ''
+      };
 
       this.http.put<any>(`${environment.apiBaseUrl}/Impuestos/Actualizar`, ImpuestosActualizar, {
         headers: {

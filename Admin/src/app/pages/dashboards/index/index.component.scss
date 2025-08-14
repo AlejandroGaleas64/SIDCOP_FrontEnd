@@ -1,1 +1,148 @@
-           
+.empleado-full-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f9f8f6, #ffffff);
+}
+
+.empleado-full-container::before,
+.empleado-full-container::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.15;
+    z-index: 0;
+}
+
+.empleado-full-container::before {
+    width: 350px;
+    height: 350px;
+    background: #d6b68a;
+    top: -100px;
+    left: -120px;
+}
+
+.empleado-full-container::after {
+    width: 280px;
+    height: 280px;
+    background: #141a2f;
+    bottom: -80px;
+    right: -100px;
+}
+
+.empleado-card-wide {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    background: white;
+    border-radius: 18px;
+    padding: 2rem 3rem;
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    gap: 3rem;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.empleado-left {
+    flex: 1;
+    text-align: center;
+    border-right: 1px solid #f0f0f0;
+    padding-right: 2rem;
+}
+
+.empleado-avatar img {
+    width: 140px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    outline: 3px solid #d6b68a;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.empleado-nombre {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #141a2f;
+    margin-top: 1rem;
+}
+
+.empleado-usuario {
+    font-size: 1rem;
+    color: #6c757d;
+}
+
+.empleado-badges {
+    margin-top: 0.8rem;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.badge-gold {
+    background-color: #d6b68a;
+    color: #141a2f;
+}
+
+.badge-blue {
+    background-color: #141a2f;
+    color: white;
+}
+
+.empleado-right {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.empleado-right p {
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    color: #333;
+}
+
+.empleado-right i {
+    color: #d6b68a;
+    font-size: 1.2rem;
+    margin-right: 0.5rem;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.bienvenida {
+    position: absolute;
+    top: 1.2rem;
+    right: 2%;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #141a2f;
+    background: rgba(214, 182, 138, 0.15);
+    padding: 0.5rem 1.2rem;
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    z-index: 2;
+}

@@ -86,23 +86,33 @@ export class CreateComponent {
       return;
     }
 
-    if (clave.length < 8) {
-      this.claveDatos = 1;
-      this.claveMensaje = 'Débil';
-      return;
-    }
-    
     const tieneLetra = /[a-zA-Z]/.test(clave);
     const tieneNumero = /\d/.test(clave);
     const tieneEspecial = /[^a-zA-Z\d]/.test(clave);
     const tipos = [tieneLetra, tieneNumero, tieneEspecial].filter(Boolean).length;
 
+    if (clave.length < 8) {
+      this.claveDatos = 1;
+      this.claveMensaje = `Débil: debe tener al menos 8 caracteres.`;
+      return;
+    }
+
     if (tipos === 1) {
       this.claveDatos = 1;
-      this.claveMensaje = 'Débil';
+      let faltantes = [];
+      if (!tieneLetra) faltantes.push('una letra');
+      if (!tieneNumero) faltantes.push('un número');
+      if (!tieneEspecial) faltantes.push('un carácter especial');
+      let faltantesMsg = faltantes.length ? ` debe tener ${faltantes.join(' y ')}.` : '';
+      this.claveMensaje = `Débil:${faltantesMsg}`;
     } else if (tipos === 2) {
       this.claveDatos = 2;
-      this.claveMensaje = 'Media';
+      let faltantes = [];
+      if (!tieneLetra) faltantes.push('una letra');
+      if (!tieneNumero) faltantes.push('un número');
+      if (!tieneEspecial) faltantes.push('un carácter especial');
+      let faltantesMsg = faltantes.length ? ` debe tener ${faltantes.join(' y ')}.` : '';
+      this.claveMensaje = `Media:${faltantesMsg}`;
     } else if (tipos === 3) {
       this.claveDatos = 3;
       this.claveMensaje = 'Fuerte';
@@ -161,9 +171,9 @@ export class CreateComponent {
   guardar(): void {
     this.mostrarErrores = true;
 
-    if (this.claveDatos < 2) {
+    if (this.claveDatos < 3) {
       this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'La contraseña debe ser al menos de seguridad media (letras y números o letras y caracteres especiales).';
+      this.mensajeWarning = 'La contraseña debe ser de nivel fuerte.';
       this.mostrarAlertaError = false;
       this.mostrarAlertaExito = false;
       setTimeout(() => {
