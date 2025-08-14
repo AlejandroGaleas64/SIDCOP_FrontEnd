@@ -83,19 +83,43 @@
         </div>
         <hr class="custom-modal-divider">
         <div class="modal-body custom-modal-body">
-          <div class="text-center">
+          <div class="text-center mb-3">
             <p class="mt-2 custom-modal-text">
-              <i class="ri-edit-line me-2 custom-modal-alert-icon" (click)="cancelarEdicion()"></i>
-              ¿Estás seguro que deseas editar la marca <strong>"{{ marcasVehiculosOriginal }}"</strong> por <strong>"{{ marcasVehiculos.maVe_Marca }}"</strong>?
+              <i class="ri-edit-line me-2 custom-modal-alert-icon"></i>
+              ¿Estás seguro que deseas guardar los siguientes cambios en la marca de vehículo?
             </p>
+          </div>
+          <!-- Lista de cambios detectados con diseño de tarjetas -->
+          <div class="changes-list" style="max-height: 300px; overflow-y: auto;">
+            <div *ngFor="let cambio of obtenerListaCambios()" class="change-item mb-3 p-3" 
+                 style="border: 1px solid #e9ecef; border-radius: 8px; background-color: #f8f9fa;">
+              <div class="d-flex align-items-center mb-2">
+                <i class="ri-arrow-right-circle-line me-2 text-primary"></i>
+                <strong class="text-primary">{{ cambio.label }}</strong>
+              </div>
+              <div class="row">
+                <div class="col-6">
+                  <div class="text-muted small">Valor anterior:</div>
+                  <div class="p-2" style="background-color: #fff2f2; border-left: 3px solid #dc3545; border-radius: 4px;">
+                    <span class="text-dark">{{ cambio.anterior || 'Vacío' }}</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="text-muted small">Nuevo valor:</div>
+                  <div class="p-2" style="background-color: #f0fff4; border-left: 3px solid #28a745; border-radius: 4px;">
+                    <span class="text-dark">{{ cambio.nuevo || 'Vacío' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="modal-footer custom-modal-footer">
-          <button type="button" class="btn btn-primary  btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
+          <button type="button" class="btn btn-primary btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
             <span class="btn-text">No</span>
             <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
           </button>
-          <button type="button" class="btn btn-primary  btn-minw-5 btn-sm" (click)="confirmarEdicion()">
+          <button type="button" class="btn btn-primary btn-minw-5 btn-sm" (click)="confirmarEdicion()">
             <span class="btn-text">Si</span>
             <span class="btn-icon"><i class="ri-save-line"></i></span>
           </button>
@@ -106,4 +130,3 @@
   
   <!-- Overlay para el modal -->
   <div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEditar }" *ngIf="mostrarConfirmacionEditar"></div>
-  

@@ -1,64 +1,52 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { DropzoneModule, DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
+import { Router } from '@angular/router';
+import { getUserId } from 'src/app/core/utils/user-utils';
+import { lastValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-create',
   standalone: true,
   imports: [CommonModule, FormsModule, NgSelectModule, DropzoneModule],
   templateUrl: './create.component.html',
-  styleUrl: './create.component.scss'
+  styleUrls: ['./create.component.scss']
 })
-export class CreateComponent {
+export class CreateComponent implements OnInit {
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<any>();
 
-  rutas: any[] = [];
+  vendedores: any[] = [];
   clientes: any[] = [];
+  clientesFiltrados: any[] = [];
   estadosVisita: any[] = [];
+  direcciones: any[] = [];
+
   visita: any = {
-    veRu_Id: '',
-    diCl_Id: '',
-    esVi_Id: '',
+    vendedor: null,
+    cliente: null,
+    direccion: null,
+    esVi_Id: null,
     clVi_Observaciones: '',
     clVi_Fecha: ''
   };
 
+  cargando = false;
   mostrarErrores = false;
   mensajeExito = '';
   mensajeWarning = '';
   mensajeError = '';
-  direcciones: any;
-  Clientes: any;
-  mostrarAlertaError = false;
+  maxDate = new Date().toISOString().split('T')[0];
+  minDate = '2000-01-01';
 
-  constructor(private http: HttpClient) {
-    this.cargarCombos();
-  }
+  uploadedFiles: any[] = [];
 
-  cargarCombos() {
-    // Cargar rutas
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Rutas/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => this.rutas = data);
-    // Cargar clientes
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => {
-      this.clientes = data;
-    });
-    // Cargar estados de visita
-    this.http.get<any[]>(`${environment.apiBaseUrl}/EstadosVisita/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => this.estadosVisita = data);
-  }
-
-  public dropzoneConfig: DropzoneConfigInterface = {
-    url: 'https://httpbin.org/post', // No subir a ningún endpoint automáticamente
+  dropzoneConfig: DropzoneConfigInterface = {
+    url: 'https://httpbin.org/post',
     clickable: true,
     addRemoveLinks: true,
     previewsContainer: false,
@@ -67,117 +55,274 @@ export class CreateComponent {
     acceptedFiles: 'image/*',
   };
 
-  uploadedFiles: any[] = [];
+  constructor(private http: HttpClient, private router: Router) {}
 
-  // File Upload
-  imageURL: any;
-
-  onFileSelected(event: any) {
-    const file = Array.isArray(event) ? event[0] : event;
-    if (!file) return;
-
-    // Previsualización local inmediata
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      this.uploadedFiles = [{ ...file, dataURL: e.target.result, name: file.name, file: file }];
-    };
-    reader.readAsDataURL(file);
+  ngOnInit() {
+    this.cargarVendedores();
+    this.cargarEstadosVisita();
   }
 
-  onImagenSeleccionada(event: any) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      this.visita.hCVi_Foto = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  removeFile(event: any) {
-    this.uploadedFiles.splice(this.uploadedFiles.indexOf(event), 1);
-  }
-  cerrarAlerta() {
-    this.mensajeExito = '';
-    this.mensajeWarning = '';
-    this.mensajeError = '';
-  }
-
-  cancelar() {
-    this.onCancel.emit();
-  }
-
-  guardar() {
-    this.mostrarErrores = true;
-    if (!this.visita.VeRu_Id || !this.visita.DiCl_Id || !this.visita.EsVi_Id || !this.visita.ClVi_Fecha) {
-      this.mensajeError = 'Por favor complete todos los campos obligatorios.';
-      return;
-    }
-    // Agrega los campos de usuario y fecha de creación si es necesario
-    this.visita.Usua_Creacion = 1; // Cambia por el usuario real
-    this.visita.ClVi_FechaCreacion = new Date().toISOString();
-
-    this.http.post<any>(`${environment.apiBaseUrl}/ClientesVisitaHistorial/Insertar`, this.visita, {
+  cargarVendedores() {
+    this.cargando = true;
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/ListarPorRutas`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
-      next: (resp) => {
-        if (resp.code_Status === 1) {
-          this.mensajeExito = resp.message_Status;
-          this.onSave.emit(this.visita);
-        } else {
-          this.mensajeError = resp.message_Status || 'Error al registrar la visita.';
-        }
-      },
-      error: (err) => {
-        this.mensajeError = 'Error de conexión o datos inválidos.';
-      }
+      next: (data) => { this.vendedores = data; this.cargando = false; },
+      error: () => { this.mostrarMensaje('Error al cargar la lista de vendedores', 'error'); this.cargando = false; }
     });
   }
 
-  // ========== MÉTODOS DE CLIENTES (SIN CAMBIOS) ==========
+  cargarEstadosVisita() {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/EstadoVisita/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (data) => this.estadosVisita = data,
+      error: () => this.mostrarMensaje('Error al cargar los estados de visita', 'error')
+    });
+  }
+
+  onVendedorSeleccionado(vendedor: any) {
+    if (!vendedor) { this.clientesFiltrados = []; this.visita.cliente = null; this.visita.direccion = null; return; }
+    this.cargarClientesPorRuta(vendedor.ruta_Id);
+  }
+
+  cargarClientesPorRuta(rutaId: number) {
+    if (!rutaId) { this.clientesFiltrados = []; this.visita.cliente = null; return; }
+    this.cargando = true;
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/BuscarPorRuta/${rutaId}`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (data) => {
+        this.clientesFiltrados = data || [];
+        this.cargando = false;
+        if (this.clientesFiltrados.length === 1) { this.visita.cliente = this.clientesFiltrados[0]; this.onClienteSeleccionado(this.visita.cliente); }
+        else { this.visita.cliente = null; this.visita.direccion = null; this.direcciones = []; }
+      },
+      error: () => { this.mostrarMensaje('Error al cargar la lista de clientes', 'error'); this.cargando = false; this.clientesFiltrados = []; }
+    });
+  }
+
+  onClienteSeleccionado(cliente: any) {
+    if (!cliente) { this.direcciones = []; this.visita.direccion = null; return; }
+    this.cargarDireccionesCliente(cliente.clie_Id);
+  }
+
+  cargarDireccionesCliente(clienteId: number) {
+    if (!clienteId) { this.direcciones = []; this.visita.direccion = null; return; }
+    this.cargando = true;
+    this.http.get<any[]>(`${environment.apiBaseUrl}/DireccionesPorCliente/Buscar/${clienteId}`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (data) => { this.direcciones = data || []; this.cargando = false; if (this.direcciones.length === 1) this.visita.direccion = this.direcciones[0]; },
+      error: () => { this.mostrarMensaje('Error al cargar las direcciones del cliente', 'error'); this.cargando = false; this.direcciones = []; }
+    });
+  }
+
+  mostrarMensaje(mensaje: string, tipo: 'exito' | 'error' | 'advertencia' = 'error') {
+    this.mensajeExito = tipo === 'exito' ? mensaje : '';
+    this.mensajeError = tipo === 'error' ? mensaje : '';
+    this.mensajeWarning = tipo === 'advertencia' ? mensaje : '';
+  }
+
+  onFileSelected(event: any) {
+    try {
+      let files: File[] = [];
+      if (event?.addedFiles) files = Array.from(event.addedFiles);
+      else if (event?.target?.files) files = Array.from(event.target.files);
+      else if (Array.isArray(event)) files = event;
+      else if (event?.file) files = [event.file];
+      else if (event instanceof File) files = [event];
+
+      files.forEach((file: File) => {
+        if (!file || !(file instanceof File)) return;
+        if (!file.type || !file.type.startsWith('image/')) {
+          this.mostrarMensaje(`El archivo ${file.name} no es una imagen válida`, 'error');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          const fileData = {
+            name: file.name,
+            size: this.formatFileSize(file.size),
+            type: file.type,
+            dataURL: e.target.result,
+            file: file,
+            id: Date.now() + Math.random().toString(36).substr(2, 9)
+          };
+          this.uploadedFiles = [...this.uploadedFiles, fileData];
+        };
+        reader.readAsDataURL(file);
+      });
+    } catch (error) {
+      this.mostrarMensaje('Error al procesar los archivos', 'error');
+      console.error('Error en onFileSelected:', error);
+    }
+  }
+
+  removeFile(file: any) {
+    this.uploadedFiles = this.uploadedFiles.filter(f => f.id !== file.id);
+  }
+
+  private formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  cerrarAlerta() { this.mensajeExito = ''; this.mensajeWarning = ''; this.mensajeError = ''; }
+
+  cancelar() { this.onCancel.emit(); }
+
+  async guardar() {
+    this.mostrarErrores = true;
+    if (!this.visita.vendedor || !this.visita.cliente || !this.visita.direccion || !this.visita.esVi_Id || !this.visita.clVi_Fecha) { 
+      this.mostrarMensaje('Por favor complete todos los campos obligatorios.', 'error'); 
+      return; 
+    }
+    
+    if (this.uploadedFiles.length === 0) { 
+      this.mostrarMensaje('Debe subir al menos una imagen de la visita.', 'error'); 
+      return; 
+    }
+
+    this.cargando = true;
+    
+    try {
+      const imageUrls = [];
+      for (const file of this.uploadedFiles) {
+        if (file.file) {
+          const url = await this.uploadImageToCloudinary(file.file);
+          imageUrls.push(url);
+        } else if (file.dataURL) { 
+          imageUrls.push(file.dataURL); 
+        }
+      }
+
+      const visitaCreada = await this.crearVisita();
+      const visitaId = visitaCreada?.data?.clVi_Id || visitaCreada?.data?.id;
+      
+      if (!visitaId) throw new Error('No se pudo obtener el ID de la visita creada');
+
+      if (imageUrls.length > 0) await this.asociarImagenesAVisita(visitaId, imageUrls);
+
+      this.mostrarMensaje('Visita creada exitosamente', 'exito');
+      this.onSave.emit(visitaCreada.data);
+      this.limpiarFormulario();
+      
+    } catch (error: any) {
+      console.error('Error al guardar la visita:', error);
+      const errorMessage = error?.message || 'Error al procesar la solicitud. Por favor, intente nuevamente.';
+      this.mostrarMensaje(errorMessage, 'error');
+    } finally {
+      this.cargando = false;
+    }
+  }
+
+  async uploadImageToCloudinary(file: File): Promise<string> {
+    const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'empleados');
+    const response = await fetch(url, { method: 'POST', body: formData });
+    const data = await response.json();
+    if (!data.secure_url) throw new Error('No se pudo obtener la URL de la imagen');
+    return data.secure_url;
+  }
+
+  private async crearVisita(): Promise<any> {
+    try {
+      if (!this.visita.vendedor?.ruta_Id) throw new Error('Falta el ID de ruta del vendedor');
+      if (!this.visita.direccion?.diCl_Id) throw new Error('Falta el ID de dirección');
+      if (!this.visita.esVi_Id) throw new Error('Falta el estado de la visita');
+      if (!this.visita.clVi_Fecha) throw new Error('Falta la fecha de la visita');
+
+      const userId = getUserId();
+      const fechaActual = new Date();
+      const fechaVisita = new Date(this.visita.clVi_Fecha);
+      fechaVisita.setHours(0, 0, 0, 0);
+
+      const visitaData = {
+        VeRu_Id: Number(this.visita.vendedor.ruta_Id),
+        DiCl_Id: Number(this.visita.direccion.diCl_Id),
+        EsVi_Id: Number(this.visita.esVi_Id),
+        ClVi_Observaciones: this.visita.clVi_Observaciones || '',
+        ClVi_Fecha: fechaVisita.toISOString(),
+        Usua_Creacion: Number(userId),
+        ClVi_FechaCreacion: fechaActual.toISOString()
+      };
+
+      console.log('Enviando datos de visita:', visitaData);
+
+      const response = await lastValueFrom(
+        this.http.post<any>(
+          `${environment.apiBaseUrl}/ClientesVisitaHistorial/Insertar`,
+          visitaData,
+          { headers: { 'x-api-key': environment.apiKey, 'Content-Type': 'application/json' } }
+        )
+      );
+
+      if (!response) throw new Error('No se recibió respuesta del servidor');
+      return response;
+
+    } catch (error: any) {
+      console.error('Error en crearVisita:', error);
+      throw new Error(error.message || 'Error al crear la visita');
+    }
+  }
+
+  private async asociarImagenesAVisita(visitaId: number, imageUrls: string[]): Promise<void> {
+    if (!visitaId || !imageUrls?.length) return;
+
+    const userId = getUserId();
+    const fechaActual = new Date().toISOString();
+
+    for (const imageUrl of imageUrls) {
+      const imagenData = {
+        ImVi_Imagen: imageUrl,
+        ClVi_Id: Number(visitaId),
+        Usua_Creacion: Number(userId),
+        ImVi_FechaCreacion: fechaActual
+      };
+
+      console.log('Enviando imagen a asociar:', imagenData);
+
+      try {
+        const response = await lastValueFrom(
+          this.http.post<any>(
+            `${environment.apiBaseUrl}/ImagenVisita/Insertar`,
+            imagenData,
+            { headers: { 'x-api-key': environment.apiKey, 'Content-Type': 'application/json' } }
+          )
+        );
+
+        console.log('Respuesta de imagen asociada:', response);
+
+      } catch (error) {
+        console.error('Error al asociar imagen:', error);
+      }
+    }
+  }
+
+  limpiarFormulario() {
+    this.visita = {
+      vendedor: null,
+      cliente: null,
+      direccion: null,
+      esVi_Id: null,
+      clVi_Observaciones: '',
+      clVi_Fecha: new Date().toISOString().split('T')[0]
+    };
+    this.clientesFiltrados = [];
+    this.direcciones = [];
+    this.uploadedFiles = [];
+    this.mostrarErrores = false;
+  }
 
   searchCliente = (term: string, item: any) => {
+    if (!term) return true;
     term = term.toLowerCase();
-    return (
-      item.clie_Codigo?.toLowerCase().includes(term) ||
-      item.clie_Nombres?.toLowerCase().includes(term) ||
-      item.clie_Apellidos?.toLowerCase().includes(term) ||
-      item.clie_NombreNegocio?.toLowerCase().includes(term)
-    );
+    return item.clie_Codigo?.toLowerCase().includes(term) || item.clie_Nombres?.toLowerCase().includes(term) || item.clie_Apellidos?.toLowerCase().includes(term) || item.clie_NombreNegocio?.toLowerCase().includes(term);
   };
-
-  cargarClientes() {
-    this.http
-      .get<any>(`${environment.apiBaseUrl}/Cliente/Listar`, {
-        headers: { 'x-api-key': environment.apiKey },
-      })
-      .subscribe({
-        next: (data) => {
-          this.Clientes = data;
-          console.log('Clientes cargados:', this.Clientes);
-        },
-        error: (error) => {
-          console.error('Error al cargar clientes:', error);
-          this.mostrarAlertaError = true;
-          this.mensajeError =
-            'Error al cargar clientes. Por favor, intente nuevamente.';
-        },
-      });
-  }
-
-  cargarDirecciones(clienteId: number) {
-    this.http
-      .get<any>(
-        `${environment.apiBaseUrl}/DireccionesPorCliente/Buscar/${clienteId}`,
-        {
-          headers: { 'x-api-key': environment.apiKey },
-        }
-      )
-      .subscribe((data) => (this.direcciones = data));
-  }
-
-  onClienteSeleccionado(clienteId: number) {
-    this.cargarDirecciones(clienteId);
-    this.visita.diCl_Id = 0; // Reiniciar dirección seleccionada
-  }
 }
