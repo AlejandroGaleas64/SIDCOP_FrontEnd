@@ -1,8 +1,7 @@
 <div class="d-flex flex-column" style="height: 100%; min-height: 500px;">
-    <h5 class="card-title mb-4">
-        <i class="ri-store-3-line me-2"></i>
+    <h2 class="card-title mb-4 text-muted">
         Gestión de Inventario por Sucursal
-    </h5>
+    </h2>
     <div class="alert-container">
         <div *ngIf="mostrarAlertaExito"
             class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
@@ -181,38 +180,50 @@
     </div>
 </div>
 
-<div class="modal fade" [class.show]="mostrarModal" [style.display]="mostrarModal ? 'block' : 'none'" tabindex="-1"
-    role="dialog" *ngIf="mostrarModal">
+<div class="modal fade" [class.show]="mostrarModal"
+    [style.display]="mostrarModal ? 'block' : 'none'" tabindex="-1" role="dialog"
+    *ngIf="mostrarModal">
     <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="ri-lock-line me-2"></i>
+        <div class="modal-content shadow-lg border-0" style="border-radius: 18px; overflow: hidden;">
+            <div class="modal-header py-3" style="background:#141a2f; border: none;">
+                <div class="fw-bold text-white d-flex align-items-center" style="font-size: 1.3rem;">
+                    <i class="ri-lock-line me-2" style="font-size: 1.6rem; color: #d6b68a;"></i>
                     Verificación de Seguridad
-                </h5>
-                <button type="button" class="btn-close" (click)="cerrarModal()"></button>
+                </div>
+                <button type="button" class="btn-close btn-close-white" (click)="cerrarModal()"></button>
             </div>
-            <div class="modal-body">
-                <p class="text-muted mb-3">
-                    Para continuar con la acción de <strong>{{ accionPendiente }}</strong>,
+
+            <div class="modal-body p-4" style="background: #f9fafc;">
+                <p class="text-muted mb-3" style="font-size: 1.05rem;">
+                    Para continuar con la acción de 
+                    <strong style="color: #141a2f;">{{ accionPendiente }}</strong>, 
                     por favor ingrese su contraseña de autorización.
                 </p>
-                <div class="d-flex align-items-center">
+
+                <div class="d-flex align-items-center shadow-sm" 
+                    style="border-radius: 8px; overflow: hidden; background: white; border: 1px solid #e0e0e0;">
                     <i class="ri-key-line"
-                        style="border: 1px solid #e9ecf5; background-color: #f2f3f9; padding: 0.525rem 0.525rem; position: relative; left: 7px; border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
+                        style="background-color: #f2f3f9; padding: 0.6rem; color: #141a2f; font-size: 1.2rem;">
                     </i>
-                    <input type="password" class="form-control" placeholder="Ingrese su contraseña"
-                        [(ngModel)]="claveIngresada" (keyup.enter)="validarClave()" autofocus />
+                    <input type="password" 
+                        class="form-control border-0 shadow-none" 
+                        placeholder="Ingrese su contraseña"
+                        [(ngModel)]="claveIngresada" 
+                        (keyup.enter)="validarClave()" autofocus
+                        style="padding: 0.6rem; font-size: 1rem;">
+                </div>
+                <div class="text-danger" *ngIf="mensajeErrorClave">
+                    <small>El campo Contraseña es requerido</small>
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer py-3" style="background: #fff; border-top: 1px solid #f0f0f0;">
                 <button type="button" class="btn btn-primary gold" (click)="cerrarModal()">
                     <span class="btn-text">Cancelar</span>
                     <span class="btn-icon"><i class="ri-close-line"></i></span>
                 </button>
                 <button type="button" class="btn btn-primary" (click)="validarClave()">
                     <span class="btn-text">Confirmar</span>
-                    <span class="btn-icon"><i class="ri-check-line"></i></span>
+                    <span class="btn-icon"><i class="ri-check-double-line"></i></span>
                 </button>
             </div>
         </div>
@@ -224,7 +235,7 @@
     *ngIf="mostrarModalConfirmacion">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content shadow-lg border-0" style="border-radius: 18px; overflow: hidden;">
-            <div class="modal-header py-3" style="background: linear-gradient(90deg, #141a2f, #1f2d47); border: none;">
+            <div class="modal-header py-3" style="background:#141a2f; border: none;">
                 <div class="fw-bold text-white d-flex align-items-center" style="font-size: 1.4rem;">
                     <i class="ri-inventory-2-line me-2" style="font-size: 1.6rem; color: #d6b68a;"></i>
                     Confirmar Actualización de Inventario
