@@ -205,9 +205,7 @@ export class ListComponent implements OnInit {
     filename: 'Marcas',
     columns: [
       { header: 'No.', key: 'secuencia' },
-      { header: 'Descripción', key: 'marc_Descripcion' },
-      { header: 'Fecha Creación', key: 'marc_FechaCreacion' },
-      { header: 'Estado', key: 'marc_Estado' }
+      { header: 'Descripción', key: 'marc_Descripcion' }
     ],
     data: [] as any[]
   };
@@ -488,9 +486,7 @@ export class ListComponent implements OnInit {
       // Usar el mapeo configurado
       return datos.map((marca, index) => ({
         secuencia: marca.secuencia,
-        marc_Descripcion: this.limpiarTexto(marca.marc_Descripcion),
-        marc_FechaCreacion: marca.marc_FechaCreacion,
-        marc_Estado: marca.marc_Estado ? 'Activo' : 'Inactivo'
+        marc_Descripcion: this.limpiarTexto(marca.marc_Descripcion)
       }));
       
     } catch (error) {

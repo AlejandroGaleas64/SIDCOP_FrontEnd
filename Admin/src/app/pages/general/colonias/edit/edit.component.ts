@@ -19,6 +19,36 @@ export class EditComponent implements OnInit, OnChanges {
   @Output() onSave = new EventEmitter<Colonias>();
   @Output() onCancel = new EventEmitter<void>();
 
+  // Devuelve la lista de cambios detectados para el modal de confirmación
+  obtenerListaCambios() {
+    const cambios = [];
+    
+    // Comparar descripción
+    if (this.coloniaEditada.colo_Descripcion?.trim() !== this.coloniaOriginal?.trim()) {
+      cambios.push({
+        label: 'Descripción',
+        anterior: this.coloniaOriginal,
+        nuevo: this.coloniaEditada.colo_Descripcion
+      });
+    }
+    
+    // Comparar municipio
+    const municipioOriginal = this.coloniaData?.muni_Codigo || '';
+    const municipioActual = this.coloniaEditada.muni_Codigo || '';
+    if (municipioActual !== municipioOriginal) {
+      const municipioOriginalNombre = this.TodosMunicipios?.find((m: any) => m.muni_Codigo === municipioOriginal)?.muni_Descripcion || municipioOriginal;
+      const municipioActualNombre = this.TodosMunicipios?.find((m: any) => m.muni_Codigo === municipioActual)?.muni_Descripcion || municipioActual;
+      
+      cambios.push({
+        label: 'Municipio',
+        anterior: municipioOriginalNombre,
+        nuevo: municipioActualNombre
+      });
+    }
+    
+    return cambios;
+  }
+
   coloniaEditada: Colonias = {
     colo_Id: 0,
     colo_Descripcion: '',

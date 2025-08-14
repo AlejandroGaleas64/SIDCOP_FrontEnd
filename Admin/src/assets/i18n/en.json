@@ -26,7 +26,8 @@
         "CANALES": "Canales",
         "EMPLEADOS": "Empleados",
         "CARGOS": "Cargos",
-        "VISITASCLIENTES": "Visitas"
+        "VISITASCLIENTES": "Visitas Clientes",
+        "ESTADOSVISITA": "Estados de Visita"
       }
     },
     "INVENTARIO": {

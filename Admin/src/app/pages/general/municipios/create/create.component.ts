@@ -45,7 +45,7 @@ export class CreateComponent {
   };
 
   cargarDepartamentos() {
-      this.http.get<any>('https://localhost:7071/Departamentos/Listar', {
+      this.http.get<any>(`${environment.apiBaseUrl}/Departamentos/Listar`, {
         headers: { 'x-api-key': environment.apiKey }
       }).subscribe((data) => this.Departamentos = data);
     };
