@@ -28,8 +28,13 @@
 
   <!-- Contenido de detalles -->
   <div *ngIf="!cargando && PedidoDetalle" class="details-content">
-    <div class="details-header-button">
-      <button type="button" class="btn btn-success" (click)="imprimirPedido()">
+    <div class="d-flex justify-content-end mb-3">
+       <button
+    type="button"
+    class="btn text-white"
+    style="background-color: #141a2f; border-color: #141a2f;"
+    (click)="imprimirPedido()"
+  >
         <span class="btn-text">Imprimir Pedido</span>
         <span class="btn-icon"><i class="ri-printer-line"></i></span>
       </button>
@@ -166,12 +171,6 @@
         style="width: 250px"
       >
         <tbody>
-          <tr>
-            <th scope="row" class="text-end">Subtotal:</th>
-            <td class="text-end">
-              {{ 0 | currency : "L. " }}
-            </td>
-          </tr>
           <!-- <tr>
             <th scope="row" class="text-end">Descuento:</th>
             <td class="text-end">
@@ -179,16 +178,21 @@
             </td>
           </tr> -->
           <tr>
-            <th scope="row" class="text-end">Impuesto:</th>
+            <th scope="row" class="text-end">Subtotal:</th>
             <td class="text-end">
-              {{ 0 | currency : "L. " }}
+              {{ subtotal | currency : "L. " }}
             </td>
           </tr>
-
+          <tr>
+            <th scope="row" class="text-end">Impuesto:</th>
+            <td class="text-end">
+              {{ impuesto | currency : "L. " }}
+            </td>
+          </tr>
           <tr>
             <th scope="row" class="text-end">Total:</th>
             <td class="text-end">
-              {{ 0 | currency : "L. " }}
+              {{ total | currency : "L. " }}
             </td>
           </tr>
         </tbody>
