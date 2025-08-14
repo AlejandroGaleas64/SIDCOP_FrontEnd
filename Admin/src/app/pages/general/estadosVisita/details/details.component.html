@@ -1,0 +1,94 @@
+<div class="details-container">
+  
+    <!-- Contenedor de alertas flotantes -->
+    <div class="alert-container">
+      <!-- Alerta de error -->
+      <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+        <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+        <strong>¡Error!</strong> {{ mensajeError }}
+        <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+      </div>
+    </div>
+    
+    <!-- Botón de regresar -->
+    <div class="details-header-button">
+      <button type="button" class="btn btn-primary" (click)="cerrar()">
+        <span class="btn-text">Regresar</span>
+        <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
+      </button>
+    </div>
+
+    
+
+    <!-- Contenido de detalles -->
+    <div *ngIf="!cargando && estadoVisitaDetalle" class="details-content">
+      <div class="details-card">  
+        <div class="details-card-header">
+          <i class="ri-navigation-fill"></i> <!-- Icono relevante para marcas -->
+          <span>Detalles del Estado Visita</span>
+        </div>
+        
+        <div class="details-card-body">
+          <div class="row g-4">
+            <div class="col-12 col-md-4">
+              <div class="detail-box">
+                <div class="detail-icon">
+                  <i class="ri-hashtag"></i>
+                </div>
+                <div class="detail-info">
+                  <div class="detail-label">Código</div>
+                  <div class="detail-value">{{ estadoVisitaDetalle?.esVi_Id }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-4">
+              <div class="detail-box">
+                <div class="detail-icon">
+                  <i class="ri-file-list-3-line"></i>
+                </div>
+                <div class="detail-info">
+                  <div class="detail-label">Descripción</div>
+                  <div class="detail-value">{{ estadoVisitaDetalle?.esVi_Descripcion || 'N/A' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+     
+      <div class="historial-table">
+        <div class="historial-header">
+          <div class="historial-col">Acción</div>
+          <div class="historial-col">Usuario</div>
+          <div class="historial-col">Fecha</div>
+        </div>
+        <!-- Fila de creación -->
+        <div class="historial-row">
+          <div class="historial-col">
+            <span>Creador</span>
+          </div>
+          <div class="historial-col">
+            <span>{{ estadoVisitaDetalle?.usuarioCreacion || 'N/A' }}</span>
+          </div>
+          <div class="historial-col">
+            <span>{{ formatearFecha(estadoVisitaDetalle?.esVi_FechaModificacion ?? null) }}</span>
+          </div>
+        </div>
+        <!-- Fila de modificación -->
+        <div class="historial-row">
+          <div class="historial-col">
+            <span>Modificación</span>
+          </div>
+          <div class="historial-col">
+            <span>{{ estadoVisitaDetalle?.usuarioModificacion || 'N/A' }}</span>
+          </div>
+          <div class="historial-col">
+            <span>{{ formatearFecha(estadoVisitaDetalle?.esVi_FechaModificacion ?? null) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- </div> -->
