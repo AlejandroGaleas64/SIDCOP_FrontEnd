@@ -12,16 +12,12 @@ import { FlatpickrModule } from 'angularx-flatpickr';
 import { SimplebarAngularModule } from 'simplebar-angular';
 import { DropzoneModule, DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
 import { HttpClient } from '@angular/common/http';
-import { cloneDeep } from 'lodash';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
-import { isTrustedHtml } from 'ngx-editor/lib/trustedTypesUtil';
 import { ClientesVisitaHistorial } from 'src/app/Modelos/general/ClientesVisitaHistorial.Model';
 import { DetailsComponent } from '../details/details.component';
 
 import { CreateComponent } from '../create/create.component';
-// import { DetailsComponent } from '../details/details.component';
-// import { EditComponent } from '../edit/edit.component';
 import {
   trigger,
   state,
@@ -55,7 +51,6 @@ import { Vendedor } from 'src/app/Modelos/ventas/Vendedor.Model';
     DropzoneModule,
     BreadcrumbsComponent,
     CreateComponent,
-    // EditComponent,
     DetailsComponent,
   ],
   animations: [
@@ -93,7 +88,6 @@ import { Vendedor } from 'src/app/Modelos/ventas/Vendedor.Model';
 })
 
 // Grid Component
-
 export class ListComponent {
   private readonly exportConfig = {
     // Configuración básica
@@ -146,9 +140,6 @@ export class ListComponent {
 
   vendedorDetalle: VisitaClientePorVendedorDto | null = null;
   visitaDetalle: VisitaClientePorVendedorDto | null = null;
-  // Propiedades para confirmación de eliminación
-  mostrarConfirmacionEliminar = false;
-
 
   // Estado de exportación
   exportando = false;
@@ -410,7 +401,6 @@ export class ListComponent {
     this.mensajeWarning = '';
   }
 
-  // constructor(private formBuilder: UntypedFormBuilder, private http: HttpClient) { }
   accionesDisponibles: string[] = [];
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
@@ -506,30 +496,6 @@ export class ListComponent {
     this.actualizarVendedoresVisibles();
   }
 
-  // private cargarDatos(state: boolean): void {
-  //   this.mostrarOverlayCarga = state;
-  //   this.http.get<Vendedor[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
-  //     headers: { 'x-api-key': environment.apiKey }
-  //   }).subscribe(data => {
-  //     setTimeout(() => {
-  //       this.mostrarOverlayCarga = false;
-  //       const tienePermisoListar = this.accionPermitida('listar');
-  //       const userId = getUserId();
-  //       const datosFiltrados = tienePermisoListar
-  //         ? data
-  //         : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
-
-  //       this.vendedorGrid = datosFiltrados || [];
-  //       this.busqueda = '';
-  //       this.currentPage = 1;
-  //       this.itemsPerPage = 10;
-  //       this.vendedoresFiltrados = [...this.vendedorGrid];
-  //       console.log('vendedoresFiltrados', this.vendedoresFiltrados);
-  //       this.actualizarVendedoresVisibles();
-  //     }, 500);
-  //   });
-  // }
-
   private cargarDatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
     this.http.get<Vendedor[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
@@ -563,7 +529,6 @@ export class ListComponent {
     private exportService: ExportService
   ) {
     this.cargarDatos(true);
-    // this.cargarVendedores();
   }
 
   currentPage: number = 1;
