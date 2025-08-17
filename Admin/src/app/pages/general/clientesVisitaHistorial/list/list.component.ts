@@ -139,7 +139,9 @@ export class ListComponent {
 
 
   vendedorDetalle: VisitaClientePorVendedorDto | null = null;
-  visitaDetalle: VisitaClientePorVendedorDto | null = null;
+  visitaDetalle: number = 0;
+
+  vendedores: any[] = [];
 
   // Estado de exportación
   exportando = false;
@@ -436,33 +438,10 @@ export class ListComponent {
   }
 
   detalles(vendedor: Vendedor): void {
-    this.http.get<any>(`${environment.apiBaseUrl}/ClientesVisitaHistorial/ListarVisitasPorVendedor`,
-      {
-        headers: { 'x-api-key': environment.apiKey },
-        params: { vend_Id: vendedor.vend_Id }
-      }
-    ).subscribe({
-      next: (data) => {
-        if (data && Array.isArray(data) && data.length > 0) {
-          this.visitaDetalle = data[0];
-          this.showDetailsForm = true;
-          this.showCreateForm = false;
-          this.activeActionRow = null;
-          console.log('Visita Detalle cargado:', this.visitaDetalle);
-          console.log('show:', this.showDetailsForm);
-        } else {
-          this.visitaDetalle = null;
-          this.showDetailsForm = false;
-          this.mostrarMensaje('warning', 'No se encontraron visitas para este vendedor.');
-        }
-      },
-      error: (err) => {
-        console.error('Error al cargar visitas:', err);
-        this.visitaDetalle = null;
-        this.showDetailsForm = false;
-        this.mostrarMensaje('error', 'No se pudo cargar el historial de visitas.');
-      }
-    });
+    this.visitaDetalle = vendedor.vend_Id;
+    this.showDetailsForm = true;
+    this.showCreateForm = false;
+    this.activeActionRow = null;
   }
 
   filtradorVendedores(): void {
@@ -476,15 +455,10 @@ export class ListComponent {
         (vendedor.vend_Apellidos || '').toLowerCase().includes(termino)
       );
     }
-
-    // Resetear la página actual a 1 cuando se filtra
     this.currentPage = 1;
-
-    // Actualizar los productos visibles basados en la paginación
     this.actualizarVendedoresVisibles();
   }
 
-  // Método auxiliar para actualizar los productos visibles
   private actualizarVendedoresVisibles(): void {
     const startItem = (this.currentPage - 1) * this.itemsPerPage;
     const endItem = this.currentPage * this.itemsPerPage;
@@ -551,68 +525,7 @@ export class ListComponent {
     const target = event.target as HTMLImageElement;
     target.src = 'assets/images/users/32/user-dummy-img.jpg';
   }
-
-
-  // File Upload
-  public dropzoneConfig: DropzoneConfigInterface = {
-    clickable: true,
-    addRemoveLinks: true,
-    previewsContainer: false,
-  };
-
-  uploadedFiles: any[] = [];
-
-  // File Upload
-  imageURL: any;
-  onUploadSuccess(event: any) {
-    setTimeout(() => {
-      this.uploadedFiles.push(event[0]);
-      this.GridForm.controls['img'].setValue(event[0].dataURL);
-    }, 0);
-  }
-
-  // File Remove
-  removeFile(event: any) {
-    this.uploadedFiles.splice(this.uploadedFiles.indexOf(event), 1);
-  }
-
-  // Delete Product
-  removeItem(id: any) {
-    this.deleteID = id;
-    this.deleteRecordModal?.show();
-  }
-
-  confirmDelete() {
-    this.deleteRecordModal?.hide();
-  }
-
-  // filterdata
-  filterdata() {
-    if (this.term) {
-      this.vendedores = this.vendedorGrid.filter((el: any) => el.name?.toLowerCase().includes(this.term.toLowerCase()));
-    } else {
-      this.vendedores = this.vendedorGrid.slice(0, 10);
-    }
-    // noResultElement
-    this.updateNoResultDisplay();
-  }
-
-  // no result 
-  updateNoResultDisplay() {
-    const noResultElement = document.querySelector('.noresult') as HTMLElement;
-    const paginationElement = document.getElementById('pagination-element') as HTMLElement;
-    if (noResultElement && paginationElement) {
-      if (this.term && this.vendedores.length === 0) {
-        noResultElement.style.display = 'block';
-        paginationElement.classList.add('d-none');
-      } else {
-        noResultElement.style.display = 'none';
-        paginationElement.classList.remove('d-none');
-      }
-    }
-  }
-
-  // Abre/cierra el menú de acciones para la fila seleccionada
+  
   onActionMenuClick(rowIndex: number) {
     this.activeActionRow = this.activeActionRow === rowIndex ? null : rowIndex;
   }
@@ -632,10 +545,4 @@ export class ListComponent {
     this.cargarDatos(false);
     this.cerrarFormulario();
   }
-
-  vendedores: any[] = [];
-  vendedorSeleccionado: any = null;
-  visitas: any[] = [];
-  mostrarDetalle: boolean = false;
-  nuevoRegistro: any = { /* campos necesarios */ };
 }
