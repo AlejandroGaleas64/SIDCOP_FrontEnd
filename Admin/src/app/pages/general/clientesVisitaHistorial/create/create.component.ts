@@ -37,9 +37,12 @@ export class CreateComponent implements OnInit {
 
   cargando = false;
   mostrarErrores = false;
+  mostrarAlertaExito = false;
   mensajeExito = '';
-  mensajeWarning = '';
+  mostrarAlertaError = false;
   mensajeError = '';
+  mostrarAlertaWarning = false;
+  mensajeWarning = '';
   maxDate = new Date().toISOString().split('T')[0];
   minDate = '2000-01-01';
 
@@ -138,6 +141,10 @@ export class CreateComponent implements OnInit {
     this.mensajeExito = tipo === 'exito' ? mensaje : '';
     this.mensajeError = tipo === 'error' ? mensaje : '';
     this.mensajeWarning = tipo === 'advertencia' ? mensaje : '';
+
+    this.mostrarAlertaExito = tipo === 'exito';
+    this.mostrarAlertaError = tipo === 'error';
+    this.mostrarAlertaWarning = tipo === 'advertencia';
   }
 
   onFileSelected(event: any) {
@@ -187,7 +194,14 @@ export class CreateComponent implements OnInit {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  cerrarAlerta() { this.mensajeExito = ''; this.mensajeWarning = ''; this.mensajeError = ''; }
+  cerrarAlerta(): void {
+    this.mostrarAlertaExito = false;
+    this.mensajeExito = '';
+    this.mostrarAlertaError = false;
+    this.mensajeError = '';
+    this.mostrarAlertaWarning = false;
+    this.mensajeWarning = '';
+  }
 
   cancelar() { this.onCancel.emit(); }
 
@@ -210,7 +224,6 @@ export class CreateComponent implements OnInit {
     const fechaVisita = new Date(this.visita.clVi_Fecha);
     fechaVisita.setHours(0, 0, 0, 0);
 
-    // Datos de la visita
     const visitaData = {
       clVi_Id: 0,
       diCl_Id: Number(this.visita.direccion?.diCl_Id) || 0,
@@ -272,10 +285,15 @@ export class CreateComponent implements OnInit {
             let index = 0;
             const subirSiguiente = () => {
               if (index >= this.uploadedFiles.length) {
-                // Todas las imágenes asociadas
-                this.mostrarMensaje('Visita creada exitosamente', 'exito');
-                this.onSave.emit(ultimaVisita);
-                this.limpiarFormulario();
+                // Todas las imágenes asociadas, mostrar éxito y limpiar formulario
+                this.mostrarMensaje('Visita y las imágenes se registraron correctamente.', 'exito');
+
+                setTimeout(() => {
+                  this.mostrarAlertaExito = false;
+                  this.onSave.emit(ultimaVisita);
+                  this.limpiarFormulario();
+                }, 3000);
+
                 this.cargando = false;
                 return;
               }
