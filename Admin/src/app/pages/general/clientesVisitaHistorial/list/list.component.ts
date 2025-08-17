@@ -638,13 +638,4 @@ export class ListComponent {
   visitas: any[] = [];
   mostrarDetalle: boolean = false;
   nuevoRegistro: any = { /* campos necesarios */ };
-
-
-  // insertarVisita() {
-  //   this.http.post(`${environment.apiBaseUrl}/ClientesVisitaHistorial/Insertar`, this.nuevoRegistro).subscribe(() => {
-  //     if (this.vendedorSeleccionado) {
-  //       this.verDetalle(this.vendedorSeleccionado); // Refresca el detalle
-  //     }
-  //   });
-  // }
 }
