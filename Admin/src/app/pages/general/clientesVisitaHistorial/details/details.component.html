@@ -30,7 +30,8 @@
                         </div>
                     </ng-container>
                     <ng-template #noImage>
-                        <div class="employee-img-placeholder-card d-flex flex-column justify-content-center align-items-center h-100">
+                        <div
+                            class="employee-img-placeholder-card d-flex flex-column justify-content-center align-items-center h-100">
                             <i class="ri-store-2-line display-1"></i>
                             <span class="employee-img-name mt-3">{{ visitaDetalle.clie_NombreNegocio }}</span>
                         </div>
@@ -40,13 +41,15 @@
             <!-- Card derecha: Detalles -->
             <div class="col-md-8">
                 <div class="card h-100 shadow-sm employee-details-card bg-dark-blue">
-                    <div class="card-header d-flex align-items-center justify-content-between rounded-top details-header-custom">
+                    <div
+                        class="card-header d-flex align-items-center justify-content-between rounded-top details-header-custom">
                         <div class="d-flex align-items-center">
                             <i class="ri-user-3-line me-2 fs-4"></i>
                             <h5 class="mb-0">Detalles de la Visita</h5>
                         </div>
                         <div *ngIf="visitaDetalle.clVi_Fecha" class="ms-3">
-                            <span style="color:#141a2f; font-weight:600; font-size:1.1em; background:#e3f2fd; padding:4px 12px; border-radius:8px;">
+                            <span
+                                style="color:#141a2f; font-weight:600; font-size:1.1em; background:#e3f2fd; padding:4px 12px; border-radius:8px;">
                                 {{ visitaDetalle.clVi_Fecha | date:'dd/MM/yyyy HH:mm' }}
                             </span>
                         </div>
@@ -73,7 +76,7 @@
                                     </div>
                                 </div>
                             </div>
-                        
+
                             <div class="col">
                                 <div class="detail-item">
                                     <div class="detail-icon bg-dark-blue text-white"><i class="ri-profile-line"></i>
