@@ -69,6 +69,7 @@ activeTab: number = 1;
     prod_CostoTotal: 0,
     prod_PagaImpuesto: "",
     prod_EsPromo: "",
+    prod_Impulsado: false,
     prod_Estado: true,
     usua_Creacion: 0,
     prod_FechaCreacion: new Date(),

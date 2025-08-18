@@ -324,8 +324,26 @@
                     <option *ngFor="let imp of impuestos" [value]="imp.impu_Id">{{ imp.impu_Descripcion }}</option>
                   </select>
                 </div>
+              </div>
             </div>
-          </div>
+
+            <!-- Impulsar -->
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">¿Impulsar?</label>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="prod_Impulsado"
+                    [(ngModel)]="producto.prod_Impulsado"
+                  />
+                  <label class="form-check-label" for="prod_Impulsado">
+                    {{ producto.prod_Impulsado ? 'Sí' : 'No' }}
+                  </label>
+                </div>
+              </div>
+            </div>
 
           <!-- Botones de acción -->
           <div class="mt-auto pt-3" >
