@@ -48,10 +48,13 @@ const routes: Routes = [
   {
     path: 'listasprecios',
     loadChildren: () =>
-      import('./listaPrecios/listasprecios.module').then(
-        (m) => m.ListasPreciosModule
-      ),
-  },
+      import('./listaPrecios/listasprecios.module').then(m => m.ListasPreciosModule)
+   },
+   {
+    path: 'devoluciones',
+    loadChildren: () =>
+      import('./devoluciones/devoluciones.module').then(m => m.DevolucionesModule)
+   },
   {
     path: 'pedidos',
     loadChildren: () =>
