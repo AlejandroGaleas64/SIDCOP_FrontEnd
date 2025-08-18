@@ -145,7 +145,7 @@ export class ListComponent {
 
 
   vendedorDetalle: VisitaClientePorVendedorDto | null = null;
-  visitaDetalle: VisitaClientePorVendedorDto | null = null;
+  visitasDetalle: VisitaClientePorVendedorDto[] = [];
   // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
 
@@ -454,21 +454,21 @@ export class ListComponent {
     ).subscribe({
       next: (data) => {
         if (data && Array.isArray(data) && data.length > 0) {
-          this.visitaDetalle = data[0];
+          this.visitasDetalle = data;
           this.showDetailsForm = true;
           this.showCreateForm = false;
           this.activeActionRow = null;
-          console.log('Visita Detalle cargado:', this.visitaDetalle);
+          console.log('Visitas Detalle cargadas:', this.visitasDetalle);
           console.log('show:', this.showDetailsForm);
         } else {
-          this.visitaDetalle = null;
+          this.visitasDetalle = [];
           this.showDetailsForm = false;
           this.mostrarMensaje('warning', 'No se encontraron visitas para este vendedor.');
         }
       },
       error: (err) => {
         console.error('Error al cargar visitas:', err);
-        this.visitaDetalle = null;
+        this.visitasDetalle = [];
         this.showDetailsForm = false;
         this.mostrarMensaje('error', 'No se pudo cargar el historial de visitas.');
       }
@@ -532,7 +532,7 @@ export class ListComponent {
 
   private cargarDatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
-    this.http.get<Vendedor[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
+    this.http.get<Vendedor[]>(`${environment.apiBaseUrl}/Vendedores/ListarConVisitas`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
       setTimeout(() => {

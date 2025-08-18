@@ -35,27 +35,23 @@ export class DiasSemanaPipe implements PipeTransform {
   styleUrl: './details.component.scss'
 })
 export class DetailsComponent implements OnChanges {
-  @Input() visitaData: any = null;
+@Input() visitaData: any[] = [];
   @Output() onClose = new EventEmitter<void>();
 
-  visitaDetalle: any = null;
+  // visitaDetalle: any = null;
   cargando = false;
   mostrarAlertaError = false;
   mensajeError = '';
   public imgLoaded: boolean = false;
   showDetailsForm = false;
   activeActionRow: number | null = null;
+  // Nuevo
+  visitasDetalle: any[] = [];
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['visitaData'] && changes['visitaData'].currentValue) {
-      this.cargarDetallesSimulado(changes['visitaData'].currentValue);
+  this.cargarDetallesSimulado(changes['visitaData'].currentValue);
     }
-  }
-
-  detalles(visita: VisitaClientePorVendedorDto): void {
-    this.visitaDetalle = { ...visita };
-    this.showDetailsForm = true;
-    this.activeActionRow = null;
   }
 
   cargarDetallesSimulado(data: any): void {
@@ -63,8 +59,8 @@ export class DetailsComponent implements OnChanges {
     this.mostrarAlertaError = false;
     setTimeout(() => {
       try {
-        this.visitaDetalle = { ...data };
-        console.log(this.visitaDetalle);
+        this.visitasDetalle = Array.isArray(data) ? data : [data];
+        console.log(this.visitasDetalle);
         this.cargando = false;
       } catch (error) {
         console.error('Error al cargar detalles de la visita:', error);
