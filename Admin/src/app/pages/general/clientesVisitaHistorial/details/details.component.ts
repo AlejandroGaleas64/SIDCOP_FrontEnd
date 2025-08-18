@@ -1,8 +1,8 @@
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { VisitaClientePorVendedorDto } from 'src/app/Modelos/general/VisitaClientePorVendedorDto.Model';
 import { Pipe, PipeTransform } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from 'src/environments/environment.prod';
 
 @Pipe({
   name: 'diasSemana',
@@ -35,22 +35,26 @@ export class DiasSemanaPipe implements PipeTransform {
   styleUrl: './details.component.scss'
 })
 export class DetailsComponent implements OnChanges {
-@Input() visitaData: any[] = [];
+  @Input() visitaData: any[] = [];
   @Output() onClose = new EventEmitter<void>();
 
-  // visitaDetalle: any = null;
   cargando = false;
   mostrarAlertaError = false;
   mensajeError = '';
-  public imgLoaded: boolean = false;
   showDetailsForm = false;
   activeActionRow: number | null = null;
-  // Nuevo
   visitasDetalle: any[] = [];
+
+  // Propiedades para el carrusel
+  imagenesVisita: { [visitaId: string]: any[] } = {};
+  currentSlideIndex: { [visitaId: string]: number } = {};
+  cargandoImagenes: { [visitaId: string]: boolean } = {};
+
+  constructor(private http: HttpClient) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['visitaData'] && changes['visitaData'].currentValue) {
-  this.cargarDetallesSimulado(changes['visitaData'].currentValue);
+      this.cargarDetallesSimulado(changes['visitaData'].currentValue);
     }
   }
 
@@ -61,6 +65,12 @@ export class DetailsComponent implements OnChanges {
       try {
         this.visitasDetalle = Array.isArray(data) ? data : [data];
         console.log(this.visitasDetalle);
+
+        // Cargar imágenes para cada visita
+        this.visitasDetalle.forEach(visita => {
+          this.cargarImagenesVisita(visita.clVi_Id);
+        });
+
         this.cargando = false;
       } catch (error) {
         console.error('Error al cargar detalles de la visita:', error);
@@ -71,6 +81,61 @@ export class DetailsComponent implements OnChanges {
     }, 300);
   }
 
+  cargarImagenesVisita(visitaId: string): void {
+    if (this.cargandoImagenes[visitaId]) return;
+    this.cargandoImagenes[visitaId] = true;
+    this.http.post<any[]>(`${environment.apiBaseUrl}/ImagenVisita/ListarPorVisita/${visitaId}`, {}, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+        next: (imagenes) => {
+          this.imagenesVisita[visitaId] = imagenes || [];
+          this.currentSlideIndex[visitaId] = 0;
+          this.cargandoImagenes[visitaId] = false;
+        },
+        error: (error) => {
+          console.error(`Error al cargar imágenes para la visita ${visitaId}:`, error);
+          this.imagenesVisita[visitaId] = [];
+          this.cargandoImagenes[visitaId] = false;
+        }
+      });
+  }
+
+  // Métodos para el carrusel
+  nextSlide(visitaId: string): void {
+    const imagenes = this.imagenesVisita[visitaId];
+    if (imagenes && imagenes.length > 1) {
+      this.currentSlideIndex[visitaId] = (this.currentSlideIndex[visitaId] + 1) % imagenes.length;
+    }
+  }
+
+  prevSlide(visitaId: string): void {
+    const imagenes = this.imagenesVisita[visitaId];
+    if (imagenes && imagenes.length > 1) {
+      this.currentSlideIndex[visitaId] = this.currentSlideIndex[visitaId] === 0
+        ? imagenes.length - 1
+        : this.currentSlideIndex[visitaId] - 1;
+    }
+  }
+
+  goToSlide(visitaId: string, index: number): void {
+    const imagenes = this.imagenesVisita[visitaId];
+    if (imagenes && index >= 0 && index < imagenes.length) {
+      this.currentSlideIndex[visitaId] = index;
+    }
+  }
+
+  getImagenesVisita(visitaId: string): any[] {
+    return this.imagenesVisita[visitaId] || [];
+  }
+
+  getCurrentSlideIndex(visitaId: string): number {
+    return this.currentSlideIndex[visitaId] || 0;
+  }
+
+  esCargandoImagenes(visitaId: string): boolean {
+    return this.cargandoImagenes[visitaId] || false;
+  }
+
   cerrar(): void {
     this.onClose.emit();
   }
@@ -79,7 +144,4 @@ export class DetailsComponent implements OnChanges {
     this.mostrarAlertaError = false;
     this.mensajeError = '';
   }
-
-  constructor(private http: HttpClient) { }
 }
-
