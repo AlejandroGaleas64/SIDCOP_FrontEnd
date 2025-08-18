@@ -43,8 +43,7 @@
     </div>
 
     <!-- Collapse para el formulario de creación -->
-    <div *ngIf="showCreateForm" @fadeExpand class="card card-body mb-3 d-flex flex-column"
-      style="min-height: 400px; padding: 0.5rem;">
+    <div *ngIf="showCreateForm" @fadeExpand style="min-height: 400px; padding: 0.5rem;">
       <div class="mb-3 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
         <div class="container-fluid flex-grow-1">
           <app-create (onCancel)="cerrarFormulario()" (onSave)="guardarVisita($event)"></app-create>
@@ -53,8 +52,7 @@
     </div>
 
     <!-- Collapse para el formulario de detalles -->
-    <div *ngIf="showDetailsForm" @fadeExpand class="card card-body mb-3 d-flex flex-column"
-      style="min-height: 400px; padding: 0.5rem;">
+    <div *ngIf="showDetailsForm" @fadeExpand style="min-height: 400px; padding: 0.5rem;">
       <div class="container-fluid flex-grow-1">
         <app-details [visitaData]="visitasDetalle" (onClose)="cerrarFormularioDetalles()"></app-details>
       </div>
