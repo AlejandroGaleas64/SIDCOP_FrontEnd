@@ -11,6 +11,7 @@ export class Devoluciones {
     devo_Estado: boolean = true;
     usuarioCreacion: string = '';
     usuarioModificacion: string = '';
+    devo_EnSucursal: boolean = false;
     
     No: number = 0;
     clie_NombreNegocio: string = '';

@@ -150,6 +150,17 @@
     </span>
   </span>
 </th>
+<th class="gridjs-th" (click)="table.sortBy('devo_EnSucursal')" style="cursor:pointer;">
+  <span style="display: flex; align-items: center; gap: 4px;">
+    ¿En Sucursal?
+    <span style="display: flex; flex-direction: column; margin-left: 6px;">
+      <i class="ri-arrow-up-s-line icon-sort"
+        [ngStyle]="table.sortField === 'devo_EnSucursal' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+      <i class="ri-arrow-down-s-line icon-sort"
+        [ngStyle]="table.sortField === 'devo_EnSucursal' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+    </span>
+  </span>
+</th>
            
               </tr>
             </thead>
@@ -169,6 +180,7 @@
                 <td>{{data.fact_Id}}</td>
                 <td>{{data.devo_Fecha}}</td>
                 <td>{{data.devo_Motivo}}</td>
+                <td>{{data.devo_EnSucursal ? 'Sí' : 'No'}}</td>
               </tr>
             </tbody>
           </table>
