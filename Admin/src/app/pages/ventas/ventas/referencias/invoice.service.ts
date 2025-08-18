@@ -396,61 +396,55 @@ export class InvoiceService {
     doc.setTextColor(this.COLORES.azulOscuro);
     doc.setFont('Satoshi', 'bold');
     doc.setFontSize(16);
-    doc.text(this.facturaDetalle.coFa_NombreEmpresa, 74, yPos + 8);
+    doc.text(this.facturaDetalle.coFa_NombreEmpresa, 76, yPos + 8);
 
     doc.setFont('Satoshi', 'normal');
     doc.setFontSize(10);
     //doc.text(`RTN: ${this.facturaDetalle.coFa_RTN}`, 74, yPos + 16);
-    doc.text(this.facturaDetalle.coFa_DireccionEmpresa, 74, yPos + 16);
-    doc.text(`Tel: ${this.facturaDetalle.coFa_Telefono1}`, 74, yPos + 22);
-    doc.text(`Email: ${this.facturaDetalle.coFa_Correo}`, 74, yPos + 28);
+    doc.text(this.facturaDetalle.coFa_DireccionEmpresa, 82, yPos + 16);
+    doc.text(`Tel: ${this.facturaDetalle.coFa_Telefono1}`, 88, yPos + 22);
+    doc.text(`Email: ${this.facturaDetalle.coFa_Correo}`, 76, yPos + 28);
 
     // Información de la factura (lado derecho)
     const pageWidth = doc.internal.pageSize.width;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text('FACTURA', 20, yPos + 40, );
 
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Satoshi', 'normal');
     doc.setFontSize(10);
-    doc.text(`No. ${this.facturaDetalle.fact_Numero}`, pageWidth - 20, yPos + 16, { align: 'right' });
-    doc.text(`Fecha: ${this.formatearFecha(this.facturaDetalle.fact_FechaEmision)}`, pageWidth - 20, yPos + 22, { align: 'right' });
-    doc.text(`Tipo: ${this.facturaDetalle.fact_TipoVenta}`, pageWidth - 20, yPos + 28, { align: 'right' });
-    doc.text(`CAI: ${this.facturaDetalle.regC_Descripcion}`, pageWidth - 20, yPos + 34, { align: 'right' });
+
+    yPos -=6;
+
+    doc.text(`No. ${this.facturaDetalle.fact_Numero}`, 54, yPos + 56);
+    doc.text(`Fecha: ${this.formatearFecha(this.facturaDetalle.fact_FechaEmision)}`,   54, yPos + 62,);
+    doc.text(`Tipo: ${this.facturaDetalle.fact_TipoVenta}`,  54, yPos + 68);
+    doc.text(`CAI: ${this.facturaDetalle.regC_Descripcion}`,  54, yPos + 74);
 
     yPos += 45;
 
     // Línea separadora
     doc.setDrawColor(this.COLORES.dorado);
     doc.setLineWidth(1);
-    doc.line(20, yPos, pageWidth - 20, yPos);
+    doc.line(50, yPos, pageWidth - 58, yPos);
     yPos += 10;
 
     // Información del cliente
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.text('DATOS DEL CLIENTE', 20, yPos);
     yPos += 8;
 
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Satoshi', 'normal');
     doc.setFontSize(10);
-    doc.text(`Cliente: ${this.facturaDetalle.cliente}`, 20, yPos);
-    doc.text(`RTN: ${this.facturaDetalle.clie_RTN}`, 20, yPos + 6);
-    doc.text(`Dirección: ${this.facturaDetalle.diCl_DireccionExacta}`, 20, yPos + 12);
-    doc.text(`Teléfono: ${this.facturaDetalle.clie_Telefono}`, 20, yPos + 18);
+    doc.text(`Cliente: ${this.facturaDetalle.cliente}`, 54, yPos + 18);
+    doc.text(`Dirección: ${this.facturaDetalle.diCl_DireccionExacta}`, 54, yPos + 24);
+    doc.text(`Teléfono: ${this.facturaDetalle.clie_Telefono}`, 54, yPos + 30);
 
     // Información del vendedor (lado derecho)
-    doc.setFont('helvetica', 'bold');
-    doc.text('VENDEDOR', pageWidth - 20, yPos, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.text(this.facturaDetalle.vendedor, pageWidth - 20, yPos + 6, { align: 'right' });
-    doc.text(`Tel: ${this.facturaDetalle.vend_Telefono}`, pageWidth - 20, yPos + 12, { align: 'right' });
+    doc.setFont('Satoshi', 'normal');
+    doc.text(this.facturaDetalle.vendedor,  54, yPos + 36);
+    doc.text(`Tel: ${this.facturaDetalle.vend_Telefono}`,  54, yPos + 42);
 
-    yPos += 30;
+    yPos += 50;
 
     // Línea separadora
-    doc.line(20, yPos, pageWidth - 20, yPos);
-    yPos += 10;
+    doc.line(50, yPos, pageWidth - 58, yPos);
+    yPos += 18;
 
     return yPos;
   }
@@ -458,14 +452,11 @@ export class InvoiceService {
   private async crearTablaProductos(doc: jsPDF, startY: number) {
     if (!this.facturaDetalle || !this.facturaDetalle.detalleFactura.length) return;
 
-    const headers = ['Código', 'Descripción', 'Cant.', 'Precio Unit.', 'Descuento', 'Impuesto', 'Total'];
+    const headers = ['Descripción', 'Cant.', 'Precio Unit.', 'Total'];
     const rows = this.facturaDetalle.detalleFactura.map(item => [
-      item.prod_CodigoBarra || 'N/A',
       item.prod_Descripcion,
       item.faDe_Cantidad.toString(),
       `L. ${item.faDe_PrecioUnitario.toFixed(2)}`,
-      `L. ${item.faDe_Descuento.toFixed(2)}`,
-      `L. ${item.faDe_Impuesto.toFixed(2)}`,
       `L. ${item.faDe_Total.toFixed(2)}`
     ]);
 
@@ -487,18 +478,15 @@ export class InvoiceService {
         fontSize: 10,
       },
       columnStyles: {
-        0: { halign: 'center' as any, cellWidth: 25 }, // Código
-        1: { halign: 'left' as any, cellWidth: 60 },   // Descripción
-        2: { halign: 'center' as any, cellWidth: 20 }, // Cantidad
-        3: { halign: 'right' as any, cellWidth: 25 },  // Precio
-        4: { halign: 'right' as any, cellWidth: 25 },  // Descuento
-        5: { halign: 'right' as any, cellWidth: 25 },  // Impuesto
-        6: { halign: 'right' as any, cellWidth: 30 }   // Total
+        1: { halign: 'left' as any, },   // Descripción
+        2: { halign: 'right' as any,  }, // Cantidad
+        3: { halign: 'right' as any,  },  // Precio
+        6: { halign: 'right' as any, }   // Total
       },
       alternateRowStyles: {
         fillColor: [248, 249, 250],
       },
-      margin: { left: 20, right: 20 },
+      margin: { left: 10, right: 10 },
       tableWidth: 'auto' as any,
     });
   }
