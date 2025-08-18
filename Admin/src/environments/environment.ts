@@ -4,6 +4,18 @@
 const usuarioId = localStorage.getItem('usuarioId');
 const idUsuario = usuarioId ? parseInt(usuarioId, 10) : null; // Usa null como valor predeterminado si no hay ID
 
+// Configuración de conexiones
+const apiUrls = {
+  local: 'http://192.168.1.146:8091',
+  remote: 'http://200.59.27.115:8091'
+};
+
+// Función para obtener la URL base de la API
+function getApiBaseUrl(): string {
+  // Usamos la URL local por defecto
+  // El ConnectionService se encargará de cambiar dinámicamente según disponibilidad
+  return apiUrls.local;
+}
 
 export const environment = {
   production: false,
@@ -19,13 +31,10 @@ export const environment = {
     measurementId: "G-1N6FB2GG55"
   },
 
-  // apiBaseUrl: 'https://localhost:7071', //cambiar si es necesario
-   apiBaseUrl: 'http://192.168.1.146:8091', //cambiar si es necesario
-//  apiBaseUrl: 'http://200.59.27.115:8091', //cambiar si es necesario
-
-  // apiBaseUrl: 'http://sidcop.somee.com', //cambiar si es necesario
-  //apiBaseUrl: 'http://192.168.1.146:8091', //cambiar si es necesario
-
+  // Configuración de conexiones
+  apiUrls: apiUrls,
+  apiBaseUrl: getApiBaseUrl(), // Valor inicial que será reemplazado por ConnectionService
+  
   apiKey: 'bdccf3f3-d486-4e1e-ab44-74081aefcdbc',
   usua_Id: idUsuario,
 

@@ -716,7 +716,7 @@ private crearVenta(): void {
   const regCIdVendedor = this.venta.regC_Id_Vendedor; // ID de registro CAI capturado del vendedor
   
   // Determinar qué ID de registro CAI usar
-  const regCIdFinal = regCIdVendedor || sucursalId;
+  const regCIdFinal = regCIdVendedor;
 
   
   const datosEnviar = {
