@@ -26,7 +26,7 @@
         "CANALES": "Canales",
         "EMPLEADOS": "Empleados",
         "CARGOS": "Cargos",
-        "VISITASCLIENTES": "Visitas Clientes",
+        "VISITASCLIENTES": "Visitas",
         "ESTADOSVISITA": "Estados de Visita"
       }
     },
@@ -52,6 +52,7 @@
         "CUENTASPORCOBRAR": "Cuentas por cobrar",
         "PEDIDOS": "Pedidos",
         "LISTASPRECIOS": "Listas de Precios",
+        "DEVOLUCIONES": "Devoluciones",
         "VENTA": "Ventas"
       }
     },
