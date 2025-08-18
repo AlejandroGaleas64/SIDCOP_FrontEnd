@@ -1,8 +1,8 @@
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { VisitaClientePorVendedorDto } from 'src/app/Modelos/general/VisitaClientePorVendedorDto.Model';
 import { Pipe, PipeTransform } from '@angular/core';
-import { environment } from 'src/environments/environment.prod';
 
 @Pipe({
   name: 'diasSemana',
@@ -35,43 +35,40 @@ export class DiasSemanaPipe implements PipeTransform {
   styleUrl: './details.component.scss'
 })
 export class DetailsComponent implements OnChanges {
-  @Input() vendId: number | null = null;
+@Input() visitaData: any[] = [];
   @Output() onClose = new EventEmitter<void>();
 
-  visitas: any[] = [];
+  // visitaDetalle: any = null;
   cargando = false;
   mostrarAlertaError = false;
   mensajeError = '';
-
-  constructor(private http: HttpClient) {}
+  public imgLoaded: boolean = false;
+  showDetailsForm = false;
+  activeActionRow: number | null = null;
+  // Nuevo
+  visitasDetalle: any[] = [];
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['vendId'] && changes['vendId'].currentValue) {
-      this.cargarVisitas(changes['vendId'].currentValue);
+    if (changes['visitaData'] && changes['visitaData'].currentValue) {
+  this.cargarDetallesSimulado(changes['visitaData'].currentValue);
     }
   }
 
-  cargarVisitas(vendId: number): void {
+  cargarDetallesSimulado(data: any): void {
     this.cargando = true;
     this.mostrarAlertaError = false;
-
-    this.http.get<any[]>(`${environment.apiBaseUrl}/ClientesVisitaHistorial/ListarVisitasPorVendedor`, {
-      headers: { 'x-api-key': environment.apiKey },
-      params: { vend_Id: vendId }
-    }).subscribe({
-      next: (data) => {
-        this.visitas = data || [];
+    setTimeout(() => {
+      try {
+        this.visitasDetalle = Array.isArray(data) ? data : [data];
+        console.log(this.visitasDetalle);
         this.cargando = false;
-        console.log("Visitas cargadas:", this.visitas);
-      },
-      error: (error) => {
-        console.error('Error al cargar visitas:', error);
-        this.visitas = [];
-        this.cargando = false;
+      } catch (error) {
+        console.error('Error al cargar detalles de la visita:', error);
         this.mostrarAlertaError = true;
-        this.mensajeError = 'Error al cargar las visitas del vendedor.';
+        this.mensajeError = 'Error al cargar los detalles de la visita.';
+        this.cargando = false;
       }
-    });
+    }, 300);
   }
 
   cerrar(): void {
@@ -82,4 +79,7 @@ export class DetailsComponent implements OnChanges {
     this.mostrarAlertaError = false;
     this.mensajeError = '';
   }
+
+  constructor(private http: HttpClient) { }
 }
+
