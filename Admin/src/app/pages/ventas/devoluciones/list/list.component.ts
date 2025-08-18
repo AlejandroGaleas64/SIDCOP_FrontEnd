@@ -171,9 +171,9 @@ export class ListComponent implements OnInit {
         let modulo = null;
         if (Array.isArray(permisos)) {
           // Ajusta el Pant_Id según corresponda para Proveedores
-          modulo = permisos.find((m: any) => m.Pant_Id === 19);
+          modulo = permisos.find((m: any) => m.Pant_Id === 35);
         } else if (typeof permisos === 'object' && permisos !== null) {
-          modulo = permisos['Proveedores'] || permisos['proveedores'] || null;
+          modulo = permisos['Devoluciones'] || permisos['devoluciones'] || null;
         }
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
