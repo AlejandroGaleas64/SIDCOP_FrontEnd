@@ -46,13 +46,6 @@
                                 <i class="ri-arrow-right-s-line"></i>
                             </button>
 
-                            <div class="carousel-indicators">
-                                <button *ngFor="let imagen of getImagenesVisita(visitaDetalle.clVi_Id); let i = index"
-                                    [class.active]="i === getCurrentSlideIndex(visitaDetalle.clVi_Id)"
-                                    class="carousel-indicator" (click)="goToSlide(visitaDetalle.clVi_Id, i)">
-                                </button>
-                            </div>
-
                             <div class="carousel-counter">
                                 {{ getCurrentSlideIndex(visitaDetalle.clVi_Id) + 1 }} / {{
                                 getImagenesVisita(visitaDetalle.clVi_Id).length }}
