@@ -99,16 +99,15 @@ export class DetailsComponent implements OnChanges {
 
   formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
-    try {
-      const date = new Date(fecha);
-      return date.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      });
-    } catch {
-      return String(fecha);
-    }
+    const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
+    if (isNaN(dateObj.getTime())) return 'N/A';
+    return dateObj.toLocaleString('es-HN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
   trackByDetalleeId(index: number, detalle: DevolucionesDetalle): any {
