@@ -17,7 +17,7 @@
             </div>
 
             <div class="col-lg-5 d-flex align-items-center justify-content-end gap-2 mb-2">
-                <div class="export-buttons d-flex gap-1">
+                <div class="export-buttons d-flex gap-1 mb-2">
                     <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarExcel()"
                         title="Exportar a Excel">
                         <span class="btn-text">Excel</span>
@@ -236,59 +236,60 @@
 
         <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEliminar }"
             [style.display]="mostrarConfirmacionEliminar ? 'block' : 'none'" tabindex="-1" role="dialog">
+
             <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="text-center mt-3 mb-3">
-                        @if (usuarioEliminar?.usua_Estado) {
-                        <i class="ri-user-unfollow-fill" style="font-size: 3rem; color: #AF1D1D;"></i>
-                        }
-                        @else {
-                        <i class="ri-user-follow-fill" style="font-size: 3rem; color: #7DE477;"></i>
-                        }
-                    </div>
-                    <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
-                        <i class=""></i>
-                        <h4>Confirmación</h4>
-                        <i class="ri-close-line custom-modal-close" (click)="cancelarEliminar()"></i>
-                    </div>
-                    <div class="modal-body custom-modal-body">
+                <div class="modal-content shadow-lg border-0" style="border-radius: 18px; overflow: hidden;">
+                    <div class="modal-header py-3" style="background:#141a2f; border: none;">
+                      <div class="fw-bold text-white d-flex align-items-center" style="font-size: 1.3rem;">
                         @if(usuarioEliminar?.usua_Estado){
-                        <div class="text-center">
-                            <p class="mt-2 custom-modal-text">
+                            <i class="ri-user-unfollow-line me-2" style="font-size: 1.6rem; color: #d6b68a;"></i>
+                            Desactivar
+                        }
+                        @else{
+                            <i class="ri-user-add-line me-2" style="font-size: 1.6rem; color: #d6b68a;"></i>
+                            Activar
+                        }
+                      </div>
+                      <button type="button" class="btn-close btn-close-white" (click)="cancelarEliminar()"></button>
+                    </div>
+
+                    <div class="modal-body p-4" style="background: #f9fafc;">
+                        @if(usuarioEliminar?.usua_Estado){                        
+                            <p class="text-muted mb-3" style="font-size: 1.05rem;">
                                 ¿Estás seguro(a) que deseas desactivar el usuario: <strong>{{
                                     usuarioEliminar?.usua_Usuario }}</strong>?
                             </p>
-                        </div>
                         }
                         @else if(!usuarioEliminar?.usua_Estado){
-                        <div class="text-center">
-                            <p class="mt-2 custom-modal-text">
+                            <p class="text-muted mb-3" style="font-size: 1.05rem;">
                                 ¿Estás seguro(a) que deseas activar el usuario: <strong>{{ usuarioEliminar?.usua_Usuario
                                     }}</strong>?
                             </p>
-                        </div>
                         }
                     </div>
-                    <div class="modal-footer custom-modal-footer">
-                        <button type="button" class="btn btn-primary btn-sm btn-minw-5"
-                            (click)="cancelarEliminar()"><span class="btn-text">No</span><span class="btn-icon"><i
+
+                    <div class="modal-footer py-3" style="background: #fff; border-top: 1px solid #f0f0f0;">
+                        <button type="button" class="btn btn-primary gold"
+                            (click)="cancelarEliminar()"><span class="btn-text">Cancelar</span><span class="btn-icon"><i
                                     class="ri-close-circle-line"></i></span></button>
                         @if(usuarioEliminar?.usua_Estado){
-                        <button type="button" class="btn btn-primary green btn-sm btn-minw-5" (click)="eliminar()">
-                            <span class="btn-text">Si</span>
-                            <span class="btn-icon"><i class="ri-check-line"></i></span>
+                        <button type="button" class="btn btn-primary" (click)="eliminar()">
+                            <span class="btn-text">Confirmar</span>
+                            <span class="btn-icon"><i class="ri-check-double-line"></i></span>
                         </button>
                         }
                         @else if (!usuarioEliminar?.usua_Estado) {
-                        <button type="button" class="btn btn-primary green btn-sm btn-minw-5" (click)="eliminar()">
-                            <span class="btn-text">Si</span>
-                            <span class="btn-icon"><i class="ri-check-line"></i></span>
+                        <button type="button" class="btn btn-primary" (click)="eliminar()">
+                            <span class="btn-text">Confirmar</span>
+                            <span class="btn-icon"><i class="ri-check-double-line"></i></span>
                         </button>
                         }
                     </div>
                 </div>
             </div>
         </div>
+
+
 
         <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionRestablecer }"
             [style.display]="mostrarConfirmacionRestablecer ? 'block' : 'none'" tabindex="-1" role="dialog">
@@ -299,10 +300,8 @@
                         <h4>{{usuarioRestablecer?.usua_Usuario}}</h4>
                         <hr>
                     </div>
-                    <!-- Cuerpo del modal -->
                     <div class="modal-body custom-modal-body">
                         <div class="row">
-                            <!-- Campo Contraseña -->
                             <div class="col-md-12 mb-3">
                                 <label for="usua_Clave2" class="form-label">
                                     Contraseña
@@ -311,13 +310,34 @@
                                 <div class="d-flex align-items-center">
                                     <i class="ri-lock-2-line"
                                         [ngStyle]="{
-                                          border: (!usuario.usua_Clave.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                                          backgroundColor: (!usuario.usua_Clave.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                                          padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                                        border: (!usuario.usua_Clave.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                                        backgroundColor: (!usuario.usua_Clave.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                                        padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                                     </i>
                                     <input type="password" class="form-control" placeholder="Ingrese la contraseña"
                                         required [ngModel]="usuario.usua_Clave"
-                                        (ngModelChange)="usuario.usua_Clave = $event" />
+                                        (ngModelChange)="usuario.usua_Clave = $event" 
+                                        (input)="corroborarClave(usuario.usua_Clave)"
+                                        (keydown.space)="$event.preventDefault()"/>
+                                </div>
+                                <div class="password-strength-bar mt-2" *ngIf="usuario.usua_Clave">
+                                  <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar"
+                                      [ngClass]="{
+                                        'bg-danger': claveDatos === 1,
+                                        'bg-warning': claveDatos === 2,
+                                        'bg-success': claveDatos === 3
+                                      }"
+                                      [style.width.%]="claveDatos * 33.33">
+                                    </div>
+                                  </div>
+                                  <small class="d-block mt-1 text-muted text-end" [ngClass]="{
+                                    'text-danger': claveDatos === 1,
+                                    'text-warning': claveDatos === 2,
+                                    'text-success': claveDatos === 3
+                                  }">
+                                    {{ claveMensaje }}
+                                  </small>
                                 </div>
                                 <div class="text-danger mt-1" style="display: none;">
                                     <small>El campo Contraseña es requerido</small>
@@ -325,7 +345,6 @@
                             </div>
                         </div>
                         <div class="row">
-                            <!-- Campo Confirmar Contraseña -->
                             <div class="col-md-12 mb-3">
                                 <label for="confirmar_Clave2" class="form-label">
                                     Confirmar Contraseña
@@ -333,18 +352,22 @@
                                 </label>
                                 <div class="d-flex align-items-center">
                                     <i class="ri-lock-2-line"
-                                        [ngStyle]="{
-                                          border: (!usuario.usua_Clave.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                                          backgroundColor: (!usuario.usua_Clave.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                                          padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                                      [ngStyle]="{
+                                        border: (!confirmaciondePassword.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                                        backgroundColor: (!confirmaciondePassword.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                                        padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                                     </i>
                                     <input type="password" class="form-control" placeholder="Confirme la contraseña"
-                                        required [ngModel]="confirmaciondePassword"
-                                        (ngModelChange)="confirmaciondePassword = $event" />
+                                      required [(ngModel)]="confirmaciondePassword" />
                                 </div>
-                                <div class="text-danger mt-1" style="display: none;">
-                                    <small>El campo Confirmar Contraseña es requerido</small>
-                                </div>
+                                <small class="mt-1 d-block"
+                                    [ngClass]="{
+                                      'text-success': confirmaciondePassword && contrasenasCoinciden(),
+                                      'text-danger': confirmaciondePassword && !contrasenasCoinciden()
+                                    }"
+                                    *ngIf="confirmaciondePassword">
+                                    {{ contrasenasCoinciden() ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden' }}
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -361,6 +384,8 @@
                 </div>
             </div>
         </div>
+
+
 
         <div class="modal-backdrop fade"
             [ngClass]="{ 'show': mostrarConfirmacionEliminar || mostrarConfirmacionRestablecer || mostrarModalContrasena }"

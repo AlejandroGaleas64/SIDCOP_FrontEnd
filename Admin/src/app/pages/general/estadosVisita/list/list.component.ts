@@ -1,0 +1,528 @@
+
+import { Component, OnInit } from '@angular/core';
+import {
+  trigger,
+  state,
+  style,
+  transition,
+  animate
+} from '@angular/animations';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { BreadcrumbsComponent } from 'src/app/shared/breadcrumbs/breadcrumbs.component';
+import { ReactiveTableService } from 'src/app/shared/reactive-table.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from 'src/environments/environment.prod';
+import { getUserId } from 'src/app/core/utils/user-utils';
+import { TableModule } from 'src/app/pages/table/table.module';
+import { PaginationModule } from 'ngx-bootstrap/pagination';
+import { EstadoVisita } from 'src/app/Modelos/general/EstadoVisita.Model';
+import { CreateComponent } from '../create/create.component';
+import { EditComponent } from '../edit/edit.component';
+import { DetailsComponent } from '../details/details.component';
+import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
+import { ExportService, ExportConfig } from 'src/app/shared/export.service';
+
+@Component({
+  selector: 'app-list',
+  standalone: true,
+  imports: [CommonModule,
+    FormsModule,
+    RouterModule,
+    BreadcrumbsComponent,
+    TableModule,
+    PaginationModule,
+    CreateComponent,
+    EditComponent,
+    DetailsComponent],
+  templateUrl: './list.component.html',
+  styleUrl: './list.component.scss',
+  animations: [
+    trigger('fadeExpand', [
+      transition(':enter', [
+        style({
+          height: '0',
+          opacity: 0,
+          transform: 'scaleY(0.90)',
+          overflow: 'hidden'
+        }),
+        animate(
+          '300ms ease-out',
+          style({
+            height: '*',
+            opacity: 1,
+            transform: 'scaleY(1)',
+            overflow: 'hidden'
+          })
+        )
+      ]),
+      transition(':leave', [
+        style({ overflow: 'hidden' }),
+        animate(
+          '300ms ease-in',
+          style({
+            height: '0',
+            opacity: 0,
+            transform: 'scaleY(0.95)'
+          })
+        )
+      ])
+    ])
+  ]
+})
+
+
+export class ListComponent implements OnInit {
+  // Overlay de carga animado
+  mostrarOverlayCarga = false;
+  // bread crumb items
+  breadCrumbItems!: Array<{}>;
+
+  // Acciones disponibles para el usuario en esta pantalla
+  accionesDisponibles: string[] = [];
+
+  // METODO PARA VALIDAR SI UNA ACCIÓN ESTÁ PERMITIDA
+  accionPermitida(accion: string): boolean {
+    return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
+  }
+
+  ngOnInit(): void {
+    /**
+     * BreadCrumb
+     */
+    this.breadCrumbItems = [
+      { label: 'General' },
+      { label: 'Estados Civiles', active: true }
+    ];
+
+    // OBTENER ACCIONES DISPONIBLES DEL USUARIO
+    this.cargarAccionesUsuario();
+    console.log('Acciones disponibles:', this.accionesDisponibles);
+  }
+  // Métodos para los botones de acción principales (crear, editar, detalles)
+  crear(): void {
+    console.log('Toggleando formulario de creación...');
+    this.showCreateForm = !this.showCreateForm;
+    this.showEditForm = false; // Cerrar edit si está abierto
+    this.showDetailsForm = false; // Cerrar details si está abierto
+    this.activeActionRow = null; // Cerrar menú de acciones
+  }
+
+  editar(estadoVisita: EstadoVisita): void {
+    console.log('Abriendo formulario de edición para:', estadoVisita);
+    console.log('Datos específicos:', {
+      id: estadoVisita.esVi_Id,
+      descripcion: estadoVisita.esVi_Descripcion,
+      completo: estadoVisita
+    });
+    this.estadoVisitaEditando = { ...estadoVisita }; // Hacer copia profunda
+    this.showEditForm = true;
+    this.showCreateForm = false; // Cerrar create si está abierto
+    this.showDetailsForm = false; // Cerrar details si está abierto
+    this.activeActionRow = null; // Cerrar menú de acciones
+  }
+
+  detalles(estadoVisita: EstadoVisita): void {
+    console.log('Abriendo detalles para:', estadoVisita);
+    this.estadoVisitaDetalle = { ...estadoVisita }; // Hacer copia profunda
+    this.showDetailsForm = true;
+    this.showCreateForm = false; // Cerrar create si está abierto
+    this.showEditForm = false; // Cerrar edit si está abierto
+    this.activeActionRow = null; // Cerrar menú de acciones
+  }
+   constructor(public table: ReactiveTableService<EstadoVisita>, 
+    private http: HttpClient, 
+    private router: Router, 
+    private route: ActivatedRoute,
+    public floatingMenuService: FloatingMenuService,
+    private exportService: ExportService
+  )
+    {
+    this.cargardatos(true);
+  }   
+
+  activeActionRow: number | null = null;
+  showEdit = true;
+  showDetails = true;
+  showDelete = true;
+  showCreateForm = false; // Control del collapse
+  showEditForm = false; // Control del collapse de edición
+  showDetailsForm = false; // Control del collapse de detalles
+  estadoVisitaEditando: EstadoVisita | null = null;
+  estadoVisitaDetalle: EstadoVisita | null = null;
+  
+  // Propiedades para alertas
+  mostrarAlertaExito = false;
+  mensajeExito = '';
+  mostrarAlertaError = false;
+  mensajeError = '';
+  mostrarAlertaWarning = false;
+  mensajeWarning = '';
+  
+  // Propiedades para confirmación de eliminación
+  mostrarConfirmacionEliminar = false;
+  estadoVisitaAEliminar: EstadoVisita | null = null;
+
+  cerrarFormulario(): void {
+    this.showCreateForm = false;
+  }
+
+  cerrarFormularioEdicion(): void {
+    this.mostrarOverlayCarga = false;
+    this.showEditForm = false;
+    this.estadoVisitaEditando = null;
+  }
+
+  cerrarFormularioDetalles(): void {
+    this.showDetailsForm = false;
+    this.estadoVisitaDetalle = null;
+  }
+
+  guardarEstadoVisita(estadoVisita: EstadoVisita): void {
+    console.log('Estado civil guardado exitosamente desde create component:', estadoVisita);
+    // Recargar los datos de la tabla sin overlay
+    this.cargardatos(false);
+    this.cerrarFormulario();
+  }
+
+  actualizarEstadoVisita(estadoVisita: EstadoVisita): void {
+    console.log('Estado civil actualizado exitosamente desde edit component:', estadoVisita);
+    // Recargar los datos de la tabla sin overlay
+    this.cargardatos(false);
+    this.cerrarFormularioEdicion();
+  }
+
+  confirmarEliminar(estadoVisita: EstadoVisita): void {
+    console.log('Solicitando confirmación para eliminar:', estadoVisita);
+    this.estadoVisitaAEliminar = estadoVisita;
+    this.mostrarConfirmacionEliminar = true;
+  }
+
+  cancelarEliminar(): void {
+    this.mostrarConfirmacionEliminar = false;
+    this.estadoVisitaAEliminar = null;
+  }
+
+  eliminar(): void {
+    if (!this.estadoVisitaAEliminar) return;
+    
+    console.log('Eliminando estado civil:', this.estadoVisitaAEliminar);
+    
+    this.http.post(`${environment.apiBaseUrl}/EstadoVisita/Eliminar/${this.estadoVisitaAEliminar.esVi_Id}`, {}, {
+      headers: { 
+        'X-Api-Key': environment.apiKey,
+        'accept': '*/*'
+      }
+    }).subscribe({
+      next: (response: any) => {
+        console.log('Respuesta del servidor:', response);
+        
+        // Verificar el código de estado en la respuesta
+        if (response.success && response.data) {
+          if (response.data.code_Status === 1) {
+            // Éxito: eliminado correctamente
+            console.log('Estado civil eliminado exitosamente');
+            this.mensajeExito = `Estado civil "${this.estadoVisitaAEliminar!.esVi_Descripcion}" eliminado exitosamente`;
+            this.mostrarAlertaExito = true;
+            
+            // Ocultar la alerta después de 3 segundos
+            setTimeout(() => {
+              this.mostrarAlertaExito = false;
+              this.mensajeExito = '';
+            }, 3000);
+            
+
+            this.cargardatos(false);
+            this.cancelarEliminar();
+          } else if (response.data.code_Status === -1) {
+            //result: está siendo utilizado
+            console.log('Estado civil está siendo utilizado');
+            this.mostrarAlertaError = true;
+            this.mensajeError = response.data.message_Status || 'No se puede eliminar: el estado civil está siendo utilizado.';
+            
+            setTimeout(() => {
+              this.mostrarAlertaError = false;
+              this.mensajeError = '';
+            }, 5000);
+            
+            // Cerrar el modal de confirmación
+            this.cancelarEliminar();
+          } else if (response.data.code_Status === 0) {
+            // Error general
+            console.log('Error general al eliminar');
+            this.mostrarAlertaError = true;
+            this.mensajeError = response.data.message_Status || 'Error al eliminar el estado civil.';
+            
+            setTimeout(() => {
+              this.mostrarAlertaError = false;
+              this.mensajeError = '';
+            }, 5000);
+            
+            // Cerrar el modal de confirmación
+            this.cancelarEliminar();
+          }
+        } else {
+          // Respuesta inesperada
+          console.log('Respuesta inesperada del servidor');
+          this.mostrarAlertaError = true;
+          this.mensajeError = response.message || 'Error inesperado al eliminar el estado civil.';
+          
+          setTimeout(() => {
+            this.mostrarAlertaError = false;
+            this.mensajeError = '';
+          }, 5000);
+          
+          // Cerrar el modal de confirmación
+          this.cancelarEliminar();
+        }
+      },
+    });
+  }
+
+  // Variables para exportación
+  exportando = false;
+  tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
+
+  // Configuración de exportación
+  private exportConfig = {
+    title: 'Listado de Estados de Visita',
+    filename: 'EstadosdeVisita',
+    columns: [
+      { header: 'No.', key: 'secuencia' },
+      { header: 'Descripción', key: 'esVi_Descripcion' },
+      { header: 'Fecha Creación', key: 'esVi_FechaCreacion' },
+    ],
+    data: [] as any[]
+  };
+
+  // Métodos específicos para cada tipo de exportación
+  exportarExcel(): Promise<void> {
+    return this.exportar('excel');
+  }
+
+  exportarPDF(): Promise<void> {
+    return this.exportar('pdf');
+  }
+
+  exportarCSV(): Promise<void> {
+    return this.exportar('csv');
+  }
+
+  // Verifica si se puede exportar un tipo específico
+    puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
+      if (this.exportando) return false;
+      if (!this.table.data$.value || this.table.data$.value.length === 0) return false;
+      return true;
+    }
+  
+    /**
+     * Limpia texto para exportación de manera más eficiente
+     */
+    private limpiarTexto(texto: any): string {
+      if (!texto) return '';
+      
+      return String(texto)
+        .replace(/\s+/g, ' ')
+        .replace(/[^\w\s\-.,;:()\[\]]/g, '')
+        .trim()
+        .substring(0, 150);
+    }
+  
+    async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
+      if (this.exportando) {
+        this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
+        return;
+      }
+  
+      if (!this.validarDatosParaExport()) {
+        return;
+      }
+  
+      try {
+        this.exportando = true;
+        this.tipoExportacion = tipo;
+        this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
+        
+        const config = this.crearConfiguracionExport();
+        let resultado;
+        
+        switch (tipo) {
+          case 'excel':
+            resultado = await this.exportService.exportToExcel(config);
+            break;
+          case 'pdf':
+            resultado = await this.exportService.exportToPDF(config);
+            break;
+          case 'csv':
+            resultado = await this.exportService.exportToCSV(config);
+            break;
+        }
+        
+        this.manejarResultadoExport(resultado);
+        
+      } catch (error) {
+        console.error(`Error en exportación ${tipo}:`, error);
+        this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
+      } finally {
+        this.exportando = false;
+        this.tipoExportacion = null;
+      }
+    }
+  
+    /**
+     * Crea la configuración de exportación de forma dinámica
+     */
+    private crearConfiguracionExport(): ExportConfig {
+      return {
+        title: this.exportConfig.title,
+        filename: this.exportConfig.filename,
+        data: this.obtenerDatosExport(),
+        columns: this.exportConfig.columns
+      };
+    }
+  
+    /**
+     * Obtiene y prepara los datos para exportación
+     */
+    private obtenerDatosExport(): any[] {
+      try {
+        const datos = this.table.data$.value;
+        
+        if (!Array.isArray(datos) || datos.length === 0) {
+          throw new Error('No hay datos disponibles para exportar');
+        }
+        
+        // Usar el mapeo configurado
+        return datos.map((estadovisita, index) => ({
+          secuencia: estadovisita.secuencia,
+          esVi_Descripcion: this.limpiarTexto(estadovisita.esVi_Descripcion),
+          esVi_FechaCreacion: estadovisita.esVi_FechaCreacion          
+        }));
+        
+      } catch (error) {
+        console.error('Error obteniendo datos:', error);
+        throw error;
+      }
+    }
+  
+    /**
+     * Maneja el resultado de las exportaciones
+     */
+    private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
+      if (resultado.success) {
+        this.mostrarMensaje('success', resultado.message);
+      } else {
+        this.mostrarMensaje('error', resultado.message);
+      }
+    }
+  
+    /**
+     * Valida datos antes de exportar
+     */
+    private validarDatosParaExport(): boolean {
+      const datos = this.table.data$.value;
+      
+      if (!Array.isArray(datos) || datos.length === 0) {
+        this.mostrarMensaje('warning', 'No hay datos disponibles para exportar');
+        return false;
+      }
+      
+      if (datos.length > 10000) {
+        const continuar = confirm(
+          `Hay ${datos.length.toLocaleString()} registros. ` +
+          'La exportación puede tomar varios minutos. ¿Desea continuar?'
+        );
+        if (!continuar) return false;
+      }
+      
+      return true;
+    }
+
+
+    private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
+    this.cerrarAlerta();
+    
+    const duracion = tipo === 'error' ? 5000 : 3000;
+    
+    switch (tipo) {
+      case 'success':
+        this.mostrarAlertaExito = true;
+        this.mensajeExito = mensaje;
+        break;
+      case 'error':
+        this.mostrarAlertaError = true;
+        this.mensajeError = mensaje;
+        break;
+      case 'warning':
+      case 'info':
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = mensaje;
+        break;
+    }
+    
+    setTimeout(() => this.cerrarAlerta(), duracion);
+  }
+
+
+  cerrarAlerta(): void {
+    this.mostrarAlertaExito = false;
+    this.mensajeExito = '';
+    this.mostrarAlertaError = false;
+    this.mensajeError = '';
+    this.mostrarAlertaWarning = false;
+    this.mensajeWarning = '';
+  }
+
+  // AQUI EMPIEZA LO BUENO PARA LAS ACCIONES
+  private cargarAccionesUsuario(): void {
+    // OBTENEMOS PERMISOSJSON DEL LOCALSTORAGE
+    const permisosRaw = localStorage.getItem('permisosJson');
+    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+    let accionesArray: string[] = [];
+    if (permisosRaw) {
+      try {
+        const permisos = JSON.parse(permisosRaw);
+        // BUSCAMOS EL MÓDULO DE ESTADOS CIVILES
+        let modulo = null;
+        if (Array.isArray(permisos)) {
+          // BUSCAMOS EL MÓDULO DE ESTADOS CIVILES POR ID
+          modulo = permisos.find((m: any) => m.Pant_Id === 14);
+        } else if (typeof permisos === 'object' && permisos !== null) {
+          // ESTO ES PARA CUANDO LOS PERMISOS ESTÁN EN UN OBJETO CON CLAVES
+          modulo = permisos['Estados Civiles'] || permisos['estados civiles'] || null;
+        }
+        if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
+          // AQUI SACAMOS SOLO EL NOMBRE DE LA ACCIÓN
+          accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
+          console.log('Acciones del módulo:', accionesArray);
+        }
+      } catch (e) {
+        console.error('Error al parsear permisosJson:', e);
+      }
+    } 
+    // AQUI FILTRAMOS Y NORMALIZAMOS LAS ACCIONES
+    this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
+    console.log('Acciones finales:', this.accionesDisponibles);
+  }
+
+  private cargardatos(state: boolean): void {
+    this.mostrarOverlayCarga = state;
+    this.http.get<EstadoVisita[]>(`${environment.apiBaseUrl}/EstadoVisita/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(data => {
+      setTimeout(() => {
+        const tienePermisoListar = this.accionPermitida('listar');
+        const userId = getUserId();
+
+        const datosFiltrados = tienePermisoListar
+          ? data
+          : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
+
+        this.table.setData(datosFiltrados);
+        this.table.setData(data);
+        this.mostrarOverlayCarga = false;
+      }, 500);
+    });
+  }
+}

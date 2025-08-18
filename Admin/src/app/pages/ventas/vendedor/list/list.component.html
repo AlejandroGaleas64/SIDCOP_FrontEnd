@@ -5,10 +5,10 @@
 
 <div class="row">
   <div class="col-lg-12">
-    <div class="card">
-      <div class="card-body">
+
         <div class="d-flex justify-content-between mb-3 flex-wrap"
           *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+
           <button *ngIf="accionPermitida('crear')" type="button" class="btn btn-primary me-2 mb-2" (click)="crear()">
             <span class="btn-text">Nuevo</span>
             <span class="btn-icon"><i class="ri-add-line"></i></span>
@@ -33,6 +33,7 @@
               </button>
             </div>
 
+            
 
             <!-- Campo de búsqueda -->
             <div class="search-box mb-2">
@@ -73,152 +74,85 @@
           </div>
         </div>
         <div class="table-radius-container">
-          <div class="table-responsive" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
-            <table class="table table-gridjs table-style">
-              <thead>
-                <tr>
-                  <th class="gridjs-th"
-                    *ngIf="accionPermitida('editar') || accionPermitida('eliminar') || accionPermitida('detalle')">
-                    Acciones</th>
-                  <th class="gridjs-th" (click)="table.sortBy('secuencia')" style="cursor:pointer;">
-                    <span class="table-header-flex">
-                      No.
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column;">
-                        <i class="ri-arrow-up-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'secuencia' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                        </i>
-                        <i class="ri-arrow-down-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'secuencia' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                        </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('vend_Codigo')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Codigo
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                        <i class="ri-arrow-up-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'vend_Codigo' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                        </i>
-                        <i class="ri-arrow-down-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'vend_Codigo' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                        </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('vend_DNI')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      DNI
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                        <i class="ri-arrow-up-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'vend_DNI' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                        </i>
-                        <i class="ri-arrow-down-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'vend_DNI' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                        </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('vend_Nombres')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Nombre Completo
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                        <i class="ri-arrow-up-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'vend_Nombres' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                        </i>
-                        <i class="ri-arrow-down-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'vend_Nombres' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                        </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('vend_Telefono')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Telefono
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                        <i class="ri-arrow-up-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'vend_Telefono' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                        </i>
-                        <i class="ri-arrow-down-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'vend_Telefono' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                        </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('vend_Correo')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Correo
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                        <i class="ri-arrow-up-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'vend_Correo' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                        </i>
-                        <i class="ri-arrow-down-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'vend_Correo' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                        </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('vend_Sexo')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Sexo
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                        <i class="ri-arrow-up-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'vend_Sexo' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                        </i>
-                        <i class="ri-arrow-down-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'vend_Sexo' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                        </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('vend_DireccionExacta')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Direccion Exacta
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                        <i class="ri-arrow-up-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'vend_DireccionExacta' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                        </i>
-                        <i class="ri-arrow-down-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'vend_DireccionExacta' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                        </i>
-                      </span>
-                    </span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let data of table.paginated$ | async; let i = index">
-                  <td class="position-relative"
-                    *ngIf="accionPermitida('editar') || accionPermitida('eliminar') || accionPermitida('detalle')">
-                    <div class="dropdown-action-list">
-                      <button type="button" class="dropdown-toggle" [attr.aria-expanded]="false"
-                        (click)="floatingMenuService.open($event, data)">
-                        <span>Acciones</span>
-                        <i class="ri-settings-3-line"></i>
-                      </button>
-                    </div>
-                  </td>
-                  <td><span class="fw-semibold">{{data.secuencia}}</span></td>
-                  <td>{{data.vend_Codigo}}</td>
-                  <td>{{data.vend_DNI}}</td>
-                  <td>{{data.vend_Nombres}} {{data.vend_Apellidos}}</td>
-                  <td>{{data.vend_Telefono}}</td>
-                  <td>{{data.vend_Correo}}</td>
-                  <td>{{data.vend_Sexo == 'M'? 'Masculino' : 'Femenino'}}</td>
-                  <td>{{data.vend_DireccionExacta}}-{{data.muni_Descripcion}}-{{data.depa_Descripcion}}</td>
+          <!-- Vista de tarjetas (única) -->
+          <div *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+            <div class="row g-4 mx-2 mb-4 justify-content-start" *ngIf="(table.paginated$ | async) as items">
+              <ng-container *ngFor="let v of items">
+                <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
+                  <div class="card card-empleado position-relative h-100">
+                    <div class="card-header p-0 position-relative"
+                      style="height: 90px; background: #141a2f; border-top-left-radius: 1rem; border-top-right-radius: 1rem; display: flex; justify-content: center; align-items: flex-end;">
+                      <div style="position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; background: #D5B58A; border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem;"></div>
 
-                </tr>
-              </tbody>
-            </table>
+                      <div style="position: absolute; top: 10px; left: 18px; z-index:1;">
+                        <svg width="32" height="12" viewBox="0 0 32 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="4" cy="6" r="2" fill="#D5B58A" fill-opacity="0.5" />
+                          <circle cx="12" cy="6" r="2" fill="#D5B58A" fill-opacity="0.3" />
+                          <circle cx="20" cy="6" r="2" fill="#D5B58A" fill-opacity="0.2" />
+                          <circle cx="28" cy="6" r="2" fill="#D5B58A" fill-opacity="0.15" />
+                        </svg>
+                      </div>
+
+                      <div style="background: #fff; border-radius: 50%; padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 2px solid #D5B58A; margin-bottom: -35px; z-index:2;">
+                        <ng-container *ngIf="getAvatarUrl(v); else initialsTpl">
+                          <img [src]="getAvatarUrl(v)" alt="Vendedor" class="avatar-img rounded-circle"
+                            style="width: 64px; height: 64px; object-fit: cover; display: block;" />
+                        </ng-container>
+                        <ng-template #initialsTpl>
+                          <div class="avatar-img rounded-circle d-flex align-items-center justify-content-center"
+                            style="width: 64px; height: 64px; font-weight: 700; font-size: 1.25rem; background: #f2f3f9; color:#141a2f;">
+                            {{ getInitials(v) }}
+                          </div>
+                        </ng-template>
+                      </div>
+
+                      <div style="position: absolute; top: 0px; right: 0px; z-index:1;"
+                        *ngIf="accionPermitida('editar') || accionPermitida('eliminar') || accionPermitida('detalle')">
+                        <div class="dropdown-action-list">
+                          <button class="buttonConfig" [attr.aria-expanded]="false"
+                            (click)="floatingMenuService.open($event, v)">
+                            <i class="ri-settings-3-line" style="color: white; font-size: 1.4em;"></i>
+                          </button>
+                          <span class="acciones-text">Acciones</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="card-body pt-5 mt-2 px-3 text-center">
+                      <span class="badge bg-light text-dark fw-semibold mb-1 px-3 py-1 border" style="font-size: 0.8rem;">
+                        Código: {{ v.vend_Codigo }}
+                      </span>
+                      <h5 class="fw-bold mb-1 text-dark" style="font-size: 1.125rem;">
+                        {{ v.vend_Nombres }} {{ v.vend_Apellidos }}
+                      </h5>
+
+                      <ul class="list-unstyled mb-4 ps-0" style="display: flex; flex-direction: column; align-items: center;">
+                        <li class="d-flex justify-content-center align-items-center mb-2" style="gap: 8px;">
+                          <i class="bi bi-person-badge" style="color: #141A2F;"></i>
+                          <span class="text-muted text-break">{{ formatDNI(v.vend_DNI) }}</span>
+                        </li>
+                        <li class="d-flex justify-content-center align-items-center mb-2" style="gap: 8px;">
+                          <i class="bi bi-envelope" style="color: #141A2F;"></i>
+                          <span class="text-muted text-break">{{ v.vend_Correo || '—' }}</span>
+                        </li>
+                        <li class="d-flex justify-content-center align-items-center mb-2" style="gap: 8px;">
+                          <i class="bi bi-telephone" style="color: #141A2F;"></i>
+                          <span class="text-muted">{{ v.vend_Telefono || '—' }}</span>
+                        </li>
+                        <li class="d-flex justify-content-center align-items-center" style="gap: 8px;">
+                          <i class="bi bi-geo-alt" style="color: #141A2F;"></i>
+                          <span class="text-muted text-break" style="white-space: normal; word-break: break-word;">
+                            {{ v.vend_DireccionExacta }}<ng-container *ngIf="v.muni_Descripcion || v.depa_Descripcion"> - {{ v.muni_Descripcion }} - {{ v.depa_Descripcion }}</ng-container>
+                          </span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
           </div>
+
           <div class="row justify-content-md-between align-items-md-center"
             *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
             <ng-container *ngIf="(table.paginated$ | async) as paginados">
@@ -238,10 +172,11 @@
             </ng-container>
           </div>
         </div>
+
       </div>
     </div>
-  </div>
-</div>
+
+
 
 <!-- Contenedor de alertas flotantes -->
 <div class="alert-container">

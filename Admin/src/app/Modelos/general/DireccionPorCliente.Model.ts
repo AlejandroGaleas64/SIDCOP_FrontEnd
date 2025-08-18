@@ -6,6 +6,7 @@ export class  DireccionPorCliente {
     diCl_Observaciones: string = '';
     diCl_Latitud: number = 0;
     diCl_Longitud: number = 0;
+    colo_Descripcion: string = '';
     muni_Descripcion: string = '';
     depa_Descripcion: string = '';
     usua_Creacion: number = 0;

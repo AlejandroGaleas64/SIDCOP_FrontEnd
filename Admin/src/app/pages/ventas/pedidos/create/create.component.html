@@ -208,8 +208,16 @@
 
                     <!-- Nombre del producto -->
                     <h6 class="producto-titulo-premium mb-3">
-                      {{ producto.prod_Descripcion }}
+                      {{ producto.prod_DescripcionCorta }}
                     </h6>
+
+                    <!-- Precio dinámico -->
+                    <div class="precio-producto mb-3">
+                      <span class="text-muted">Precio:</span>
+                      <span class="fw-bold text-dark">
+                        L {{ producto.precio.toFixed(2) }}
+                      </span>
+                    </div>
 
                     <!-- Controles de cantidad -->
                     <div class="cantidad-controls-premium">
@@ -227,7 +235,8 @@
                               getProductoIndex(producto.prod_Id)
                             ].cantidad =
                               $event > 999 ? 999 : $event < 0 ? 0 : $event;
-                            validarCantidad(producto.prod_Id)
+                            validarCantidad(producto.prod_Id);
+                              actualizarPrecio(productos[getProductoIndex(producto.prod_Id)]);
                           " min="0" max="999" />
 
                         <button class="btn-cantidad-premium btn-plus" type="button"

@@ -5,7 +5,7 @@ import {
   Input,
   OnChanges,
   SimpleChanges,
-  OnInit
+  OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,11 +13,12 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Pedido } from 'src/app/Modelos/ventas/Pedido.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @Component({
   selector: 'app-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule],
   templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss',
 })
@@ -33,9 +34,8 @@ export class EditComponent implements OnInit, OnChanges {
   productosFiltrados: any[] = [];
   paginaActual = 1;
   productosPorPagina = 8;
-  
 
- buscarProductos(): void {
+  buscarProductos(): void {
     this.paginaActual = 1;
     this.aplicarFiltros();
   }
@@ -51,7 +51,7 @@ export class EditComponent implements OnInit, OnChanges {
       this.productosFiltrados = [...this.productos];
     } else {
       const termino = this.busquedaProducto.toLowerCase().trim();
-      this.productosFiltrados = this.productos.filter(producto =>
+      this.productosFiltrados = this.productos.filter((producto) =>
         producto.prod_Descripcion.toLowerCase().includes(termino)
       );
     }
@@ -116,7 +116,7 @@ export class EditComponent implements OnInit, OnChanges {
 
   // Método para obtener el índice real del producto en el array principal
   getProductoIndex(prodId: number): number {
-    return this.productos.findIndex(p => p.prod_Id === prodId);
+    return this.productos.findIndex((p) => p.prod_Id === prodId);
   }
 
   // ========== MÉTODOS DE CANTIDAD MEJORADOS ==========
@@ -124,63 +124,205 @@ export class EditComponent implements OnInit, OnChanges {
   aumentarCantidad(prodId: number): void {
     const index = this.getProductoIndex(prodId);
     if (index >= 0 && index < this.productos.length) {
-      this.productos[index].cantidad = (this.productos[index].cantidad || 0) + 1;
+      const producto = this.productos[index];
+      producto.cantidad = (producto.cantidad || 0) + 1;
+      producto.precio = this.getPrecioPorCantidad(producto, producto.cantidad);
     }
   }
 
   disminuirCantidad(prodId: number): void {
     const index = this.getProductoIndex(prodId);
-    if (index >= 0 && index < this.productos.length && this.productos[index].cantidad > 0) {
-      this.productos[index].cantidad--;
+    if (
+      index >= 0 &&
+      index < this.productos.length &&
+      this.productos[index].cantidad > 0
+    ) {
+      const producto = this.productos[index];
+      producto.cantidad--;
+      producto.precio = this.getPrecioPorCantidad(producto, producto.cantidad);
     }
+  }
+
+  actualizarPrecio(producto: any): void {
+    producto.precio = this.getPrecioPorCantidad(producto, producto.cantidad);
   }
 
   validarCantidad(prodId: number): void {
     const index = this.getProductoIndex(prodId);
     if (index >= 0 && index < this.productos.length) {
-      const cantidad = this.productos[index].cantidad || 0;
-      this.productos[index].cantidad = Math.max(0, Math.min(999, cantidad));
+      const producto = this.productos[index];
+      const cantidad = producto.cantidad || 0;
+      producto.cantidad = Math.max(0, Math.min(999, cantidad));
+      producto.precio = this.getPrecioPorCantidad(producto, producto.cantidad);
     }
   }
 
   // Método para obtener la cantidad de un producto específico
   getCantidadProducto(prodId: number): number {
-    const producto = this.productos.find(p => p.prod_Id === prodId);
-    return producto ? (producto.cantidad || 0) : 0;
+    const producto = this.productos.find((p) => p.prod_Id === prodId);
+    return producto ? producto.cantidad || 0 : 0;
+  }
+
+  getPrecioPorCantidad(producto: any, cantidad: number): number {
+    let precioBase = producto.prod_PrecioUnitario || 0;
+
+    // Si hay lista de precios y cantidad válida
+    if (producto.listasPrecio_JSON && cantidad > 0) {
+      let escalaAplicada = null;
+
+      for (const lp of producto.listasPrecio_JSON) {
+        if (cantidad >= lp.PreP_InicioEscala && cantidad <= lp.PreP_FinEscala) {
+          escalaAplicada = lp;
+          break;
+        }
+      }
+
+      // Si no encontró escala, usa la última si la cantidad excede
+      if (!escalaAplicada && producto.listasPrecio_JSON.length > 0) {
+        const ultimaEscala =
+          producto.listasPrecio_JSON[producto.listasPrecio_JSON.length - 1];
+        if (cantidad > ultimaEscala.PreP_FinEscala) {
+          escalaAplicada = ultimaEscala;
+        }
+      }
+
+      if (escalaAplicada) {
+        precioBase = escalaAplicada.PreP_PrecioContado;
+      }
+    }
+
+    // Aplica descuento si corresponde
+    return this.aplicarDescuento(producto, cantidad, precioBase);
+  }
+
+  aplicarDescuento(
+    producto: any,
+    cantidad: number,
+    precioBase: number
+  ): number {
+    const descEsp = producto.desc_EspecificacionesJSON || {};
+
+    if (
+      !producto.descuentosEscala_JSON ||
+      !descEsp ||
+      descEsp.Desc_TipoFactura !== 'AM'
+    ) {
+      return precioBase;
+    }
+
+    const descuentosEscala = producto.descuentosEscala_JSON;
+
+    let descuentoAplicado = null;
+
+    for (const desc of descuentosEscala) {
+      if (
+        cantidad >= desc.DeEs_InicioEscala &&
+        cantidad <= desc.DeEs_FinEscala
+      ) {
+        descuentoAplicado = desc;
+        break;
+      }
+    }
+
+    // Si no encontró descuento, usa el último si la cantidad excede
+    if (!descuentoAplicado && descuentosEscala.length > 0) {
+      const ultimoDescuento = descuentosEscala[descuentosEscala.length - 1];
+      if (cantidad > ultimoDescuento.DeEs_FinEscala) {
+        descuentoAplicado = ultimoDescuento;
+      }
+    }
+
+    if (descuentoAplicado) {
+      return this.calcularDescuento(
+        precioBase,
+        descEsp,
+        descuentoAplicado.DeEs_Valor
+      );
+    }
+
+    return precioBase;
+  }
+
+  calcularDescuento(
+    precioBase: number,
+    descEsp: any,
+    valorDescuento: number
+  ): number {
+    if (descEsp.Desc_Tipo === 0) {
+      // Descuento por porcentaje
+      return precioBase - precioBase * (valorDescuento / 100);
+    } else if (descEsp.Desc_Tipo === 1) {
+      // Descuento por monto fijo
+      return precioBase - valorDescuento;
+    }
+    return precioBase;
   }
 
   obtenerProductosSeleccionados(): any[] {
     return this.productos
-      .filter(p => p.cantidad > 0)
-      .map(p => ({
+      .filter((p) => p.cantidad > 0)
+      .map((p) => ({
         prod_Id: p.prod_Id,
         peDe_Cantidad: p.cantidad,
-        peDe_ProdPrecio: p.precio || 0
+        peDe_ProdPrecio: p.prod_PrecioUnitario || 0, // Precio unitario base
+        peDe_ProdPrecioFinal: this.getPrecioPorCantidad(p, p.cantidad), // Precio final con descuento/escalas
       }));
   }
 
-listarProductosDesdePedido(): void {
-  this.http.get<any>(`${environment.apiBaseUrl}/Productos/Listar`, {
-    headers: { 'x-api-key': environment.apiKey }
-  }).subscribe({
-    next: (data) => {
-      this.productos = data.map((producto: any) => {
-        const detalle = this.pedidoEditada.detalles.find((d: any) => d.id == producto.prod_Id);
-        return {
-          ...producto,
-          cantidad: detalle?.cantidad || 0,
-          precio: detalle?.precio || producto.prod_PrecioUnitario || 0
-        };
-       
+  cargarProductosPorCliente(clienteId: number): void {
+    this.http
+      .get<any>(
+        `${environment.apiBaseUrl}/Productos/ListaPrecio/${clienteId}`,
+        {
+          headers: { 'x-api-key': environment.apiKey },
+        }
+      )
+      .subscribe({
+        next: (productos) => {
+          // Paso 2.1: Parsear productos con lógica adicional
+          this.productos = productos.map((producto: any) => {
+            const detalleExistente = this.pedidoEditada.detalles?.find(
+              (d: any) => parseInt(d.id) === parseInt(producto.prod_Id)
+            );
+
+            const cantidad = detalleExistente
+              ? parseInt(detalleExistente.cantidad || '0')
+              : 0;
+            const precioBase = producto.prod_PrecioUnitario || 0;
+
+            return {
+              ...producto,
+              cantidad: cantidad,
+              precio: this.getPrecioPorCantidad(producto, cantidad),
+              listasPrecio_JSON:
+                typeof producto.listasPrecio_JSON === 'string'
+                  ? JSON.parse(producto.listasPrecio_JSON)
+                  : producto.listasPrecio_JSON,
+              descuentosEscala_JSON:
+                typeof producto.descuentosEscala_JSON === 'string'
+                  ? JSON.parse(producto.descuentosEscala_JSON)
+                  : producto.descuentosEscala_JSON,
+              desc_EspecificacionesJSON:
+                typeof producto.desc_EspecificacionesJSON === 'string'
+                  ? JSON.parse(producto.desc_EspecificacionesJSON)
+                  : producto.desc_EspecificacionesJSON,
+            };
+          });
+
+          this.aplicarFiltros();
+          console.log(
+            'Productos cargados y cantidades aplicadas:',
+            this.productos
+          );
+        },
+        error: (error) => {
+          console.error('Error al obtener productos:', error);
+          this.mostrarAlertaWarning = true;
+          this.mensajeWarning =
+            'No se pudieron obtener los productos para el cliente seleccionado.';
+        },
       });
-      this.filtrarProductos();
-    },
-    error: () => {
-      this.mostrarAlertaError = true;
-      this.mensajeError = 'Error al cargar productos.';
-    }
-  });
-}
+  }
 
   pedidoEditada: Pedido = {
     pedi_Id: 0,
@@ -219,7 +361,7 @@ listarProductosDesdePedido(): void {
     pedi_Estado: false,
   };
 
-  PEOriginal = '';
+  PEOriginal: any = {};
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -228,128 +370,122 @@ listarProductosDesdePedido(): void {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
- 
-  trackByProducto(index: number, producto: any): number {
-  return producto.prod_Id;
-}
 
- getTotalProductosSeleccionados(): number {
+  trackByProducto(index: number, producto: any): number {
+    return producto.prod_Id;
+  }
+
+  getTotalProductosSeleccionados(): number {
     return this.productos
-      .filter(producto => producto.cantidad > 0)
+      .filter((producto) => producto.cantidad > 0)
       .reduce((total, producto) => total + producto.cantidad, 0);
   }
   Math = Math; // para usar Math en la plantilla
- 
+
   productosPaginados: any[] = []; // productos que se muestran en la página actual
- 
 
   TodasDirecciones: any;
   Clientes: any;
   Direcciones: any[] = [];
 
   selectedCliente: number = 0;
-  selectedDireccion:  number = 0;
+  selectedDireccion: number = 0;
 
+  listarProductos(): void {
+    this.http
+      .get<any>(`${environment.apiBaseUrl}/Productos/Listar`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe({
+        next: (data) => {
+          this.productos = data.map((producto: any) => ({
+            ...producto,
+            cantidad: 0,
+            precio: producto.prod_PrecioUnitario || 0,
+          }));
+          this.filtrarProductos(); // aplicar filtro inicial
+        },
+        error: () => {
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error al cargar productos.';
+        },
+      });
+  }
 
-
-listarProductos(): void {
-  this.http.get<any>(`${environment.apiBaseUrl}/Productos/Listar`, {
-    headers: { 'x-api-key': environment.apiKey }
-  }).subscribe({
-    next: (data) => {
-      this.productos = data.map((producto: any) => ({
-        ...producto,
-        cantidad: 0,
-        precio: producto.prod_PrecioUnitario || 0
-      }));
-      this.filtrarProductos(); // aplicar filtro inicial
-    },
-    error: () => {
-      this.mostrarAlertaError = true;
-      this.mensajeError = 'Error al cargar productos.';
-    }
-  });
-}
-
-
-
-searchQuery: string = ''; // Variable para almacenar la búsqueda
+  searchQuery: string = ''; // Variable para almacenar la búsqueda
 
   // Filtrar productos según el nombre
-filtrarProductos(): void {
-  const query = this.searchQuery.trim().toLowerCase();
-  if (query === '') {
-    this.productosFiltrados = [...this.productos];
-  } else {
-    this.productosFiltrados = this.productos.filter(producto =>
-      producto.prod_Descripcion.toLowerCase().includes(query)
-    );
+  filtrarProductos(): void {
+    const query = this.searchQuery.trim().toLowerCase();
+    if (query === '') {
+      this.productosFiltrados = [...this.productos];
+    } else {
+      this.productosFiltrados = this.productos.filter((producto) =>
+        producto.prod_Descripcion.toLowerCase().includes(query)
+      );
+    }
+    this.paginaActual = 1; // reset a la página 1 tras filtrar
+    this.actualizarProductosPaginados();
   }
-  this.paginaActual = 1; // reset a la página 1 tras filtrar
-  this.actualizarProductosPaginados();
-}
 
-
-actualizarProductosPaginados(): void {
-  const inicio = (this.paginaActual - 1) * this.productosPorPagina;
-  const fin = inicio + this.productosPorPagina;
-  this.productosPaginados = this.productosFiltrados.slice(inicio, fin);
-}
-
-
-
-
-
-  constructor(private http: HttpClient) {
- 
+  actualizarProductosPaginados(): void {
+    const inicio = (this.paginaActual - 1) * this.productosPorPagina;
+    const fin = inicio + this.productosPorPagina;
+    this.productosPaginados = this.productosFiltrados.slice(inicio, fin);
   }
+
+  constructor(private http: HttpClient) {}
 
   formatearFecha(fecha: Date | string): string {
-  const d = new Date(fecha);
-  const mes = String(d.getMonth() + 1).padStart(2, '0');
-  const dia = String(d.getDate()).padStart(2, '0');
-  const anio = d.getFullYear();
-  return `${anio}-${mes}-${dia}`; // formato 'yyyy-MM-dd'
-}
+    const d = new Date(fecha);
+    const mes = String(d.getMonth() + 1).padStart(2, '0');
+    const dia = String(d.getDate()).padStart(2, '0');
+    const anio = d.getFullYear();
+    return `${anio}-${mes}-${dia}`; // formato 'yyyy-MM-dd'
+  }
 
-get fechaInicioFormato(): string {
-  return new Date(this.pedidoEditada.pedi_FechaEntrega).toISOString().split('T')[0];
-}
+  get fechaInicioFormato(): string {
+    return new Date(this.pedidoEditada.pedi_FechaEntrega)
+      .toISOString()
+      .split('T')[0];
+  }
 
-set fechaInicioFormato(value: string) {
-  this.pedidoEditada.pedi_FechaEntrega = new Date(value);
-}
+  set fechaInicioFormato(value: string) {
+    this.pedidoEditada.pedi_FechaEntrega = new Date(value);
+  }
 
- ngOnInit(): void {
+  ngOnInit(): void {
     this.cargarListados();
   }
 
-
- ngOnChanges(changes: SimpleChanges): void {
-  if (changes['PedidoData'] && changes['PedidoData'].currentValue) {
-    this.pedidoEditada = { ...changes['PedidoData'].currentValue };
-    this.PEOriginal = this.pedidoEditada.clie_NombreNegocio || '';
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['PedidoData'] && changes['PedidoData'].currentValue) {
+      this.pedidoEditada = { ...changes['PedidoData'].currentValue };
+      this.PEOriginal = { ...this.PedidoData };
       this.mostrarErrores = false;
-    
-    this.pedidoEditada.pedi_FechaPedido = new Date(this.formatearFecha(this.pedidoEditada.pedi_FechaPedido));
-    this.pedidoEditada.pedi_FechaEntrega = new Date(this.formatearFecha(this.pedidoEditada.pedi_FechaEntrega));
 
+      this.pedidoEditada.pedi_FechaPedido = new Date(
+        this.formatearFecha(this.pedidoEditada.pedi_FechaPedido)
+      );
+      this.pedidoEditada.pedi_FechaEntrega = new Date(
+        this.formatearFecha(this.pedidoEditada.pedi_FechaEntrega)
+      );
 
-    try {
-      this.pedidoEditada.detalles = JSON.parse(this.pedidoEditada.detallesJson || '[]');
-    } catch (e) {
-      console.error('Error al parsear detallesJson:', e);
-      this.pedidoEditada.detalles = [];
+      try {
+        this.pedidoEditada.detalles = JSON.parse(
+          this.pedidoEditada.detallesJson || '[]'
+        );
+      } catch (e) {
+        console.error('Error al parsear detallesJson:', e);
+        this.pedidoEditada.detalles = [];
+      }
+
+      // Cargar productos con cantidades desde los detalles
+      // this.listarProductosDesdePedido();
+      this.cargarListados();
+      this.cerrarAlerta();
     }
-
-    // Cargar productos con cantidades desde los detalles
-    this.listarProductosDesdePedido();
-    this.cargarListados();
-    this.cerrarAlerta();
-
   }
-}
-
 
   cancelar(): void {
     this.cerrarAlerta();
@@ -379,7 +515,7 @@ set fechaInicioFormato(value: string) {
     this.mostrarErrores = true;
 
     if (this.pedidoEditada.muni_Descripcion.trim()) {
-      if (this.pedidoEditada.depa_Descripcion.trim() !== this.PEOriginal) {
+      if (this.hayDiferencias()) {
         this.mostrarConfirmacionEditar = true;
       } else {
         this.mostrarAlertaWarning = true;
@@ -403,13 +539,113 @@ set fechaInicioFormato(value: string) {
     this.guardar();
   }
 
+  cambiosDetectados: any = {};
+
+  obtenerListaCambios(): any[] {
+    return Object.values(this.cambiosDetectados);
+  }
+
+  hayDiferencias(): boolean {
+    this.cambiosDetectados = {};
+
+    let productosOriginal: any[] = [];
+
+    const diClIdOriginal = this.PedidoData?.diCl_Id;
+    const diClIdActual = this.pedidoEditada.diCl_Id;
+
+    if (diClIdOriginal !== diClIdActual) {
+      const direccionAnterior = this.TodasDirecciones?.find(
+        (d: any) => d.diCl_Id === diClIdOriginal
+      );
+      const direccionNueva = this.TodasDirecciones?.find(
+        (d: any) => d.diCl_Id === diClIdActual
+      );
+
+      // Obtener nombre del cliente
+      const clienteAnterior = this.Clientes?.find(
+        (c: any) => c.clie_Id === direccionAnterior?.clie_Id
+      );
+      const clienteNuevo = this.Clientes?.find(
+        (c: any) => c.clie_Id === direccionNueva?.clie_Id
+      );
+
+      const formatDireccion = (dir: any, cliente: any) =>
+        dir
+          ? `${dir.diCl_DireccionExacta || 'Dirección sin nombre'} (${
+              cliente?.clie_NombreNegocio ||
+              cliente?.clie_Nombres ||
+              'Cliente desconocido'
+            })`
+          : 'No seleccionada';
+
+      this.cambiosDetectados.direccionCliente = {
+        anterior: formatDireccion(direccionAnterior, clienteAnterior),
+        nuevo: formatDireccion(direccionNueva, clienteNuevo),
+        label: 'Dirección y Cliente',
+      };
+    }
+
+    try {
+      productosOriginal = JSON.parse(this.PedidoData?.detallesJson ?? '[]');
+    } catch (e) {
+      console.error('Error al parsear detallesJson:', e);
+    }
+
+    // Normalizamos ambos arreglos para compararlos por ID y cantidad
+    productosOriginal = productosOriginal.map((p) => ({
+      prod_Id: parseInt(p.id),
+      cantidad: p.cantidad,
+    }));
+
+    const productosActual = this.obtenerProductosSeleccionados().map((p) => ({
+      prod_Id: parseInt(p.prod_Id),
+      cantidad: p.peDe_Cantidad,
+    }));
+
+    const getDescripcionProducto = (id: number) => {
+      const prod = this.productos.find((p) => parseInt(p.prod_Id) === id);
+      return prod ? prod.prod_Descripcion : `ID ${id}`;
+    };
+
+    const serialize = (arr: any[]) =>
+      arr
+        .sort((a, b) => a.prod_Id - b.prod_Id)
+        .map((p) => `${p.prod_Id}:${p.cantidad}`)
+        .join(',');
+
+    if (serialize(productosOriginal) !== serialize(productosActual)) {
+      this.cambiosDetectados.productos = {
+        anterior: productosOriginal.length
+          ? productosOriginal
+              .map(
+                (p) => `${getDescripcionProducto(p.prod_Id)} (x${p.cantidad})`
+              )
+              .join(', ')
+          : 'Sin productos',
+        nuevo: productosActual.length
+          ? productosActual
+              .map(
+                (p) => `${getDescripcionProducto(p.prod_Id)} (x${p.cantidad})`
+              )
+              .join(', ')
+          : 'Sin productos',
+        label: 'Productos seleccionados',
+      };
+    }
+
+    return Object.keys(this.cambiosDetectados).length > 0;
+  }
+
   private guardar(): void {
     this.mostrarErrores = true;
-     const productosSeleccionados = this.obtenerProductosSeleccionados();
+    const productosSeleccionados = this.obtenerProductosSeleccionados();
 
-    if (this.pedidoEditada.diCl_Id && this.pedidoEditada.pedi_FechaEntrega && productosSeleccionados.length > 0) {
+    if (
+      this.pedidoEditada.diCl_Id &&
+      this.pedidoEditada.pedi_FechaEntrega &&
+      productosSeleccionados.length > 0
+    ) {
       const PEActualizar = {
-         
         pedi_Id: this.pedidoEditada.pedi_Id,
         diCl_Id: this.pedidoEditada.diCl_Id,
         vend_Id: getUserId(), // Asumiendo que el usuario actual es el vendedor
@@ -432,8 +668,7 @@ set fechaInicioFormato(value: string) {
         usua_Modificacion: getUserId(),
         pedi_FechaModificacion: new Date().toISOString(),
         pedi_Estado: true,
-        secuencia: 0
-      
+        secuencia: 0,
       };
 
       console.log('Datos a enviar:', PEActualizar);
@@ -448,7 +683,7 @@ set fechaInicioFormato(value: string) {
         })
         .subscribe({
           next: (response) => {
-             this.mostrarErrores = false;
+            this.mostrarErrores = false;
             this.onSave.emit(this.pedidoEditada);
             this.cancelar();
           },
@@ -469,38 +704,56 @@ set fechaInicioFormato(value: string) {
   }
 
   cargarListados(): void {
-    this.http.get<any>(`${environment.apiBaseUrl}/Cliente/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe({
-      next: (cliente) => {
-        this.Clientes = cliente;
+    this.http
+      .get<any>(`${environment.apiBaseUrl}/Cliente/Listar`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe({
+        next: (cliente) => {
+          this.Clientes = cliente;
           console.log('Clientes cargados:', this.Clientes);
-        this.http.get<any>(`${environment.apiBaseUrl}/DireccionesPorCliente/Listar`, {
-          headers: { 'x-api-key': environment.apiKey }
-        }).subscribe({
-          next: (direcciones) => {
-            console.log('Direcciones cargadas:', direcciones);
-            this.TodasDirecciones = direcciones;
-            this.configurarUbicacionInicial();
-          }
-        });
-      }
-    });
+          this.http
+            .get<any>(
+              `${environment.apiBaseUrl}/DireccionesPorCliente/Listar`,
+              {
+                headers: { 'x-api-key': environment.apiKey },
+              }
+            )
+            .subscribe({
+              next: (direcciones) => {
+                console.log('Direcciones cargadas:', direcciones);
+                this.TodasDirecciones = direcciones;
+                this.configurarUbicacionInicial();
+              },
+            });
+        },
+      });
   }
 
   configurarUbicacionInicial(): void {
-      const direccion = this.TodasDirecciones.find((m: any) => m.diCl_Id === this.pedidoEditada.diCl_Id);
-      if (direccion) {
-        this.selectedCliente = direccion.clie_Id;
-        this.selectedDireccion = direccion.diCl_Id;
-        this.Direcciones = this.TodasDirecciones.filter((m: any) => m.clie_Id === this.selectedCliente);
-      }
-    }
+    const direccion = this.TodasDirecciones.find(
+      (m: any) => m.diCl_Id === this.pedidoEditada.diCl_Id
+    );
+    if (direccion) {
+      this.selectedCliente = direccion.clie_Id;
+      this.selectedDireccion = direccion.diCl_Id;
+      this.Direcciones = this.TodasDirecciones.filter(
+        (m: any) => m.clie_Id === this.selectedCliente
+      );
 
-    cargarMunicipios(codigoDepa: number): void {
-    this.Direcciones = this.TodasDirecciones.filter((m: any) => m.clie_Id === parseInt(codigoDepa.toString()));
-    this.selectedDireccion = 0;
+      this.cargarProductosPorCliente(this.selectedCliente);
+    }
   }
 
+  cargarMunicipios(codigoDepa: number): void {
+    this.pedidoEditada.clie_Id = parseInt(codigoDepa.toString());
+    console.log('Código del departamento seleccionado:', codigoDepa);
+    this.Direcciones = this.TodasDirecciones.filter(
+      (m: any) => m.clie_Id === parseInt(codigoDepa.toString())
+    );
+    this.selectedDireccion = 0;
+    this.pedidoEditada.diCl_Id = 0;
 
+    this.cargarProductosPorCliente(parseInt(codigoDepa.toString()));
+  }
 }

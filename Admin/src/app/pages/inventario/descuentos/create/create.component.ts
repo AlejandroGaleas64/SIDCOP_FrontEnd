@@ -551,8 +551,26 @@ set fechaFinFormato(value: string) {
   this.descuento.desc_FechaFin = new Date(value);
 }
 
+// Maneja el cambio de tipo de descuento desde el select (Porcentaje vs Monto Fijo)
+onTipoCambio(valor: any): void {
+  // Normalizar a boolean: true = Monto Fijo, false = Porcentaje
+  const nuevoTipo = String(valor) === 'true';
+  this.descuento.desc_Tipo = nuevoTipo;
 
+  // Si es monto fijo y no hay productos cargados aún, cargarlos para poder calcular precios mínimos
+  if (nuevoTipo && (!Array.isArray(this.productos) || this.productos.length === 0)) {
+    this.listarPorductos();
+  }
 
+  // Recalcular y ajustar (clamp) los valores de escalas al nuevo máximo permitido
+  const max = nuevoTipo ? this.valorMaximoNumerico : 100; // porcentaje máx 100
+  this.escalas = this.escalas.map(e => {
+    const actual = Number(e.deEs_Valor);
+    if (!isFinite(actual)) return { ...e, deEs_Valor: 0 };
+    if (!isFinite(max)) return { ...e, deEs_Valor: actual }; // si no hay límite aún (sin selección), dejar igual
+    return { ...e, deEs_Valor: Math.min(actual, max) };
+  });
+}
 
 tieneAyudante: boolean = false;
   
@@ -585,6 +603,7 @@ tieneAyudante: boolean = false;
   desc_TipoFactura:''
 
     };
+    this.activeTab = 1;
     this.seleccionados = [];
     this.clientesSeleccionados = [];
     this.escalas = [];
@@ -681,6 +700,7 @@ tieneAyudante: boolean = false;
             this.clientesSeleccionados = [];
             this.seleccionados = [];
             this.escalas = [];
+            this.activeTab = 1;
             this.cancelar();
           }, 3000);
 
@@ -890,6 +910,28 @@ puedeAgregarNuevaEscala(): boolean {
 
   return true;
 }
+
+
+// Opciones dinámicas para currencyMask
+opcionesMontoFijo: any = {
+  prefix: 'L. ',
+  suffix: '',
+  thousands: ',',
+  decimal: '.',
+  precision: 2,
+  allowNegative: false,
+  align: 'right'
+};
+
+opcionesPorcentaje: any = {
+  prefix: '',
+  suffix: ' %',
+  thousands: ',',
+  decimal: '.',
+  precision: 2,
+  allowNegative: false,
+  align: 'right'
+};
 
 
 

@@ -92,6 +92,7 @@
                       class="form-select"
                       [class.is-invalid]="descuento.desc_Tipo == null"
                       [(ngModel)]="descuento.desc_Tipo"
+                      (ngModelChange)="onTipoCambio($event)"
                       required>
                           <option value="" disabled selected>Seleccione una opción</option>
                           <option value=true  selected>Monto Fijo</option>
@@ -519,18 +520,24 @@
                   </div>
                   <div class="mb-3">
                 <div class="d-flex align-items-center">
-                  <i class="ri-coin-fill" [ngStyle]="{
-                    border: (!escala.deEs_Valor) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                    backgroundColor: (!escala.deEs_Valor) ? '#fff5f6' : '#f2f3f9',
-                    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-                  </i>
-                   <input type="text" class="form-control"
-                      currencyMask [options]="{ prefix: 'L. ', thousands: ',', decimal: '.', precision: 2 }"
-                       [(ngModel)]="escala.deEs_Valor" name="valor{{i}}" 
-                       required 
-                       (ngModelChange)="limitarValor($event, escala)"
-                       [class.is-invalid]="validado == false || i > 0 && escala.deEs_Valor <= escalas[i - 1].deEs_Valor" 
-                       [max]="999"  />
+                    <i *ngIf="descuento.desc_Tipo === true" class="ri-coin-fill" [ngStyle]="{
+                      border: (!escala.deEs_Valor) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                      backgroundColor: (!escala.deEs_Valor) ? '#fff5f6' : '#f2f3f9',
+                      padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                    </i>
+                    <i *ngIf="descuento.desc_Tipo === false" class="ri-percent-line" [ngStyle]="{
+                      border: (!escala.deEs_Valor) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                      backgroundColor: (!escala.deEs_Valor) ? '#fff5f6' : '#f2f3f9',
+                      padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                    </i>
+                     <input type="text" class="form-control"
+                        currencyMask [options]="descuento.desc_Tipo ? opcionesMontoFijo : opcionesPorcentaje"
+                         [(ngModel)]="escala.deEs_Valor" name="valor{{i}}" 
+                         required 
+                         (ngModelChange)="limitarValor($event, escala)"
+                         [class.is-invalid]="validado == false || i > 0 && escala.deEs_Valor <= escalas[i - 1].deEs_Valor" 
+                         [max]="999"  />
+              
                 
                   
                 </div>

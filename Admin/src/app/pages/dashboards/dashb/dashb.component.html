@@ -1,0 +1,228 @@
+<div class="container-fluid">
+    <app-breadcrumbs
+        [title]="'Dashboard'"
+        [breadcrumbItems]="[
+            { label: 'Dashboards' },
+            { label: 'Dashboard', active: true }
+        ]"
+        >
+        <!-- <img class="breadcrumbs-icon ms-2 icon-breadcrumb" style="width: 10vh; height: 10vh;" src="assets/images/svg/subcategoriasIcon.svg" alt="icono breadcrumb" /> -->
+        <img class="breadcrumbs-icon ms-2 icon-breadcrumb" style="width: 10vh; height: 10vh;" src="assets/images/svg/dashboardsIcon.svg" alt="icono breadcrumb" />
+        
+    </app-breadcrumbs>
+
+    <div class="card">
+
+        <!-- años header -->
+        <div *ngIf="!graficocategorias" class="card-header"> 
+            
+            <div class="col-lg-12">
+            <div class="row align-items-center">
+                        <div class="col-lg-10 d-flex align-items-center">
+                            <i class="ri-funds-line" style="font-size: 40px; color: #d6b68a; margin-right: 12px;"></i>
+                            <h2 style="color: #141a2f; margin: 0;">Ventas totales por mes en el año {{anioSeleccionado}}</h2>
+                        </div>
+                        <div class="col-lg-2">
+                            <select class="form-select" 
+                                [(ngModel)]="anioSeleccionado" 
+                                required
+                                (change)="cambioAnio()">
+                                <option value=0 disabled>Seleccione el año</option>
+                                <option *ngFor="let anio of aniosSelect" [value]="anio">{{ anio }}</option>
+                            </select>
+                        </div>
+
+            </div>
+            </div>
+
+        </div>
+        <!-- <div class="col-xl-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Simple Donut Chart</h4>
+                </div>
+
+                <div class="card-body">
+                    <apx-chart [series]="simpleDonutChart.series" [chart]="simpleDonutChart.chart"
+                        [labels]="simpleDonutChart.labels" [responsive]="simpleDonutChart.responsive"
+                        [legend]="simpleDonutChart.legend" [dataLabels]="simpleDonutChart.dataLabels"
+                        [colors]="simpleDonutChart.colors" dir="ltr"></apx-chart>
+                </div>
+            </div>
+        </div> -->
+
+        <!-- categorias header -->
+        <div *ngIf="graficocategorias" class="card-header">         
+  
+            <!-- <div class="col-lg-12 d-flex align-items-center">
+            <div class="row">
+
+                <div class="col-lg-2 d-flex align-items-center">
+
+                    <div class="details-header-button">
+                        <button type="button" class="btn btn-primary mb-3" (click)="graficocategorias = false">
+                        <span class="btn-text">Regresar</span>
+                        <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
+                        </button>
+                    </div>
+
+                </div>
+
+                <div class="col-lg-10 d-flex align-items-center">
+                    <i class=" ri-stack-fill" style="font-size: 40px; color: #d6b68a; margin-right: 12px;"></i>
+                    <h2 style="color: #d6b68a; margin: 0;">Categorias con mas compras en {{barraMesSelected.MesNombre}} del año {{anioSeleccionado}}</h2>
+                </div>
+                        
+                        
+            </div>
+            </div> -->
+
+            <div class="row align-items-center">
+                <div class="col-2">
+                <button type="button" class="btn btn-primary " (click)="graficocategorias = false">
+                    <span class="btn-text">Regresar</span>
+                    <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
+                </button>
+                </div>
+                <div class="col-10 d-flex align-items-center">
+                <i class="ri-stack-fill" style="font-size: 40px; color: #d6b68a; margin-right: 12px;"></i>
+                <h2 style="color: #141a2f; margin: 0;">Categorias con mas compras en {{barraMesSelected.MesNombre}} del año {{anioSeleccionado}}</h2>
+                </div>
+            </div>
+
+        </div>
+                
+
+        <!-- años body -->
+        <div *ngIf="!graficocategorias" class="card-body">
+            <div class="row align-items-center">
+                    
+                    <div class="col-lg-12">
+                        <div class="real-estate-widgets">
+                            <div class="tab-content text-muted">
+                                <div id="total_revenue" class="apex-charts" dir="ltr">
+                                    <apx-chart [series]="totalrevenueChart.series" [chart]="totalrevenueChart.chart" [plotOptions]="totalrevenueChart.plotOptions" [grid]="totalrevenueChart.grid" [colors]="totalrevenueChart.colors" [fill]="totalrevenueChart.fill" [dataLabels]="totalrevenueChart.dataLabels" [yaxis]="totalrevenueChart.yaxis" [legend]="totalrevenueChart.legend" [xaxis]="totalrevenueChart.xaxis" dir="ltr"></apx-chart>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+
+        <!-- categorias body -->
+        <div *ngIf="graficocategorias" class="card-body">
+            <div class="row align-items-center">
+                    
+                    <div class="col-lg-12">
+
+                        <!-- <apx-chart [series]="simpleDonutChart.series" [chart]="simpleDonutChart.chart"
+                        [labels]="simpleDonutChart.labels" [responsive]="simpleDonutChart.responsive"
+                        [legend]="simpleDonutChart.legend" [dataLabels]="simpleDonutChart.dataLabels"
+                        [colors]="simpleDonutChart.colors" dir="ltr"></apx-chart>                         -->
+
+
+                        <apx-chart [series]="multipleRadialbarChart.series" [chart]="multipleRadialbarChart.chart"
+                        [plotOptions]="multipleRadialbarChart.plotOptions" [labels]="multipleRadialbarChart.labels"
+                        [legend]="multipleRadialbarChart.legend" [dataLabels]="multipleRadialbarChart.dataLabels"
+                        [colors]="multipleRadialbarChart.colors" [tooltip]="multipleRadialbarChart.tooltip" dir="ltr"></apx-chart>
+
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row align-items-center" >
+        <div class="col-lg-4">
+            <div class="card">
+
+                <div class="card-header">
+                    <h4 class="card-title mb-2">Top 5 Productos de Categoria</h4>                    
+                    <select class="form-select" 
+                        [(ngModel)]="categoriaSelected" 
+                        required
+                        (change)="cargardatosProductosCategorias()"
+                        >
+                        <option [ngValue]=null disabled selected>Seleccione la categoria</option>
+                        <option *ngFor="let cate of categoriasddl" [ngValue]="cate">{{ cate.cate_Descripcion }}</option>
+                    </select>
+                </div>
+                
+                
+
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div *ngIf="(categoriaSelected !=null && productosCategoriasData.length > 0)" class="col-lg-12">                            
+                            <apx-chart [series]="simplePieChart.series" [chart]="simplePieChart.chart"
+                            [labels]="simplePieChart.labels" [legend]="simplePieChart.legend"
+                            [dataLabels]="simplePieChart.dataLabels" [responsive]="simplePieChart.responsive"
+                            [colors]="simplePieChart.colors" dir="ltr"></apx-chart>
+
+                        </div>
+
+                        <div *ngIf="(categoriaSelected !=null && productosCategoriasData.length <= 0)" class="col-lg-12">                            
+                            
+                            <div class="alert alert-warning" role="alert" style="height: 280px;">
+                                <strong>Categoria sin datos</strong> 
+                                <br>
+                                No hay ventas registradas en la categoria seleccionada.
+                            </div>
+
+                        </div>
+
+                        <div *ngIf="(categoriaSelected == null && productosCategoriasData.length <= 0)" class="col-lg-12">                            
+                            
+                            <div class="alert alert-warning" role="alert" style="height: 280px;" >
+                                <strong>Selecciona una Categoria. </strong> 
+                                <br>
+                                No se ha seleccionado una categoria para ver los productos.
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+
+
+        <div class="col-lg-4">
+            <div class="card">
+
+                <div class="card-header">
+                    <h4 class="card-title mb-2">Top 5 Vendedores del Mes</h4>                    
+                    <select class="form-select" 
+                        [(ngModel)]="vendedormesSelected" 
+                        required
+                        (change)="changeVendedorMes()"
+                        >
+                        <option value=0 disabled>Seleccione el mes</option>
+                        <option *ngFor="let mes of vendedormesesddl" [ngValue]="mes">{{ mes.MesNombre }}</option>
+                    </select>
+                </div>
+
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-lg-12">
+                            
+                            <apx-chart [series]="customDataLabelsChart.series" [chart]="customDataLabelsChart.chart"
+                            [dataLabels]="customDataLabelsChart.dataLabels" [stroke]="customDataLabelsChart.stroke"
+                            [colors]="customDataLabelsChart.colors" [title]="customDataLabelsChart.title"
+                            [subtitle]="customDataLabelsChart.subtitle" [plotOptions]="customDataLabelsChart.plotOptions"
+                            [yaxis]="customDataLabelsChart.yaxis" [xaxis]="customDataLabelsChart.xaxis"
+                            [tooltip]="customDataLabelsChart.tooltip" dir="ltr"></apx-chart>
+                            
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+
+
+    </div>
+
+</div>

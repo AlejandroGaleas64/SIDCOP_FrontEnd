@@ -18,6 +18,7 @@ export class Vendedor{
   usua_Creacion: number = 0;
   vend_FechaCreacion: Date = new Date();
   usua_Modificacion?: number;
+  vend_Imagen: string = '';
   secuencia?: number;
   sucu_Descripcion?: string = '';
   colo_Descripcion?: string = '';
@@ -35,6 +36,7 @@ export class Vendedor{
   apellidoAyudante?: string = '';
   code_Status: number = 0;
   message_Status: string ='';
+  rutas?: any[] | string = [];
 
   constructor(init?: Partial<Vendedor>) {
     Object.assign(this, init);

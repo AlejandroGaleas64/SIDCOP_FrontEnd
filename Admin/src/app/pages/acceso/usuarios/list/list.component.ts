@@ -15,6 +15,7 @@ import { EditComponent as EditUsuarioComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { set } from 'lodash';
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
+
 import {
   trigger,
   state,
@@ -103,6 +104,9 @@ export class ListComponent {
 
   breadCrumbItems!: Array<{}>;
   accionesDisponibles: string[] = [];
+
+  claveDatos: number = 0;
+  claveMensaje: string = '';
 
   busqueda: string = '';
   usuariosFiltrados: any[] = [];
@@ -557,9 +561,64 @@ export class ListComponent {
     this.usuarioEliminar = null;
   }
 
+  contrasenasCoinciden(): boolean {
+    return this.usuario.usua_Clave === this.confirmaciondePassword;
+  }
+
+  corroborarClave(clave: string) {
+    if (clave.length === 0) {
+      this.claveDatos = 0;
+      this.claveMensaje = '';
+      return;
+    }
+
+    const tieneLetra = /[a-zA-Z]/.test(clave);
+    const tieneNumero = /\d/.test(clave);
+    const tieneEspecial = /[^a-zA-Z\d]/.test(clave);
+    const tipos = [tieneLetra, tieneNumero, tieneEspecial].filter(Boolean).length;
+
+    if (clave.length < 8) {
+      this.claveDatos = 1;
+      this.claveMensaje = `Débil: debe tener al menos 8 caracteres.`;
+      return;
+    }
+
+    if (tipos === 1) {
+      this.claveDatos = 1;
+      let faltantes = [];
+      if (!tieneLetra) faltantes.push('una letra');
+      if (!tieneNumero) faltantes.push('un número');
+      if (!tieneEspecial) faltantes.push('un carácter especial');
+      let faltantesMsg = faltantes.length ? ` debe tener ${faltantes.join(' y ')}.` : '';
+      this.claveMensaje = `Débil:${faltantesMsg}`;
+    } else if (tipos === 2) {
+      this.claveDatos = 2;
+      let faltantes = [];
+      if (!tieneLetra) faltantes.push('una letra');
+      if (!tieneNumero) faltantes.push('un número');
+      if (!tieneEspecial) faltantes.push('un carácter especial');
+      let faltantesMsg = faltantes.length ? ` debe tener ${faltantes.join(' y ')}.` : '';
+      this.claveMensaje = `Media:${faltantesMsg}`;
+    } else if (tipos === 3) {
+      this.claveDatos = 3;
+      this.claveMensaje = 'Fuerte';
+    }
+  }
+
   restablecerClave(): void {
     if (!this.usuarioRestablecer) return
     this.mostrarErrores = true;
+    if (this.claveDatos < 3) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'La contraseña debe ser de nivel fuerte.';
+      this.mostrarAlertaError = false;
+      this.mostrarAlertaExito = false;
+      setTimeout(() => {
+        this.mostrarAlertaWarning = false;
+        this.mensajeWarning = '';
+      }, 4000);
+      return;
+    }
     if (!this.usuario.usua_Clave.trim() || !this.confirmaciondePassword.trim()) {
       this.mostrarAlertaError = true;
       this.mensajeError = 'Debe ingresar y confirmar la nueva contraseña.';

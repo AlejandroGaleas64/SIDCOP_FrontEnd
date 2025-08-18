@@ -15,6 +15,8 @@ import { DetailsComponent } from '../details/details.component';
 import { Municipio } from 'src/app/Modelos/general/Municipios.Model';
 import { Departamento } from 'src/app/Modelos/general/Departamentos.Model';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
+// Importar el servicio de exportación
+import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
 
 import { trigger, transition, style, animate } from '@angular/animations';
 
@@ -180,9 +182,152 @@ export class ListComponent implements OnInit {
     private http: HttpClient, 
     private router: Router, 
     private route: ActivatedRoute,
-    public floatingMenuService: FloatingMenuService) {
+    public floatingMenuService: FloatingMenuService,
+    private exportService: ExportService) {
       this.cargardatos(true);
     }
+
+  // ===== CONFIGURACIÓN FÁCIL DE EXPORTACIÓN =====
+  private readonly exportConfig = {
+    title: 'Listado de Municipios',
+    filename: 'Municipios',
+    department: 'General',
+    additionalInfo: 'Sistema de Gestión',
+    columns: [
+      { key: 'No', header: 'No.', width: 8, align: 'center' as const },
+      { key: 'Código', header: 'Código', width: 25, align: 'left' as const },
+      { key: 'Descripción', header: 'Descripción', width: 50, align: 'left' as const }
+    ] as ExportColumn[],
+    dataMapping: (muni: Municipio, index: number) => ({
+      'No': muni?.secuencia || (index + 1),
+      'Código': this.limpiarTexto(muni?.muni_Codigo),
+      'Descripción': this.limpiarTexto(muni?.muni_Descripcion)
+    })
+  };
+
+  exportando = false;
+  tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
+
+  async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
+    if (this.exportando) {
+      this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
+      return;
+    }
+    if (!this.validarDatosParaExport()) {
+      return;
+    }
+    try {
+      this.exportando = true;
+      this.tipoExportacion = tipo;
+      this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
+      const config = this.crearConfiguracionExport();
+      let resultado;
+      switch (tipo) {
+        case 'excel':
+          resultado = await this.exportService.exportToExcel(config);
+          break;
+        case 'pdf':
+          resultado = await this.exportService.exportToPDF(config);
+          break;
+        case 'csv':
+          resultado = await this.exportService.exportToCSV(config);
+          break;
+      }
+      this.manejarResultadoExport(resultado);
+    } catch (error) {
+      console.error(`Error en exportación ${tipo}:`, error);
+      this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
+    } finally {
+      this.exportando = false;
+      this.tipoExportacion = null;
+    }
+  }
+  async exportarExcel(): Promise<void> { await this.exportar('excel'); }
+  async exportarPDF(): Promise<void> { await this.exportar('pdf'); }
+  async exportarCSV(): Promise<void> { await this.exportar('csv'); }
+  puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
+    if (this.exportando) {
+      return tipo ? this.tipoExportacion !== tipo : false;
+    }
+    return this.table.data$.value?.length > 0;
+  }
+  private crearConfiguracionExport(): ExportConfig {
+    return {
+      title: this.exportConfig.title,
+      filename: this.exportConfig.filename,
+      data: this.obtenerDatosExport(),
+      columns: this.exportConfig.columns,
+      metadata: {
+        department: this.exportConfig.department,
+        additionalInfo: this.exportConfig.additionalInfo
+      }
+    };
+  }
+  private obtenerDatosExport(): any[] {
+    try {
+      const datos = this.table.data$.value;
+      if (!Array.isArray(datos) || datos.length === 0) {
+        throw new Error('No hay datos disponibles para exportar');
+      }
+      return datos.map((muni, index) => this.exportConfig.dataMapping.call(this, muni, index));
+    } catch (error) {
+      console.error('Error obteniendo datos:', error);
+      throw error;
+    }
+  }
+  private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
+    if (resultado.success) {
+      this.mostrarMensaje('success', resultado.message);
+    } else {
+      this.mostrarMensaje('error', resultado.message);
+    }
+  }
+  private validarDatosParaExport(): boolean {
+    const datos = this.table.data$.value;
+    if (!Array.isArray(datos) || datos.length === 0) {
+      this.mostrarMensaje('warning', 'No hay datos disponibles para exportar');
+      return false;
+    }
+    if (datos.length > 10000) {
+      const continuar = confirm(
+        `Hay ${datos.length.toLocaleString()} registros. ` +
+        'La exportación puede tomar varios minutos. ¿Desea continuar?'
+      );
+      if (!continuar) return false;
+    }
+    return true;
+  }
+  private limpiarTexto(texto: any): string {
+    if (!texto) return '';
+    return String(texto)
+      .replace(/\s+/g, ' ')
+      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
+      .trim()
+      .substring(0, 150);
+  }
+  private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
+    if (typeof this.cerrarAlerta === 'function') this.cerrarAlerta();
+    const duracion = tipo === 'error' ? 5000 : 3000;
+    switch (tipo) {
+      case 'success':
+        (this as any).mostrarAlertaExito = true;
+        (this as any).mensajeExito = mensaje;
+        setTimeout(() => (this as any).mostrarAlertaExito = false, duracion);
+        break;
+      case 'error':
+        (this as any).mostrarAlertaError = true;
+        (this as any).mensajeError = mensaje;
+        setTimeout(() => (this as any).mostrarAlertaError = false, duracion);
+        break;
+      case 'warning':
+      case 'info':
+        (this as any).mostrarAlertaWarning = true;
+        (this as any).mensajeWarning = mensaje;
+        setTimeout(() => (this as any).mostrarAlertaWarning = false, duracion);
+        break;
+    }
+  }
+
 
   // Verificar si una acción está permitida
   accionPermitida(accion: string): boolean {

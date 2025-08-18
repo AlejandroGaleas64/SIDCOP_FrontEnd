@@ -93,7 +93,20 @@ const routes: Routes = [
     canActivate: [PermisoGuard],
     data: { pantallaId: 9 } // ID 9: Cargos
   },  
-
+  {
+    path: 'visitas-clientes',
+    loadChildren: () =>
+      import('./clientesVisitaHistorial/clientesVisitaHistorial.module').then(m => m.ClientesVisitaModule),
+    canActivate: [PermisoGuard],
+    data: { pantallaId: 71 } // ID 71: Visitas Clientes
+  },
+  {
+    path: 'estadosvisita',
+    loadChildren: () =>
+      import('./estadosVisita/estadosVisita.module').then(m => m.EstadosVisitaModule),
+    canActivate: [PermisoGuard],
+    data: { pantallaId: 78 } 
+  }
 ];
 
 @NgModule({

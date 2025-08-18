@@ -1,0 +1,144 @@
+<div class="details-container">
+    <!-- Contenedor de alertas flotantes -->
+    <div class="alert-container">
+        <div *ngIf="mostrarAlertaError"
+            class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+            <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+            <strong>¡Error!</strong> {{ mensajeError }}
+            <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Botón de regresar -->
+    <div class="details-header-button">
+        <button type="button" class="btn btn-primary mb-3" (click)="cerrar()">
+            <span class="btn-text">Regresar</span>
+            <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
+        </button>
+    </div>
+
+    <!-- Contenido de detalles -->
+    <div *ngIf="!cargando && visitasDetalle && visitasDetalle.length > 0" class="details-content">
+        <div *ngFor="let visitaDetalle of visitasDetalle" class="row g-4 align-items-stretch mb-4">
+            <!-- Card izquierda: Imagen + Nombre -->
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm employee-photo-card position-relative">
+                    <ng-container *ngIf="visitaDetalle?.hCVi_Foto; else noImage">
+                        <img [src]="visitaDetalle.hCVi_Foto" alt="Foto de la visita" class="employee-img-card" />
+                        <div class="employee-img-overlay">
+                            <span class="employee-img-name">{{ visitaDetalle.clie_NombreNegocio }}</span>
+                        </div>
+                    </ng-container>
+                    <ng-template #noImage>
+                        <div class="employee-img-placeholder-card d-flex flex-column justify-content-center align-items-center h-100">
+                            <i class="ri-store-2-line display-1"></i>
+                            <span class="employee-img-name mt-3">{{ visitaDetalle.clie_NombreNegocio }}</span>
+                        </div>
+                    </ng-template>
+                </div>
+            </div>
+            <!-- Card derecha: Detalles -->
+            <div class="col-md-8">
+                <div class="card h-100 shadow-sm employee-details-card bg-dark-blue">
+                    <div class="card-header d-flex align-items-center justify-content-between rounded-top details-header-custom">
+                        <div class="d-flex align-items-center">
+                            <i class="ri-user-3-line me-2 fs-4"></i>
+                            <h5 class="mb-0">Detalles de la Visita</h5>
+                        </div>
+                        <div *ngIf="visitaDetalle.clVi_Fecha" class="ms-3">
+                            <span style="color:#141a2f; font-weight:600; font-size:1.1em; background:#e3f2fd; padding:4px 12px; border-radius:8px;">
+                                {{ visitaDetalle.clVi_Fecha | date:'dd/MM/yyyy HH:mm' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 row-cols-1 row-cols-md-3">
+                            <div class="col">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white"><i class="ri-road-map-line"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Ruta Designada</div>
+                                        <div class="detail-value">{{ visitaDetalle.ruta_Descripcion }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white"><i class="ri-road-map-line"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Días de semana a visitar</div>
+                                        <div class="detail-value">{{ visitaDetalle.veRu_Dias | diasSemana }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        
+                            <div class="col">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white"><i class="ri-profile-line"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Vendedor</div>
+                                        <div class="detail-value">{{ visitaDetalle.vend_Nombres }} {{
+                                            visitaDetalle.vend_Apellidos }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white"><i class="ri-hashtag"></i></div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Código Cliente</div>
+                                        <div class="detail-value">{{ visitaDetalle.clie_Codigo }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white"><i class="ri-user-3-line"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Cliente</div>
+                                        <div class="detail-value">{{ visitaDetalle.clie_Nombres }} {{
+                                            visitaDetalle.clie_Apellidos }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white"><i class="ri-user-3-line"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Negocio</div>
+                                        <div class="detail-value">{{ visitaDetalle.clie_NombreNegocio }} </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white"><i class="ri-chat-3-line"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Estado Visita</div>
+                                        <div class="detail-value">{{ visitaDetalle.esVi_Descripcion }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col" *ngIf="visitaDetalle.clVi_Observaciones">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white"><i class="ri-chat-3-line"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Observaciones</div>
+                                        <div class="detail-value">{{ visitaDetalle.clVi_Observaciones }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -25,7 +25,9 @@
         "MODELOS": "Modelos",
         "CANALES": "Canales",
         "EMPLEADOS": "Empleados",
-        "CARGOS": "Cargos"
+        "CARGOS": "Cargos",
+        "VISITASCLIENTES": "Visitas",
+        "ESTADOSVISITA": "Estados de Visita"
       }
     },
     "INVENTARIO": {
@@ -50,7 +52,8 @@
         "CUENTASPORCOBRAR": "Cuentas por cobrar",
         "PEDIDOS": "Pedidos",
         "LISTASPRECIOS": "Listas de Precios",
-        "DEVOLUCIONES": "Devoluciones"
+        "DEVOLUCIONES": "Devoluciones",
+        "VENTA": "Ventas"
       }
     },
     "LOGISTICA": {
@@ -65,8 +68,12 @@
      "REPORTES": {
       "TEXT": "Reportes",
       "LIST": {
-        "REPORTEPRODUCTOS": "ReporteProductos"
-        
+        "REPORTEPRODUCTOS": "ReporteProductos",
+        "REPORTERECARGAPORSBODEGA": "Reporte Recargas Por Bodega",
+        "REPORTEDEVOLUCIONES": "Reporte Devoluciones",
+        "REPORTECLIENTES": "Reporte Clientes"
+
+      
       }
     },
     "DASHBOARD": {
@@ -76,7 +83,8 @@
         "CRM": "CRM",
         "ECOMMERCE": "Ecommerce",
         "LEARNING": "Learning",
-        "REALESTATE": "Real Estate"
+        "REALESTATE": "Real Estate",
+        "DASHBOARD": "Dashboard"
       }
     },
     "APPS": {

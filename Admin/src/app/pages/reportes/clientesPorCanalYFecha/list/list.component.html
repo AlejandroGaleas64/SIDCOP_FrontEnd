@@ -1,0 +1,75 @@
+
+<app-breadcrumbs
+  [title]="'Clientes'"
+  [breadcrumbItems]="[
+    { label: 'Reportes' },
+    { label: 'Clientes', active: true }
+  ]"
+>
+<img class="icon-breadcrumb" style="width: 10vh; height: 10vh;" src="assets/images/svg/Vector.svg" alt="breadcrumb icon" />
+</app-breadcrumbs>
+
+
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <h3>Reporte de Clientes Por Canal</h3>
+    </div>
+    
+    <div class="card-body">
+      <!-- Filtros -->
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <label class="form-label">Fecha Inicio</label>
+          <input type="date" class="form-control" [(ngModel)]="fechaInicio">
+        </div>
+        
+        <div class="col-md-3">
+          <label class="form-label">Fecha Fin</label>
+          <input type="date" class="form-control" [(ngModel)]="fechaFin">
+        </div>
+        
+        <div class="col-md-3">
+          <label class="form-label">Canal</label>
+          <select class="form-select" [(ngModel)]="canalSeleccionado">
+            <option [value]="null" (click)="canalSeleccionado=null" >Todos los canales</option>
+            <option *ngFor="let canal of canales" [value]="canal.cana_Id">{{ canal.cana_Descripcion }}</option>
+          </select>
+        </div>
+        
+
+      </div>
+      
+
+    
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <!-- Botones de exportación -->
+            <div class="export-buttons d-flex gap-1 mb-2">
+              <button type="button" class="btn btn-primary blue btn-sm btn-minw-5-1" (click)="generarReporte()"
+                title="Generar Reporte">
+                <span class="btn-text">Generar Reporte</span>
+                <span class="btn-icon"><i class="ri-file-text-fill" style="font-weight: 100;"></i></span>
+              </button>
+              <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="limpiarFiltros()"
+                title="LimpiarFiltros">
+                <span class="btn-text">Limpiar Filtros</span>
+                <span class="btn-icon"><i class="ri-brush-2-fill" style="font-weight: 100;"></i></span>
+              </button>
+      
+            </div>
+          </div>
+        </div>
+      <!-- Visualización del PDF -->
+      <div *ngIf="pdfUrl" class="mt-4">
+        <iframe [src]="pdfUrl" width="100%" height="800px" style="border: 1px solid #ddd;"></iframe>
+      </div>
+    </div>
+  </div>
+
+
+<!-- Spinner de carga -->
+<div *ngIf="cargando" class="overlay">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Cargando...</span>
+  </div>
+</div>
