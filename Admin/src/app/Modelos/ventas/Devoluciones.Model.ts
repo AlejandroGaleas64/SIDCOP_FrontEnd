@@ -1,6 +1,5 @@
 export class Devoluciones {
     devo_Id: number = 0;
-    clie_Id: number = 0;
     fact_Id?: number;
     devo_Fecha: Date = new Date();
     devo_Motivo: string = '';
@@ -16,6 +15,7 @@ export class Devoluciones {
     No: number = 0;
     clie_NombreNegocio: string = '';
     nombre_Completo: string = '';
+    fact_Numero: string = '';
 
     code_Status: number = 0;
     message_Status: string ='';

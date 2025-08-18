@@ -84,7 +84,7 @@ export class ListComponent implements OnInit {
         columns: [
           { key: 'No', header: 'No', width: 15, align: 'left' as const },
           { key: 'clie_NombreNegocio ', header: 'Nombre Negocio', width: 40, align: 'left' as const },
-          { key: 'fact_Id', header: 'Factura Id', width: 50, align: 'left' as const },
+          { key: 'fact_Numero', header: 'Número de Factura', width: 50, align: 'left' as const },
           { key: 'devo_Fecha', header: 'Fecha', width: 40, align: 'left' as const },
           { key: 'devo_Motivo', header: 'Motivo', width: 40, align: 'left' as const }
           
@@ -94,7 +94,7 @@ export class ListComponent implements OnInit {
         dataMapping: (devoluciones: Devoluciones, index: number) => ({
           'No': devoluciones?.devo_Id || (index + 1),
           'clie_NombreNegocio': this.limpiarTexto(devoluciones?.clie_NombreNegocio),
-          'fact_Id': this.limpiarTexto(devoluciones?.fact_Id),
+          'fact_Numero': this.limpiarTexto(devoluciones?.fact_Numero),
           'devo_Fecha': this.limpiarTexto(devoluciones?.devo_Fecha),
           'devo_Motivo': this.limpiarTexto(devoluciones?.devo_Motivo),
         })
@@ -108,7 +108,7 @@ export class ListComponent implements OnInit {
   activeActionRow: number | null = null;
   showEdit = true;
   showDetails = true;
-  showDelete = true;
+  showTrasladar = true;
   showCreateForm = false;
   showEditForm = false;
   showDetailsForm = false;
@@ -126,13 +126,13 @@ export class ListComponent implements OnInit {
 
   DevolucionesEditando: Devoluciones | null = null;
   DevolucionesDetalle: Devoluciones | null = null;
-  DevolucionesAEliminar: Devoluciones | null = null;
+  DevolucionesATrasladar: Devoluciones | null = null;
 
   // Estado de exportación
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
 
-  mostrarConfirmacionEliminar = false;
+  mostrarConfirmacionTrasladar = false;
 
   constructor(
     public table: ReactiveTableService<Devoluciones>, 
@@ -145,6 +145,17 @@ export class ListComponent implements OnInit {
     this.cargardatos(true);
   }
 
+  formatearFecha(fecha: string | Date | null): string {
+    if (!fecha) return 'N/A';
+    const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
+    if (isNaN(dateObj.getTime())) return 'N/A';
+    return dateObj.toLocaleString('es-HN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  }
+
   ngOnInit(): void {
     this.breadCrumbItems = [
       { label: 'Ventas' },
@@ -153,7 +164,7 @@ export class ListComponent implements OnInit {
     this.cargarAccionesUsuario();
 
   // this.showEdit = this.accionPermitida('editar');
-  // this.showDelete = this.accionPermitida('eliminar');
+  // this.showDelete = this.accionPermitida('Trasladar');
   // this.showDetails = this.accionPermitida('detalle');
   }
 
@@ -245,80 +256,113 @@ export class ListComponent implements OnInit {
     this.cerrarFormularioEdicion();
   }
 
-  confirmarEliminar(devoluciones: Devoluciones): void {
-    this.DevolucionesAEliminar = devoluciones;
-    console.log('Proveedor a eliminar:', this.DevolucionesAEliminar);
-    this.mostrarConfirmacionEliminar = true;
+  confirmarTrasladar(devoluciones: Devoluciones): void {
+    this.DevolucionesATrasladar = devoluciones;
+    console.log('Devolución a Trasladar:', this.DevolucionesATrasladar);
+    this.mostrarConfirmacionTrasladar = true;
     this.activeActionRow = null;
   }
 
-  cancelarEliminar(): void {
-    this.mostrarConfirmacionEliminar = false;
-    this.DevolucionesAEliminar = null;
+  cancelarTrasladar(): void {
+    this.mostrarConfirmacionTrasladar = false;
+    this.DevolucionesATrasladar = null;
   }
 
-eliminar(): void {
-  if (!this.DevolucionesAEliminar) return;
-  console.log('Eliminando proveedor:', this.DevolucionesAEliminar);
-  this.http.post(`${environment.apiBaseUrl}/Proveedor/Eliminar?id=${this.DevolucionesAEliminar.devo_Id}`,{}, {
-    headers: { 
-      'X-Api-Key': environment.apiKey,
-      'accept': '*/*'
-    }
-  }).subscribe({
-    next: (response: any) => {
-      if (response.success && response.data) {
-        if (response.data.code_Status === 1) {
-          // Éxito - proveedor eliminado
-          this.mensajeExito = `Devoluciones "${this.DevolucionesAEliminar!.clie_NombreNegocio}" eliminado exitosamente`;
-          this.mostrarAlertaExito = true;
-          setTimeout(() => {
-            this.mostrarAlertaExito = false;
-            this.mensajeExito = '';
-          }, 3000);
-          this.cargardatos(false);
-          this.cancelarEliminar();
-        } else if (response.data.code_Status === -1) {
-          // Error - proveedor en uso
-          this.mostrarAlertaError = true;
-          this.mensajeError = response.data.message_Status || 'No se puede eliminar: el proveedor está siendo utilizado.';
-          setTimeout(() => {
-            this.mostrarAlertaError = false;
-            this.mensajeError = '';
-          }, 5000);
-          this.cancelarEliminar();
-        } else if (response.data.code_Status === 0) {
-          // Error general
-          this.mostrarAlertaError = true;
-          this.mensajeError = response.data.message_Status || 'Error al eliminar el proveedor.';
-          setTimeout(() => {
-            this.mostrarAlertaError = false;
-            this.mensajeError = '';
-          }, 5000);
-          this.cancelarEliminar();
-        }
-      } else {
-        // Respuesta inesperada
-        this.mostrarAlertaError = true;
-        this.mensajeError = response.message || 'Error inesperado al eliminar el proveedor.';
-        setTimeout(() => {
-          this.mostrarAlertaError = false;
-          this.mensajeError = '';
-        }, 5000);
-        this.cancelarEliminar();
+  trasladar(): void {
+    if (!this.DevolucionesATrasladar) return;
+    
+    console.log('Trasladando devolución:', this.DevolucionesATrasladar);
+    
+    const fechaActual = new Date();
+
+    const trasladar = {
+      devo_Id: this.DevolucionesATrasladar.devo_Id,
+      fact_Id: 0,
+      devo_Fecha: fechaActual.toISOString(),
+      devo_Motivo: '',
+      usua_Creacion: 0,
+      devo_FechaCreacion: fechaActual.toISOString(),
+      usua_Modificacion: getUserId(),
+      devo_FechaModificacion: fechaActual.toISOString(),
+      devo_Estado: true,
+      devo_EnSucursal: true,
+      nombre_Completo: '',
+      clie_NombreNegocio: '',
+      usuarioCreacion: '',
+      usuarioModificacion: '',
+      devoDetalle_XML: ''
+    };
+
+    this.http.post(`${environment.apiBaseUrl}/Devoluciones/Trasladar`, trasladar, {
+      headers: { 
+        'X-Api-Key': environment.apiKey,
+        'accept': '*/*'
       }
-    },
-    error: (error) => {
-      this.mostrarAlertaError = true;
-      this.mensajeError = 'Error al eliminar las devoluciones.';
-      setTimeout(() => {
-        this.mostrarAlertaError = false;
-        this.mensajeError = '';
-      }, 5000);
-      this.cancelarEliminar();
-    }
-  });
-}
+    }).subscribe({
+      next: (response: any) => {
+        console.log('Respuesta del servidor:', response);
+        
+        // Verificar el código de estado en la respuesta
+        if (response.success && response.data) {
+          if (response.data.code_Status === 1) {
+            // Éxito: eliminado correctamente
+            console.log('Proceso completado exitosamente');
+            this.mensajeExito = `Operación completada exitosamente.`;
+            this.mostrarAlertaExito = true;
+            
+            // Ocultar la alerta después de 3 segundos
+            setTimeout(() => {
+              this.mostrarAlertaExito = false;
+              this.mensajeExito = '';
+            }, 3000);
+            
+
+            this.cargardatos(false);
+            this.cancelarTrasladar();
+          } else if (response.data.code_Status === -1) {
+            //result: está siendo utilizado
+            console.log('Ya se completo esta devolución.');
+            this.mostrarAlertaWarning = true;
+            this.mensajeWarning = response.data.message_Status || 'Ya se completo esta devolución..';
+            
+            setTimeout(() => {
+              this.mostrarAlertaWarning = false;
+              this.mensajeWarning = '';
+            }, 5000);
+            
+            // Cerrar el modal de confirmación
+            this.cancelarTrasladar();
+          } else if (response.data.code_Status === 0) {
+            // Error general
+            console.log('Error al completar la operación.');
+            this.mostrarAlertaError = true;
+            this.mensajeError = response.data.message_Status || 'Error al completar la operación.';
+            
+            setTimeout(() => {
+              this.mostrarAlertaError = false;
+              this.mensajeError = '';
+            }, 5000);
+            
+            // Cerrar el modal de confirmación
+            this.cancelarTrasladar();
+          }
+        } else {
+          // Respuesta inesperada
+          console.log('Respuesta inesperada del servidor');
+          this.mostrarAlertaError = true;
+          this.mensajeError = response.message || 'Error inesperado al completar la supu operación.';
+          
+          setTimeout(() => {
+            this.mostrarAlertaError = false;
+            this.mensajeError = '';
+          }, 5000);
+          
+          // Cerrar el modal de confirmación
+          this.cancelarTrasladar();
+        }
+      },
+    });
+  }
 
   // Declaramos un estado en el cargarDatos, esto para hacer el overlay
   // segun dicha funcion de recargar, ya que si vienes de hacer una accion
