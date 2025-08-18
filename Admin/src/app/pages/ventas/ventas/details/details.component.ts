@@ -4,6 +4,8 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { Factura, VentaDetalle, DetalleItem, FacturaCompleta } from 'src/app/Modelos/ventas/Facturas.model';
 import { Respuesta } from 'src/app/Modelos/apiresponse.model';
+import {MapaSelectorComponent} from 'src/app/pages/logistica/rutas/mapa-selector/mapa-selector.component';
+import { InvoiceService } from '../referencias/invoice.service';
 
 interface ApiResponse<T> {
   code: number;
@@ -15,7 +17,10 @@ interface ApiResponse<T> {
 @Component({
   selector: 'app-details',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+      CommonModule,
+      MapaSelectorComponent,
+  ],
   templateUrl: './details.component.html',
   styleUrl: './details.component.scss'
 })
@@ -23,8 +28,11 @@ export class DetailsComponent implements OnChanges {
   @Input() facturaId: number | null = null;
   @Input() facturaData: Factura | null = null;
   @Output() onClose = new EventEmitter<void>();
+  
+  puntosVista: { lat: number; lng: number; nombre?: string; cliente?: string; nombrenegocio?: string }[] = [];
 
   private http = inject(HttpClient);
+  private invoiceService = inject(InvoiceService);
 
   facturaDetalle: FacturaCompleta | null = null;
   detallesFactura: DetalleItem[] = []; // Array para los detalles
@@ -47,6 +55,7 @@ export class DetailsComponent implements OnChanges {
 
   // Carga real desde el endpoint del encabezado
     cargarDetalles(id: number): void {
+      this.puntosVista = [];
       this.cargando = true;
       this.mostrarAlertaError = false;
   
@@ -63,6 +72,19 @@ export class DetailsComponent implements OnChanges {
             console.log('Datos de la factura:', response.data);
             this.detallesFactura = response.data.detalleFactura;
             this.facturaDetalle = response.data;
+            
+            // Pasar la factura completa al invoice service
+            this.invoiceService.setFacturaCompleta(this.facturaDetalle);
+            
+            this.puntosVista.push({
+              lat: this.facturaDetalle.fact_Latitud ?? 0,
+              lng: this.facturaDetalle.fact_Longitud ?? 0,
+              nombre: '',
+              cliente: '',
+                nombrenegocio: ''
+              
+            });
+            console.log("puntos", this.puntosVista);
           } else {
             console.error('Estructura de respuesta inesperada:', response);
             this.mostrarAlertaError = true;
