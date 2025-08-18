@@ -466,7 +466,7 @@ export class InvoiceService {
       body: rows,
       styles: {
         fontSize: 9,
-        cellPadding: 4,
+        cellPadding: 2,
         overflow: 'linebreak' as any,
         halign: 'center' as any,
         valign: 'middle' as any,
@@ -478,7 +478,7 @@ export class InvoiceService {
         fontSize: 10,
       },
       columnStyles: {
-        1: { halign: 'left' as any, },   // Descripción
+        1: { halign: 'left' as any,  },   // Descripción
         2: { halign: 'right' as any,  }, // Cantidad
         3: { halign: 'right' as any,  },  // Precio
         6: { halign: 'right' as any, }   // Total
