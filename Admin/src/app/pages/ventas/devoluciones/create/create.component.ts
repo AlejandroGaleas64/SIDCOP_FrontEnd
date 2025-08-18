@@ -127,4 +127,8 @@ export class CreateComponent implements OnInit {
     term = term.toLowerCase();
     return item.clie_Codigo?.toLowerCase().includes(term) || item.clie_Nombres?.toLowerCase().includes(term) || item.clie_Apellidos?.toLowerCase().includes(term) || item.clie_NombreNegocio?.toLowerCase().includes(term);
   };
+
+  guardar(){
+    
+  }
 }
