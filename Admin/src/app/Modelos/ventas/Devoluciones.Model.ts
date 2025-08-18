@@ -14,7 +14,7 @@ export class Devoluciones {
     
     No: number = 0;
     clie_NombreNegocio: string = '';
-    Nombre_Completo: string = '';
+    nombre_Completo: string = '';
 
     code_Status: number = 0;
     message_Status: string ='';

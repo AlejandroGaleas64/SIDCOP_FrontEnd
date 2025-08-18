@@ -95,14 +95,14 @@
   </span>
 </th>
                
-                <th class="gridjs-th" (click)="table.sortBy('Nombre_Completo')" style="cursor:pointer;">
+                <th class="gridjs-th" (click)="table.sortBy('nombre_Completo')" style="cursor:pointer;">
   <span style="display: flex; align-items: center; gap: 4px;">
     Nombre Completo
     <span style="display: flex; flex-direction: column; margin-left: 6px;">
       <i class="ri-arrow-up-s-line icon-sort"
-        [ngStyle]="table.sortField === 'Nombre_Completo' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+        [ngStyle]="table.sortField === 'nombre_Completo' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
       <i class="ri-arrow-down-s-line icon-sort"
-        [ngStyle]="table.sortField === 'Nombre_Completo' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+        [ngStyle]="table.sortField === 'nombre_Completo' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
     </span>
   </span>
 </th>
@@ -164,7 +164,7 @@
   </div>
 </td>
                 <td><span class="fw-semibold">{{data.No}}</span></td>
-                 <td>{{data.Nombre_Completo}}</td>
+                 <td>{{data.nombre_Completo}}</td>
                 <td>{{data.clie_NombreNegocio}}</td>
                 <td>{{data.fact_Id}}</td>
                 <td>{{data.devo_Fecha}}</td>

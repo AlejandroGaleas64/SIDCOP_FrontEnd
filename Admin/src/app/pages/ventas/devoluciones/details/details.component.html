@@ -62,7 +62,7 @@
                   <div class="detail-content">
                     <div class="detail-label">Nombre</div>
                     <div class="detail-value">
-                      {{ devolucionesDetalle.Nombre_Completo || 'N/A' }}
+                      {{ devolucionesDetalle.nombre_Completo || 'N/A' }}
                     </div>
                   </div>
                 </div>
@@ -177,8 +177,8 @@
 
                 <!-- Descripción del producto -->
                 <h6 class="product-title mb-2"
-                    [title]="detalle.prod_Descripcion || 'Sin descripción'">
-                  {{ detalle.prod_Descripcion || 'Sin descripción' }}
+                    [title]="detalle.prod_DescripcionCorta || 'Sin descripción'">
+                  {{ detalle.prod_DescripcionCorta || 'Sin descripción' }}
                 </h6>
 
                 <!-- Información adicional -->
