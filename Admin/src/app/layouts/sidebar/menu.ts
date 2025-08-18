@@ -98,6 +98,7 @@ export const MENU: MenuItem[] = [
     { id: 32, label: 'MENUITEMS.VENTAS.LIST.CAIS', link: '/ventas/CAIs', parentId: 5, icon: 'ri-group-line' },
     { id: 33, label: 'MENUITEMS.VENTAS.LIST.CONFIGURACIONFACTURA', link: '/ventas/configuracion-factura', parentId: 5, icon: 'ri-group-line' },
     { id: 43, label: 'MENUITEMS.VENTAS.LIST.CUENTASPORCOBRAR', link: '/ventas/cuentasporcobrar', parentId: 5, icon: 'ri-money-dollar-circle-line' },
+    { id: 35, label: 'MENUITEMS.VENTAS.LIST.DEVOLUCIONES', link: '/ventas/devoluciones', parentId: 5, icon: 'ri-group-line'},
     { id: 37, label: 'MENUITEMS.VENTAS.LIST.IMPUESTOS', link: '/ventas/impuestos', parentId: 5, icon: 'ri-group-line' },
     { id: 59, label: 'MENUITEMS.VENTAS.LIST.LISTASPRECIOS', link: '/ventas/listasprecios', parentId: 5, icon: 'ri-group-line' },
     { id: 38, label: 'MENUITEMS.VENTAS.LIST.PEDIDOS', link: '/ventas/pedidos', parentId: 5, icon: 'ri-group-line' },
