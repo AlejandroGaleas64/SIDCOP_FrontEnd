@@ -80,7 +80,7 @@
           <table class="table table-gridjs table-style">
             <thead>
               <tr>
-                <th class="gridjs-th" *ngIf="accionPermitida('editar') || accionPermitida('eliminar') || accionPermitida('detalle')">Acciones</th>
+                <th class="gridjs-th" *ngIf="accionPermitida('trasladar') || accionPermitida('detalle')">Acciones</th>
                 <th class="gridjs-th" (click)="table.sortBy('No')" style="cursor:pointer;">
   <span class="table-header-flex">
     No.
@@ -150,12 +150,23 @@
     </span>
   </span>
 </th>
+<th class="gridjs-th" (click)="table.sortBy('devo_EnSucursal')" style="cursor:pointer;">
+  <span style="display: flex; align-items: center; gap: 4px;">
+    ¿En Sucursal?
+    <span style="display: flex; flex-direction: column; margin-left: 6px;">
+      <i class="ri-arrow-up-s-line icon-sort"
+        [ngStyle]="table.sortField === 'devo_EnSucursal' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+      <i class="ri-arrow-down-s-line icon-sort"
+        [ngStyle]="table.sortField === 'devo_EnSucursal' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+    </span>
+  </span>
+</th>
            
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let data of table.paginated$ | async; let i = index">
-                <td class="position-relative" *ngIf="accionPermitida('editar') || accionPermitida('eliminar') || accionPermitida('detalle')">
+                <td class="position-relative" *ngIf="accionPermitida('trasladar') || accionPermitida('detalle')">
   <div class="dropdown-action-list">
     <button type="button" class="dropdown-toggle" (click)="onActionMenuClick($event, data)">
       <span>Acciones</span>
@@ -169,6 +180,7 @@
                 <td>{{data.fact_Id}}</td>
                 <td>{{data.devo_Fecha}}</td>
                 <td>{{data.devo_Motivo}}</td>
+                <td>{{data.devo_EnSucursal ? 'Sí' : 'No'}}</td>
               </tr>
             </tbody>
           </table>
@@ -253,14 +265,9 @@
     left: floatingMenuService.left + 'px',
     zIndex: 9999
   }">
-  <li *ngIf="accionPermitida('editar')">
-    <button type="button" class="dropdown-action-btn" (click)="editar(floatingMenuService.data); floatingMenuService.close()">
-      Editar <i class="ri-edit-line"></i>
-    </button>
-  </li>
-  <li *ngIf="accionPermitida('eliminar')">
+  <li *ngIf="accionPermitida('trasladar')">
     <button type="button" class="dropdown-action-btn" (click)="confirmarEliminar(floatingMenuService.data); floatingMenuService.close()">
-      Eliminar <i class="ri-delete-bin-line"></i>
+      Trasladar <i class=" ri-send-plane-fill"></i>
     </button>
   </li>
   <li *ngIf="accionPermitida('detalle')">
