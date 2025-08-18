@@ -72,7 +72,6 @@ export class InvoiceService {
   async exportToPDF(config: ExportConfig): Promise<ExportResult> {
     try {
       this.validateConfig(config);
-
       const doc = new jsPDF('portrait');
 
       // Crear encabezado y obtener posición Y donde empezar la tabla
@@ -168,15 +167,15 @@ export class InvoiceService {
 
   private async crearEncabezado(doc: jsPDF, config: ExportConfig): Promise<number> {
     // Línea separadora en la parte inferior del encabezado
-    doc.setDrawColor(this.COLORES.dorado);
-    doc.setLineWidth(2);
-    doc.line(20, 35, doc.internal.pageSize.width - 20, 35);
+    doc.setFontSize(20);
+    doc.text(this.facturaDetalle?.coFa_NombreEmpresa ?? 'Comercial la roca' , 10, 20);
+    doc.setFontSize(10);
 
     // Cargar y agregar logo
     const logoDataUrl = await this.cargarLogo();
-    if (logoDataUrl) {
+    if (this.facturaDetalle?.coFa_Logo) {
       try {
-        doc.addImage(logoDataUrl, 'PNG', 20, 5, 30, 25);
+        doc.addImage(this.facturaDetalle?.coFa_Logo, 'PNG', 20, 5, 30, 25);
         console.log('Logo agregado al PDF correctamente');
       } catch (e) {
         console.error('Error al agregar imagen al PDF:', e);
@@ -380,13 +379,14 @@ export class InvoiceService {
   private async crearEncabezadoFactura(doc: jsPDF): Promise<number> {
     if (!this.facturaDetalle) return 40;
 
-    let yPos = 15;
+    let yPos = 38;
+    let xPos = 40;
 
     // Cargar y agregar logo
     const logoDataUrl = await this.cargarLogo();
-    if (logoDataUrl) {
+    if (this.facturaDetalle.coFa_Logo) {
       try {
-        doc.addImage(logoDataUrl, 'PNG', 20, yPos, 40, 30);
+        doc.addImage(this.facturaDetalle.coFa_Logo, 'PNG', 80, 5, 40, 30);
       } catch (e) {
         console.error('Error al agregar logo:', e);
       }
@@ -394,22 +394,22 @@ export class InvoiceService {
 
     // Información de la empresa (lado izquierdo)
     doc.setTextColor(this.COLORES.azulOscuro);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Satoshi', 'bold');
     doc.setFontSize(16);
-    doc.text(this.facturaDetalle.coFa_NombreEmpresa, 70, yPos + 8);
+    doc.text(this.facturaDetalle.coFa_NombreEmpresa, 74, yPos + 8);
 
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Satoshi', 'normal');
     doc.setFontSize(10);
-    doc.text(`RTN: ${this.facturaDetalle.coFa_RTN}`, 70, yPos + 16);
-    doc.text(this.facturaDetalle.coFa_DireccionEmpresa, 70, yPos + 22);
-    doc.text(`Tel: ${this.facturaDetalle.coFa_Telefono1}`, 70, yPos + 28);
-    doc.text(`Email: ${this.facturaDetalle.coFa_Correo}`, 70, yPos + 34);
+    //doc.text(`RTN: ${this.facturaDetalle.coFa_RTN}`, 74, yPos + 16);
+    doc.text(this.facturaDetalle.coFa_DireccionEmpresa, 74, yPos + 16);
+    doc.text(`Tel: ${this.facturaDetalle.coFa_Telefono1}`, 74, yPos + 22);
+    doc.text(`Email: ${this.facturaDetalle.coFa_Correo}`, 74, yPos + 28);
 
     // Información de la factura (lado derecho)
     const pageWidth = doc.internal.pageSize.width;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.text('FACTURA', pageWidth - 20, yPos + 8, { align: 'right' });
+    doc.text('FACTURA', 20, yPos + 40, );
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);

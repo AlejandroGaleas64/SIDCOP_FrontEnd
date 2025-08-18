@@ -108,6 +108,17 @@ export class DetailsComponent implements OnChanges {
       });
     }
 
+    EnviarFactura(): void{
+      try
+      {
+      this.invoiceService.generarFacturaPDF();
+      }
+      catch(error)
+      {
+        console.log("error", error)
+      }
+    }
+
     cerrar(): void {
       this.onClose.emit();
     }
