@@ -63,6 +63,7 @@ export class EditComponent implements OnChanges {
     prod_CostoTotal: 0,
     prod_PagaImpuesto: "",
     prod_EsPromo: "",
+    prod_Impulsado: false,
     prod_Estado: true,
     usua_Creacion: 0,
     prod_FechaCreacion: new Date(),
@@ -436,6 +437,14 @@ export class EditComponent implements OnChanges {
         anterior: b.prod_Imagen ? 'Imagen actual' : 'Sin imagen',
         nuevo: a.prod_Imagen ? 'Nueva imagen' : 'Sin imagen',
         label: 'Imagen del Producto'
+      };
+    }
+
+    if( a.prod_Impulsado !== b.prod_Impulsado) {
+      this.cambiosDetectados.impulsado = {
+        anterior: b.prod_Impulsado ? 'Sí' : 'No',
+        nuevo: a.prod_Impulsado ? 'Sí' : 'No',
+        label: 'Producto Impulsado'
       };
     }
 
