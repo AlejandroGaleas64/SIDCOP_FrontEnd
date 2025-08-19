@@ -46,7 +46,7 @@
                 required
                 style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
                 <ng-template ng-label-tmp let-item="item">
-                    {{ item.vendedorNombre }}
+                    {{ item.vendedorNombre }} - {{ item.rutaDescripcion }}
                 </ng-template>
                 <ng-template ng-option-tmp let-item="item">
                     {{ item.vendedorNombre }} {{ item.vendedorApellido }} - {{ item.rutaDescripcion }}
@@ -72,26 +72,27 @@
             borderBottomLeftRadius: '8px'
           }"></i>
           <ng-select class="w-100"
-              [items]="clientesFiltrados"
-              bindLabel="clie_NombreNegocio"
-              bindValue="clie_Id"
-              [loading]="cargando"
-              [clearable]="false"
-              [searchable]="true"
-              [class.is-invalid]="mostrarErrores"
-              placeholder="Seleccione un cliente"
-              [searchFn]="searchCliente"
-              required
-              style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
-              <ng-template ng-label-tmp let-item="item">
-                  {{ item.clie_Codigo }} - {{ item.clie_Nombres }} {{ item.clie_Apellidos }}
-              </ng-template>
-              <ng-template ng-option-tmp let-item="item">
-                  <div>
-                      <div><strong>{{ item.clie_Codigo }}</strong> - {{ item.clie_Nombres }} {{ item.clie_Apellidos }}</div>
-                      <small class="text-muted">{{ item.clie_NombreNegocio }}</small>
-                  </div>
-              </ng-template>
+            [items]="clientesFiltrados"
+            bindLabel="clie_NombreNegocio"
+            bindValue="clie_Id"
+            [loading]="cargando"
+            [clearable]="false"
+            [searchable]="true"
+            [class.is-invalid]="mostrarErrores"
+            placeholder="Seleccione un cliente"
+            [searchFn]="searchCliente"
+            (change)="onClienteSeleccionado($event)"
+            required
+            style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+            <ng-template ng-label-tmp let-item="item">
+                {{ item.clie_Codigo }} - {{ item.clie_Nombres }} {{ item.clie_Apellidos }}
+            </ng-template>
+            <ng-template ng-option-tmp let-item="item">
+                <div>
+                    <div><strong>{{ item.clie_Codigo }}</strong> - {{ item.clie_Nombres }} {{ item.clie_Apellidos }}</div>
+                    <small class="text-muted">{{ item.clie_NombreNegocio }}</small>
+                </div>
+            </ng-template>
           </ng-select>
         </div>
         <div class="text-danger mt-1" *ngIf="mostrarErrores">
@@ -103,7 +104,7 @@
       <div class="col-12 col-md-6 mb-3">
         <label class="form-label">Factura <span class="text-danger">*</span></label>
         <div class="d-flex align-items-center">
-          <i class="ri-user-line" [ngStyle]="{
+          <i class="ri-file-list-3-line" [ngStyle]="{
             border: (mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
             backgroundColor: (mostrarErrores) ? '#fff5f6' : '#f2f3f9',
             padding: '0.425rem 0.425rem',
@@ -113,29 +114,66 @@
             borderBottomLeftRadius: '8px'
           }"></i>
           <ng-select class="w-100"
-              [items]="facturasFiltradas"
-              bindLabel="fact_Numero"
-              bindValue="fact_Id"
-              [loading]="cargando"
-              [clearable]="false"
-              [searchable]="true"
-              [class.is-invalid]="mostrarErrores"
-              placeholder="Seleccione una factura"
-              [searchFn]="searchCliente"
-              required
-              style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
-              <ng-template ng-label-tmp let-item="item">
-                  {{ item.fact_Numero }}
-              </ng-template>
-              <ng-template ng-option-tmp let-item="item">
-                  <div>
-                      <div><strong>{{ item.fact_Numero }}</strong></div>
-                  </div>
-              </ng-template>
+            [items]="facturasFiltradas"
+            bindLabel="fact_Numero"
+            bindValue="fact_Id"
+            placeholder="Seleccione una factura"
+            (change)="onFacturaSeleccionada($event)">
           </ng-select>
         </div>
         <div class="text-danger mt-1" *ngIf="mostrarErrores">
            <small>El campo Factura es requerido</small>
+        </div>
+      </div>
+
+      <!-- Fecha de devolucion -->
+      <div class="col-12 col-md-6 mb-3">
+        <label for="devo_Fecha" class="form-label">Fecha de devolucion <span class="text-danger">*</span></label>
+        <div class="d-flex align-items-center">
+          <i class="ri-calendar-line" [ngStyle]="{
+            border: (!devolucion.devo_Fecha && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (!devolucion.devo_Fecha && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.525rem 0.525rem',
+            borderTopLeftRadius: '8px',
+            borderBottomLeftRadius: '8px'
+          }"></i>
+          <input type="date" 
+              id="devo_Fecha" 
+              class="form-control"
+              [class.is-invalid]="!devolucion.devo_Fecha && mostrarErrores"
+              [(ngModel)]="devolucion.devo_Fecha"
+              [max]="maxDate"
+              [attr.min]="minDate"
+              placeholder="Seleccione una fecha"
+              required
+              style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;" />
+        </div>
+        <div class="text-danger mt-1" *ngIf="!devolucion.devo_Fecha && mostrarErrores">
+           <small>El campo Fecha es requerido</small>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <label  class="form-label">Motivo<span class="text-danger">*</span></label>
+        <div class="mb-3">
+          <div class="d-flex align-items-center">
+             <i class=" ri-attachment-line" [ngStyle]="{
+                border: (!devolucion.devo_Motivo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!devolucion.devo_Motivo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+            <input 
+              type="text" 
+              class="form-control" 
+              [class.is-invalid]="!devolucion.devo_Motivo.trim() && mostrarErrores"
+              id="devolucionDescripcion"
+              [(ngModel)]="devolucion.devo_Motivo"
+              placeholder="Ingrese el motivo de la devolucion" 
+              required>
+          </div>
+          <div class="text-danger mt-1" *ngIf="!devolucion.devo_Motivo.trim() && mostrarErrores">
+            <small>El campo Motivo de la devolucion es requerido</small>
+          </div>
         </div>
       </div>
 
@@ -145,14 +183,9 @@
             <h6 class="mb-3">
               <i class="ri-box-3-line me-2"></i>
               Seleccionar Productos
+              <span class="text-danger">*</span>
             </h6>
-            
-            <!-- Mensaje informativo -->
-            <div class="alert alert-info d-flex align-items-center mb-3">
-              <i class="ri-information-fill me-2"></i>
-              <span>Seleccione una sucursal de origen para ver los productos disponibles</span>
-            </div>
-            
+                        
             <!-- Buscador de productos -->
             <div class="row mb-3">
               <div class="col-md-6">

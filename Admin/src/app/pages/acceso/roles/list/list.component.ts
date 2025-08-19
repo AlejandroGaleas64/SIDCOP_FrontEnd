@@ -77,7 +77,6 @@ export class ListComponent implements OnInit {
     title: 'Listado de Roles',                    // Título del reporte
     filename: 'Roles',                           // Nombre base del archivo
     department: 'Acceso',                         // Departamento
-    additionalInfo: 'Sistema de Gestión',         // Información adicional
     
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
@@ -202,8 +201,7 @@ export class ListComponent implements OnInit {
       data: this.obtenerDatosExport(),
       columns: this.exportConfig.columns,
       metadata: {
-        department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
+        department: this.exportConfig.department
       }
     };
   }

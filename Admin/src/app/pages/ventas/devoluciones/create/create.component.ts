@@ -7,6 +7,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
 import { DropzoneModule, DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
 import { Router } from '@angular/router';
 import { getUserId } from 'src/app/core/utils/user-utils';
+import { Usuario } from 'src/app/Modelos/acceso/usuarios.Model';
 
 @Component({
   selector: 'app-create',
@@ -19,11 +20,26 @@ export class CreateComponent implements OnInit {
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<any>();
 
+  devolucion: any = {
+    devo_Id: null,
+    fact_Id: null,
+    devo_Fecha: '',
+    devo_Motivo: '',
+    usua_Creacion: 0,
+    devo_FechaCreacion: '',
+    usua_modificacion: 0,
+    devo_FechaModificacion: '',
+    devo_EnSucursal: false
+  };
+
   vendedores: any[] = [];
   clientes: any[] = [];
   clientesFiltrados: any[] = [];
   facturasFiltradas: any[] = [];
+  direcciones: any[] = [];
   productos: any[] = [];
+  maxDate = new Date().toISOString().split('T')[0];
+  minDate = '2000-01-01';
 
   // ========== NUEVAS PROPIEDADES PARA INVENTARIO ==========
   inventarioFactura: any[] = [];
@@ -58,8 +74,6 @@ export class CreateComponent implements OnInit {
 
   ngOnInit() {
     this.cargarVendedores();
-    // this.cargarFacturarPorCliente();
-    this.listarProductos();
   }
 
   getInicioRegistro(): number {
@@ -86,10 +100,16 @@ export class CreateComponent implements OnInit {
   }
 
   onVendedorSeleccionado(vendedor: any) {
-    if (!vendedor) { this.clientesFiltrados = []; return; }
+    if (!vendedor) { 
+      this.clientesFiltrados = []; 
+      return; 
+    }
+
     this.cargarClientesPorRuta(vendedor.ruta_Id);
+    this.cargarFacturarPorCliente(vendedor.vend_Id);
     console.log('Vendedor seleccionado:', vendedor);
   }
+
 
   cargarClientesPorRuta(rutaId: number) {
     if (!rutaId) { 
@@ -112,6 +132,7 @@ export class CreateComponent implements OnInit {
         //   this.visita.direccion = null; 
         // }
         console.log('Clientes filtrados:', this.clientesFiltrados);
+        
       },
       error: () => { 
         this.mostrarMensaje('Error al cargar la lista de clientes', 'error'); 
@@ -121,45 +142,96 @@ export class CreateComponent implements OnInit {
     });
   }
 
+  onClienteSeleccionado(cliente: any) {
+    if (!cliente) { 
+      this.direcciones = [];
+      return;
+    }
+
+    this.cargarDireccionesCliente(cliente.clie_Id);
+    console.log('Cliente seleccionado:', cliente);
+  }
+
+
+  cargarDireccionesCliente(clienteId: number) {
+    if (!clienteId) { 
+      this.direcciones = [];
+      return; 
+    }
+
+    this.cargando = true;
+    this.http.get<any[]>(`${environment.apiBaseUrl}/DireccionesPorCliente/Buscar/${clienteId}`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (data) => { 
+        this.direcciones = data || []; 
+        this.cargando = false;
+        console.log('Direcciones cargadas:', this.direcciones);
+      },
+      error: () => { 
+        this.mostrarMensaje('Error al cargar las direcciones del cliente', 'error'); 
+        this.cargando = false; 
+        this.direcciones = []; 
+      }
+    });
+  }
+
   cargarFacturarPorCliente(vendedorId: number) {
     if (!vendedorId) { 
       this.facturasFiltradas = [];
-      return; 
+      return;
     }
+
     this.cargando = true;
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Facturas/ListarPorVendedor/8`, {
+    this.http.get<any>(`${environment.apiBaseUrl}/Facturas/ListarPorVendedor/${vendedorId}`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
-      next: (data) => {
-        // Filtrar facturas por cliente_Id
-        this.facturasFiltradas = (data || []).filter(factura => factura.vend_Id === vendedorId);
-        this.cargando = false;
+      next: (res) => {
+        console.log('Respuesta completa:', res);
+        this.facturasFiltradas = res?.data || []; // 👈 ahora sí solo el array
         console.log('Facturas filtradas:', this.facturasFiltradas);
       },
-      error: () => { 
+      error: (err) => { 
+        console.error('Error cargando facturas:', err);
         this.mostrarMensaje('Error al cargar la lista de facturas', 'error'); 
-        this.cargando = false; 
         this.facturasFiltradas = []; 
-      }
+      },
+      complete: () => this.cargando = false
     });
-    console.log('Cliente ID:', vendedorId);
   }
 
-  listarProductos(): void {
-    this.http.get<any>(`${environment.apiBaseUrl}/Productos/BuscarPorFactura/79`, {
+  onFacturaSeleccionada(factura: any) {
+    if (!factura) {
+      this.productos = [];
+      this.productosFiltrados = [];
+      return;
+    }
+
+    this.devolucion.fact_Id = factura.fact_Id;
+    this.listarProductos(factura.fact_Id);
+  }
+
+  listarProductos(id: number): void {
+    if (!id) return;
+
+    this.cargando = true;
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Productos/BuscarPorFactura/${id}`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (data) => {
-        this.productos = data.map((producto: any) => ({
+        // data ya es un array de productos
+        this.productos = (data || []).map((producto: any) => ({
           ...producto,
           cantidad: 0,
           observaciones: '',
-          stockDisponible: 0, // Stock disponible en la sucursal seleccionada
-          tieneStock: false   // Si tiene stock en la sucursal
+          stockDisponible: 0,
+          tieneStock: false
         }));
         this.aplicarFiltros();
+        console.log('Productos cargados:', this.productos);
       },
-      error: () => this.mostrarMensaje('Error al cargar productos')
+      error: () => this.mostrarMensaje('Error al cargar productos'),
+      complete: () => this.cargando = false
     });
   }
 
