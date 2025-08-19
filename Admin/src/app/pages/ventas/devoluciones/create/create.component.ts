@@ -488,7 +488,7 @@ export class CreateComponent implements OnInit {
       .map(producto => ({
         prod_Id: producto.prod_Id,
         prod_Descripcion: producto.prod_Descripcion,
-        cantidad: producto.cantidad,
+        cantidad: producto.cantidadVendida,
         observaciones: producto.observaciones || ''
       }));
   }
