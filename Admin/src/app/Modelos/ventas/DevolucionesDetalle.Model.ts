@@ -2,6 +2,7 @@ export class DevolucionesDetalle {
     devD_Id: number = 0;
     devo_Id: number = 0;
     prod_Id: number = 0;
+    devD_Cantidad: number = 0;
     prod_Descripcion: string = '';
     prod_DescripcionCorta: string = '';
     cate_Descripcion: string = '';

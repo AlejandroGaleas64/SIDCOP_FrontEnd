@@ -33,10 +33,19 @@
             <div class="row g-3">
               <div class="col-12 col-sm-4">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-hashtag"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-user-line"></i></div>
                   <div class="detail-content">
-                    <div class="detail-label">ID</div>
-                    <div class="detail-value">{{ devolucionesDetalle.devo_Id }}</div>
+                    <div class="detail-label">Cliente</div>
+                    <div class="detail-value">{{ devolucionesDetalle.nombre_Completo || "N/A" }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-4">
+                <div class="detail-item">
+                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-store-2-line"></i></div>
+                  <div class="detail-content">
+                    <div class="detail-label">Nombre del Negocio</div>
+                    <div class="detail-value">{{ devolucionesDetalle.clie_NombreNegocio || "N/A" }}</div>
                   </div>
                 </div>
               </div>
@@ -44,59 +53,49 @@
                 <div class="detail-item">
                   <div class="detail-icon bg-dark-blue text-white"><i class="ri-file-list-3-line"></i></div>
                   <div class="detail-content">
-                    <div class="detail-label">Descripción</div>
-                    <div class="detail-value">{{ devolucionesDetalle.clie_NombreNegocio || "N/A" }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-12 col-sm-4">
-                <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-phone-line"></i></div>
-                  <div class="detail-content">
-                    <div class="detail-label">Nombre</div>
-                    <div class="detail-value">{{ devolucionesDetalle.nombre_Completo || "N/A" }}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-12 col-sm-4">
-                <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white">
-                    <i class="ri-mail-line"></i>
-                  </div>
-                  <div class="detail-content">
                     <div class="detail-label">Factura</div>
-                    <div class="detail-value">
-                      {{ devolucionesDetalle.fact_Id || "N/A" }}
-                    </div>
+                    <div class="detail-value">{{ devolucionesDetalle.fact_Numero || "N/A" }}</div>
                   </div>
                 </div>
               </div>
-
               <div class="col-12 col-sm-4">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white">
-                    <i class="ri-map-pin-line"></i>
-                  </div>
+                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-calendar-2-line"></i></div>
                   <div class="detail-content">
                     <div class="detail-label">Fecha</div>
+                    <div class="detail-value">{{ formatearFecha(devolucionesDetalle.devo_Fecha) || "N/A" }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-sm-4">
+                <div class="detail-item">
+                  <div class="detail-icon bg-dark-blue text-white">
+                    @if(devolucionesDetalle.devo_EnSucursal){<i class="ri-checkbox-line"></i>}
+                    @else {<i class="ri-checkbox-indeterminate-line"></i>}
+                  </div>
+                  <div class="detail-content">
+                    <div class="detail-label">¿En Sucursal?</div>
                     <div class="detail-value">
-                      {{ formatearFecha(devolucionesDetalle.devo_Fecha) || "N/A" }}
+                      @if (devolucionesDetalle.devo_EnSucursal) {
+                        <span class="badge fw-semibold mb-1 px-3 py-1 border" style="font-size: 0.8rem; background-color: #CEE9C6; color: #365506">
+                          <i class="ri-check-line" style="font-size: 0.6rem;"></i>Si
+                        </span>
+                      }
+                      @else {
+                        <span class="badge fw-semibold mb-1 px-3 py-1 border" style="font-size: 0.8rem; background-color: #FBCFD4; color: #4E1212">
+                          <i class="ri-close-line" style="font-size: 0.6rem;"></i>No
+                        </span>
+                      }
                     </div>
                   </div>
                 </div>
               </div>
-
               <div class="col-12 col-sm-12">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white">
-                    <i class="ri-edit-line"></i>
-                  </div>
+                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-message-2-line"></i></div>
                   <div class="detail-content">
                     <div class="detail-label">Observaciones</div>
-                    <div class="detail-value">
-                      {{ devolucionesDetalle.devo_Motivo || "N/A" }}
-                    </div>
+                    <div class="detail-value">{{ devolucionesDetalle.devo_Motivo || "N/A" }}</div>
                   </div>
                 </div>
               </div>
@@ -106,53 +105,35 @@
       </div>
     </div>
 
-    <!-- Sección de Productos del Traslado -->
+    <!-- Sección de Productos de la Devoolución -->
     <div class="row mt-4">
       <div class="col-12">
         <div class="card shadow-sm">
-          <div
-            class="card-header d-flex align-items-center justify-content-between"
-          >
+          <div class="card-header d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center">
               <i class="ri-box-3-line me-2 fs-4"></i>
-              <h5 class="mb-0">Productos del Traslado</h5>
+              <h5 class="mb-0">Productos de la Devolución</h5>
             </div>
-            <span class="badge bg-primary"
-              >{{ productosDevolucion.length }} productos</span
-            >
+            <span class="badge bg-primary">{{ productosDevolucion.length }} productos</span>
           </div>
           <div class="card-body">
             <!-- Loading state para detalles -->
-            <div *ngIf="cargando" class="text-center py-4">
+            <div *ngIf="cargandoDetalles" class="text-center py-4">
               <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Cargando productos...</span>
               </div>
-              <p class="mt-2 text-muted">Cargando productos del traslado...</p>
+              <p class="mt-2 text-muted">Cargando productos de la devolución...</p>
             </div>
 
             <!-- Sin productos -->
-            <div
-              *ngIf="!cargando && productosDevolucion.length === 0"
-              class="text-center py-5"
-            >
+            <div *ngIf="!cargandoDetalles && productosDevolucion.length === 0" class="text-center py-5">
               <i class="ri-inbox-line fs-1 text-muted"></i>
               <p class="text-muted mt-2">No hay productos en esta devolución</p>
             </div>
 
             <!-- Grid de productos -->
-
-            <div
-              *ngIf="!cargando && productosDevolucion.length > 0"
-              class="row g-3"
-            >
-              <div
-                *ngFor="
-                  let detalle of productosDevolucion;
-                  trackBy: trackByDetalleeId
-                "
-                ...
-              >
-                class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div *ngIf="!cargandoDetalles && productosDevolucion.length > 0" class="row g-3">
+              <div *ngFor="let detalle of productosDevolucion; trackBy: trackByDetalleId" class="col-12 col-sm-6 col-md-4 col-lg-3">
                 <div class="card product-card h-100 shadow-sm">
                   <!-- Imagen del producto -->
                   <div class="product-image-container">
@@ -167,7 +148,7 @@
                     <!-- Badge de cantidad -->
                     <div class="quantity-badge">
                       <i class="ri-archive-line me-1"></i>
-                      {{ detalle.prod_Id || 0 }}
+                      {{ detalle.devD_Cantidad || 0 }}
                     </div>
                   </div>
 
@@ -182,38 +163,21 @@
                     </div>
 
                     <!-- Descripción del producto -->
-                    <h6
-                      class="product-title mb-2"
-                      [title]="
-                        detalle.prod_DescripcionCorta || 'Sin descripción'
-                      "
-                    >
+                    <h6 class="product-title mb-2"
+                      [title]="detalle.prod_DescripcionCorta || 'Sin descripción'">
                       {{ detalle.prod_DescripcionCorta || "Sin descripción" }}
                     </h6>
 
                     <!-- Información adicional -->
-                    <!-- <div class="product-info mt-auto"> -->
-                    <!-- Cantidad -->
-                    <!-- <div class="info-row">
-                    <span class="info-label">
-                      <i class="ri-stack-line me-1"></i>
-                      Cantidad:
-                    </span>
-                    <span class="info-value fw-bold">{{ detalle.trDe_Cantidad || 0 }}</span>
-                  </div>
-
-
-                  <div class="info-row mt-2">
-                    <span class="info-label">
-                      <i class="ri-message-3-line me-1"></i>
-                      Observación:
-                    </span> -->
-                    <!-- <span class="info-value"
-                          [title]="detalle.trDe_Observaciones || 'N/A'">
-                      {{ (detalle.trDe_Observaciones || 'N/A') | slice:0:30 }}{{ (detalle.trDe_Observaciones && detalle.trDe_Observaciones.length > 30) ? '...' : '' }}
-                    </span> -->
-                    <!-- </div> -->
-                    <!-- </div> -->
+                    <div class="product-info mt-auto">
+                      <!-- Cantidad -->
+                      <div class="info-row">
+                        <span class="info-label">
+                          <i class="ri-stack-line me-1"></i>Cantidad:
+                        </span>
+                        <span class="info-value fw-bold">{{ detalle.devD_Cantidad || 0 }}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -261,7 +225,7 @@
           </div>
           <div class="audit-col">
             <span class="audit-date">
-              {{ devolucionesDetalle.devo_FechaModificacion }}</span
+              {{ formatearFecha(devolucionesDetalle.devo_FechaModificacion) }}</span
             >
           </div>
         </div>
