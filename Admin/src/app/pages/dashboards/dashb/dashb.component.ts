@@ -300,7 +300,7 @@ export class DashbComponent implements OnInit {
     colors = colorArr;
 
     this.multipleRadialbarChart = {
-      series: this.categoriasdata.map(item => item.Cantidad/this.barraMesSelected.Cantidad * 100),      
+      series: this.categoriasdata.map(item => parseFloat( (item.Cantidad/this.barraMesSelected.Cantidad * 100).toFixed(2)) ),      
       chart: {
         height: 350,
         type: "radialBar",

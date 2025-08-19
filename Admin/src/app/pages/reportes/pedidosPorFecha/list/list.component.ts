@@ -413,7 +413,7 @@ private generarFilasConRowSpan(): any[][] {
     console.log(filasConRowSpan);
     
     const config: ReportConfig = {
-      titulo: 'Pedidos Segun Fecha',
+      titulo: 'PEDIDOS SEGÚN FECHA',
       orientacion: 'landscape',
       mostrarResumen: true,
       textoResumen: `Total de pedidos: ${this.contadorpedidos}`,

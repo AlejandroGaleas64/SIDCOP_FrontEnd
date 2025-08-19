@@ -393,7 +393,7 @@ private calcularRowSpanCanal(indiceActual: number, clientes: any[]): number {
   async generarPDF() {
     // CONFIGURACIÓN DEL REPORTE
     const config: ReportConfig = {
-      titulo: 'REPORTE DE clientes',
+      titulo: 'REPORTE DE CLIENTES SEGÚN CANAL',
       orientacion: 'landscape',
       mostrarResumen: true,
       textoResumen: `Total de clientes: ${this.clientes.length}`,
