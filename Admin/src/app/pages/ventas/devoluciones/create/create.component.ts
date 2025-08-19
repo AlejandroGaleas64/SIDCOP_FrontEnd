@@ -22,6 +22,7 @@ export class CreateComponent implements OnInit {
   vendedores: any[] = [];
   clientes: any[] = [];
   clientesFiltrados: any[] = [];
+  facturasFiltradas: any[] = [];
 
   cargando = false;
   mostrarErrores = false;
@@ -32,14 +33,14 @@ export class CreateComponent implements OnInit {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
 
-  visita: any = {
-    vendedor: null,
-    cliente: null,
-    direccion: null,
-    esVi_Id: null,
-    clVi_Observaciones: '',
-    clVi_Fecha: ''
-  };
+  // visita: any = {
+  //   vendedor: null,
+  //   cliente: null,
+  //   direccion: null,
+  //   esVi_Id: null,
+  //   clVi_Observaciones: '',
+  //   clVi_Fecha: ''
+  // };
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -58,14 +59,15 @@ export class CreateComponent implements OnInit {
   }
 
   onVendedorSeleccionado(vendedor: any) {
-    if (!vendedor) { this.clientesFiltrados = []; this.visita.cliente = null; this.visita.direccion = null; return; }
+    if (!vendedor) { this.clientesFiltrados = []; return; }
     this.cargarClientesPorRuta(vendedor.ruta_Id);
+    console.log('Vendedor seleccionado:', vendedor);
   }
 
   cargarClientesPorRuta(rutaId: number) {
     if (!rutaId) { 
       this.clientesFiltrados = [];
-      this.visita.cliente = null;
+      // this.visita.cliente = null;
       return; 
     }
     this.cargando = true;
@@ -76,12 +78,13 @@ export class CreateComponent implements OnInit {
         // Filtrar clientes por ruta_Id
         this.clientesFiltrados = (data || []).filter(cliente => cliente.ruta_Id === rutaId);
         this.cargando = false;
-        if (this.clientesFiltrados.length === 1) { 
-          this.visita.cliente = this.clientesFiltrados[0]; 
-        } else { 
-          this.visita.cliente = null; 
-          this.visita.direccion = null; 
-        }
+        // if (this.clientesFiltrados.length === 1) { 
+        //   this.visita.cliente = this.clientesFiltrados[0]; 
+        // } else { 
+        //   this.visita.cliente = null; 
+        //   this.visita.direccion = null; 
+        // }
+        console.log('Clientes filtrados:', this.clientesFiltrados);
       },
       error: () => { 
         this.mostrarMensaje('Error al cargar la lista de clientes', 'error'); 
@@ -89,6 +92,30 @@ export class CreateComponent implements OnInit {
         this.clientesFiltrados = []; 
       }
     });
+  }
+
+  cargarFacturarPorCliente(vendedorId: number) {
+    if (!vendedorId) { 
+      this.facturasFiltradas = [];
+      return; 
+    }
+    this.cargando = true;
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Facturas/ListarPorVendedor/{vendedorId}`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (data) => {
+        // Filtrar facturas por cliente_Id
+        this.facturasFiltradas = (data || []).filter(factura => factura.clie_Id === vendedorId);
+        this.cargando = false;
+        console.log('Facturas filtradas:', this.facturasFiltradas);
+      },
+      error: () => { 
+        this.mostrarMensaje('Error al cargar la lista de facturas', 'error'); 
+        this.cargando = false; 
+        this.facturasFiltradas = []; 
+      }
+    });
+    console.log('Cliente ID:', vendedorId);
   }
 
   // onClienteSeleccionado(cliente: any) {
