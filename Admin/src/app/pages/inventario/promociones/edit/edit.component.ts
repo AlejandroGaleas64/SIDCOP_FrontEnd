@@ -69,6 +69,7 @@ activeTab: number = 1;
     prod_CostoTotal: 0,
     prod_PagaImpuesto: "",
     prod_EsPromo: "",
+    prod_Impulsado: false,
     prod_Estado: true,
     usua_Creacion: 0,
     prod_FechaCreacion: new Date(),
@@ -105,6 +106,24 @@ activeTab: number = 1;
 
   precioFormatoValido: boolean = true;
   precioValido: boolean = true;
+
+  // Puente booleano para el switch (UI) <-> 'S'/'N' (backend)
+  get pagaImpuestoBool(): boolean {
+    const v: any = this.producto?.prod_PagaImpuesto;
+    // Acepta 'S'/'N' y también boolean por si ya fue mapeado
+    if (typeof v === 'string') {
+      return v.toUpperCase() === 'S';
+    }
+    return !!v;
+  }
+
+  set pagaImpuestoBool(value: boolean) {
+    this.producto.prod_PagaImpuesto = value ? 'S' : 'N';
+    if (!value) {
+      // Si no paga impuesto, limpiar impuesto seleccionado
+      this.producto.impu_Id = 0;
+    }
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['productoData'] && changes['productoData'].currentValue) {
@@ -220,7 +239,7 @@ activeTab: number = 1;
   }
 
   onPagaImpuestoChange() {
-    if (!this.producto.prod_PagaImpuesto) {
+    if (!this.pagaImpuestoBool) {
       this.producto.impu_Id = 0;
     }
   }
@@ -312,9 +331,9 @@ activeTab: number = 1;
     }
 
     if (a.prod_PagaImpuesto !== b.prod_PagaImpuesto) {
-      this.cambiosDetectados.codigo = {
-        anterior: b.prod_PagaImpuesto == 'S' || 's'? 'Sí' : 'No',
-        nuevo: a.prod_PagaImpuesto == 'S' ? 'Sí' : 'No',
+      this.cambiosDetectados.pagaImpuesto = {
+        anterior: (b.prod_PagaImpuesto ?? '').toString().toUpperCase() === 'S' ? 'Sí' : 'No',
+        nuevo: (a.prod_PagaImpuesto ?? '').toString().toUpperCase() === 'S' ? 'Sí' : 'No',
         label: 'Paga Impuesto'
       };
     }
@@ -489,6 +508,8 @@ if (serializeProductos(productosOriginal) !== serializeProductos(productosActual
       this.producto.prod_PrecioUnitario >= 0
     ) {
       const productosSeleccionados = this.obtenerProductosSeleccionados();
+      // Mapear correctamente boolean -> 'S'/'N'
+      this.producto.prod_PagaImpuesto = this.pagaImpuestoBool ? 'S' : 'N';
       const promocionActualizar = {
         ...this.producto,
         usua_Modificacion: getUserId(),

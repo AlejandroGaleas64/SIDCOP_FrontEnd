@@ -97,7 +97,12 @@ export class EditComponent implements OnChanges {
       } else {
         this.cliente.clie_FechaNacimiento = null;
       }
+      
+      const formatoCodigo = /^CLIE-RT-\d{3}-\d{6}$/;
 
+      if (!formatoCodigo.test(this.cliente.clie_Codigo)) {
+        this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
+      }
       this.cargarDireccionesExistentes();
       this.cargarAvalesExistentes();
     }

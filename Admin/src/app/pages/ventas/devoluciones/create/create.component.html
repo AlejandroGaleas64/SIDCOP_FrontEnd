@@ -1,0 +1,103 @@
+<div class="d-flex flex-column" style="height: 100%; min-height: 250px;">
+  <!-- Título del componente -->
+  <h5 class="card-title mb-4">Crear nueva devolución</h5>
+
+  <!-- Contenedor de alertas flotantes -->
+  <div class="alert-container">
+    <div *ngIf="mostrarAlertaExito" class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+      <strong>¡Éxito!</strong> {{ mensajeExito }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+    <div *ngIf="mostrarAlertaWarning" class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+      <strong>¡Atención!</strong> {{ mensajeWarning }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+    <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+      <strong>¡Error!</strong> {{ mensajeError }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <div class="flex-grow-1">
+    <div class="row">
+        <div class="col-12 col-md-6 mb-3">
+            <label for="vendedor" class="form-label">Vendedor <span class="text-danger">*</span></label>
+            <div class="d-flex align-items-center">
+            <i class="ri-user-2-line" [ngStyle]="{
+                border: (mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.425rem 0.425rem',
+                position: 'relative', left: '7px',
+                zIndex: 1,
+                borderTopLeftRadius: '8px',
+                borderBottomLeftRadius: '8px'}">
+            </i>
+            <ng-select id="vendedor" [items]="vendedores"  
+                bindLabel="vendedorNombre"
+                [loading]="cargando"
+                [clearable]="false"
+                [searchable]="true"
+                (change)="onVendedorSeleccionado($event)"
+                [class.is-invalid]="mostrarErrores"
+                placeholder="Seleccione un vendedor"
+                required
+                style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                <ng-template ng-label-tmp let-item="item">
+                    {{ item.vendedorNombre }}
+                </ng-template>
+                <ng-template ng-option-tmp let-item="item">
+                    {{ item.vendedorNombre }} {{ item.vendedorApellido }} - {{ item.rutaDescripcion }}
+                </ng-template>
+            </ng-select>
+            </div>
+            <div class="text-danger mt-1" *ngIf="mostrarErrores">
+            <small>El campo Vendedor es requerido</small>
+            </div>
+        </div>
+
+        <!-- Selector de Cliente -->
+      <div class="col-12 col-md-6 mb-3">
+        <label class="form-label">Cliente <span class="text-danger">*</span></label>
+        <div class="d-flex align-items-center">
+          <i class="ri-user-line" [ngStyle]="{
+            border: (mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.425rem 0.425rem',
+            position: 'relative', left: '7px',
+            zIndex: 1,
+            borderTopLeftRadius: '8px',
+            borderBottomLeftRadius: '8px'
+          }"></i>
+          <ng-select class="w-100"
+              [items]="clientesFiltrados"
+              bindLabel="clie_NombreNegocio"
+              bindValue="clie_Id"
+              [loading]="cargando"
+              [clearable]="false"
+              [searchable]="true"
+              [class.is-invalid]="mostrarErrores"
+              placeholder="Seleccione un cliente"
+              [searchFn]="searchCliente"
+              required
+              style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+              <ng-template ng-label-tmp let-item="item">
+                  {{ item.clie_Codigo }} - {{ item.clie_Nombres }} {{ item.clie_Apellidos }}
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                  <div>
+                      <div><strong>{{ item.clie_Codigo }}</strong> - {{ item.clie_Nombres }} {{ item.clie_Apellidos }}</div>
+                      <small class="text-muted">{{ item.clie_NombreNegocio }}</small>
+                  </div>
+              </ng-template>
+          </ng-select>
+        </div>
+        <div class="text-danger mt-1" *ngIf="mostrarErrores">
+           <small>El campo Cliente es requerido</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -12,7 +12,7 @@ export class ClientesVisitaHistorial {
   clie_NombreNegocio: string = '';
   diCl_Latitud: string = '';
   diCl_Longitud: string = '';
-  esV_Descripcion: string = '';
+  esVi_Descripcion: string = '';
   secuencia: number = 0;
   No?: number = 0;
 

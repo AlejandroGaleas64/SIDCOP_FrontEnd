@@ -109,33 +109,23 @@ private inicializar(): void {
         this.clientes = data.clientes;
         this.vendedores = data.vendedores;
         this.cargando = false;
-        console.log('Vendedores cargados:', this.vendedores);
         
         // Verificar la estructura de los datos para depuración
         if (this.vendedores && this.vendedores.length > 0) {
           const primerVendedor = this.vendedores[0];
-          console.log('Propiedades del primer vendedor:', Object.keys(primerVendedor));
-          
+   
           // Verificar si los vendedores tienen alguna propiedad relacionada con sucursal
           const propiedadesSucursal = Object.keys(primerVendedor).filter(key => 
             key.toLowerCase().includes('sucu') || 
             key.toLowerCase().includes('sucur') || 
             key.toLowerCase().includes('regc'));
           
-          if (propiedadesSucursal.length === 0) {
-            console.warn('ADVERTENCIA: No se encontró ninguna propiedad relacionada con sucursal en los vendedores');
-            console.log('Esto podría causar problemas al filtrar vendedores por sucursal');
-            
-            // Mostrar toda la estructura para análisis
-            console.log('Estructura completa del primer vendedor:', primerVendedor);
-          } else {
-            console.log('Propiedades relacionadas con sucursal encontradas:', propiedadesSucursal);
-          }
+
         }
       },
       error: (error) => {
         this.mostrarError('Error al cargar datos iniciales');
-        console.error('Error:', error);
+
         this.cargando = false;
       }
     });
@@ -260,15 +250,12 @@ private inicializar(): void {
         }
       }
       
-      // Registrar las propiedades encontradas
-      console.log('Propiedad de sucursal encontrada:', propiedadSucursal);
-      console.log('Propiedad de RegC_Id encontrada:', propiedadRegCId);
+
     }
     
     // Si no se encontró ninguna propiedad relacionada con sucursal, mostrar advertencia
     if (!propiedadSucursal) {
-      console.warn('No se pudo determinar la propiedad de sucursal en los vendedores');
-      return [];
+     return [];
     }
     
     // Filtrar usando la propiedad encontrada y capturar RegC_Id si está disponible
@@ -281,7 +268,6 @@ private inicializar(): void {
     if (propiedadRegCId && vendedoresFiltrados.length > 0) {
       const regCIdVendedor = vendedoresFiltrados[0][propiedadRegCId];
       if (regCIdVendedor) {
-        console.log('RegC_Id capturado del vendedor:', regCIdVendedor);
         // Almacenar el RegC_Id del vendedor en una propiedad separada
         this.venta.regC_Id_Vendedor = regCIdVendedor;
       }
@@ -305,8 +291,7 @@ private inicializar(): void {
       // usar todos los vendedores como alternativa
       if (this.vendedores && this.vendedores.length > 0) {
         // Mostrar mensaje en consola
-        console.warn('No se encontraron vendedores para la sucursal seleccionada. Mostrando todos los vendedores.');
-      }
+     }
     }
     if (this.sucursalSeleccionadaAnterior !== this.venta.regC_Id) {
       this.limpiarCantidadesSeleccionadas();
@@ -338,7 +323,7 @@ private inicializar(): void {
           this.cargandoInventario = false;
         },
         error: (error) => {
-          console.error('Error al cargar inventario:', error);
+
           this.mostrarError('Error al cargar el inventario de la sucursal');
           this.cargandoInventario = false;
           this.limpiarInventario();
@@ -723,7 +708,6 @@ private crearVenta(): void {
   
   // Generar un nuevo número de factura para este intento
   this.venta.fact_Numero = this.generarNumeroFactura();
-  console.log('Número de factura generado:', this.venta.fact_Numero);
   
   const detalles = this.obtenerDetallesVenta();
   
@@ -733,9 +717,7 @@ private crearVenta(): void {
   
   // Determinar qué ID de registro CAI usar
   const regCIdFinal = regCIdVendedor || sucursalId;
-  console.log('ID de sucursal seleccionada:', sucursalId);
-  console.log('ID de registro CAI del vendedor:', regCIdVendedor);
-  console.log('ID de registro CAI final a enviar:', regCIdFinal);
+
   
   const datosEnviar = {
     ...this.venta,
@@ -745,9 +727,13 @@ private crearVenta(): void {
     detallesFacturaInput: detalles
   };
 
-  // Verifica en consola lo que se envía
-  console.log('ID de sucursal seleccionada:', this.venta.regC_Id);
-  console.log('Datos enviados al backend:', datosEnviar);
+  // Verifica en consola las coordenadas de la venta y la estructura completa
+  console.log('Coordenadas de la venta:', {
+    latitud: this.venta.fact_Latitud,
+    longitud: this.venta.fact_Longitud
+  });
+  
+  console.log('Estructura completa de datos a enviar:', JSON.stringify(datosEnviar, null, 2));
 
   // Enviar al backend
   this.http
@@ -761,18 +747,23 @@ private crearVenta(): void {
         this.guardando = false;
         const id = this.extraerId(response);
         if (id > 0) {
-          this.mostrarExito(`Venta guardada con éxito (${detalles.length} productos)`);
+            this.mostrarExito(`Venta guardada con éxito (${detalles.length} productos). Mostrando detalles...`);
+          
+          // Emitir evento para notificar al componente padre con el ID de la factura
+          // y la acción 'detalles' para que muestre automáticamente los detalles
           setTimeout(() => {
-            this.onSave.emit(this.venta);
-            this.cancelar();
-          }, 3000);
+            this.onSave.emit({ 
+              fact_Id: id, 
+              action: 'detalles',
+              mostrarDetalles: true // Indicador explícito para mostrar detalles
+            });
+          }, 2000);
         } else {
           this.mostrarError('No se pudo obtener el ID de la venta');
         }
       },
       error: (err) => {
         this.guardando = false;
-        console.error('Error al guardar la venta:', err);
         this.mostrarError('Error al guardar la venta');
       },
     });

@@ -397,7 +397,6 @@ private calcularRowSpanCanal(indiceActual: number, clientes: any[]): number {
       orientacion: 'landscape',
       mostrarResumen: true,
       textoResumen: `Total de clientes: ${this.clientes.length}`,
-      filtros: this.construirFiltros()
     };
 
     const filasConRowSpan = this.generarFilasConRowSpan();
