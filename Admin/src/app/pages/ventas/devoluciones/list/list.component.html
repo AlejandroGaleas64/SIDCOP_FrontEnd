@@ -120,7 +120,7 @@
                   </th>
                   <th class="gridjs-th" (click)="table.sortBy('fact_Id')" style="cursor:pointer;">
                     <span style="display: flex; align-items: center; gap: 4px;">
-                      Número de Factura
+                      Número Factura
                       <span style="display: flex; flex-direction: column; margin-left: 6px;">
                         <i class="ri-arrow-up-s-line icon-sort"
                           [ngStyle]="table.sortField === 'fact_Numero' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
@@ -176,7 +176,7 @@
                     </div>
                   </td>
                   <td><span class="fw-semibold">{{data.No}}</span></td>
-                  <td>{{data.nombre_Completo}}</td>
+                  <td class="text-center">{{data.nombre_Completo}}</td>
                   <td>{{data.clie_NombreNegocio}}</td>
                   <td>{{data.fact_Numero}}</td>
                   <td>{{ formatearFecha(data.devo_Fecha) || "N/A" }}</td>
