@@ -81,11 +81,9 @@ municipiosAll: Municipio[] = [];
 municipios: Municipio[] = [];    
 municipioSeleccionado: string = '';
 coloniasfiltro: Colonias[] = [];
-colonias: Colonias[] = [];
+colonias: any[] = [];
 
 // Array unificado para el dropdown
-coloniasUnificadas: { id: string | number, descripcion: string }[] = [];
-coloniaIdSeleccionada: string | number = '';
 
   sucursal: Sucursales = {
     sucu_Id: 0,
@@ -111,7 +109,6 @@ coloniaIdSeleccionada: string | number = '';
   }).subscribe(data => {
     
     this.departamentos = data;
-    this.actualizarColoniasUnificadas();
   }, error => {
     console.error('Error al cargar los departamentos', error);
   });
@@ -121,64 +118,34 @@ coloniaIdSeleccionada: string | number = '';
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
       this.municipiosAll = data;
-      this.actualizarColoniasUnificadas();
     });
 
     // Obtener colonias
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Colonia/Listar`, {
+    this.http.get<any>(`${environment.apiBaseUrl}/Colonia/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => {
-      this.coloniasfiltro = data;
-      this.actualizarColoniasUnificadas();
+    }).subscribe((data) => {
+      this.colonias = Array.isArray(data)
+        ? data.map(c => ({ ...c, colo_Id: Number(c.colo_Id) }))
+        : [];
+      // No asignar valor por defecto, el usuario debe seleccionar una colonia
+      this.sucursal.colo_Id = 0;
+      console.log('Colonias array:', this.colonias);
     });
   }
 
-  actualizarColoniasUnificadas() {
-    this.coloniasUnificadas = [];
-    // Solo colonias, mostrando municipio y departamento
-    if (this.coloniasfiltro?.length) {
-      this.coloniasUnificadas.push(...this.coloniasfiltro.map(col => {
-        const municipio = this.municipiosAll.find(m => m.muni_Codigo === col.muni_Codigo);
-        const departamento = municipio ? this.departamentos.find(d => d.depa_Codigo === municipio.depa_Codigo) : undefined;
-        return {
-          id: col.colo_Id ?? '',
-          descripcion: `${col.colo_Descripcion ?? ''} - ${municipio?.muni_Descripcion ?? ''} - ${departamento?.depa_Descripcion ?? ''}`
-        };
-      }));
-    }
-  }
+  searchColonias = (term: string, item: any) => {
+    term = term.toLowerCase();
+    return (
+      item.colo_Descripcion?.toLowerCase().includes(term) ||
+      item.muni_Descripcion?.toLowerCase().includes(term) ||
+      item.depa_Descripcion?.toLowerCase().includes(term)
+    );
+  };
 
-  onColoniaUnificadaSeleccionada(id: string | number) {
-    this.coloniaIdSeleccionada = id;
-    this.sucursal.colo_Id = typeof id === 'string' ? parseInt(id) : id;
-  }
 
-  onDepartamentoChange(): void {
-    if (this.departamentoSeleccionado) {
-      this.municipios = this.municipiosAll.filter(
-        m => m.depa_Codigo === this.departamentoSeleccionado
-      );
-      this.municipioSeleccionado = '';
-      this.colonias = [];
-      this.sucursal.colo_Id = 0;
-    } else {
-      this.municipios = [];
-      this.municipioSeleccionado = '';
-      this.colonias = [];
-      this.sucursal.colo_Id = 0;
-    }
-  }
 
-  onMunicipioChange(): void {
-    if (this.municipioSeleccionado) {
-      this.colonias = this.coloniasfiltro.filter(
-        c => c.muni_Codigo === this.municipioSeleccionado
-      );
-      this.sucursal.colo_Id = 0; 
-    } else {
-      this.colonias = [];
-      this.sucursal.colo_Id = 0;
-    }
+  onColoniaSeleccionada(id: any) {
+    this.sucursal.colo_Id = typeof id === 'object' && id !== null ? Number(id.colo_Id) : Number(id);
   }
 
   cancelar(): void {
@@ -223,6 +190,9 @@ coloniaIdSeleccionada: string | number = '';
   }
 
   guardar(): void {
+  this.sucursal.colo_Id = Number(this.sucursal.colo_Id);
+  console.log('Colonia seleccionada (colo_Id):', this.sucursal.colo_Id);
+    console.log('Colonias array:', this.colonias);
     this.mostrarErrores = true;
     this.onOverlayChange.emit(true);
     if (
