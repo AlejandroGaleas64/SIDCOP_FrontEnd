@@ -567,7 +567,7 @@ export class CreateComponent implements OnInit {
         cantidadVendida: producto.cantidadVendida,
         cantidadADevolver: cantidadADevolver
       });
-      return cantidadADevolver > 0; // Solo productos con cantidad seleccionada > 0
+      return cantidadADevolver >= 0; // Solo productos con cantidad seleccionada > 0
     });
 
     console.log('Total productos evaluados:', this.productos.length);
