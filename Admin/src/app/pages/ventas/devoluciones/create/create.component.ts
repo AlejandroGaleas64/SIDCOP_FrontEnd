@@ -32,6 +32,7 @@ export class CreateComponent implements OnInit {
     devo_EnSucursal: false
   };
 
+  facturaOriginal: any = null;
   vendedores: any[] = [];
   clientes: any[] = [];
   clientesFiltrados: any[] = [];
@@ -318,6 +319,7 @@ export class CreateComponent implements OnInit {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (facturaCompleta) => {
+        this.facturaOriginal = facturaCompleta;
         console.log('📄 Factura completa recibida:', facturaCompleta);
       },
       error: (err) => {
@@ -657,6 +659,7 @@ export class CreateComponent implements OnInit {
           
           this.anularFactura(this.devolucion.fact_Id);
 
+          this.crearFacturaConProductosRestantes();
           // Limpiar el formulario después de guardar
           this.limpiarFormularioCompleto();
           
@@ -689,6 +692,97 @@ export class CreateComponent implements OnInit {
       }
     });
   }
+
+  // Método para generar número de factura aleatorio con el formato 000-000-00-00000000
+  generarNumeroFacturaAleatorio(): string {
+    const pad = (num: number, size: number) => {
+      let s = num.toString();
+      while (s.length < size) s = '0' + s;
+      return s;
+    };
+
+    const part1 = pad(this.getRandomInt(1, 999), 3);
+    const part2 = pad(this.getRandomInt(1, 999), 3);
+    const part3 = pad(this.getRandomInt(1, 99), 2);
+    const part4 = pad(this.getRandomInt(1, 99999999), 8);
+
+    return `${part1}-${part2}-${part3}-${part4}`;
+  }
+
+  getRandomInt(min: number, max: number): number {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  // Nuevo método para crear la factura con productos restantes
+  crearFacturaConProductosRestantes(): void {
+    if (!this.facturaOriginal) {
+      this.mostrarMensaje('No se ha cargado la factura original', 'error');
+      return;
+    }
+
+    if (!this.clienteSeleccionado || !this.vendedorSeleccionado) {
+      this.mostrarMensaje('Faltan datos de cliente o vendedor para crear la factura', 'error');
+      return;
+    }
+
+    // Filtrar solo productos con cantidadVendida > 0 (productos restantes)
+    const productosRestantes = this.productos
+      .filter(p => (p.cantidadVendida || 0) > 0)
+      .map(p => ({
+        prod_Id: p.prod_Id,
+        faDe_Cantidad: p.cantidadVendida || 0
+      }));
+
+    if (productosRestantes.length === 0) {
+      this.mostrarMensaje('No hay productos restantes para crear la nueva factura', 'advertencia');
+      return;
+    }
+
+    // Generar nuevo número de factura aleatorio
+    const nuevoNumero = this.generarNumeroFacturaAleatorio();
+
+    // Construir el body para la nueva factura
+    const body = {
+      fact_Numero: nuevoNumero,
+      fact_TipoDeDocumento: this.facturaOriginal.fact_TipoDeDocumento || 'FACTURA',
+      regC_Id: this.facturaOriginal.regC_Id || 20,
+      diCl_Id: this.facturaOriginal.diCl_Id || this.direcciones[0]?.diCl_Id || 0,
+      vend_Id: this.vendedorSeleccionado.vend_Id,
+      fact_TipoVenta: this.facturaOriginal.fact_TipoVenta || 'CONTADO',
+      fact_FechaEmision: new Date().toISOString(),
+      fact_Latitud: this.facturaOriginal.fact_Latitud || 14.123456,
+      fact_Longitud: this.facturaOriginal.fact_Longitud || -87.123456,
+      fact_Referencia: `Factura ajustada por devolución - Original: ${this.facturaOriginal.fact_Numero}`,
+      fact_AutorizadoPor: this.facturaOriginal.fact_AutorizadoPor || 'yo',
+      usua_Creacion: getUserId() || 1,
+      detallesFacturaInput: productosRestantes
+    };
+
+    console.log('Creando nueva factura:', body);
+
+    this.http.post<any>(`${environment.apiBaseUrl}/Facturas/Insertar`, body, {
+      headers: {
+        'x-api-key': environment.apiKey,
+        'Content-Type': 'application/json'
+      }
+    }).subscribe({
+      next: (response) => {
+        console.log('Nueva factura creada:', response);
+        if (response && (response.success === true || response.Success === true)) {
+          this.mostrarMensaje('Nueva factura creada exitosamente', 'exito');
+        } else {
+          this.mostrarMensaje(response?.message || 'Error al crear la nueva factura', 'error');
+        }
+      },
+      error: (error) => {
+        const errMsg = error.error?.message || error.message || 'Error en la creación de la factura';
+        this.mostrarMensaje(errMsg, 'error');
+      }
+    });
+  }
+
 
   anularFactura(fact_Id: number) {
     // if (!fact_Id) {
