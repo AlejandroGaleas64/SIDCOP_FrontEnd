@@ -8,11 +8,12 @@ import { Sucursales } from 'src/app/Modelos/general/Sucursales.Model';
 import { Municipio } from 'src/app/Modelos/general/Municipios.Model';
 import { Departamento } from 'src/app/Modelos/general/Departamentos.Model';
 import { Colonias } from 'src/app/Modelos/general/Colonias.Model';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @Component({
   selector: 'app-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule],
   templateUrl: './create.component.html',
   styleUrl: './create.component.scss'
 })
@@ -82,6 +83,10 @@ municipioSeleccionado: string = '';
 coloniasfiltro: Colonias[] = [];
 colonias: Colonias[] = [];
 
+// Array unificado para el dropdown
+coloniasUnificadas: { id: string | number, descripcion: string }[] = [];
+coloniaIdSeleccionada: string | number = '';
+
   sucursal: Sucursales = {
     sucu_Id: 0,
     secuencia: 0,
@@ -106,6 +111,7 @@ colonias: Colonias[] = [];
   }).subscribe(data => {
     
     this.departamentos = data;
+    this.actualizarColoniasUnificadas();
   }, error => {
     console.error('Error al cargar los departamentos', error);
   });
@@ -115,6 +121,7 @@ colonias: Colonias[] = [];
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
       this.municipiosAll = data;
+      this.actualizarColoniasUnificadas();
     });
 
     // Obtener colonias
@@ -122,7 +129,28 @@ colonias: Colonias[] = [];
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
       this.coloniasfiltro = data;
+      this.actualizarColoniasUnificadas();
     });
+  }
+
+  actualizarColoniasUnificadas() {
+    this.coloniasUnificadas = [];
+    // Solo colonias, mostrando municipio y departamento
+    if (this.coloniasfiltro?.length) {
+      this.coloniasUnificadas.push(...this.coloniasfiltro.map(col => {
+        const municipio = this.municipiosAll.find(m => m.muni_Codigo === col.muni_Codigo);
+        const departamento = municipio ? this.departamentos.find(d => d.depa_Codigo === municipio.depa_Codigo) : undefined;
+        return {
+          id: col.colo_Id ?? '',
+          descripcion: `${col.colo_Descripcion ?? ''} - ${municipio?.muni_Descripcion ?? ''} - ${departamento?.depa_Descripcion ?? ''}`
+        };
+      }));
+    }
+  }
+
+  onColoniaUnificadaSeleccionada(id: string | number) {
+    this.coloniaIdSeleccionada = id;
+    this.sucursal.colo_Id = typeof id === 'string' ? parseInt(id) : id;
   }
 
   onDepartamentoChange(): void {
