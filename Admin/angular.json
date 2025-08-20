@@ -36,6 +36,7 @@
               "src/assets/scss/bootstrap.scss",
               "src/assets/scss/app.scss",
               "src/assets/scss/icons.scss",
+              "node_modules/cropperjs/dist/cropper.css",
               "src/styles.scss"
             ],
             "scripts": [

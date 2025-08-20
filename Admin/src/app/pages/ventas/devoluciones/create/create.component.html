@@ -229,7 +229,7 @@
 
                     <!-- Controles de cantidad -->
                     <div class="cantidad-controls-premium">
-                      <label class="form-label-premium">Cantidad</label>
+                      <label class="form-label-premium">Cantidad Facturada</label>
                       <div class="input-group-premium">
                         <button class="btn-cantidad-premium btn-minus" type="button"
                           (click)="disminuirCantidad(getProductoIndex(producto.prod_Id))"
@@ -238,18 +238,32 @@
                         </button>
                         <input type="number" class="cantidad-input-premium" [(ngModel)]="producto.cantidadVendida"
                           (change)="validarCantidad(getProductoIndex(producto.prod_Id))" min="0"
-                          [max]="producto.stockDisponible" [disabled]="!producto.tieneStock" readonly>
+                          [max]="producto.cantidadOriginal" readonly>
                         <button class="btn-cantidad-premium btn-plus" type="button"
                           (click)="aumentarCantidad(getProductoIndex(producto.prod_Id))"
-                          [disabled]="producto.cantidadVendida >= producto.stockDisponible">
+                          [disabled]="producto.cantidadVendida >= producto.cantidadOriginal">
                           <i class="ri-add-line"></i>
                         </button>
                       </div>
-                      <!-- Información de límite de stock -->
-                      <div class="stock-info mt-2" *ngIf="producto.cantidadVendida > 0">
+                      <!-- Información de límite de cantidad original -->
+                      <div class="stock-info mt-2">
                         <small class="text-muted">
                           <i class="ri-information-line me-1"></i>
-                          {{ producto.cantidad }} de {{ producto.stockDisponible }} disponibles
+                          {{ producto.cantidadVendida }} de {{ producto.cantidadOriginal }} (cantidad original vendida)
+                        </small>
+                      </div>
+                      <!-- Mostrar información de devolución solo si la cantidad es menor a la original -->
+                      <div class="stock-info mt-1" *ngIf="producto.cantidadVendida >= 0 && producto.cantidadVendida < producto.cantidadOriginal">
+                        <small class="text-success">
+                          <i class="ri-check-line me-1"></i>
+                          Seleccionado para devolución: {{ producto.cantidadOriginal - producto.cantidadVendida }} unidad(es)
+                        </small>
+                      </div>
+                      <!-- Mostrar cuando no hay devolución (cantidad completa) -->
+                      <div class="stock-info mt-1" *ngIf="producto.cantidadVendida === producto.cantidadOriginal">
+                        <small class="text-muted">
+                          <i class="ri-check-line me-1"></i>
+                          Sin devolución (cantidad completa)
                         </small>
                       </div>
                     </div>

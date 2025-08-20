@@ -281,7 +281,7 @@ export class ReportePedidosPorFechaComponent implements OnInit {
     console.log(filasConRowSpan);
     
     const config: ReportConfig = {
-      titulo: 'Pedidos Según Fecha',
+      titulo: 'PEDIDOS SEGÚN FECHA',
       orientacion: 'landscape',
       mostrarResumen: true,
       textoResumen: `Total de pedidos: ${this.contadorpedidos}`,
