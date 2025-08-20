@@ -25,54 +25,36 @@
       <div class="row">
         <!-- Primera columna -->
         <div class="col-md-6">
-          <!-- Departamento -->
+          <!-- Colonia -->
           <div class="mb-3">
-            <label for="depa_Codigo" class="form-label">Departamento<span class="text-danger">*</span></label>
-            <div class="d-flex align-items-center">
-              <i class="ri-map-pin-line" [ngStyle]="{
-                border: (!departamentoSeleccionado && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!departamentoSeleccionado && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
-              <select
-                id="depa_Codigo"
-                class="form-select"
-                [class.is-invalid]="!departamentoSeleccionado && mostrarErrores"
-                [(ngModel)]="departamentoSeleccionado"
-                name="depa_Codigo"
-                (change)="onDepartamentoChange()"
-                required>
-                <option value="" disabled selected>Seleccione un departamento</option>
-                <option *ngFor="let departamento of departamentos" [value]="departamento.depa_Codigo">
-                  {{ departamento.depa_Descripcion }}
-                </option>
-              </select>
-              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-            </div>
-            <div class="text-danger mt-1" *ngIf="!departamentoSeleccionado && mostrarErrores">
-              <small>El campo Departamento es requerido</small>
-            </div>
-          </div>
-          <!-- Municipio -->
-         <div class="mb-3">
-            <label for="colo_Id" class="form-label">Colonia<span class="text-danger">*</span></label>
+            <label for="coloniaUnificada" class="form-label">Colonia<span class="text-danger">*</span></label>
             <div class="d-flex align-items-center">
               <i class="ri-home-2-line" [ngStyle]="{
                 border: (!sucursal.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
                 backgroundColor: (!sucursal.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
-              <select
-                id="colo_Id"
-                class="form-select"
-                [class.is-invalid]="!sucursal.colo_Id && mostrarErrores"
+              <ng-select
+                class="w-100"
+                [items]="colonias"
+                bindLabel="colo_Descripcion"
+                bindValue="colo_Id"
                 [(ngModel)]="sucursal.colo_Id"
                 name="colo_Id"
-                [disabled]="!municipioSeleccionado"
-                required>
-                <option value="" disabled selected>Seleccione una colonia</option>
-                <option *ngFor="let colonia of colonias" [value]="colonia.colo_Id">
-                  {{ colonia.colo_Descripcion }}
-                </option>
-              </select>
+                (change)="onColoniaSeleccionada($event)"
+                [searchable]="true"
+                [clearable]="false"
+                [class.is-invalid]="!sucursal.colo_Id && mostrarErrores"
+                placeholder="Seleccione una colonia"
+                required
+                [searchFn]="searchColonias"
+              >
+                <ng-template ng-label-tmp let-item="item">
+                  {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
+                </ng-template>
+                <ng-template ng-option-tmp let-item="item">
+                  {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
+                </ng-template>
+              </ng-select>
               <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
             </div>
             <div class="text-danger mt-1" *ngIf="!sucursal.colo_Id && mostrarErrores">
@@ -146,34 +128,6 @@
         </div>
         <!-- Segunda columna -->
         <div class="col-md-6">
-          <!-- Colonia -->
-          <div class="mb-3">
-            <label for="muni_Codigo" class="form-label">Municipio<span class="text-danger">*</span></label>
-            <div class="d-flex align-items-center">
-              <i class="ri-map-pin-user-line" [ngStyle]="{
-                border: (!municipioSeleccionado && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!municipioSeleccionado && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
-              <select
-                id="muni_Codigo"
-                class="form-select"
-                [class.is-invalid]="!municipioSeleccionado && mostrarErrores"
-                [(ngModel)]="municipioSeleccionado"
-                name="muni_Codigo"
-                (change)="onMunicipioChange()"
-                [disabled]="!departamentoSeleccionado"
-                required>
-                <option value="" disabled selected>Seleccione un municipio</option>
-                <option *ngFor="let municipio of municipios" [value]="municipio.muni_Codigo">
-                  {{ municipio.muni_Descripcion }}
-                </option>
-              </select>
-              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-            </div>
-            <div class="text-danger mt-1" *ngIf="!municipioSeleccionado && mostrarErrores">
-              <small>Debe seleccionar un municipio</small>
-            </div>
-          </div>
           <!-- Dirección Exacta -->
           <div class="mb-3">
             <label for="sucu_DireccionExacta" class="form-label">Dirección Exacta<span class="text-danger">*</span></label>
@@ -212,8 +166,9 @@
                 id="sucu_Codigo"
                 [(ngModel)]="sucursal.sucu_Codigo"
                 name="sucu_Codigo"
-                placeholder="Ingrese el código de la sucursal"
-                required />
+                placeholder="Código de la sucursal"
+                required
+                [disabled]="true" />
               <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
             </div>
             <div class="text-danger mt-1" *ngIf="!sucursal.sucu_Codigo.trim() && mostrarErrores">
