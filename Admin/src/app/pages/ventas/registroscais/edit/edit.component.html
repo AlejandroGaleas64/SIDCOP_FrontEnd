@@ -198,18 +198,19 @@
           <div class="d-flex align-items-center">
             <i class="ri-calendar-event-line"
               [ngStyle]="{
-                border: (!registroCai.regC_RangoInicial.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!registroCai.regC_RangoInicial.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: (!registroCai.regC_FechaInicialEmision && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!registroCai.regC_FechaInicialEmision && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
             </i>
             <input type="date" id="inicial-input" [(ngModel)]="fechaInicioFormato" class="form-control"
               [class.is-invalid]="
               !registroCai.regC_FechaInicialEmision && mostrarErrores
             " placeholder="Seleccione la fecha de emision inicial" required />
+            </div>
             <div class="text-danger" *ngIf="!registroCai.regC_FechaInicialEmision && mostrarErrores">
               <small>La fecha inicial de emision es requerida</small>
             </div>
-          </div>
+          
         </div>
       </div>
 
@@ -219,17 +220,18 @@
           <div class="d-flex align-items-center">
             <i class="ri-calendar-event-line"
               [ngStyle]="{
-                border: (!registroCai.regC_RangoInicial.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!registroCai.regC_RangoInicial.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: (!registroCai.regC_FechaFinalEmision && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!registroCai.regC_FechaFinalEmision && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
             </i>
             <input type="date" id="final-input" [(ngModel)]="fechaFinFormato" class="form-control" [class.is-invalid]="
               !registroCai.regC_FechaFinalEmision && mostrarErrores
             " placeholder="Seleccione la fecha de emision final" required />
+            </div>
             <div class="text-danger" *ngIf="!registroCai.regC_FechaFinalEmision && mostrarErrores">
               <small>La fecha final de emision es requerida</small>
             </div>
-          </div>
+          
         </div>
       </div>
 
