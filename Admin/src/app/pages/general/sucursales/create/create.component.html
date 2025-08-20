@@ -166,8 +166,9 @@
                 id="sucu_Codigo"
                 [(ngModel)]="sucursal.sucu_Codigo"
                 name="sucu_Codigo"
-                placeholder="Ingrese el código de la sucursal"
-                required />
+                placeholder="Código de la sucursal"
+                required
+                [disabled]="true" />
               <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
             </div>
             <div class="text-danger mt-1" *ngIf="!sucursal.sucu_Codigo.trim() && mostrarErrores">

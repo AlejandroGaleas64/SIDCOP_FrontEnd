@@ -103,6 +103,27 @@ colonias: any[] = [];
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Sucursales/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(data => {
+      if (Array.isArray(data) && data.length > 0) {
+
+        const codigos = data
+          .map(s => s.sucu_Codigo)
+          .filter(c => typeof c === 'string' && c.length === 3 && !isNaN(Number(c)));
+
+        let maxCodigo = codigos.length > 0 ? Math.max(...codigos.map(c => Number(c))) : 0;
+        let nuevoCodigo = (maxCodigo + 1).toString().padStart(3, '0');
+
+        while (codigos.includes(nuevoCodigo)) {
+          maxCodigo++;
+          nuevoCodigo = (maxCodigo + 1).toString().padStart(3, '0');
+        }
+        this.sucursal.sucu_Codigo = nuevoCodigo;
+      } else {
+        this.sucursal.sucu_Codigo = '001';
+      }
+    });
     // Obtener departamentos
     this.http.get<Departamento[]>(`${environment.apiBaseUrl}/Departamentos/Listar`, {
     headers: { 'x-api-key': environment.apiKey }
