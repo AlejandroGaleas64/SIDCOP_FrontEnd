@@ -553,7 +553,7 @@ export class CreateComponent implements OnInit {
     }
 
     // Obtener productos seleccionados (con cantidad > 0)
-    const productosSeleccionados = this.productos.filter(producto => producto.cantidad > 0);
+    // const productosSeleccionados = this.productos.filter(producto => producto.cantidad > 0);
     
     // if (productosSeleccionados.length === 0) {
     //   this.mostrarMensaje('Debe seleccionar al menos un producto para devolver', 'error');
