@@ -83,7 +83,7 @@ export class ExportService {
     }
   }
 
-  async exportToPDF(config: ExportConfig): Promise<ExportResult> {
+  async exportToPDF(config: ExportConfig): Promise<ExportResult> { 
     try {
       this.validateConfig(config);
       
