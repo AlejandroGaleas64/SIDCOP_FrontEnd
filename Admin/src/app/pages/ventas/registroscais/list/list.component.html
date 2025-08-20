@@ -465,9 +465,10 @@
       <div class="modal-body custom-modal-body">
         <div class="text-center">
           <p class="mt-2 custom-modal-text">
-            <i class="ri-alert-line me-2 custom-modal-alert-icon" (click)="cancelarEliminar()"></i>¿Está seguro(a) que
-            desea eliminar el Registro CAI
-            <strong>{{ RegistroCAIAEliminar?.regC_Descripcion }}</strong>?
+            <i class="ri-alert-line me-2 custom-modal-alert-icon" (click)="cancelarEliminar()"></i>
+             ¿Está seguro(a) que desea
+            {{ RegistroCAIAEliminar?.estado === "Activo" ? "desactivar" : "activar" }} el
+            punto de emisión <strong>{{ RegistroCAIAEliminar?.regC_Descripcion }}</strong>?
           </p>
         </div>
       </div>
@@ -475,9 +476,17 @@
         <button type="button" class="btn btn-primary gray btn-sm btn-minw-5" (click)="cancelarEliminar()">
           <span class="btn-text">No</span><span class="btn-icon"><i class="ri-close-circle-line"></i></span>
         </button>
-        <button type="button" class="btn btn-primary red btn-sm btn-minw-5" (click)="eliminar()">
+         <button type="button" class="btn btn-primary {{
+            RegistroCAIAEliminar?.estado === 'Activo' ? 'red' : 'green'
+          }} btn-sm btn-minw-5" (click)="eliminar()">
           <span class="btn-text">Si</span>
-          <span class="btn-icon"><i class="ri-delete-bin-line"></i></span>
+          <span class="btn-icon">
+            <i [class]="
+                RegistroCAIAEliminar?.estado === 'Activo'
+                  ? 'ri-close-circle-line'
+                  : 'ri-checkbox-circle-line'
+              "></i>
+          </span>
         </button>
       </div>
     </div>
@@ -501,10 +510,19 @@
       Editar <i class="ri-edit-line"></i>
     </button>
   </li>
-  <li *ngIf="accionPermitida('eliminar')">
-    <button type="button" class="dropdown-action-btn"
-      (click)="confirmarEliminar(floatingMenuService.data); floatingMenuService.close()">
-      Eliminar <i class="ri-delete-bin-line"></i>
+<li *ngIf="accionPermitida('eliminar')">
+    <button type="button" class="dropdown-action-btn" (click)="
+        confirmarEliminar(floatingMenuService.data); floatingMenuService.close()
+      ">
+      {{
+      floatingMenuService.data?.estado === "Activo" ? "Desactivar" : "Activar"
+      }}
+
+      <i [class]="
+          floatingMenuService.data?.estado === 'Activo'
+            ? 'ri-close-circle-line'
+            : 'ri-checkbox-circle-line'
+        "></i>
     </button>
   </li>
   <li *ngIf="accionPermitida('detalle')">

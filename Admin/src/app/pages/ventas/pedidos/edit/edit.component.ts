@@ -326,6 +326,7 @@ export class EditComponent implements OnInit, OnChanges {
 
   pedidoEditada: Pedido = {
     pedi_Id: 0,
+     pedi_Codigo: '',
     diCl_Id: 0,
     vend_Id: 0,
     pedi_FechaPedido: new Date(),
@@ -647,6 +648,7 @@ export class EditComponent implements OnInit, OnChanges {
     ) {
       const PEActualizar = {
         pedi_Id: this.pedidoEditada.pedi_Id,
+         pedi_Codigo: '', // El código se actualiza aquí
         diCl_Id: this.pedidoEditada.diCl_Id,
         vend_Id: getUserId(), // Asumiendo que el usuario actual es el vendedor
         pedi_FechaPedido: new Date().toISOString(),
