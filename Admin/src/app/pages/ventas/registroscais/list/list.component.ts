@@ -81,7 +81,7 @@ import { set } from 'lodash';
   //Animaciones para collapse
 })
 export class ListComponent implements OnInit {
-   registroCai: RegistroCAI = {
+  registroCai: RegistroCAI = {
     regC_Id: 0,
     regC_Descripcion: '',
     sucu_Id: 0,
@@ -94,7 +94,7 @@ export class ListComponent implements OnInit {
 
     usua_Creacion: 0,
     usua_Modificacion: 0,
-   
+
     regC_FechaCreacion: new Date(),
     regC_FechaModificacion: new Date(),
     code_Status: 0,
@@ -110,24 +110,25 @@ export class ListComponent implements OnInit {
     puEm_Descripcion: '',
   };
 
+  get fechaInicioFormato(): string {
+    return new Date(this.registroCai.regC_FechaInicialEmision)
+      .toISOString()
+      .split('T')[0];
+  }
 
-    get fechaInicioFormato(): string {
-  return new Date(this.registroCai.regC_FechaInicialEmision).toISOString().split('T')[0];
-}
+  set fechaInicioFormato(value: string) {
+    this.registroCai.regC_FechaInicialEmision = new Date(value);
+  }
 
-set fechaInicioFormato(value: string) {
-  this.registroCai.regC_FechaInicialEmision = new Date(value);
-}
+  get fechaFinFormato(): string {
+    return new Date(this.registroCai.regC_FechaFinalEmision)
+      .toISOString()
+      .split('T')[0];
+  }
 
-get fechaFinFormato(): string {
-  return new Date(this.registroCai.regC_FechaFinalEmision).toISOString().split('T')[0];
-}
-
-set fechaFinFormato(value: string) {
-  this.registroCai.regC_FechaFinalEmision = new Date(value);
-}
-
-
+  set fechaFinFormato(value: string) {
+    this.registroCai.regC_FechaFinalEmision = new Date(value);
+  }
 
   private readonly exportConfig = {
     // Configuración básica
@@ -198,8 +199,6 @@ set fechaFinFormato(value: string) {
       // 'Campo': this.limpiarTexto(modelo?.campo),
     }),
   };
-
-  
 
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
@@ -506,7 +505,7 @@ set fechaFinFormato(value: string) {
     setTimeout(() => {
       this.cargardatos(false);
       this.showCreateForm = false;
-      this.mensajeExito = `Punto de Emision guardado exitosamente`;
+      this.mensajeExito = `Registro CAI guardado exitosamente`;
       this.mostrarAlertaExito = true;
       setTimeout(() => {
         this.mostrarAlertaExito = false;
@@ -520,7 +519,7 @@ set fechaFinFormato(value: string) {
     setTimeout(() => {
       this.cargardatos(false);
       this.showEditForm = false;
-      this.mensajeExito = `Punto de Emision actualizado exitosamente`;
+      this.mensajeExito = `Registro CAI actualizado exitosamente`;
       this.mostrarAlertaExito = true;
       setTimeout(() => {
         this.mostrarAlertaExito = false;
@@ -544,12 +543,37 @@ set fechaFinFormato(value: string) {
   eliminar(): void {
     if (!this.RegistroCAIAEliminar) return;
 
+    const RCeliminado = {
+      regC_Id: this.RegistroCAIAEliminar.regC_Id,
+      regC_Descripcion: '',
+      sucu_Id: 0,
+      puEm_Id: 0,
+      nCai_Id: 0,
+      regC_RangoInicial: '',
+      regC_RangoFinal: '',
+      regC_FechaInicialEmision: new Date(),
+      regC_FechaFinalEmision: new Date(),
+      regC_Estado: true,
+      usua_Modificacion: getUserId(),
+      regC_FechaModificacion: new Date(),
+      secuencia: 0,
+      estado: '',
+      usuarioCreacion: '',
+      usuarioModificacion: '',
+      sucu_Descripcion: '',
+      puEm_Descripcion: '',
+      nCai_Descripcion: '',
+      puEm_Codigo: '',
+      nCai_Codigo: '',
+    };
+
+    console.log('Registro CAI a eliminar:', RCeliminado);
+
     console.log('Eliminando estado civil:', this.RegistroCAIAEliminar);
     this.mostrarOverlayCarga = true;
     this.http
-      .post(
-        `${environment.apiBaseUrl}/EstadosCiviles/Eliminar/${this.RegistroCAIAEliminar.regC_Id}`,
-        {},
+      .put(
+        `${environment.apiBaseUrl}/RegistrosCaiS/Eliminar`, RCeliminado,
         {
           headers: {
             'X-Api-Key': environment.apiKey,
@@ -566,9 +590,11 @@ set fechaFinFormato(value: string) {
             if (response.data.code_Status === 1) {
               // Éxito: eliminado correctamente
               console.log('Registro CAI eliminado exitosamente');
+                           const accion = this.RegistroCAIAEliminar?.estado === 'Activo' ? 'desactivado' : 'activado';
+
               this.mensajeExito = `Registro CAI "${
                 this.RegistroCAIAEliminar!.regC_Descripcion
-              }" eliminado exitosamente`;
+              }" ${accion} exitosamente`;
               this.mostrarAlertaExito = true;
 
               // Ocultar la alerta después de 3 segundos

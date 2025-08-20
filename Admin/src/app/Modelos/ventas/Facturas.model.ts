@@ -51,7 +51,9 @@ export class VentaInsertar {
   fact_TipoDeDocumento: string = '';
   regC_Id: number = 0;           // ID de sucursal seleccionada en el formulario
   regC_Id_Vendedor?: number;     // ID de registro CAI capturado del vendedor
-  clie_Id: number = 0;
+  clie_Id: number = 0;           // Campo anterior (mantenido por compatibilidad)
+  diCl_Id: number = 0;           // Nuevo campo que reemplaza a clie_Id
+  direccionId: number = 0;       // ID de la dirección del cliente seleccionada
   vend_Id: number = 0;
   fact_TipoVenta: string = ''; // CONTADO o CREDITO
   fact_FechaEmision: Date = new Date();

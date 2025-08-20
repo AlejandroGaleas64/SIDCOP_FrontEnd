@@ -100,6 +100,10 @@ export class CreateComponent {
     this.cargarSucursales();
     this.cargarPE();
   }
+
+  fechaInicialEmision: string = '';
+fechaFinalEmision: string = '';
+
   registroCai: RegistroCAI = {
     regC_Id: 0,
     regC_Descripcion: '',
@@ -185,8 +189,8 @@ export class CreateComponent {
       this.registroCai.puEm_Id &&
       this.registroCai.regC_RangoInicial.trim() &&
       this.registroCai.regC_RangoFinal.trim() &&
-      this.registroCai.regC_FechaInicialEmision &&
-      this.registroCai.regC_FechaFinalEmision
+      this.fechaInicialEmision &&
+      this.fechaFinalEmision
     ) {
       // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
@@ -200,8 +204,8 @@ export class CreateComponent {
         nCai_Id: this.registroCai.nCai_Id,
         regC_RangoInicial: this.registroCai.regC_RangoInicial,
         regC_RangoFinal: this.registroCai.regC_RangoFinal,
-        regC_FechaInicialEmision: this.registroCai.regC_FechaInicialEmision,
-        regC_FechaFinalEmision: this.registroCai.regC_FechaFinalEmision,
+        regC_FechaInicialEmision: new Date(this.fechaInicialEmision),
+        regC_FechaFinalEmision: new Date(this.fechaFinalEmision),
         regC_Estado: true,
         usua_creacion: getUserId(),
         regC_FechaCreacion: new Date(),

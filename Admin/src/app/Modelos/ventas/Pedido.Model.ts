@@ -1,5 +1,6 @@
 export class Pedido {
   pedi_Id: number = 0;
+  pedi_Codigo: string = '';
   diCl_Id: number = 0;
   vend_Id: number = 0;
   pedi_FechaPedido: Date = new Date();
