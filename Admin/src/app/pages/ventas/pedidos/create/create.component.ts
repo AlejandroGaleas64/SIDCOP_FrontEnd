@@ -311,6 +311,67 @@ export class CreateComponent {
     );
   };
 
+  pedidos: any[] = [];
+
+   cargarPedidos() {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Pedido/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(data => {this.pedidos = data;  this.generarSiguienteCodigo();},
+      error => {
+        console.error('Error al cargar las pedios:', error);
+      }
+    );
+  }
+
+generarSiguienteCodigo(): void {
+  const direccionSeleccionada = this.Direccines.find(d => d.diCl_Id === this.pedido.diCl_Id);
+  if (!direccionSeleccionada) {
+    console.error("Dirección no encontrada.");
+    return;
+  }
+
+  const clienteId = direccionSeleccionada.clie_Id;
+
+  const cliente = this.Clientes.find(c => c.clie_Id === clienteId);
+  if (!cliente || !cliente.ruta_Id) {
+    console.error("Cliente no encontrado o sin ruta_Id.");
+    return;
+  }
+
+  const rutaId = cliente.ruta_Id;
+
+  // Obtener la ruta del backend
+  this.http.get<any>(`${environment.apiBaseUrl}/Rutas/Buscar/${rutaId}`, {
+    headers: { 'x-api-key': environment.apiKey }
+  }).subscribe({
+    next: (ruta) => {
+      const rutaCodigo = ruta.ruta_Codigo; // ej: RT-012
+      const rutaCodigoNumerico = rutaCodigo.split('-')[1]; // extrae "012"
+
+      // Filtrar códigos existentes de esta ruta
+      const codigosRuta = this.pedidos
+        .map(p => p.pedi_Codigo)
+        .filter(c => new RegExp(`^PED-${rutaCodigoNumerico}-\\d{8}$`).test(c));
+
+      let siguienteNumero = 1;
+      if (codigosRuta.length > 0) {
+        const ultimoCodigo = codigosRuta.sort().pop()!;
+        const numero = parseInt(ultimoCodigo.split('-')[2], 10);
+        siguienteNumero = numero + 1;
+      }
+
+      const nuevoCodigo = `PED-${rutaCodigoNumerico}-${siguienteNumero.toString().padStart(8, '0')}`;
+      this.pedido.pedi_Codigo = nuevoCodigo;
+      console.log("Código generado:", nuevoCodigo);
+    },
+    error: (error) => {
+      console.error("Error al obtener ruta:", error);
+    }
+  });
+}
+
+
+
   cargarClientes() {
     this.http
       .get<any>(`${environment.apiBaseUrl}/Cliente/Listar`, {
@@ -330,6 +391,8 @@ export class CreateComponent {
       });
   }
 
+  
+
   cargarDirecciones(clienteId: number) {
     this.http
       .get<any>(
@@ -339,6 +402,8 @@ export class CreateComponent {
         }
       )
       .subscribe((data) => (this.Direccines = data));
+
+      //this.cargarPedidos();
   }
 
   onClienteSeleccionado(clienteId: number) {
@@ -347,6 +412,11 @@ export class CreateComponent {
 
     this.cargarProductosPorCliente(clienteId);
   }
+
+  onDireccionSeleccionada(direccionId: number) {
+  this.pedido.diCl_Id = parseInt(direccionId.toString());
+  this.generarSiguienteCodigo();
+}
 
   cargarProductosPorCliente(clienteId: number): void {
     this.http
@@ -402,6 +472,7 @@ export class CreateComponent {
 
   pedido: Pedido = {
     pedi_Id: 0,
+    pedi_Codigo: '',
     diCl_Id: 0,
     vend_Id: 0,
     pedi_FechaPedido: new Date(),
@@ -458,6 +529,7 @@ export class CreateComponent {
     });
     this.pedido = {
       pedi_Id: 0,
+      pedi_Codigo: '',
       diCl_Id: 0,
       vend_Id: 0,
       pedi_FechaPedido: new Date(),
@@ -525,6 +597,7 @@ export class CreateComponent {
       const pedidoGuardar = {
         pedi_Id: 0,
         diCl_Id: this.pedido.diCl_Id,
+        pedi_Codigo: '', //meter el codigo 
         vend_Id: getUserId(), // Asumiendo que el usuario actual es el vendedor
         pedi_FechaPedido: new Date().toISOString(),
         pedi_FechaEntrega: this.pedido.pedi_FechaEntrega,
