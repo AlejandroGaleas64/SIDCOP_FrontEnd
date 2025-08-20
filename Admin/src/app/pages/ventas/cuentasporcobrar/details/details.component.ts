@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { ReactiveTableService } from 'src/app/shared/reactive-table.service';
 import { PaginationModule } from 'ngx-bootstrap/pagination';
 import { TableModule } from 'src/app/pages/table/table.module';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-details',
@@ -17,14 +18,57 @@ import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
   imports: [CommonModule, FormsModule, PaginationModule, TableModule],
   templateUrl: './details.component.html',
   styleUrls: ['./details.component.scss'],
+  animations: [
+    trigger('fadeExpand', [
+      transition(':enter', [
+        style({
+          height: '0',
+          opacity: 0,
+          transform: 'scaleY(0.90)',
+          overflow: 'hidden'
+        }),
+        animate('200ms ease-out', style({
+          height: '*',
+          opacity: 1,
+          transform: 'scaleY(1)'
+        }))
+      ]),
+      transition(':leave', [
+        style({
+          height: '*',
+          opacity: 1,
+          transform: 'scaleY(1)',
+          overflow: 'hidden'
+        }),
+        animate('200ms ease-in', style({
+          height: '0',
+          opacity: 0,
+          transform: 'scaleY(0.90)'
+        }))
+      ])
+    ])
+  ]
 })
 export class DetailsComponent implements OnInit {
+  // Propiedades para entrada/salida de datos
+  @Input() set id(value: number) {
+    if (value) {
+      this.cuentaPorCobrarId = value;
+      this.cargarDatos();
+    }
+  }
+  @Output() onClose = new EventEmitter<void>();
+
   cuentaPorCobrarId: number = 0;
   cuentaPorCobrarDetalle: CuentaPorCobrar | null = null;
   pagos: PagoCuentaPorCobrar[] = [];
   totalPagado: number = 0;
   cargando: boolean = false;
   mostrarOverlayCarga: boolean = false;
+  
+  // Propiedades para la tabla principal
+  tablaPrincipal = new ReactiveTableService<any>();
+  datosTablaPrincipal: any[] = [];
 
   // Alertas
   mostrarAlertaError: boolean = false;
@@ -53,15 +97,63 @@ export class DetailsComponent implements OnInit {
     // Cargar los permisos del usuario
     this.cargarAccionesUsuario();
 
-    // Obtener el ID de la cuenta por cobrar de los parámetros de la ruta
+    // Configurar la tabla principal
+    this.configurarTablaPrincipal();
+    
+    // Si tenemos un ID desde la ruta, cargamos los datos
     this.route.params.subscribe((params) => {
-      if (params['id']) {
+      if (params['id'] && !this.cuentaPorCobrarId) {
         this.cuentaPorCobrarId = +params['id'];
         this.cargarDatos();
-      } else {
+      } else if (!this.cuentaPorCobrarId) {
         this.router.navigate(['/ventas/cuentasporcobrar/list']);
       }
     });
+  }
+  
+  /**
+   * Configura la tabla principal con los datos de la cuenta por cobrar
+   */
+  private configurarTablaPrincipal(): void {
+    // Configurar campos de búsqueda para la tabla principal
+    this.tablaPrincipal.setConfig([
+      'cpCo_Id',
+      'fact_Id',
+      'cpCo_FechaEmision',
+      'cpCo_FechaVencimiento',
+      'cpCo_Observaciones',
+      'referencia',
+      'monto',
+      'totalPendiente',
+      'secuencia'
+    ]);
+  }
+  
+  /**
+   * Prepara los datos para la tabla principal
+   */
+  private prepararDatosTablaPrincipal(): void {
+    if (!this.cuentaPorCobrarDetalle) return;
+    
+    // Crear un objeto con los datos que queremos mostrar en la tabla
+    const datos = [
+      {
+        cpCo_Id: this.cuentaPorCobrarDetalle.cpCo_Id,
+        fact_Id: this.cuentaPorCobrarDetalle.fact_Id,
+        cpCo_FechaEmision: this.cuentaPorCobrarDetalle.cpCo_FechaEmision,
+        cpCo_FechaVencimiento: this.cuentaPorCobrarDetalle.cpCo_FechaVencimiento,
+        cpCo_Observaciones: this.cuentaPorCobrarDetalle.cpCo_Observaciones,
+        estaVencida: this.estaVencida(),
+        cpCo_Saldada: this.cuentaPorCobrarDetalle.cpCo_Saldada,
+        referencia: this.cuentaPorCobrarDetalle.fact_Id, // Usando fact_Id como referencia
+        monto: this.cuentaPorCobrarDetalle.cpCo_Valor,
+        totalPendiente: this.cuentaPorCobrarDetalle.cpCo_Saldo,
+        secuencia: 1 // Valor por defecto
+      }
+    ];
+    
+    this.datosTablaPrincipal = datos;
+    this.tablaPrincipal.setData(datos);
   }
 
   private cargarDatos(): void {
@@ -69,9 +161,9 @@ export class DetailsComponent implements OnInit {
     this.mostrarOverlayCarga = true;
     this.mostrarAlertaError = false;
 
-    // Cargar datos de la cuenta por cobrar
+    // Cargar datos de la cuenta por cobrar usando el timeline
     this.cuentasPorCobrarService
-      .obtenerCuentaPorCobrarPorId(this.cuentaPorCobrarId)
+      .obtenerDetalleTimeLine(this.cuentaPorCobrarId)
       .subscribe({
         next: (respuesta) => {
           if (respuesta.success && respuesta.data) {
@@ -107,6 +199,9 @@ export class DetailsComponent implements OnInit {
               usuarioModificacion: respuesta.data.usuarioModificacion || '',
             });
 
+            // Preparar datos para la tabla principal
+            this.prepararDatosTablaPrincipal();
+            
             // Cargar pagos de esta cuenta
             this.cargarPagos();
           } else {
@@ -169,7 +264,7 @@ export class DetailsComponent implements OnInit {
   }
 
   cerrar(): void {
-    this.router.navigate(['list'], { relativeTo: this.route.parent });
+    this.onClose.emit();
   }
 
   registrarPago(): void {
@@ -188,7 +283,11 @@ export class DetailsComponent implements OnInit {
 
   formatearFecha(fecha: Date | string | null): string {
     if (!fecha) return 'N/A';
-    return new Date(fecha).toLocaleDateString('es-HN');
+    try {
+      return new Date(fecha).toLocaleDateString('es-HN');
+    } catch (error) {
+      return 'N/A';
+    }
   }
 
   formatearMoneda(valor: number | null): string {
