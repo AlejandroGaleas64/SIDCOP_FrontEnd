@@ -29,10 +29,11 @@ import { fakebackendInterceptor } from './core/helpers/fake-backend';
 import { ErrorInterceptor } from './core/helpers/error.interceptor';
 import { JwtInterceptor } from './core/helpers/jwt.interceptor';
 import { SslBypassInterceptor } from './core/helpers/ssl-bypass.interceptor';
+import { DynamicConnectionInterceptor } from './core/helpers/dynamic-connection.interceptor';
+import { ConnectionService } from './core/services/connection.service';
 
 import { AuthenticationEffects } from './store/Authentication/authentication.effects';
 import { initFirebaseBackend } from './authUtils';
-
 
 export function createTranslateLoader(http: HttpClient): any {
   return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
@@ -75,6 +76,10 @@ export function createTranslateLoader(http: HttpClient): any {
         FormsModule,
         ReactiveFormsModule,
         AngularFireAuthModule], providers: [
+        // Servicio de conexión dinámica
+        ConnectionService,
+        // Interceptores HTTP
+        { provide: HTTP_INTERCEPTORS, useClass: DynamicConnectionInterceptor, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: SslBypassInterceptor, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },

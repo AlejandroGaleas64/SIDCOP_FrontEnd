@@ -5,6 +5,7 @@ import { LanguageService } from 'src/app/core/services/language.service';
 import { CookieService } from 'ngx-cookie-service';
 import { AuthenticationService } from 'src/app/core/services/auth.service';
 import { Router } from '@angular/router';
+import { ConnectionService } from 'src/app/core/services/connection.service';
 
 import { ModalDirective } from 'ngx-bootstrap/modal';
 import { notification } from './data';
@@ -60,7 +61,8 @@ export class TopbarComponent {
     private router: Router,
     public _cookiesService: CookieService,
     public store: Store<RootReducerState>,
-    private TokenStorageService: TokenStorageService) { }
+    private TokenStorageService: TokenStorageService,
+    public connectionService: ConnectionService) { }
 
   ngOnInit(): void {
     this.element = document.documentElement;
