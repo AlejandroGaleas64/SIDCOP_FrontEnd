@@ -101,7 +101,6 @@ export class ReporteProductosComponent implements OnInit {
       orientacion: 'landscape',
       mostrarResumen: true,
       textoResumen: `Total de productos: ${this.productos.length}`,
-      filtros: this.construirFiltros()
     };
 
     //  DATOS DE LA TABLA

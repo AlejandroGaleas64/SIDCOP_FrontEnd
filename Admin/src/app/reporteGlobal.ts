@@ -8,7 +8,6 @@ import {  obtenerUsuario } from 'src/app/core/utils/user-utils';
 
 export interface ReportConfig {
   titulo: string;
-  filtros?: { label: string; valor: string }[];
   orientacion?: 'portrait' | 'landscape';
   mostrarResumen?: boolean;
   textoResumen?: string;
@@ -26,10 +25,10 @@ export interface TableData {
 
 @Injectable({
   providedIn: 'root'
-  
 })
 export class PdfReportService {
   private configuracionEmpresa: any = null;
+  private logoDataUrl: string | null = null;
 
   // Colores del tema
   private readonly COLORES = {
@@ -51,6 +50,8 @@ export class PdfReportService {
       next: (data) => {
         if (data && data.length > 0) {
           this.configuracionEmpresa = data[0];
+          // Precargar el logo una sola vez
+          this.precargarLogo();
         }
       },
       error: (error) => {
@@ -59,13 +60,14 @@ export class PdfReportService {
     });
   }
 
-  private async cargarLogo(): Promise<string | null> {
+  private async precargarLogo(): Promise<void> {
     if (!this.configuracionEmpresa?.coFa_Logo) {
       console.log('No hay logo configurado');
-      return null;
+      this.logoDataUrl = null;
+      return;
     }
 
-    return new Promise((resolve) => {
+    this.logoDataUrl = await new Promise((resolve) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       
@@ -102,7 +104,7 @@ export class PdfReportService {
           ctx.drawImage(img, 0, 0, width, height);
           
           const dataUrl = canvas.toDataURL('image/png', 0.8);
-          console.log('Logo procesado correctamente desde URL');
+          console.log('Logo precargado correctamente');
           resolve(dataUrl);
         } catch (e) {
           console.error('Error al procesar el logo:', e);
@@ -117,7 +119,7 @@ export class PdfReportService {
       
       try {
         const logoUrl = this.configuracionEmpresa.coFa_Logo;
-        console.log('Intentando cargar logo desde:', logoUrl);
+        console.log('Intentando precargar logo desde:', logoUrl);
         
         if (logoUrl.startsWith('http')) {
           img.src = logoUrl;
@@ -133,18 +135,16 @@ export class PdfReportService {
     });
   }
 
-  private async crearEncabezado(doc: jsPDF, config: ReportConfig): Promise<number> {
+  private crearEncabezadoPorPagina(doc: jsPDF, config: ReportConfig): void {
     // Línea separadora en la parte inferior del encabezado
     doc.setDrawColor(this.COLORES.dorado);
     doc.setLineWidth(2);
     doc.line(20, 35, doc.internal.pageSize.width - 20, 35);
 
-    // Cargar y agregar logo
-    const logoDataUrl = await this.cargarLogo();
-    if (logoDataUrl) {
+    // Agregar logo si está disponible
+    if (this.logoDataUrl) {
       try {
-        doc.addImage(logoDataUrl, 'PNG', 20, 5, 30, 25);
-        console.log('Logo agregado al PDF correctamente');
+        doc.addImage(this.logoDataUrl, 'PNG', 20, 5, 30, 25);
       } catch (e) {
         console.error('Error al agregar imagen al PDF:', e);
       }
@@ -163,28 +163,8 @@ export class PdfReportService {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     doc.text(config.titulo, pageWidth / 2, 27, { align: 'center' });
-
-    let yPos = 45;
-
-    // Filtros aplicados (si existen)
-    if (config.filtros && config.filtros.length > 0) {
-      doc.setTextColor(this.COLORES.grisTexto);
-      doc.setFontSize(10);
-      doc.text('Filtros aplicados:', 20, yPos);
-      yPos += 6;
-
-      config.filtros.forEach(filtro => {
-        doc.text(`• ${filtro.label}: ${filtro.valor}`, 25, yPos);
-        yPos += 6;
-      });
-      
-      yPos += 10; // Espacio adicional después de los filtros
-    }
-
-    return yPos;
   }
 
-  
   private crearPiePagina(doc: jsPDF, data: any, datosReporte?: any[]) {
     doc.setFontSize(8);
     doc.setTextColor(this.COLORES.grisTexto);
@@ -196,7 +176,7 @@ export class PdfReportService {
     
     // Información del usuario
     const usuarioCreacion = obtenerUsuario() || 'N/A';
-    doc.text(`Generado por:  ${usuarioCreacion} | ${fechaTexto} ${horaTexto}`, 20, doc.internal.pageSize.height - 12);
+    doc.text(`Generado por: ${usuarioCreacion} | ${fechaTexto} ${horaTexto}`, 20, doc.internal.pageSize.height - 12);
     
     // Paginación
     doc.text(`Página ${data.pageNumber}/${totalPages}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 12, { align: 'right' });
@@ -211,8 +191,13 @@ export class PdfReportService {
     
     const doc = new jsPDF(config.orientacion || 'landscape');
     
-    // Crear encabezado y obtener posición Y donde empezar la tabla
-    const startY = await this.crearEncabezado(doc, config);
+    // Asegurar que el logo esté cargado antes de generar el PDF
+    if (this.configuracionEmpresa?.coFa_Logo && !this.logoDataUrl) {
+      await this.precargarLogo();
+    }
+
+    // Crear encabezado inicial
+    this.crearEncabezadoPorPagina(doc, config);
 
     // Configuración por defecto de la tabla
     const defaultTableStyles = {
@@ -239,11 +224,16 @@ export class PdfReportService {
       // Sin bordes exteriores tampoco
       tableLineColor: false,
       tableLineWidth: 0,
-      margin: { left: 15, right: 15, bottom: 30 },
+      margin: { left: 15, right: 15, bottom: 30, top: 45 }, // top: 45 para dar espacio al encabezado
       tableWidth: 'auto',
       showHead: 'everyPage',
       pageBreak: 'auto',
       didDrawPage: (data: any) => {
+        // Si no es la primera página, crear el encabezado
+        if (data.pageNumber > 1) {
+          this.crearEncabezadoPorPagina(doc, config);
+        }
+        // Crear pie de página en todas las páginas
         this.crearPiePagina(doc, data, datosReporte);
       }
     };
@@ -251,9 +241,9 @@ export class PdfReportService {
     // Mergear estilos personalizados con los por defecto
     const finalTableStyles = { ...defaultTableStyles, ...tableStyles };
 
-    // Crear la tabla
+    // Crear la tabla comenzando después del encabezado
     autoTable(doc, {
-      startY: startY,
+      startY: 45, // Posición fija después del encabezado
       head: tableData.head,
       body: tableData.body,
       ...finalTableStyles
@@ -262,7 +252,7 @@ export class PdfReportService {
     // Resumen final (si está configurado)
     if (config.mostrarResumen && config.textoResumen) {
       const finalY = (doc as any).lastAutoTable.finalY;
-      if (finalY < doc.internal.pageSize.height - 30) {
+      if (finalY < doc.internal.pageSize.height - 40) {
         doc.setFontSize(10);
         doc.setTextColor(this.COLORES.azulOscuro);
         doc.setFont('helvetica', 'bold');

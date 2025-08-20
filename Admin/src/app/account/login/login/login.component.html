@@ -44,9 +44,10 @@
       </div>
       <button type="submit" class="btn btn-login" [disabled]="isLoading">
         <span class="btn-text" *ngIf="!isLoading">Ingresar</span>
+       <i class="ri-loader-4-line animate-spin" *ngIf="isLoading"></i>
         <span class="btn-text" *ngIf="isLoading">Cargando...</span>
         <i class="ri-login-box-line" *ngIf="!isLoading"></i>
-        <i class="ri-loader-4-line animate-spin" *ngIf="isLoading"></i>
+        
       </button>
       
       <div class="login-forgot">

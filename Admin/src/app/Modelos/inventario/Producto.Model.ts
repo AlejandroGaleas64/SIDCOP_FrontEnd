@@ -15,6 +15,7 @@ export class Producto {
     prod_CostoTotal: number = 0;
     prod_PagaImpuesto?: string = "";
     prod_EsPromo?: string = "";
+    prod_Impulsado: boolean = false;
     prod_Estado: boolean = true;
     usua_Creacion: number = 0;
     prod_FechaCreacion: Date = new Date();

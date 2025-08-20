@@ -1,0 +1,316 @@
+<app-breadcrumbs [title]="'Devoluciones'" [breadcrumbItems]="[
+    { label: 'Ventas' },
+    { label: 'Devoluciones', active: true }
+  ]">
+  <img class="breadcrumbs-icon ms-2 icon-breadcrumb" src="assets/images/svg/Devoluciones.svg"
+    style="width: 12vh; height: 10vh;" alt="icono breadcrumb" />
+</app-breadcrumbs>
+
+<div class="row">
+  <div class="col-lg-12">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3"
+          *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <button *ngIf="accionPermitida('crear')" type="button" class="btn btn-primary me-2" (click)="crear()">
+              <span class="btn-text">Nuevo</span>
+              <span class="btn-icon"><i class="ri-add-line"></i></span>
+            </button>
+          </div>
+          <div class="d-flex align-items-center gap-2 mb-2 ms-auto">
+
+            <div class="export-buttons d-flex gap-1">
+              <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarExcel()"
+                title="Exportar a Excel">
+                <span class="btn-text">Excel</span>
+                <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
+              </button>
+              <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarPDF()"
+                title="Exportar a PDF">
+                <span class="btn-text">PDF</span>
+                <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
+              </button>
+              <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarCSV()"
+                title="Exportar a CSV">
+                <span class="btn-text">CSV</span>
+                <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
+              </button>
+            </div>
+            <div class="search-box me-1">
+              <input type="text" class="form-control search" placeholder="Buscar..." [(ngModel)]="table.searchTerm"
+                (ngModelChange)="table.setSearchTerm($event)">
+              <i class="ri-search-line search-icon"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Collapse para el formulario de creación -->
+        <div *ngIf="showCreateForm" [@fadeExpand]>
+          <div class="card card-body mb-3 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
+            <div class="container-fluid flex-grow-1">
+              <app-create (onCancel)="cerrarFormulario()" (onSave)="guardarDevoluciones($event)"></app-create>
+            </div>
+          </div>
+        </div>
+
+        <!-- Collapse para el formulario de edición -->
+        <!-- <div *ngIf="showEditForm" [@fadeExpand]>
+  <div class="card card-body mb-3 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
+    <div class="container-fluid flex-grow-1">
+      <app-edit 
+        [DevolucionesData]="DevolucionesEditando" 
+        (onCancel)="cerrarFormularioEdicion()" 
+        (onSave)="actualizarDevoluciones($event)">
+      </app-edit>
+    </div>
+  </div>
+</div> -->
+
+        <!-- Collapse para el formulario de detalles -->
+        <div *ngIf="showDetailsForm" [@fadeExpand]>
+          <div class="card card-body mb-3 d-flex flex-column" style="min-height: 400px; padding: 0.5rem;">
+            <div class="container-fluid flex-grow-1">
+              <app-details [DevolucionesData]="DevolucionesDetalle" (onClose)="cerrarFormularioDetalles()">
+              </app-details>
+            </div>
+          </div>
+        </div>
+        <div class="table-radius-container">
+          <div class="table-responsive" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+            <table class="table table-gridjs table-style">
+              <thead>
+                <tr>
+                  <th class="gridjs-th" *ngIf="accionPermitida('trasladar') || accionPermitida('detalle')">Acciones</th>
+                  <th class="gridjs-th" (click)="table.sortBy('No')" style="cursor:pointer;">
+                    <span class="table-header-flex">
+                      No.
+                      <span style="display: flex; flex-direction: column;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'No' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'No' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+
+                  <th class="gridjs-th" (click)="table.sortBy('nombre_Completo')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; gap: 4px;">
+                      Nombre Cliente
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'nombre_Completo' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'nombre_Completo' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="table.sortBy('clie_NombreNegocio')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; gap: 4px;">
+                      Nombre Negocio
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'clie_NombreNegocio' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'clie_NombreNegocio' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="table.sortBy('fact_Id')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; gap: 4px;">
+                      Número Factura
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'fact_Numero' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'fact_Numero' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="table.sortBy('devo_Fecha')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; gap: 4px;">
+                      Fecha
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'devo_Fecha' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'devo_Fecha' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="table.sortBy('devo_Motivo')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; gap: 4px;">
+                      Motivo
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'devo_Motivo' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'devo_Motivo' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="table.sortBy('devo_EnSucursal')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; gap: 4px;">
+                      ¿En Sucursal?
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'devo_EnSucursal' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'devo_EnSucursal' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+                      </span>
+                    </span>
+                  </th>
+
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let data of table.paginated$ | async; let i = index">
+                  <td class="position-relative" *ngIf="accionPermitida('trasladar') || accionPermitida('detalle')">
+                    <div class="dropdown-action-list">
+                      <button type="button" class="dropdown-toggle" (click)="onActionMenuClick($event, data)">
+                        <span>Acciones</span>
+                        <i class="ri-settings-3-line"></i>
+                      </button>
+                    </div>
+                  </td>
+                  <td><span class="fw-semibold">{{data.No}}</span></td>
+                  <td class="text-center">{{data.nombre_Completo}}</td>
+                  <td>{{data.clie_NombreNegocio}}</td>
+                  <td>{{data.fact_Numero}}</td>
+                  <td>{{ formatearFecha(data.devo_Fecha) || "N/A" }}</td>
+                  <td>{{data.devo_Motivo}}</td>
+                  <td class="text-center">
+                    @if (data.devo_EnSucursal) {
+                    <span class="badge fw-semibold mb-1 px-3 py-1 border"
+                      style="font-size: 0.8rem; background-color: #CEE9C6; color: #365506">
+                      <i class="ri-checkbox-blank-circle-fill" style="font-size: 0.6rem;"></i>
+                      CHI
+                    </span>
+                    }
+                    @else {
+                    <span class="badge fw-semibold mb-1 px-3 py-1 border"
+                      style="font-size: 0.8rem; background-color: #FBCFD4; color: #4E1212">
+                      <i class="ri-close-fill" style="font-size: 0.6rem;"></i>
+                      ÑO
+                    </span>
+                    }
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="row justify-content-md-between align-items-md-center"
+            *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+            <ng-container *ngIf="(table.paginated$ | async) as paginados">
+              <div class="col-sm-12 col-md-5">
+                <div class="dataTables_info mb-2" role="status" aria-live="polite">
+                  Mostrando
+                  {{ (table.page - 1) * table.pageSizeValue + paginados.length }} de {{ table.total$ | async }}
+                  registros
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-5">
+                <div class="text-md-right float-md-end gridjs-pagination">
+                  <pagination [totalItems]="(table.total$ | async) || 0" [(ngModel)]="table.page"
+                    [itemsPerPage]="table.pageSizeValue" (pageChanged)="table.setPage($event.page)"></pagination>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Contenedor de alertas flotantes -->
+<div class="alert-container">
+  <div *ngIf="mostrarAlertaExito"
+    class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+    <strong>¡Éxito!</strong> {{ mensajeExito }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
+  <div *ngIf="mostrarAlertaWarning"
+    class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+    <strong>¡Atención!</strong> {{ mensajeWarning }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
+  <div *ngIf="mostrarAlertaError"
+    class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+    <strong>¡Error!</strong> {{ mensajeError }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
+</div>
+
+<!-- Modal de confirmación para eliminar -->
+<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionTrasladar }"
+  [style.display]="mostrarConfirmacionTrasladar ? 'block' : 'none'" tabindex="-1" role="dialog">
+
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content shadow-lg border-0" style="border-radius: 18px; overflow: hidden;">
+      <div class="modal-header py-3" style="background:#141a2f; border: none;">
+        <div class="fw-bold text-white d-flex align-items-center" style="font-size: 1.3rem;">
+          <i class="ri-repeat-line me-2" style="font-size: 1.6rem; color: #d6b68a;"></i>
+          Trasladar Devolución
+        </div>
+        <button type="button" class="btn-close btn-close-white" (click)="cancelarTrasladar()"></button>
+      </div>
+
+      <div class="modal-body p-4" style="background: #f9fafc;">
+        <p class="text-muted mb-3" style="font-size: 1.05rem;">
+          ¿Estás seguro(a) que deseas trasladar la devolución?
+        </p>
+      </div>
+
+      <div class="modal-footer py-3" style="background: #fff; border-top: 1px solid #f0f0f0;">
+        <button type="button" class="btn btn-primary gold" (click)="cancelarTrasladar()"><span
+            class="btn-text">Cancelar</span><span class="btn-icon"><i class="ri-close-circle-line"></i></span></button>
+        <button type="button" class="btn btn-primary" (click)="trasladar()">
+          <span class="btn-text">Confirmar</span>
+          <span class="btn-icon"><i class="ri-check-double-line"></i></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionTrasladar }"
+  *ngIf="mostrarConfirmacionTrasladar"></div>
+
+<!-- Floating menu for row actions -->
+<ul *ngIf="floatingMenuService.show" class="dropdown-menu show" [ngStyle]="{
+    position: 'absolute',
+    top: floatingMenuService.top + 'px',
+    left: floatingMenuService.left + 'px',
+    zIndex: 9999
+  }">
+  <li *ngIf="accionPermitida('trasladar')">
+    <button type="button" class="dropdown-action-btn"
+      (click)="confirmarTrasladar(floatingMenuService.data); floatingMenuService.close()">
+      Trasladar <i class=" ri-send-plane-fill"></i>
+    </button>
+  </li>
+  <li *ngIf="accionPermitida('detalle')">
+    <button type="button" class="dropdown-action-btn"
+      (click)="detalles(floatingMenuService.data); floatingMenuService.close()">
+      Detalles <i class="ri-error-warning-fill"></i>
+    </button>
+  </li>
+</ul>
+
+<!-- Loading overlay -->
+<div *ngIf="mostrarOverlayCarga" class="overlay-carga">
+  <div class="typing-indicator">
+    <div class="typing-circle"></div>
+    <div class="typing-circle"></div>
+    <div class="typing-circle"></div>
+    <div class="typing-shadow"></div>
+    <div class="typing-shadow"></div>
+    <div class="typing-shadow"></div>
+  </div>
+</div>
