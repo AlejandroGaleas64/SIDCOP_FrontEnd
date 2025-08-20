@@ -79,7 +79,7 @@ private inicializar(): void {
     fact_Numero: '', // Se generará en el backend
     fact_TipoDeDocumento: '01',
     regC_Id: 19,
-    diCl_Id: 41, // Nuevo campo que reemplaza a clie_Id
+    diCl_Id: 0, // Nuevo campo que reemplaza a clie_Id
     direccionId: 0, // Se llenará cuando se seleccione un cliente y sus direcciones
     fact_TipoVenta: '', // se llenará en el formulario
     fact_FechaEmision: hoy,
@@ -507,7 +507,7 @@ private inicializar(): void {
     const errores = [];
 
     if (!this.venta.regC_Id || this.venta.regC_Id == 0) errores.push('Sucursal');
-    if (!this.venta.diCl_Id || this.venta.diCl_Id == 0) errores.push('Cliente');
+    if (!this.clienteSeleccionado || this.clienteSeleccionado == 0) errores.push('Cliente');
     if (!this.venta.direccionId || this.venta.direccionId == 0) errores.push('Dirección del cliente');
     if (!this.venta.vend_Id || this.venta.vend_Id == 0) errores.push('Vendedor');
     if (!this.venta.fact_TipoVenta) errores.push('Tipo de venta (Contado/Crédito)');
@@ -531,7 +531,7 @@ private inicializar(): void {
   }
   
   getNombreCliente(): string {
-    const cliente = this.clientes.find((c) => c.diCl_Id == this.venta.diCl_Id);
+    const cliente = this.clientes.find((c) => c.clie_Id == this.clienteSeleccionado);
     return cliente ? `${cliente.clie_NombreNegocio} - ${cliente.clie_Nombres} ${cliente.clie_Apellidos}` : 'No seleccionado';
   }
   
@@ -592,7 +592,18 @@ private inicializar(): void {
   }
   
   actualizarDireccionSeleccionada(direccionId: number): void {
-
+    if (!direccionId || direccionId === 0) {
+      this.venta.diCl_Id = 0;
+      this.venta.direccionId = 0;
+      return;
+    }
+    
+    // Actualizar el ID de dirección del cliente para el backend
+    this.venta.diCl_Id = direccionId;
+    this.venta.direccionId = direccionId;
+    
+    // Actualizar el estado de navegación
+    this.actualizarEstadoNavegacion();
   }
 
   getTotalProductosSeleccionados(): number {
@@ -718,9 +729,15 @@ private inicializar(): void {
     this.venta.usua_Creacion = this.usuarioId;
     this.venta.fact_FechaEmision = new Date();
     this.venta.fact_FechaLimiteEmision = new Date();
-    this.venta.regC_Id = 19;
-    this.venta.diCl_Id = 41;
-    this.venta.vend_Id = 1;
+    this.venta.regC_Id = 0;
+    this.venta.diCl_Id = 0;
+    this.venta.direccionId = 0;
+    this.venta.vend_Id = 0;
+    
+    // Resetear selección de cliente y direcciones
+    this.clienteSeleccionado = 0;
+    this.direccionesCliente = [];
+    
     this.productos.forEach((p) => {
       p.cantidad = 0;
       p.stockDisponible = 0;
@@ -767,7 +784,8 @@ private crearVenta(): void {
     fact_TipoDeDocumento: '01',
     regC_Id: this.venta.regC_Id_Vendedor,
     regC_Id_Vendedor: this.venta.regC_Id_Vendedor, // ID de registro CAI del vendedor
-    diCl_Id: this.venta.diCl_Id, // ID de la dirección del cliente (NO el ID del cliente)
+    diCl_Id: this.venta.diCl_Id,
+    direccionId: this.venta.direccionId, // ID de la dirección del cliente (NO el ID del cliente)
     vend_Id: this.venta.vend_Id,
     fact_TipoVenta: this.venta.fact_TipoVenta,
     fact_FechaEmision: this.venta.fact_FechaEmision.toISOString(),
@@ -795,6 +813,7 @@ private crearVenta(): void {
     datosEnviar.regC_Id_Vendedor = datosEnviar.regC_Id;
   }
 
+  console.log(datosEnviar);
 
   this.http
     .post<any>(`${environment.apiBaseUrl}/Facturas/InsertarEnSucursal`, datosEnviar, {
