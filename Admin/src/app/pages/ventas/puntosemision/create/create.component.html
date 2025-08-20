@@ -33,6 +33,7 @@
     <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
+          <label for="final-input" class="form-label">Código<span class="text-danger">*</span></label>
           <div class="d-flex align-items-center">
              <i class="ri-attachment-line" [ngStyle]="{
                 border: (!puntoEmision.puEm_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
@@ -46,13 +47,14 @@
             <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!puntoEmision.puEm_Codigo.trim() && mostrarErrores">
-            <small>El campo Codigo del Punto de Emision es requerido</small>
+            <small>El campo Código del Punto de Emision es requerido</small>
           </div>
         </div>
       </div>
 
       <div class="col-md-6">
         <div class="mb-3">
+          <label for="final-input" class="form-label">Descripción<span class="text-danger">*</span></label>
           <div class="d-flex align-items-center">
             <i class="ri-attachment-line" [ngStyle]="{
                 border: (!puntoEmision.puEm_Descripcion.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',

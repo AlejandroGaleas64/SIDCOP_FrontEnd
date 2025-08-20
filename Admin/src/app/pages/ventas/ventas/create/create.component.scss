@@ -848,6 +848,13 @@ $color-borde: #e9ecef;
   font-size: 4rem;
 }
 
+// ===== ESTILOS PARA NG-SELECT =====
+::ng-deep .ng-select {
+  min-width: 92%;
+
+
+}
+
 // ===== ANIMACIONES =====
 @keyframes bounceIn {
   0% {

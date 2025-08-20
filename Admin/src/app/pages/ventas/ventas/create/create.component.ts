@@ -1,15 +1,17 @@
 import { Component, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { VentaInsertar, VentaDetalle } from 'src/app/Modelos/ventas/Facturas.model';
 import { environment } from 'src/environments/environment';
 import { obtenerUsuarioId } from 'src/app/core/utils/user-utils';
 import { forkJoin } from 'rxjs';
+import { NgSelectModule } from '@ng-select/ng-select';
+
 @Component({
   selector: 'app-create',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NgSelectModule],
   templateUrl: './create.component.html',
   styleUrls: ['./create.component.scss'],
 })
@@ -36,6 +38,8 @@ export class CreateComponent implements OnInit {
   // Datos del formulario
   clientes: any[] = []; // Lista de clientes tipada correctamente
   clienteSeleccionado: number = 0; // ID del cliente seleccionado
+  clientesFiltrados: any[] = []; // Lista de clientes filtrados para ng-select
+  direccionesCliente: any[] = []; // Lista de direcciones del cliente seleccionado
   venta: VentaInsertar = new VentaInsertar();
   sucursales: any[] = [];
   productos: any[] = [];
@@ -70,23 +74,21 @@ private inicializar(): void {
 
   this.fechaActual = hoy.toISOString().split('T')[0];
 
-  // Inicializar todos los campos obligatorios con valores por defecto
+  // Inicializar todos los campos obligatorios con valores por defecto según el nuevo formato
   this.venta = new VentaInsertar({
-    fact_Numero: this.generarNumeroFactura(), // Generamos un número aleatorio
-    fact_TipoDeDocumento: 'FAC',
-    regC_Id: 0,
-    clie_Id: 0,
+    fact_Numero: '', // Se generará en el backend
+    fact_TipoDeDocumento: '01',
+    regC_Id: 19,
+    diCl_Id: 41, // Nuevo campo que reemplaza a clie_Id
+    direccionId: 0, // Se llenará cuando se seleccione un cliente y sus direcciones
     fact_TipoVenta: '', // se llenará en el formulario
-    fact_FechaEmision: hoy, // Fecha de emisión siempre es la fecha actual
-    fact_FechaLimiteEmision: hoy,
-    fact_RangoInicialAutorizado: '010111',
-    fact_RangoFinalAutorizado: '01099999',
-    fact_Latitud: 0,
-    fact_Longitud: 0,
+    fact_FechaEmision: hoy,
+    fact_Latitud: 14.123456,
+    fact_Longitud: -87.123456,
     fact_Referencia: '',
-    fact_AutorizadoPor: 'CARLOS',
-    vend_Id: 0,
-    usua_Creacion: obtenerUsuarioId(),
+    fact_AutorizadoPor: 'SISTEMA',
+    vend_Id: 1,
+    usua_Creacion: 1,
     detallesFacturaInput: []
   });
   
@@ -166,12 +168,10 @@ private inicializar(): void {
           this.venta.fact_Latitud = position.coords.latitude;
           this.venta.fact_Longitud = position.coords.longitude;
           this.obteniendoUbicacion = false;
-          console.log('Ubicación obtenida:', this.venta.fact_Latitud, this.venta.fact_Longitud);
         },
         (error) => {
           this.obteniendoUbicacion = false;
           this.errorUbicacion = 'No se pudo obtener la ubicación: ' + this.getErrorUbicacion(error);
-          console.error('Error de geolocalización:', error);
         }
       );
     } else {
@@ -197,7 +197,7 @@ private inicializar(): void {
   }
 
   /**
-   * Filtra los vendedores por la sucursal seleccionada y captura el RegC_Id
+   * Filtra los vendedores por la sucursal seleccionada
    */
   getVendedoresPorSucursal(): any[] {
     if (!this.venta.regC_Id || this.venta.regC_Id === 0) {
@@ -211,69 +211,53 @@ private inicializar(): void {
     
     const sucursalId = Number(this.venta.regC_Id);
     
-    // Determinar qué propiedad usar para el filtrado
-    let propiedadSucursal = '';
-    let propiedadRegCId = '';
-    
-    // Buscar la propiedad correcta que contiene el ID de sucursal y RegC_Id
-    if (this.vendedores && this.vendedores.length > 0) {
-      const primerVendedor = this.vendedores[0];
-      
-      // Buscar propiedad de sucursal
-      const posiblesPropiedadesSucursal = ['sucu_Id', 'sucuId', 'sucursalId'];
-      for (const prop of posiblesPropiedadesSucursal) {
-        if (primerVendedor[prop] !== undefined) {
-          propiedadSucursal = prop;
-          break;
-        }
-      }
-      
-      // Buscar propiedad de RegC_Id
-      if (primerVendedor['regC_Id'] !== undefined) {
-        propiedadRegCId = 'regC_Id';
-      } else {
-        const propiedadesRegC = Object.keys(primerVendedor).find(key => 
-          key.toLowerCase().includes('regc'));
-        
-        if (propiedadesRegC) {
-          propiedadRegCId = propiedadesRegC;
-        }
-      }
-      
-      // Si no encontramos ninguna propiedad conocida para sucursal, buscar cualquiera que contenga 'sucu'
-      if (!propiedadSucursal) {
-        const propiedadesSucursal = Object.keys(primerVendedor).find(key => 
-          key.toLowerCase().includes('sucu'));
-        
-        if (propiedadesSucursal) {
-          propiedadSucursal = propiedadesSucursal;
-        }
-      }
-      
-
-    }
-    
-    // Si no se encontró ninguna propiedad relacionada con sucursal, mostrar advertencia
-    if (!propiedadSucursal) {
-     return [];
-    }
-    
-    // Filtrar usando la propiedad encontrada y capturar RegC_Id si está disponible
+    // Filtrar vendedores por sucursal
     const vendedoresFiltrados = this.vendedores.filter(vendedor => {
-      const vendedorSucursalId = Number(vendedor[propiedadSucursal]);
-      return vendedorSucursalId === sucursalId;
+      // Según la estructura proporcionada, el campo es 'sucu_Id'
+      return Number(vendedor.sucu_Id) === sucursalId;
     });
     
-    // Si encontramos la propiedad RegC_Id y hay vendedores filtrados, capturar el valor
-    if (propiedadRegCId && vendedoresFiltrados.length > 0) {
-      const regCIdVendedor = vendedoresFiltrados[0][propiedadRegCId];
-      if (regCIdVendedor) {
-        // Almacenar el RegC_Id del vendedor en una propiedad separada
-        this.venta.regC_Id_Vendedor = regCIdVendedor;
-      }
+    return vendedoresFiltrados;
+  }
+  
+  /**
+   * Captura el regC_Id del vendedor seleccionado
+   */
+  onVendedorChange(): void {
+    // Limpiar el regC_Id_Vendedor anterior
+    this.venta.regC_Id_Vendedor = undefined;
+    
+    // Si no hay ID de vendedor seleccionado, salir
+    if (!this.venta.vend_Id || this.venta.vend_Id === 0) {
+
+      return;
     }
     
-    return vendedoresFiltrados;
+    // Buscar el vendedor seleccionado en la lista de vendedores
+    const vendedorSeleccionado = this.vendedores.find(v => Number(v.vend_Id) === Number(this.venta.vend_Id));
+    
+    if (!vendedorSeleccionado) {
+
+      return;
+    }
+    
+
+    
+    // Verificar si el vendedor tiene el campo regC_Id
+    if (vendedorSeleccionado.regC_Id !== undefined) {
+      // Almacenar el regC_Id del vendedor
+      this.venta.regC_Id_Vendedor = vendedorSeleccionado.regC_Id;
+
+    } else {
+
+      // Intentar buscar cualquier propiedad que contenga 'regc'
+      const regCProperty = Object.keys(vendedorSeleccionado).find(key => 
+        key.toLowerCase().includes('regc'));
+      
+      if (regCProperty) {
+        this.venta.regC_Id_Vendedor = vendedorSeleccionado[regCProperty];
+      } 
+    }
   }
 
   // ========== INVENTARIO POR SUCURSAL ==========
@@ -284,8 +268,12 @@ private inicializar(): void {
     // Si hay vendedores disponibles, seleccionar el primero por defecto
     if (vendedoresFiltrados.length > 0) {
       this.venta.vend_Id = Number(vendedoresFiltrados[0].vend_Id);
+      // Al cambiar de sucursal, actualizamos el regC_Id_Vendedor con el vendedor seleccionado
+      this.onVendedorChange();
     } else {
       this.venta.vend_Id = 0;
+      // Limpiamos el regC_Id_Vendedor si no hay vendedores
+      this.venta.regC_Id_Vendedor = undefined;
       
       // Si no hay vendedores para esta sucursal pero hay vendedores en general,
       // usar todos los vendedores como alternativa
@@ -519,7 +507,8 @@ private inicializar(): void {
     const errores = [];
 
     if (!this.venta.regC_Id || this.venta.regC_Id == 0) errores.push('Sucursal');
-    if (!this.venta.clie_Id || this.venta.clie_Id == 0) errores.push('Cliente');
+    if (!this.venta.diCl_Id || this.venta.diCl_Id == 0) errores.push('Cliente');
+    if (!this.venta.direccionId || this.venta.direccionId == 0) errores.push('Dirección del cliente');
     if (!this.venta.vend_Id || this.venta.vend_Id == 0) errores.push('Vendedor');
     if (!this.venta.fact_TipoVenta) errores.push('Tipo de venta (Contado/Crédito)');
     if (!this.venta.fact_FechaEmision) errores.push('Fecha de emisión');
@@ -540,6 +529,71 @@ private inicializar(): void {
     const sucursal = this.sucursales.find((s) => s.sucu_Id == this.venta.regC_Id);
     return sucursal?.sucu_Descripcion || 'No seleccionada';
   }
+  
+  getNombreCliente(): string {
+    const cliente = this.clientes.find((c) => c.diCl_Id == this.venta.diCl_Id);
+    return cliente ? `${cliente.clie_NombreNegocio} - ${cliente.clie_Nombres} ${cliente.clie_Apellidos}` : 'No seleccionado';
+  }
+  
+  getNombreDireccion(): string {
+    const direccion = this.direccionesCliente.find((d) => d.diCl_Id == this.venta.direccionId);
+    return direccion?.diCl_DireccionExacta || 'No seleccionada';
+  }
+  
+  // ========== DIRECCIONES DEL CLIENTE ==========
+  cargarDireccionesCliente(clienteId: number): void {
+    if (!clienteId || clienteId === 0) {
+      this.direccionesCliente = [];
+      this.venta.direccionId = 0; // Resetear la dirección seleccionada
+      this.venta.diCl_Id = 0; // Resetear el ID de dirección del cliente
+      this.venta.clie_Id = 0; // Resetear el ID del cliente
+      return;
+    }
+    
+    // Guardamos el ID del cliente seleccionado
+    this.venta.clie_Id = clienteId;
+    // NO asignamos el ID del cliente a diCl_Id, ya que son campos diferentes
+    // diCl_Id debe ser el ID de la dirección del cliente, no el ID del cliente
+    
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'X-Api-Key': environment.apiKey,
+      'accept': '*/*'
+    });
+    
+    this.http.get<any>(`${environment.apiBaseUrl}/DireccionesPorCliente/Buscar/${clienteId}`, { headers })
+      .subscribe({
+        next: (response) => {
+          if (response) {
+            this.direccionesCliente = response;
+            // Si hay direcciones disponibles, seleccionar la primera por defecto
+            if (this.direccionesCliente.length > 0) {
+              const primeraDireccion = this.direccionesCliente[0];
+              this.venta.direccionId = primeraDireccion.diCl_Id;
+              // Actualizamos diCl_Id con el ID de la dirección seleccionada
+              this.actualizarDireccionSeleccionada(primeraDireccion.diCl_Id);
+            } else {
+              this.venta.direccionId = 0;
+              this.venta.diCl_Id = 0;
+            }
+          } else {
+            this.direccionesCliente = [];
+            this.venta.direccionId = 0;
+            this.venta.diCl_Id = 0;
+          }
+        },
+        error: (error) => {
+          this.direccionesCliente = [];
+          this.venta.direccionId = 0;
+          this.venta.diCl_Id = 0;
+          this.mostrarError('Error al cargar direcciones del cliente');
+        }
+      });
+  }
+  
+  actualizarDireccionSeleccionada(direccionId: number): void {
+
+  }
 
   getTotalProductosSeleccionados(): number {
     return this.productos
@@ -551,12 +605,13 @@ private inicializar(): void {
     return this.productos.filter((p) => p.cantidad > 0);
   }
 
-  obtenerDetallesVenta(): VentaDetalle[] {
+  obtenerDetallesVenta(): any[] {
+    // Simplificamos los detalles según el nuevo formato requerido
     return this.productos
       .filter((p) => p.cantidad > 0)
       .map((p) => ({
         prod_Id: p.prod_Id,
-        faDe_Cantidad: p.cantidad,
+        faDe_Cantidad: p.cantidad
       }));
   }
 
@@ -591,6 +646,22 @@ private inicializar(): void {
 
     this.limpiarAlertas();
     this.crearVenta();
+  }
+  
+  validarFormularioCompleto(): boolean {
+    const errores = [];
+    if (!this.venta.regC_Id || this.venta.regC_Id == 0) errores.push('Sucursal');
+    if (!this.clienteSeleccionado || this.clienteSeleccionado == 0) errores.push('Cliente');
+    if (!this.venta.direccionId || this.venta.direccionId == 0) errores.push('Dirección del cliente');
+    if (!this.venta.fact_TipoVenta) errores.push('Tipo de venta');
+    if (!this.venta.fact_FechaEmision) errores.push('Fecha de emisión');
+    if (this.obtenerDetallesVenta().length === 0) errores.push('Productos');
+
+    if (errores.length > 0) {
+      this.mostrarWarning(`Complete: ${errores.join(', ')}`);
+      return false;
+    }
+    return true;
   }
 
   // ========== MÉTODOS PARA MANEJAR CANTIDADES EN RESUMEN ==========
@@ -648,7 +719,7 @@ private inicializar(): void {
     this.venta.fact_FechaEmision = new Date();
     this.venta.fact_FechaLimiteEmision = new Date();
     this.venta.regC_Id = 19;
-    this.venta.clie_Id =111;
+    this.venta.diCl_Id = 41;
     this.venta.vend_Id = 1;
     this.productos.forEach((p) => {
       p.cantidad = 0;
@@ -677,20 +748,6 @@ private inicializar(): void {
     this.mensajeWarning = '';
   }
 
-  private validarFormularioCompleto(): boolean {
-    const errores = [];
-    if (!this.venta.regC_Id || this.venta.regC_Id == 0) errores.push('Sucursal');
-    if (!this.venta.fact_TipoVenta) errores.push('Tipo de venta');
-    if (!this.venta.fact_FechaEmision) errores.push('Fecha de emisión');
-    if (this.obtenerDetallesVenta().length === 0) errores.push('Productos');
-
-    if (errores.length > 0) {
-      this.mostrarWarning(`Complete: ${errores.join(', ')}`);
-      return false;
-    }
-    return true;
-  }
-
 onFechaEmisionChange(event: any): void {
   const value = event.target.value; // string en formato "YYYY-MM-DD"
   if (value) {
@@ -702,46 +759,47 @@ onFechaEmisionChange(event: any): void {
 
 
 private crearVenta(): void {
-  if (!this.validarDatosBasicos()) return;
-
-  this.guardando = true;
-  
-  // Generar un nuevo número de factura para este intento
-  this.venta.fact_Numero = this.generarNumeroFactura();
-  
   const detalles = this.obtenerDetallesVenta();
-  
-  // Aseguramos que las fechas estén en formato ISO y utilizamos el ID de registro CAI del vendedor si está disponible
-  const sucursalId = this.venta.regC_Id; // ID de sucursal seleccionada en el formulario
-  const regCIdVendedor = this.venta.regC_Id_Vendedor; // ID de registro CAI capturado del vendedor
-  
-  // Determinar qué ID de registro CAI usar
-  const regCIdFinal = regCIdVendedor || sucursalId;
 
-  
+  // Preparamos los datos según el formato requerido por el backend
   const datosEnviar = {
-    ...this.venta,
-    regC_Id: regCIdFinal, // Usamos el ID de registro CAI del vendedor si está disponible, sino el de la sucursal
+    fact_Numero: '',
+    fact_TipoDeDocumento: '01',
+    regC_Id: this.venta.regC_Id_Vendedor,
+    regC_Id_Vendedor: this.venta.regC_Id_Vendedor, // ID de registro CAI del vendedor
+    diCl_Id: this.venta.diCl_Id, // ID de la dirección del cliente (NO el ID del cliente)
+    vend_Id: this.venta.vend_Id,
+    fact_TipoVenta: this.venta.fact_TipoVenta,
     fact_FechaEmision: this.venta.fact_FechaEmision.toISOString(),
-    fact_FechaLimiteEmision: this.venta.fact_FechaLimiteEmision.toISOString(),
+    fact_Latitud: 14.123456,
+    fact_Longitud: -87.123456,
+    fact_Referencia: 'Venta desde app web',
+    fact_AutorizadoPor: 'SISTEMA',
+    usua_Creacion: this.usuarioId || 1,
     detallesFacturaInput: detalles
   };
-
-  // Verifica en consola las coordenadas de la venta y la estructura completa
-  console.log('Coordenadas de la venta:', {
-    latitud: this.venta.fact_Latitud,
-    longitud: this.venta.fact_Longitud
-  });
   
-  console.log('Estructura completa de datos a enviar:', JSON.stringify(datosEnviar, null, 2));
+  // Verificamos que regC_Id_Vendedor tenga un valor
 
-  // Enviar al backend
+
+  // Verificamos que diCl_Id tenga un valor válido
+  if (!datosEnviar.diCl_Id || datosEnviar.diCl_Id === 0) {
+    this.mostrarError('Error: No se ha seleccionado una dirección de cliente válida');
+    this.guardando = false;
+    return;
+  }
+  
+  // Verificamos que regC_Id_Vendedor tenga un valor válido
+  if (!datosEnviar.regC_Id_Vendedor) {
+    // Si no se encuentra el regC_Id_Vendedor, usamos el regC_Id de la sucursal como alternativa
+    datosEnviar.regC_Id_Vendedor = datosEnviar.regC_Id;
+  }
+
+
   this.http
-    .post<any>(
-      `${environment.apiBaseUrl}/Facturas/Insertar`, 
-      datosEnviar,
-      { headers: this.obtenerHeaders() }
-    )
+    .post<any>(`${environment.apiBaseUrl}/Facturas/InsertarEnSucursal`, datosEnviar, {
+      headers: this.obtenerHeaders(),
+    })
     .subscribe({
       next: (response) => {
         this.guardando = false;
