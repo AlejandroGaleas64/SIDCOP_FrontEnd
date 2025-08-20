@@ -126,7 +126,7 @@
            <select id="direccion" name="direccion" class="form-select" [(ngModel)]="pedido.diCl_Id"
   [class.is-invalid]="!pedido.diCl_Id && mostrarErrores" required
   (change)="onDireccionSeleccionada(pedido.diCl_Id)">
-  <option value="" disabled selected>
+  <option value="0" disabled selected>
     Seleccione una dirección
   </option>
   <option *ngFor="let direccion of Direccines" [value]="direccion.diCl_Id">
