@@ -168,12 +168,10 @@ private inicializar(): void {
           this.venta.fact_Latitud = position.coords.latitude;
           this.venta.fact_Longitud = position.coords.longitude;
           this.obteniendoUbicacion = false;
-          console.log('Ubicación obtenida:', this.venta.fact_Latitud, this.venta.fact_Longitud);
         },
         (error) => {
           this.obteniendoUbicacion = false;
           this.errorUbicacion = 'No se pudo obtener la ubicación: ' + this.getErrorUbicacion(error);
-          console.error('Error de geolocalización:', error);
         }
       );
     } else {
@@ -219,9 +217,6 @@ private inicializar(): void {
       return Number(vendedor.sucu_Id) === sucursalId;
     });
     
-    // Mostrar los vendedores filtrados para depuración
-    console.log('Vendedores filtrados por sucursal:', vendedoresFiltrados);
-    
     return vendedoresFiltrados;
   }
   
@@ -234,7 +229,7 @@ private inicializar(): void {
     
     // Si no hay ID de vendedor seleccionado, salir
     if (!this.venta.vend_Id || this.venta.vend_Id === 0) {
-      console.warn('No hay vendedor seleccionado');
+
       return;
     }
     
@@ -242,29 +237,26 @@ private inicializar(): void {
     const vendedorSeleccionado = this.vendedores.find(v => Number(v.vend_Id) === Number(this.venta.vend_Id));
     
     if (!vendedorSeleccionado) {
-      console.warn('No se encontró el vendedor seleccionado en la lista');
+
       return;
     }
     
-    console.log('Vendedor seleccionado:', vendedorSeleccionado);
+
     
     // Verificar si el vendedor tiene el campo regC_Id
     if (vendedorSeleccionado.regC_Id !== undefined) {
       // Almacenar el regC_Id del vendedor
       this.venta.regC_Id_Vendedor = vendedorSeleccionado.regC_Id;
-      console.log('regC_Id del vendedor seleccionado:', this.venta.regC_Id_Vendedor);
+
     } else {
-      console.warn('El vendedor seleccionado no tiene el campo regC_Id:', vendedorSeleccionado);
+
       // Intentar buscar cualquier propiedad que contenga 'regc'
       const regCProperty = Object.keys(vendedorSeleccionado).find(key => 
         key.toLowerCase().includes('regc'));
       
       if (regCProperty) {
         this.venta.regC_Id_Vendedor = vendedorSeleccionado[regCProperty];
-        console.log(`Campo alternativo encontrado (${regCProperty}):`, this.venta.regC_Id_Vendedor);
-      } else {
-        console.warn('No se encontró ninguna propiedad relacionada con regC_Id');
-      }
+      } 
     }
   }
 
@@ -550,7 +542,6 @@ private inicializar(): void {
   
   // ========== DIRECCIONES DEL CLIENTE ==========
   cargarDireccionesCliente(clienteId: number): void {
-    console.log('ID del cliente recibido:', clienteId);
     if (!clienteId || clienteId === 0) {
       this.direccionesCliente = [];
       this.venta.direccionId = 0; // Resetear la dirección seleccionada
@@ -575,28 +566,23 @@ private inicializar(): void {
         next: (response) => {
           if (response) {
             this.direccionesCliente = response;
-            console.log('Direcciones cargadas:', this.direccionesCliente);
             // Si hay direcciones disponibles, seleccionar la primera por defecto
             if (this.direccionesCliente.length > 0) {
               const primeraDireccion = this.direccionesCliente[0];
               this.venta.direccionId = primeraDireccion.diCl_Id;
               // Actualizamos diCl_Id con el ID de la dirección seleccionada
               this.actualizarDireccionSeleccionada(primeraDireccion.diCl_Id);
-              console.log('Primera dirección seleccionada automáticamente:', primeraDireccion);
             } else {
               this.venta.direccionId = 0;
               this.venta.diCl_Id = 0;
-              console.log('No hay direcciones disponibles para este cliente');
             }
           } else {
             this.direccionesCliente = [];
             this.venta.direccionId = 0;
             this.venta.diCl_Id = 0;
-            console.log('No hay datos de direcciones en la respuesta');
           }
         },
         error: (error) => {
-          console.error('Error al cargar direcciones del cliente:', error);
           this.direccionesCliente = [];
           this.venta.direccionId = 0;
           this.venta.diCl_Id = 0;
@@ -606,12 +592,7 @@ private inicializar(): void {
   }
   
   actualizarDireccionSeleccionada(direccionId: number): void {
-    // Este método se ejecuta cuando se cambia la dirección seleccionada
-    console.log('Dirección seleccionada:', direccionId);
-    
-    // Asignamos el ID de la dirección seleccionada al campo diCl_Id
-    this.venta.diCl_Id = direccionId;
-    console.log('diCl_Id actualizado:', this.venta.diCl_Id);
+
   }
 
   getTotalProductosSeleccionados(): number {
@@ -784,7 +765,7 @@ private crearVenta(): void {
   const datosEnviar = {
     fact_Numero: '',
     fact_TipoDeDocumento: '01',
-    regC_Id: this.venta.regC_Id,
+    regC_Id: this.venta.regC_Id_Vendedor,
     regC_Id_Vendedor: this.venta.regC_Id_Vendedor, // ID de registro CAI del vendedor
     diCl_Id: this.venta.diCl_Id, // ID de la dirección del cliente (NO el ID del cliente)
     vend_Id: this.venta.vend_Id,
@@ -799,7 +780,7 @@ private crearVenta(): void {
   };
   
   // Verificamos que regC_Id_Vendedor tenga un valor
-  console.log('regC_Id_Vendedor:', this.venta.regC_Id_Vendedor);
+
 
   // Verificamos que diCl_Id tenga un valor válido
   if (!datosEnviar.diCl_Id || datosEnviar.diCl_Id === 0) {
@@ -810,14 +791,10 @@ private crearVenta(): void {
   
   // Verificamos que regC_Id_Vendedor tenga un valor válido
   if (!datosEnviar.regC_Id_Vendedor) {
-    console.warn('Advertencia: No se ha encontrado el registro CAI del vendedor');
     // Si no se encuentra el regC_Id_Vendedor, usamos el regC_Id de la sucursal como alternativa
     datosEnviar.regC_Id_Vendedor = datosEnviar.regC_Id;
-    console.log('Usando regC_Id como alternativa:', datosEnviar.regC_Id_Vendedor);
   }
 
-  // Verifica en consola lo que se envía
-  console.log('Datos enviados al backend:', datosEnviar);
 
   this.http
     .post<any>(`${environment.apiBaseUrl}/Facturas/InsertarEnSucursal`, datosEnviar, {
