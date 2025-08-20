@@ -338,7 +338,7 @@ export class CreateComponent implements OnInit {
         // Inicializar productos con la cantidad vendida original como máximo
         this.productos = (data || []).map((producto: any) => ({
           ...producto,
-          cantidadVendida: producto.cantidadVendida || 0, // Cantidad actual seleccionada para devolución
+          cantidadVendida: 0, // Cantidad actual seleccionada para devolución
           cantidadOriginal: producto.cantidadVendida || 0, // Cantidad original de la factura (límite máximo)
           observaciones: '',
           stockDisponible: producto.cantidadVendida || 0, // Para mantener compatibilidad
