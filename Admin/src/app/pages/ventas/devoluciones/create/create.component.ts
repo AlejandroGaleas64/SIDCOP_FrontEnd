@@ -52,6 +52,9 @@ export class CreateComponent implements OnInit {
   paginaActual = 1;
   productosPorPagina = 12;
 
+  clienteSeleccionado: any = null;
+  vendedorSeleccionado: any = null;
+
   cargando = false;
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -102,14 +105,16 @@ export class CreateComponent implements OnInit {
   onVendedorSeleccionado(vendedor: any) {
     if (!vendedor) { 
       this.clientesFiltrados = []; 
+      this.facturasFiltradas = [];
+      this.vendedorSeleccionado = null;
+      this.clienteSeleccionado = null;
       return; 
     }
 
+    this.vendedorSeleccionado = vendedor; // Guardar referencia
     this.cargarClientesPorRuta(vendedor.ruta_Id);
-    this.cargarFacturarPorCliente(vendedor.vend_Id);
     console.log('Vendedor seleccionado:', vendedor);
   }
-
 
   cargarClientesPorRuta(rutaId: number) {
     if (!rutaId) { 
@@ -143,19 +148,24 @@ export class CreateComponent implements OnInit {
   }
 
   onClienteSeleccionado(cliente: any) {
+    console.log('Cliente recibido en onClienteSeleccionado:', cliente);
+    
     if (!cliente) { 
       this.direcciones = [];
+      this.facturasFiltradas = [];
+      this.clienteSeleccionado = null;
       return;
     }
 
+    this.clienteSeleccionado = cliente; // Guardar referencia
     this.cargarDireccionesCliente(cliente.clie_Id);
     console.log('Cliente seleccionado:', cliente);
   }
 
-
   cargarDireccionesCliente(clienteId: number) {
     if (!clienteId) { 
       this.direcciones = [];
+      this.facturasFiltradas = [];
       return; 
     }
 
@@ -165,14 +175,87 @@ export class CreateComponent implements OnInit {
     }).subscribe({
       next: (data) => { 
         this.direcciones = data || []; 
-        this.cargando = false;
         console.log('Direcciones cargadas:', this.direcciones);
+        
+        // Cargar facturas después de tener las direcciones
+        if (this.vendedorSeleccionado && this.direcciones.length > 0) {
+          this.cargarYFiltrarFacturas();
+        } else if (this.direcciones.length === 0) {
+          console.log('No hay direcciones para este cliente');
+          this.facturasFiltradas = [];
+        }
+        
+        this.cargando = false;
       },
       error: () => { 
         this.mostrarMensaje('Error al cargar las direcciones del cliente', 'error'); 
         this.cargando = false; 
         this.direcciones = []; 
+        this.facturasFiltradas = [];
       }
+    });
+  }
+
+  cargarYFiltrarFacturas() {
+    if (!this.vendedorSeleccionado) {
+      console.error('No hay vendedor seleccionado');
+      this.facturasFiltradas = [];
+      return;
+    }
+
+    if (!this.direcciones || this.direcciones.length === 0) {
+      console.error('No hay direcciones cargadas');
+      this.facturasFiltradas = [];
+      return;
+    }
+
+    console.log('Cargando facturas para vendedor:', this.vendedorSeleccionado.vend_Id);
+    
+    this.cargando = true;
+    this.http.get<any>(`${environment.apiBaseUrl}/Facturas/ListarPorVendedor/${this.vendedorSeleccionado.vend_Id}`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (res) => {
+        console.log('Respuesta facturas completa:', res);
+        const todasFacturas = res?.data || res || []; // Intentar ambas estructuras
+
+        // Obtener los IDs de las direcciones
+        const direccionesIds = this.direcciones.map(d => d.diCl_Id);
+        console.log('IDs de direcciones:', direccionesIds);
+
+        // Log de las facturas para ver su estructura
+        console.log('Todas las facturas:', todasFacturas);
+        if (todasFacturas.length > 0) {
+          console.log('Ejemplo de factura:', todasFacturas[0]);
+          console.log('Campos disponibles:', Object.keys(todasFacturas[0]));
+        }
+
+        // Filtrar facturas - revisar diferentes nombres de campo posibles
+        this.facturasFiltradas = todasFacturas.filter((factura: any) => {
+          // Intentar diferentes nombres de campo que podrían contener el ID de dirección
+          const direccionId = factura.dicl_Id || factura.diCl_Id || factura.direccion_Id || factura.cliente_direccion_Id;
+          const coincide = direccionesIds.includes(direccionId);
+          
+          if (coincide) {
+            console.log(`Factura ${factura.fact_Numero || factura.numero} coincide con dirección ${direccionId}`);
+          }
+          
+          return coincide;
+        });
+
+        console.log('Facturas filtradas final:', this.facturasFiltradas);
+        
+        if (this.facturasFiltradas.length === 0) {
+          console.warn('No se encontraron facturas que coincidan con las direcciones del cliente');
+          console.log('Verificar si el nombre del campo de dirección en las facturas es correcto');
+        }
+      },
+      error: (err) => { 
+        console.error('Error cargando facturas:', err);
+        this.mostrarMensaje('Error al cargar la lista de facturas', 'error'); 
+        this.facturasFiltradas = []; 
+      },
+      complete: () => this.cargando = false
     });
   }
 
@@ -188,7 +271,19 @@ export class CreateComponent implements OnInit {
     }).subscribe({
       next: (res) => {
         console.log('Respuesta completa:', res);
-        this.facturasFiltradas = res?.data || []; // 👈 ahora sí solo el array
+        const todasFacturas = res?.data || [];
+
+        // Solo filtrar si ya tenemos direcciones cargadas
+        if (this.direcciones && this.direcciones.length > 0) {
+          const direccionesIds = this.direcciones.map(d => d.diCl_Id);
+          this.facturasFiltradas = todasFacturas.filter((f: any) => 
+            direccionesIds.includes(f.dicl_Id)
+          );
+        } else {
+          // Si no hay direcciones, no mostrar facturas
+          this.facturasFiltradas = [];
+        }
+
         console.log('Facturas filtradas:', this.facturasFiltradas);
       },
       error: (err) => { 
@@ -393,7 +488,7 @@ export class CreateComponent implements OnInit {
       .map(producto => ({
         prod_Id: producto.prod_Id,
         prod_Descripcion: producto.prod_Descripcion,
-        cantidad: producto.cantidad,
+        cantidad: producto.cantidadVendida,
         observaciones: producto.observaciones || ''
       }));
   }
