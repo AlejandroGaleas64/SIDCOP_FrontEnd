@@ -49,8 +49,8 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
 export class ListComponent implements OnInit {
   private readonly exportConfig = {
         // Configuración básica
-        title: 'Listado de Estados Civiles',                    // Título del reporte
-        filename: 'Estados Civiles',                           // Nombre base del archivo
+        title: 'Listado de Sucursales',                    // Título del reporte
+        filename: 'Sucursales',                           // Nombre base del archivo
   
         // Columnas a exportar - TODOS LOS DATOS DE SUCURSALES
         columns: [
