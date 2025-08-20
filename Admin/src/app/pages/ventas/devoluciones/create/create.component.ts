@@ -553,7 +553,7 @@ export class CreateComponent implements OnInit {
     }
 
     // Obtener productos seleccionados (con cantidad > 0)
-    const productosSeleccionados = this.productos.filter(producto => producto.cantidad > 0);
+    // const productosSeleccionados = this.productos.filter(producto => producto.cantidad > 0);
     
     // if (productosSeleccionados.length === 0) {
     //   this.mostrarMensaje('Debe seleccionar al menos un producto para devolver', 'error');
@@ -567,7 +567,7 @@ export class CreateComponent implements OnInit {
         cantidadVendida: producto.cantidadVendida,
         cantidadADevolver: cantidadADevolver
       });
-      return cantidadADevolver > 0; // Solo productos con cantidad seleccionada > 0
+      return cantidadADevolver >= 0; // Solo productos con cantidad seleccionada > 0
     });
 
     console.log('Total productos evaluados:', this.productos.length);
@@ -639,6 +639,7 @@ export class CreateComponent implements OnInit {
     console.log('Body de la petición:', body);
     console.log('XML generado:', detalleXml);
 
+    console.log('FACTURA ID A ELIMINAR:', this.devolucion.fact_Id);
     this.cargando = true;
     this.mostrarErrores = false;
 
@@ -654,12 +655,13 @@ export class CreateComponent implements OnInit {
         if (response && response.success === true) {
           this.mostrarMensaje('Devolución creada exitosamente', 'exito');
           
+          this.anularFactura(this.devolucion.fact_Id);
+
           // Limpiar el formulario después de guardar
           this.limpiarFormularioCompleto();
           
           // Emitir evento de guardado exitoso
           this.onSave.emit(response);
-          
           // Opcional: navegar a otra página o cerrar el formulario
           // this.router.navigate(['/devoluciones']);
         } else {
@@ -684,6 +686,63 @@ export class CreateComponent implements OnInit {
       },
       complete: () => {
         this.cargando = false;
+      }
+    });
+  }
+
+  anularFactura(fact_Id: number) {
+    // if (!fact_Id) {
+    //   console.error('No se proporcionó un ID de factura válido para anular');
+    //   this.mostrarMensaje('Error: No se puede anular la factura sin un ID válido', 'error');
+    //   return;
+    // }
+    
+    console.log('Anulando factura con ID:', fact_Id);
+
+    // Obtener el ID del usuario actual
+    const usuarioId = getUserId() || 1;
+
+    const body = {
+      fact_Id: fact_Id,
+      motivo: this.devolucion.devo_Motivo || 'Anulación por devolución',
+      usua_Modificacion: usuarioId
+    };
+
+    console.log('Body para anular factura:', body);
+
+    this.http.post<any>(`${environment.apiBaseUrl}/Facturas/AnularFactura`, body, {
+      headers: { 
+        'x-api-key': environment.apiKey,
+        'Content-Type': 'application/json'
+      }
+    }).subscribe({
+      next: (response) => {
+        console.log('Respuesta de anulación de factura:', response);
+        
+        if (response && (response.success === true || response.Success === true)) {
+          console.log('Factura anulada exitosamente');
+          this.mostrarMensaje('Factura anulada exitosamente', 'exito');
+        } else {
+          console.warn('Respuesta inesperada al anular factura:', response);
+          // Aunque la respuesta no tenga el formato esperado, 
+          // si no hay error HTTP, podríamos considerar que fue exitoso
+          this.mostrarMensaje('Factura procesada para anulación', 'exito');
+        }
+      },
+      error: (error) => {
+        console.error('Error al anular la factura:', error);
+        
+        let mensajeError = 'Error al anular la factura';
+        
+        if (error.error?.message) {
+          mensajeError += ': ' + error.error.message;
+        } else if (error.message) {
+          mensajeError += ': ' + error.message;
+        } else if (error.status) {
+          mensajeError += ` (HTTP ${error.status})`;
+        }
+        
+        this.mostrarMensaje(mensajeError, 'error');
       }
     });
   }

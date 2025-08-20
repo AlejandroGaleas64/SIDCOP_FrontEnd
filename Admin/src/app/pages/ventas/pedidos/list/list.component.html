@@ -112,6 +112,30 @@
                       </span>
                     </span>
                   </th>
+
+                   <th class="gridjs-th" (click)="table.sortBy('pedi_Codigo')" style="cursor: pointer">
+                    <span class="table-header-flex">
+                      Código
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column">
+                        <i class="ri-arrow-up-s-line icon-sort" [ngStyle]="
+                            table.sortField === 'pedi_Codigo' &&
+                            table.sortDirection === 'asc'
+                              ? { color: '#D6B68A' }
+                              : { color: 'white' }
+                          ">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort" [ngStyle]="
+                            table.sortField === 'pedi_Codigo' &&
+                            table.sortDirection === 'desc'
+                              ? { color: '#D6B68A' }
+                              : { color: 'white' }
+                          ">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+
                   <th class="gridjs-th" (click)="table.sortBy('clie_NombreNegocio')" style="cursor: pointer">
                     <span style="
                         display: flex;
@@ -293,6 +317,7 @@
                   <td>
                     <span class="fw-semibold">{{ data.secuencia }}</span>
                   </td>
+                   <td>{{ data.pedi_Codigo }}</td>
                   <td>{{ data.clie_NombreNegocio }}</td>
                   <td>{{ data.clie_Nombres }} {{ data.clie_Apellidos }}</td>
                   <td>{{ data.vend_Nombres }} {{ data.vend_Apellidos }}</td>
