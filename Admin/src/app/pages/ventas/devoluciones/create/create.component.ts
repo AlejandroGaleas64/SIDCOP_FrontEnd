@@ -303,7 +303,28 @@ export class CreateComponent implements OnInit {
     }
 
     this.devolucion.fact_Id = factura.fact_Id;
+
+    // Mantenemos la carga de productos como antes
     this.listarProductos(factura.fact_Id);
+
+    // Además, mostramos los datos completos de la factura
+    this.obtenerFacturaCompleta(factura.fact_Id);
+  }
+
+  obtenerFacturaCompleta(factId: number) {
+    if (!factId) return;
+
+    this.http.get<any>(`${environment.apiBaseUrl}/Facturas/ObtenerCompleta/${factId}`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (facturaCompleta) => {
+        console.log('📄 Factura completa recibida:', facturaCompleta);
+      },
+      error: (err) => {
+        console.error('❌ Error al obtener factura completa:', err);
+        this.mostrarMensaje('Error al cargar la factura completa', 'error');
+      }
+    });
   }
 
   listarProductos(id: number): void {
@@ -314,13 +335,14 @@ export class CreateComponent implements OnInit {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (data) => {
-        // data ya es un array de productos
+        // Inicializar productos con la cantidad vendida original como máximo
         this.productos = (data || []).map((producto: any) => ({
           ...producto,
-          cantidad: 0,
+          cantidadVendida: producto.cantidadVendida || 0, // Cantidad actual seleccionada para devolución
+          cantidadOriginal: producto.cantidadVendida || 0, // Cantidad original de la factura (límite máximo)
           observaciones: '',
-          stockDisponible: 0,
-          tieneStock: false
+          stockDisponible: producto.cantidadVendida || 0, // Para mantener compatibilidad
+          tieneStock: (producto.cantidadVendida || 0) > 0
         }));
         this.aplicarFiltros();
         console.log('Productos cargados:', this.productos);
@@ -334,70 +356,52 @@ export class CreateComponent implements OnInit {
     if (index >= 0 && index < this.productos.length) {
       const producto = this.productos[index];
       
-      // Validar que hay sucursal seleccionada
-      // if (!this.traslado.tras_Origen || this.traslado.tras_Origen === 0) {
-      //   this.mostrarWarning('Debe seleccionar una sucursal de origen primero');
-      //   return;
-      // }
-
-      // Validar que el producto tiene stock
-      if (!producto.tieneStock) {
-        this.mostrarMensaje(`El producto "${producto.prod_Descripcion}" no tiene stock disponible en esta sucursal`);
+      // Validar que no exceda la cantidad original de la factura
+      if (producto.cantidadVendida >= producto.cantidadOriginal) {
+        this.mostrarMensaje(`No puede devolver más de ${producto.cantidadOriginal} unidades de "${producto.prod_Descripcion}". Esta fue la cantidad original vendida., 'advertencia'`);
         return;
       }
 
-      // Validar que no exceda el stock disponible
-      if (producto.cantidad >= producto.stockDisponible) {
-        this.mostrarMensaje(`Stock insuficiente. Solo hay ${producto.stockDisponible} unidades disponibles de "${producto.prod_Descripcion}"`);
-        return;
-      }
-
-      producto.cantidad = (producto.cantidad || 0) + 1;
-      // this.actualizarEstadoNavegacion();
+      producto.cantidadVendida = (producto.cantidadVendida || 0) + 1;
     }
   }
-  
+
   disminuirCantidad(index: number): void {
-    if (index >= 0 && index < this.productos.length && this.productos[index].cantidad > 0) {
-      this.productos[index].cantidad--;
-      // this.actualizarEstadoNavegacion();
+    if (index >= 0 && index < this.productos.length && this.productos[index].cantidadVendida > 0) {
+      this.productos[index].cantidadVendida--;
     }
   }
-  
+
   validarCantidad(index: number): void {
     if (index >= 0 && index < this.productos.length) {
       const producto = this.productos[index];
-      let cantidad = producto.cantidad || 0;
+      let cantidad = producto.cantidadVendida || 0;
 
       // Validar rango básico
-      cantidad = Math.max(0, Math.min(999, cantidad));
+      cantidad = Math.max(0, cantidad);
 
-      // Validar contra stock disponible
-      if (cantidad > 0) {
-        // Validar que hay sucursal seleccionada
-        // if (!this.traslado.tras_Origen || this.traslado.tras_Origen === 0) {
-        //   this.mostrarWarning('Debe seleccionar una sucursal de origen primero');
-        //   producto.cantidad = 0;
-        //   return;
-        // }
-
-        // Validar que el producto tiene stock
-        if (!producto.tieneStock) {
-          this.mostrarMensaje(`El producto "${producto.prod_Descripcion}" no tiene stock disponible en esta sucursal`);
-          producto.cantidad = 0;
-          return;
-        }
-
-        // Validar que no exceda el stock disponible
-        if (cantidad > producto.stockDisponible) {
-          this.mostrarMensaje(`Stock insuficiente. Solo hay ${producto.stockDisponible} unidades disponibles de "${producto.prod_Descripcion}"`);
-          cantidad = producto.stockDisponible;
-        }
+      // Validar que no exceda la cantidad original de la factura
+      if (cantidad > producto.cantidadOriginal) {
+        this.mostrarMensaje(`No puede devolver más de ${producto.cantidadOriginal} unidades de "${producto.prod_Descripcion}". Esta fue la cantidad original vendida., 'advertencia'`);
+        cantidad = producto.cantidadOriginal;
       }
 
-      producto.cantidad = cantidad;
-      // this.actualizarEstadoNavegacion();
+      producto.cantidadVendida = cantidad;
     }
+  }
+
+  // Método para obtener productos que realmente van a devolución (cantidad menor a la original)
+  obtenerProductosParaDevolucion(): any[] {
+    return this.productos
+      .filter(producto => producto.cantidadVendida < producto.cantidadOriginal)
+      .map(producto => ({
+        prod_Id: producto.prod_Id,
+        prod_Descripcion: producto.prod_Descripcion,
+        cantidadDevolucion: producto.cantidadOriginal - producto.cantidadVendida, // Cantidad real a devolver
+        cantidadVendida: producto.cantidadVendida, // Cantidad que se queda
+        cantidadOriginal: producto.cantidadOriginal, // Cantidad original
+        observaciones: producto.observaciones || ''
+      }));
   }
 
   // ========== MÉTODOS PARA BÚSQUEDA Y PAGINACIÓN ==========
@@ -529,7 +533,193 @@ export class CreateComponent implements OnInit {
     return item.clie_Codigo?.toLowerCase().includes(term) || item.clie_Nombres?.toLowerCase().includes(term) || item.clie_Apellidos?.toLowerCase().includes(term) || item.clie_NombreNegocio?.toLowerCase().includes(term);
   };
 
-  guardar(){
+  guardar() {
+    console.log('\n=== INICIO DE insertarDevolucion ===');
     
+    // Validaciones básicas
+    if (!this.devolucion.fact_Id) {
+      this.mostrarMensaje('Debe seleccionar una factura', 'error');
+      return;
+    }
+
+    if (!this.devolucion.devo_Motivo || this.devolucion.devo_Motivo.trim() === '') {
+      this.mostrarMensaje('Debe ingresar el motivo de la devolución', 'error');
+      return;
+    }
+
+    if (!this.clienteSeleccionado) {
+      this.mostrarMensaje('Debe seleccionar un cliente', 'error');
+      return;
+    }
+
+    // Obtener productos seleccionados (con cantidad > 0)
+    const productosSeleccionados = this.productos.filter(producto => producto.cantidad > 0);
+    
+    // if (productosSeleccionados.length === 0) {
+    //   this.mostrarMensaje('Debe seleccionar al menos un producto para devolver', 'error');
+    //   return;
+    // }
+
+    const productosParaDevolver = this.productos.filter(producto => {
+      const cantidadADevolver = producto.cantidadVendida || 0;
+      console.log(`Evaluando producto ${producto.prod_Descripcion}:`, {
+        cantidadOriginal: producto.cantidadOriginal,
+        cantidadVendida: producto.cantidadVendida,
+        cantidadADevolver: cantidadADevolver
+      });
+      return cantidadADevolver > 0; // Solo productos con cantidad seleccionada > 0
+    });
+
+    console.log('Total productos evaluados:', this.productos.length);
+    console.log('Productos que cumplen el filtro:', productosParaDevolver.length);
+
+    if (productosParaDevolver.length === 0) {
+      this.mostrarMensaje('Debe seleccionar al menos un producto para devolver. Use los controles + y - para establecer la cantidad a devolver.', 'error');
+      return;
+    }
+
+    console.log('fact_Id:', this.devolucion.fact_Id);
+    console.log('clie_Id:', this.clienteSeleccionado.clie_Id);
+    console.log('devo_Motivo:', this.devolucion.devo_Motivo);
+    console.log('Productos seleccionados:', this.productos.length);
+
+    // Construir el XML de detalles
+  let detalleXml = '<DevolucionDetalle>';
+    
+    productosParaDevolver.forEach((producto, index) => {
+      const cantidadADevolver = producto.cantidadVendida || 0; // Esta es la cantidad que el usuario seleccionó para devolver
+      
+      console.log(`  Producto ${index + 1}:`);
+      console.log(`    prod_Id: ${producto.prod_Id}`);
+      console.log(`    cantidadOriginal: ${producto.cantidadOriginal}`);
+      console.log(`    cantidadADevolver: ${cantidadADevolver}`);
+      console.log(`    descripcion: ${producto.prod_Descripcion}`);
+      
+      // Estructura XML idéntica a Flutter
+      detalleXml += `<Producto><Prod_Id>${producto.prod_Id}</Prod_Id><DevD_Cantidad>${cantidadADevolver}</DevD_Cantidad></Producto>`;
+    });
+    
+    detalleXml += '</DevolucionDetalle>';
+    
+    console.log('XML generado paso a paso:');
+    console.log('- Inicio XML:', '<DevolucionDetalle>');
+    productosParaDevolver.forEach((producto, index) => {
+      const cantidadADevolver = producto.cantidadVendida || 0;
+      const xmlProducto = `<Producto><Prod_Id>${producto.prod_Id}</Prod_Id><DevD_Cantidad>${cantidadADevolver}</DevD_Cantidad></Producto>`;
+      console.log(`- Producto ${index + 1}:`, xmlProducto);
+    });
+    console.log('- Fin XML:', '</DevolucionDetalle>');
+
+    const now = new Date().toISOString();
+    const fechaDevolucion = this.devolucion.devo_Fecha ? new Date(this.devolucion.devo_Fecha).toISOString() : now;
+    
+    // Obtener el ID del usuario actual
+    const usuarioId = getUserId() || 1; // Usar 1 como fallback si no se puede obtener
+
+    // Construir el body de la petición
+    const body = {
+      devo_Id: 0,
+      clie_Id: this.clienteSeleccionado.clie_Id,
+      fact_Id: this.devolucion.fact_Id,
+      devo_Fecha: fechaDevolucion,
+      devo_Motivo: this.devolucion.devo_Motivo.trim(),
+      usua_Creacion: usuarioId,
+      devo_FechaCreacion: now,
+      usua_Modificacion: 0,
+      devo_FechaModificacion: now,
+      devo_Estado: true,
+      nombre_Completo: ' ',
+      clie_NombreNegocio: ' ',
+      usuarioCreacion: ' ',
+      usuarioModificacion: ' ',
+      devoDetalle_XML: detalleXml,
+      item: []
+    };
+
+    console.log('Body de la petición:', body);
+    console.log('XML generado:', detalleXml);
+
+    this.cargando = true;
+    this.mostrarErrores = false;
+
+    this.http.post<any>(`${environment.apiBaseUrl}/Devoluciones/Insertar`, body, {
+      headers: { 
+        'x-api-key': environment.apiKey,
+        'Content-Type': 'application/json'
+      }
+    }).subscribe({
+      next: (response) => {
+        console.log('Respuesta del servidor:', response);
+        
+        if (response && response.success === true) {
+          this.mostrarMensaje('Devolución creada exitosamente', 'exito');
+          
+          // Limpiar el formulario después de guardar
+          this.limpiarFormularioCompleto();
+          
+          // Emitir evento de guardado exitoso
+          this.onSave.emit(response);
+          
+          // Opcional: navegar a otra página o cerrar el formulario
+          // this.router.navigate(['/devoluciones']);
+        } else {
+          const mensajeError = response?.message || 'Error al procesar la devolución';
+          this.mostrarMensaje(mensajeError, 'error');
+        }
+      },
+      error: (error) => {
+        console.error('Error en insertarDevolucion:', error);
+        
+        let mensajeError = 'Error al crear la devolución';
+        
+        if (error.error?.message) {
+          mensajeError = error.error.message;
+        } else if (error.message) {
+          mensajeError = error.message;
+        } else if (error.status) {
+          mensajeError = `Error en la solicitud: ${error.status}`;
+        }
+        
+        this.mostrarMensaje(mensajeError, 'error');
+      },
+      complete: () => {
+        this.cargando = false;
+      }
+    });
+  }
+
+  // Método auxiliar para limpiar el formulario completo
+  limpiarFormularioCompleto() {
+    // Resetear el objeto devolucion
+    this.devolucion = {
+      devo_Id: null,
+      fact_Id: null,
+      devo_Fecha: '',
+      devo_Motivo: '',
+      usua_Creacion: 0,
+      devo_FechaCreacion: '',
+      usua_modificacion: 0,
+      devo_FechaModificacion: '',
+      devo_EnSucursal: false
+    };
+
+    // Limpiar selecciones
+    this.vendedorSeleccionado = null;
+    this.clienteSeleccionado = null;
+
+    // Limpiar arrays
+    this.clientesFiltrados = [];
+    this.facturasFiltradas = [];
+    this.direcciones = [];
+    this.productos = [];
+    this.productosFiltrados = [];
+
+    // Resetear búsqueda y paginación
+    this.busquedaProducto = '';
+    this.paginaActual = 1;
+
+    // Limpiar estados de error
+    this.mostrarErrores = false;
+    this.cerrarAlerta();
   }
 }
