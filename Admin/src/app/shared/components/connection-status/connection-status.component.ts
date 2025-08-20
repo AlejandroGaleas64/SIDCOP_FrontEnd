@@ -71,8 +71,8 @@ export class ConnectionStatusComponent implements OnInit, OnDestroy {
       
     // Suscribirse a cambios en la URL activa
     this.subscription = this.connectionService.currentApiUrl$.subscribe(url => {
-      this.isLocalActive = url === 'https://localhost:7071';
-      this.isRemoteActive = url === 'https://localhost:7071';
+      this.isLocalActive = url === '192.168.1.146:8091';
+      this.isRemoteActive = url === '192.168.1.146:8091';
     });
     
     // Suscribirse a cambios en el estado de las conexiones
@@ -95,7 +95,7 @@ export class ConnectionStatusComponent implements OnInit, OnDestroy {
     const status = this.connectionService.getConnectionStatus();
     this.isLocalAvailable = status.local;
     this.isRemoteAvailable = status.remote;
-    this.isLocalActive = status.activeUrl === 'https://localhost:7071';
-    this.isRemoteActive = status.activeUrl === 'https://localhost:7071';
+    this.isLocalActive = status.activeUrl === '192.168.1.146:8091';
+    this.isRemoteActive = status.activeUrl === '192.168.1.146:8091';
   }
 }

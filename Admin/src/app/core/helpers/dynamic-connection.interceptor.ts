@@ -9,8 +9,8 @@ export class DynamicConnectionInterceptor implements HttpInterceptor {
   // URLs base conocidas
   private readonly baseUrls = [
     environment.apiBaseUrl,
-    'https://localhost:7071',
-    'https://localhost:7071'
+    '192.168.1.146:8091',
+    '192.168.1.146:8091'
   ];
 
   constructor(private connectionService: ConnectionService) {}
