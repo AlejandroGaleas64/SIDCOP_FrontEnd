@@ -360,10 +360,11 @@ export class InvoiceService {
       const startY = await this.crearEncabezadoFactura(doc);
 
       // Crear tabla de productos
-      await this.crearTablaProductos(doc, startY);
+      const tableY = await this.crearTablaProductos(doc, startY);
+      
 
       // Crear pie de factura con totales
-      this.crearPieFactura(doc);
+      this.crearPieFactura(doc, tableY);
 
       const filename = this.generateFilename(`Factura_${this.facturaDetalle.fact_Numero}`, 'pdf');
       doc.save(filename);
@@ -401,7 +402,7 @@ export class InvoiceService {
     doc.setFont('Satoshi', 'normal');
     doc.setFontSize(10);
     //doc.text(`RTN: ${this.facturaDetalle.coFa_RTN}`, 74, yPos + 16);
-    doc.text(this.facturaDetalle.coFa_DireccionEmpresa, 82, yPos + 16);
+    doc.text(this.facturaDetalle.coFa_DireccionEmpresa, 56, yPos + 16);
     doc.text(`Tel: ${this.facturaDetalle.coFa_Telefono1}`, 88, yPos + 22);
     doc.text(`Email: ${this.facturaDetalle.coFa_Correo}`, 76, yPos + 28);
 
@@ -453,12 +454,12 @@ export class InvoiceService {
   private async crearTablaProductos(doc: jsPDF, startY: number) {
     if (!this.facturaDetalle || !this.facturaDetalle.detalleFactura.length) return;
 
-    const headers = ['Descripción', 'Cant.', 'Precio Unit.', 'Total'];
+    const headers = ['Descripción', 'Cant.', 'Precio.', 'Total'];
     const rows = this.facturaDetalle.detalleFactura.map(item => [
       item.prod_Descripcion,
       item.faDe_Cantidad.toString(),
-      `L. ${item.faDe_PrecioUnitario.toFixed(2)}`,
-      `L. ${item.faDe_Total.toFixed(2)}`
+      `L.${item.faDe_PrecioUnitario.toFixed(2)}`,
+      `L.${item.faDe_Total.toFixed(2)}`
     ]);
 
     autoTable(doc, {
@@ -467,7 +468,7 @@ export class InvoiceService {
       body: rows,
       styles: {
         fontSize: 9,
-        cellPadding: 2,
+        cellPadding: 1,
         overflow: 'linebreak' as any,
         halign: 'center' as any,
         valign: 'middle' as any,
@@ -479,30 +480,36 @@ export class InvoiceService {
         fontSize: 10,
       },
       columnStyles: {
-        1: { halign: 'left' as any,  },   // Descripción
-        2: { halign: 'right' as any,  }, // Cantidad
-        3: { halign: 'right' as any,  },  // Precio
-        6: { halign: 'right' as any, }   // Total
+        1: { halign: 'left' as any, cellWidth: 'auto'  },   // Descripción
+        2: { halign: 'right' as any, cellWidth: 'auto' }, // Cantidad
+        3: { halign: 'right' as any, cellWidth: 'auto' },  // Precio
+        4: { halign: 'right' as any, cellWidth: 'auto' }   // Total
       },
       alternateRowStyles: {
         fillColor: [248, 249, 250],
       },
-      margin: { left: 10, right: 10 },
-      tableWidth: 'auto' as any,
+      margin: { left: 50, right: 10 },
+      tableWidth: 100,
     });
+
+      let finalY = (doc as any).lastAutoTable.finalY;
+
+      return finalY;
   }
 
-  private crearPieFactura(doc: jsPDF) {
+  private crearPieFactura(doc: jsPDF, yPos: number) {
     if (!this.facturaDetalle) return;
 
     const pageHeight = doc.internal.pageSize.height;
     const pageWidth = doc.internal.pageSize.width;
-    let yPos = pageHeight - 80;
+    //let yPos = pageHeight - 80;
+    yPos += 10;
+    let yPosStart = yPos;
 
     // Línea separadora
     doc.setDrawColor(this.COLORES.dorado);
     doc.setLineWidth(1);
-    doc.line(20, yPos, pageWidth - 20, yPos);
+    doc.line(50, yPos, pageWidth - 58, yPos);
     yPos += 10;
 
     // Totales (lado derecho)
@@ -510,34 +517,34 @@ export class InvoiceService {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
 
-    doc.text(`Subtotal: L. ${this.facturaDetalle.fact_Subtotal.toFixed(2)}`, rightX, yPos, { align: 'right' });
+    doc.text(`Subtotal: L. ${this.facturaDetalle.fact_Subtotal.toFixed(2)}`, rightX - 38, yPos, { align: 'right' });
     yPos += 6;
-    doc.text(`Descuento: L. ${this.facturaDetalle.fact_TotalDescuento.toFixed(2)}`, rightX, yPos, { align: 'right' });
+    doc.text(`Descuento: L. ${this.facturaDetalle.fact_TotalDescuento.toFixed(2)}`, rightX - 38, yPos, { align: 'right' });
     yPos += 6;
-    doc.text(`Impuesto 15%: L. ${this.facturaDetalle.fact_TotalImpuesto15.toFixed(2)}`, rightX, yPos, { align: 'right' });
+    doc.text(`Impuesto 15%: L. ${this.facturaDetalle.fact_TotalImpuesto15.toFixed(2)}`, rightX - 38, yPos, { align: 'right' });
     yPos += 6;
-    doc.text(`Impuesto 18%: L. ${this.facturaDetalle.fact_TotalImpuesto18.toFixed(2)}`, rightX, yPos, { align: 'right' });
+    doc.text(`Impuesto 18%: L. ${this.facturaDetalle.fact_TotalImpuesto18.toFixed(2)}`, rightX - 38, yPos, { align: 'right' });
     yPos += 8;
 
     // Total final
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
-    doc.text(`TOTAL: L. ${this.facturaDetalle.fact_Total.toFixed(2)}`, rightX, yPos, { align: 'right' });
+    doc.text(`TOTAL: L. ${this.facturaDetalle.fact_Total.toFixed(2)}`, rightX - 38, yPos, { align: 'right' });
 
     // Información adicional (lado izquierdo)
-    yPos = pageHeight - 70;
+    yPos = yPosStart + 10;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.text(`Rango autorizado: ${this.facturaDetalle.fact_RangoInicialAutorizado} - ${this.facturaDetalle.fact_RangoFinalAutorizado}`, 20, yPos);
+    doc.text(`Rango autorizado: ${this.facturaDetalle.fact_RangoInicialAutorizado} - ${this.facturaDetalle.fact_RangoFinalAutorizado}`, 50, yPos);
     yPos += 5;
-    doc.text(`Fecha límite emisión: ${this.formatearFecha(this.facturaDetalle.fact_FechaLimiteEmision)}`, 20, yPos);
+    doc.text(`Fecha límite emisión: ${this.formatearFecha(this.facturaDetalle.fact_FechaLimiteEmision)}`, 50, yPos);
     yPos += 5;
-    if (this.facturaDetalle.fact_Referencia) {
-      doc.text(`Referencia: ${this.facturaDetalle.fact_Referencia}`, 20, yPos);
-      yPos += 5;
-    }
+    // if (this.facturaDetalle.fact_Referencia) {
+    //   doc.text(`Referencia: ${this.facturaDetalle.fact_Referencia}`, 50, yPos);
+    //   yPos += 5;
+    // }
     if (this.facturaDetalle.fact_AutorizadoPor) {
-      doc.text(`Autorizado por: ${this.facturaDetalle.fact_AutorizadoPor}`, 20, yPos);
+      doc.text(`Autorizado por: ${this.facturaDetalle.fact_AutorizadoPor}`, 50, yPos);
     }
   }
 
