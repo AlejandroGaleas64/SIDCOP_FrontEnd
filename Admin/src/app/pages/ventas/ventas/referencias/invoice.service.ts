@@ -359,11 +359,11 @@ export class InvoiceService {
       // Crear encabezado de factura
       const startY = await this.crearEncabezadoFactura(doc);
 
-      // Crear tabla de productos y obtener la posición final
-      const finalY = await this.crearTablaProductos(doc, startY);
+      // Crear tabla de productos
+      await this.crearTablaProductos(doc, startY);
 
-      // Crear pie de factura con totales usando la posición final de la tabla
-      this.crearPieFactura(doc, finalY);
+      // Crear pie de factura con totales
+      this.crearPieFactura(doc);
 
       const filename = this.generateFilename(`Factura_${this.facturaDetalle.fact_Numero}`, 'pdf');
       doc.save(filename);
@@ -379,243 +379,167 @@ export class InvoiceService {
   private async crearEncabezadoFactura(doc: jsPDF): Promise<number> {
     if (!this.facturaDetalle) return 40;
 
-    const pageWidth = doc.internal.pageSize.width;
-    let yPos = 15;
+    let yPos = 38;
+    let xPos = 40;
 
-    // Logo de la empresa (lado izquierdo)
+    // Cargar y agregar logo
+    const logoDataUrl = await this.cargarLogo();
     if (this.facturaDetalle.coFa_Logo) {
       try {
-        doc.addImage(this.facturaDetalle.coFa_Logo, 'PNG', 15, 35, 35, 25);
+        doc.addImage(this.facturaDetalle.coFa_Logo, 'PNG', 80, 5, 40, 30);
       } catch (e) {
         console.error('Error al agregar logo:', e);
       }
     }
 
-    // Título "FACTURA COMERCIAL" (centrado)
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text('FACTURA', pageWidth / 2, yPos + 5, { align: 'center' });
+    // Información de la empresa (lado izquierdo)
+    doc.setTextColor(this.COLORES.azulOscuro);
+    doc.setFont('Satoshi', 'bold');
+    doc.setFontSize(16);
+    doc.text(this.facturaDetalle.coFa_NombreEmpresa, 76, yPos + 8);
 
-    const midX = pageWidth / 2 + 20;
+    doc.setFont('Satoshi', 'normal');
+    doc.setFontSize(10);
+    //doc.text(`RTN: ${this.facturaDetalle.coFa_RTN}`, 74, yPos + 16);
+    doc.text(this.facturaDetalle.coFa_DireccionEmpresa, 82, yPos + 16);
+    doc.text(`Tel: ${this.facturaDetalle.coFa_Telefono1}`, 88, yPos + 22);
+    doc.text(`Email: ${this.facturaDetalle.coFa_Correo}`, 76, yPos + 28);
 
     // Información de la factura (lado derecho)
-    doc.setFont('helvetica', 'normal');
+    const pageWidth = doc.internal.pageSize.width;
+
+    doc.setFont('Satoshi', 'normal');
     doc.setFontSize(10);
-    const rightX = pageWidth - 15;
-    
-    doc.text('Fecha:', rightX - 70, yPos + 5 +24);
-    doc.text(this.formatearFecha(this.facturaDetalle.fact_FechaEmision), rightX - 58, yPos + 5 +24);
-    
-    doc.text('No. Factura:', rightX - 70, yPos + 12 +24);
-    doc.text(this.facturaDetalle.fact_Numero || '000-010-01-00051175', rightX - 50, yPos + 12 +24);
-    
 
-    yPos += 60;
+    yPos -=6;
 
-    // Información de la empresa (lado izquierdo)
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.text(this.facturaDetalle.coFa_NombreEmpresa, 15, yPos);
-    
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    yPos += 6;
-    doc.text(`RTN: ${this.facturaDetalle.coFa_RTN || '05019010545693'}`, 15, yPos);
-    yPos += 5;
-    doc.text(this.facturaDetalle.coFa_DireccionEmpresa || 'Colonia Bogran, 9 Calle N.E', 15, yPos);
-    yPos += 5;
-    doc.text('San Pedro Sula, Cortés, Honduras, C.A.', 15, yPos);
-    yPos += 5;
-    doc.text(`Teléfono: ${this.facturaDetalle.coFa_Telefono1 || '2551-2011'} / Fax: ${this.facturaDetalle.coFa_Telefono2 || '2551-2771'}`, 15, yPos);
-    yPos += 5;
-    doc.text(`${this.facturaDetalle.coFa_Correo }`, 15, yPos);
+    doc.text(`No.`, 74, yPos + 56);
+    doc.text(`${this.facturaDetalle.fact_Numero}`, 54, yPos + 60);
+    doc.text(`Fecha: ${this.formatearFecha(this.facturaDetalle.fact_FechaEmision)}`,   54, yPos + 62,);
+    doc.text(`Tipo: ${this.facturaDetalle.fact_TipoVenta}`,  54, yPos + 68);
+    doc.text(`CAI: ${this.facturaDetalle.regC_Descripcion}`,  54, yPos + 74);
 
-    // Información adicional (lado derecho)
-    yPos -= 45;
-    
-    doc.text('CAI:', midX, yPos);
-    doc.text(this.facturaDetalle.regC_Descripcion, midX + 10, yPos);
-    yPos += 6;
-    doc.text('Vendedor:', midX, yPos);
-    doc.text(this.facturaDetalle.vendedor, midX + 15, yPos);
-    yPos += 6;
+    yPos += 45;
 
-    yPos += 40;
+    // Línea separadora
+    doc.setDrawColor(this.COLORES.dorado);
+    doc.setLineWidth(1);
+    doc.line(50, yPos, pageWidth - 58, yPos);
+    yPos += 10;
 
     // Información del cliente
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    
-    doc.text('Nombre del Cliente:', 15, yPos);
-    doc.text(this.facturaDetalle.cliente, 48, yPos);
-    yPos += 6;
-    
-    doc.text('RTN:', 15, yPos);
-    doc.text(this.facturaDetalle.clie_RTN, 25, yPos);
-    yPos += 6;
-    
-    doc.text('Dirección de Entrega:', 15, yPos);
-    doc.text(this.facturaDetalle.diCl_DireccionExacta, 50, yPos);
+    yPos += 8;
 
-    yPos += 30;
+    doc.setFont('Satoshi', 'normal');
+    doc.setFontSize(10);
+    doc.text(`Cliente:`, 54, yPos + 18);
+    doc.text(`${this.facturaDetalle.cliente}`, 94, yPos + 18);
+    doc.text(`Dirección: ${this.facturaDetalle.diCl_DireccionExacta}`, 54, yPos + 24);
+    doc.text(`Teléfono: ${this.facturaDetalle.clie_Telefono}`, 54, yPos + 30);
+
+    // Información del vendedor (lado derecho)
+    doc.setFont('Satoshi', 'normal');
+    doc.text(this.facturaDetalle.vendedor,  54, yPos + 36);
+    doc.text(`Tel: ${this.facturaDetalle.vend_Telefono}`,  54, yPos + 42);
+
+    yPos += 50;
+
+    // Línea separadora
+    doc.line(50, yPos, pageWidth - 58, yPos);
+    yPos += 18;
 
     return yPos;
   }
 
-  private async crearTablaProductos(doc: jsPDF, startY: number): Promise<number> {
-    if (!this.facturaDetalle || !this.facturaDetalle.detalleFactura.length) return startY;
+  private async crearTablaProductos(doc: jsPDF, startY: number) {
+    if (!this.facturaDetalle || !this.facturaDetalle.detalleFactura.length) return;
 
-    const headers = ['Código', 'Descripción', 'Cantidad', 'Precio', 'Total'];
+    const headers = ['Descripción', 'Cant.', 'Precio Unit.', 'Total'];
     const rows = this.facturaDetalle.detalleFactura.map(item => [
-      item.prod_CodigoBarra || item.prod_Id.toString(),
       item.prod_Descripcion,
       item.faDe_Cantidad.toString(),
-      `L${item.faDe_PrecioUnitario.toFixed(2)}`,
-      `L${(item.faDe_Cantidad*item.faDe_PrecioUnitario).toFixed(2)}`
+      `L. ${item.faDe_PrecioUnitario.toFixed(2)}`,
+      `L. ${item.faDe_Total.toFixed(2)}`
     ]);
-
-    // Variable para capturar la posición final de la tabla
-    let finalTableY = startY;
 
     autoTable(doc, {
       startY: startY,
       head: [headers],
       body: rows,
       styles: {
-        fontSize: 8,
-        cellPadding: 3,
+        fontSize: 9,
+        cellPadding: 2,
         overflow: 'linebreak' as any,
         halign: 'center' as any,
         valign: 'middle' as any,
-        lineColor: [0, 0, 0],
-        lineWidth: 0.1,
       },
       headStyles: {
-        fillColor: [255, 255, 255],
-        textColor: [0, 0, 0],
+        fillColor: this.hexToRgb(this.COLORES.azulOscuro),
+        textColor: this.hexToRgb(this.COLORES.dorado),
         fontStyle: 'bold',
-        fontSize: 9,
-        lineColor: [0, 0, 0],
-        lineWidth: 0.5,
+        fontSize: 10,
       },
       columnStyles: {
-        0: { halign: 'center' as any, cellWidth: 25 },  // Código
-        1: { halign: 'left' as any, cellWidth: 80 },    // Descripción
-        2: { halign: 'center' as any, cellWidth: 20 },  // Cantidad
-        3: { halign: 'right' as any, cellWidth: 25 },   // Precio
-        4: { halign: 'right' as any, cellWidth: 25 }    // Total
+        1: { halign: 'left' as any,  },   // Descripción
+        2: { halign: 'right' as any,  }, // Cantidad
+        3: { halign: 'right' as any,  },  // Precio
+        6: { halign: 'right' as any, }   // Total
       },
       alternateRowStyles: {
         fillColor: [248, 249, 250],
       },
-      margin: { left: 15, right: 15 },
+      margin: { left: 10, right: 10 },
       tableWidth: 'auto' as any,
-      theme: 'grid' as any,
-      didDrawPage: (data: any) => {
-        // Capturar la posición final Y de la tabla en cada página
-        finalTableY = data.cursor.y;
-      }
     });
-
-    // Retornar la posición final donde terminó la tabla
-    return finalTableY + 10; // Agregar un pequeño margen después de la tabla
   }
 
-  private crearPieFactura(doc: jsPDF, startY?: number) {
+  private crearPieFactura(doc: jsPDF) {
     if (!this.facturaDetalle) return;
 
     const pageHeight = doc.internal.pageSize.height;
     const pageWidth = doc.internal.pageSize.width;
-    
-    // Usar startY si se proporciona, de lo contrario usar posición fija desde abajo
-    let yPos = startY || pageHeight - 120;
-    
-    // Verificar si hay espacio suficiente en la página actual
-    const espacioNecesario = 100; // Espacio aproximado que necesita el pie de factura
-    if (yPos + espacioNecesario > pageHeight - 20) {
-      // Si no hay espacio suficiente, crear nueva página
-      doc.addPage();
-      yPos = 20; // Empezar desde arriba en la nueva página
-    }
+    let yPos = pageHeight - 80;
 
-    // Sección de totales (lado derecho)
-    const rightX = pageWidth - 15;
-    const labelX = pageWidth - 80;
-    
+    // Línea separadora
+    doc.setDrawColor(this.COLORES.dorado);
+    doc.setLineWidth(1);
+    doc.line(20, yPos, pageWidth - 20, yPos);
+    yPos += 10;
+
+    // Totales (lado derecho)
+    const rightX = pageWidth - 20;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
 
-    // Cantidad total de productos
-    const cantidadTotal = this.facturaDetalle.detalleFactura.reduce((sum, item) => sum + item.faDe_Cantidad, 0);
-    doc.text('Cant Total:', labelX, yPos);
-    doc.text(cantidadTotal.toString(), rightX, yPos, { align: 'right' });
+    doc.text(`Subtotal: L. ${this.facturaDetalle.fact_Subtotal.toFixed(2)}`, rightX, yPos, { align: 'right' });
+    yPos += 6;
+    doc.text(`Descuento: L. ${this.facturaDetalle.fact_TotalDescuento.toFixed(2)}`, rightX, yPos, { align: 'right' });
+    yPos += 6;
+    doc.text(`Impuesto 15%: L. ${this.facturaDetalle.fact_TotalImpuesto15.toFixed(2)}`, rightX, yPos, { align: 'right' });
+    yPos += 6;
+    doc.text(`Impuesto 18%: L. ${this.facturaDetalle.fact_TotalImpuesto18.toFixed(2)}`, rightX, yPos, { align: 'right' });
     yPos += 8;
 
-    // Descuentos y Rebajas
-    doc.text('Descuentos y Rebajas:', labelX, yPos);
-    doc.text(`L${this.facturaDetalle.fact_TotalDescuento.toFixed(2)}`, rightX, yPos, { align: 'right' });
-    yPos += 8;
-
-    // Exento
-    doc.text('Exento:', labelX, yPos);
-    doc.text(`L${this.facturaDetalle.fact_ImporteExento.toFixed(2)}`, rightX, yPos, { align: 'right' });
-    yPos += 8;
-
-    // Exonerado
-    doc.text('Exonerado:', labelX, yPos);
-    doc.text(`L${this.facturaDetalle.fact_ImporteExonerado.toFixed(2)}`, rightX, yPos, { align: 'right' });
-    yPos += 8;
-
-    // Gravado 15%
-    doc.text('Gravado 15%:', labelX, yPos);
-    doc.text(`L${this.facturaDetalle.fact_ImporteGravado15.toFixed(2)}`, rightX, yPos, { align: 'right' });
-    yPos += 8;
-
-    // Gravado 18%
-    doc.text('Gravado 18%:', labelX, yPos);
-    doc.text(`L${this.facturaDetalle.fact_ImporteGravado18.toFixed(2)}`, rightX, yPos, { align: 'right' });
-    yPos += 8;
-
-    // Subtotal
-    doc.text('Subtotal:', labelX, yPos);
-    doc.text(`L${this.facturaDetalle.fact_Subtotal.toFixed(2)}`, rightX, yPos, { align: 'right' });
-    yPos += 8;
-
-    // ISV 15%
-    doc.text('15% ISV:', labelX, yPos);
-    doc.text(`L${this.facturaDetalle.fact_TotalImpuesto15.toFixed(2)}`, rightX, yPos, { align: 'right' });
-    yPos += 8;
-
-    // ISV 18%
-    doc.text('18% ISV:', labelX, yPos);
-    doc.text(`L${this.facturaDetalle.fact_TotalImpuesto18.toFixed(2)}`, rightX, yPos, { align: 'right' });
-    yPos += 10;
-
-    // Gran Total
+    // Total final
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
-    doc.text('Gran Total:', labelX, yPos);
-    doc.text(`L${this.facturaDetalle.fact_Total.toFixed(2)}`, rightX, yPos, { align: 'right' });
-    yPos += 15;
+    doc.text(`TOTAL: L. ${this.facturaDetalle.fact_Total.toFixed(2)}`, rightX, yPos, { align: 'right' });
 
-    // Información legal en la parte inferior
+    // Información adicional (lado izquierdo)
+    yPos = pageHeight - 70;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    
-    // Importe en letras
-    const importeEnLetras = this.numeroALetras(this.facturaDetalle.fact_Total);
-    doc.text(importeEnLetras, 15, yPos);
-    yPos += 8;
-    
-    // Fecha límite y rango autorizado
-    doc.text(`Fecha Límite ${this.formatearFecha(this.facturaDetalle.fact_FechaLimiteEmision)}`, 15, yPos);
-    yPos += 8;
-    
-    // Fecha de impresión
-    const fechaImpresion = new Date().toLocaleDateString('es-HN');
-    doc.text(`Impreso en: ${fechaImpresion}`, 15, yPos);
-    doc.text('Página 1 de 1', rightX, yPos, { align: 'right' });
+    doc.setFontSize(9);
+    doc.text(`Rango autorizado: ${this.facturaDetalle.fact_RangoInicialAutorizado} - ${this.facturaDetalle.fact_RangoFinalAutorizado}`, 20, yPos);
+    yPos += 5;
+    doc.text(`Fecha límite emisión: ${this.formatearFecha(this.facturaDetalle.fact_FechaLimiteEmision)}`, 20, yPos);
+    yPos += 5;
+    if (this.facturaDetalle.fact_Referencia) {
+      doc.text(`Referencia: ${this.facturaDetalle.fact_Referencia}`, 20, yPos);
+      yPos += 5;
+    }
+    if (this.facturaDetalle.fact_AutorizadoPor) {
+      doc.text(`Autorizado por: ${this.facturaDetalle.fact_AutorizadoPor}`, 20, yPos);
+    }
   }
 
   private formatearFecha(fecha: Date | string): string {
@@ -627,90 +551,5 @@ export class InvoiceService {
       month: '2-digit',
       day: '2-digit'
     });
-  }
-
-  private numeroALetras(numero: number): string {
-    const unidades = ['', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
-    const decenas = ['', '', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
-    const especiales = ['diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve'];
-    const centenas = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
-
-    if (numero === 0) return 'cero lempiras con 00 centavos';
-
-    let entero = Math.floor(numero);
-    const decimales = Math.round((numero - entero) * 100);
-
-    let resultado = '';
-
-    // Convertir parte entera
-    if (entero >= 1000000) {
-      const millones = Math.floor(entero / 1000000);
-      resultado += this.convertirGrupo(millones) + (millones === 1 ? ' millón ' : ' millones ');
-      entero %= 1000000;
-    }
-
-    if (entero >= 1000) {
-      const miles = Math.floor(entero / 1000);
-      if (miles === 1) {
-        resultado += 'mil ';
-      } else {
-        resultado += this.convertirGrupo(miles) + ' mil ';
-      }
-      entero %= 1000;
-    }
-
-    if (entero > 0) {
-      resultado += this.convertirGrupo(entero);
-    }
-
-    // Capitalizar primera letra
-    resultado = resultado.trim();
-    if (resultado) {
-      resultado = resultado.charAt(0).toUpperCase() + resultado.slice(1);
-    }
-
-    // Agregar moneda y centavos
-    const centavosStr = decimales.toString().padStart(2, '0');
-    return `${resultado} lempiras con ${centavosStr} centavos`;
-  }
-
-  private convertirGrupo(numero: number): string {
-    const unidades = ['', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
-    const decenas = ['', '', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
-    const especiales = ['diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve'];
-    const centenas = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
-
-    let resultado = '';
-
-    const c = Math.floor(numero / 100);
-    const d = Math.floor((numero % 100) / 10);
-    const u = numero % 10;
-
-    // Centenas
-    if (c > 0) {
-      if (numero === 100) {
-        resultado += 'cien';
-      } else {
-        resultado += centenas[c];
-      }
-    }
-
-    // Decenas y unidades
-    if (d === 1) {
-      resultado += (resultado ? ' ' : '') + especiales[u];
-    } else {
-      if (d > 0) {
-        resultado += (resultado ? ' ' : '') + decenas[d];
-      }
-      if (u > 0) {
-        if (d === 2) {
-          resultado = resultado.replace('veinte', 'veinti') + unidades[u];
-        } else {
-          resultado += (resultado && d > 0 ? ' y ' : (resultado ? ' ' : '')) + unidades[u];
-        }
-      }
-    }
-
-    return resultado;
   }
 }
