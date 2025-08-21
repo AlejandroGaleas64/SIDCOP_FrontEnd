@@ -660,23 +660,23 @@
       display: flex;
       align-items: center;
       min-width: fit-content;
-      font-weight: 600;
+      font-weight: 500;
       
       i {
         color: $dorado;
-        margin-right: 5px;
+        margin-right: 3px;
       }
     }
     
     .info-value {
       text-align: right;
       color: $azul;
-      margin-left: 10px;
-      word-break: break-word;
-      font-weight: 600;
+      margin-left: 1px;
+      word-break: normal;
+      font-weight: 500;
       
       &.fw-bold {
-        font-weight: 800;
+        font-weight: 500;
         color: $dorado;
         text-shadow: 1px 1px 2px rgba(20, 26, 47, 0.1);
       }
@@ -720,7 +720,7 @@
     }
     
     .info-row {
-      font-size: 0.85rem;
+      font-size: 0.80rem;
     }
     
     .detail-item {
