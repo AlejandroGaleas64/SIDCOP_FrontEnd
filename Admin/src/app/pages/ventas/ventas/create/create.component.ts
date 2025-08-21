@@ -557,6 +557,11 @@ private inicializar(): void {
     return direccion?.diCl_DireccionExacta || 'No seleccionada';
   }
   
+  getNombreVendedor(): string {
+    const vendedor = this.vendedores.find((v) => v.vend_Id == this.venta.vend_Id);
+    return vendedor ? `${vendedor.vend_Nombres} ${vendedor.vend_Apellidos}` : 'No seleccionado';
+  }
+  
   // ========== DIRECCIONES DEL CLIENTE ==========
   cargarDireccionesCliente(clienteId: number): void {
     if (!clienteId || clienteId === 0) {
