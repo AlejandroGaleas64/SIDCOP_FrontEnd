@@ -209,109 +209,124 @@
 
 
           <div class="col-md-6">
-            <label class="form-label">Cliente<span class="text-danger">*</span></label>
-            <div class="mb-3">
-              <div class="d-flex align-items-center">
-                <i
-                  class="ri-user-line"
-                  [ngStyle]="{
-                    border:
-                      (!clienteSeleccionado || clienteSeleccionado == 0) && mostrarErrores
-                        ? '1px solid #f9bcc4'
-                        : '1px solid #e9ecf5',
-                    backgroundColor:
-                      (!clienteSeleccionado || clienteSeleccionado == 0) && mostrarErrores
-                        ? '#fff5f6'
-                        : '#f2f3f9',
-                    padding: '0.525rem 0.525rem',
-                    position: 'relative',
-                    left: '7px',
-                    borderTopLeftRadius: '8px',
-                    borderBottomLeftRadius: '8px'
-                  }"
-                ></i>
-                <ng-select
-                  id="cliente"
-                  name="cliente"
-                  [items]="clientes"
-                  bindLabel="clie_NombreNegocio"
-                  bindValue="clie_Id"
-                  placeholder="Seleccione cliente"
-                  [searchable]="true"
-                  [clearable]="false"
-                  [(ngModel)]="clienteSeleccionado"
-                  (ngModelChange)="cargarDireccionesCliente($event)"
-                  [ngClass]="{
-                    'is-invalid': (!clienteSeleccionado || clienteSeleccionado == 0) && mostrarErrores
-                  }"
-                  required
-                >
-                  <ng-template ng-label-tmp let-item="item">
-                    {{item.clie_NombreNegocio}} - {{item.clie_Nombres}} {{item.clie_Apellidos}}
-                  </ng-template>
-                  <ng-template ng-option-tmp let-item="item">
-                    {{item.clie_NombreNegocio}} ({{item.clie_Nombres}} {{item.clie_Apellidos}})
-                  </ng-template>
-                </ng-select>
-                <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-              </div>
+            <label class="form-label fw-semibold">
+              <i class="ri-user-line me-2 text-primary"></i>
+              Cliente<span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <span 
+                class="input-group-text"
+                [ngClass]="{
+                  'border-danger bg-danger bg-opacity-10': (!clienteSeleccionado || clienteSeleccionado == 0) && mostrarErrores,
+                  'border-secondary-subtle bg-light': !mostrarErrores || (clienteSeleccionado && clienteSeleccionado > 0)
+                }"
+              >
+                <i class="ri-user-line"></i>
+              </span>
+              <ng-select
+                id="cliente"
+                name="cliente"
+                class="form-control p-0"
+                [items]="clientes"
+                bindLabel="clie_NombreNegocio"
+                bindValue="clie_Id"
+                placeholder="Seleccione un cliente..."
+                [searchable]="true"
+                [clearable]="false"
+                [(ngModel)]="clienteSeleccionado"
+                (ngModelChange)="cargarDireccionesCliente($event)"
+                [ngClass]="{
+                  'is-invalid': (!clienteSeleccionado || clienteSeleccionado == 0) && mostrarErrores
+                }"
+                required
+              >
+                <ng-template ng-label-tmp let-item="item">
+                  <div class="d-flex align-items-center">
+                    <strong class="me-2">{{item.clie_NombreNegocio}}</strong>
+                    <small class="text-muted">{{item.clie_Nombres}} {{item.clie_Apellidos}}</small>
+                  </div>
+                </ng-template>
+                <ng-template ng-option-tmp let-item="item">
+                  <div class="py-1">
+                    <div class="fw-semibold">{{item.clie_NombreNegocio}}</div>
+                    <small class="text-muted">{{item.clie_Nombres}} {{item.clie_Apellidos}}</small>
+                  </div>
+                </ng-template>
+              </ng-select>
             </div>
             <div
-              class="text-danger mt-1"
+              class="invalid-feedback d-block"
               *ngIf="(!clienteSeleccionado || clienteSeleccionado == 0) && mostrarErrores"
             >
-              <small>El cliente es requerido</small>
+              <i class="ri-error-warning-line me-1"></i>
+              El cliente es requerido
             </div>
           </div>
 
           <!-- Selector de Dirección del Cliente -->
           <div class="col-md-6">
-            <label class="form-label">Dirección del Cliente<span class="text-danger">*</span></label>
-            <div class="mb-3">
-              <div class="d-flex align-items-center">
-                <i
-                  class="ri-map-pin-line"
-                  [ngStyle]="{
-                    border:
-                      (!venta.direccionId || venta.direccionId == 0) && mostrarErrores
-                        ? '1px solid #f9bcc4'
-                        : '1px solid #e9ecf5',
-                    backgroundColor:
-                      (!venta.direccionId || venta.direccionId == 0) && mostrarErrores
-                        ? '#fff5f6'
-                        : '#f2f3f9',
-                    padding: '0.525rem 0.525rem',
-                    position: 'relative',
-                    left: '7px',
-                    borderTopLeftRadius: '8px',
-                    borderBottomLeftRadius: '8px'
-                  }"
-                ></i>
-                <ng-select
-                  class="form-control"
-                  name="direccion"
-                  [items]="direccionesCliente"
-                  bindLabel="diCl_DireccionExacta"
-                  bindValue="diCl_Id"
-                  placeholder="Seleccione dirección"
-                  [searchable]="true"
-                  [clearable]="false"
-                  [(ngModel)]="venta.direccionId"
-                  (ngModelChange)="actualizarDireccionSeleccionada($event)"
-                  [ngClass]="{
-                    'is-invalid': (!venta.direccionId || venta.direccionId == 0) && mostrarErrores
-                  }"
-                  [disabled]="!clienteSeleccionado || clienteSeleccionado === 0 || direccionesCliente.length === 0"
-                  required
-                >
-                </ng-select>
-              </div>
+            <label class="form-label fw-semibold">
+              <i class="ri-map-pin-line me-2 text-success"></i>
+              Dirección del Cliente<span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <span 
+                class="input-group-text"
+                [ngClass]="{
+                  'border-danger bg-danger bg-opacity-10': (!venta.direccionId || venta.direccionId == 0) && mostrarErrores,
+                  'border-secondary-subtle bg-light': !mostrarErrores || (venta.direccionId && venta.direccionId > 0),
+                  'border-secondary bg-secondary bg-opacity-25': !clienteSeleccionado || clienteSeleccionado === 0 || direccionesCliente.length === 0
+                }"
+              >
+                <i class="ri-map-pin-line"></i>
+              </span>
+              <ng-select
+                class="form-control p-0"
+                name="direccion"
+                [items]="direccionesCliente"
+                bindLabel="diCl_DireccionExacta"
+                bindValue="diCl_Id"
+                placeholder="Seleccione una dirección..."
+                [searchable]="true"
+                [clearable]="false"
+                [(ngModel)]="venta.direccionId"
+                (ngModelChange)="actualizarDireccionSeleccionada($event)"
+                [ngClass]="{
+                  'is-invalid': (!venta.direccionId || venta.direccionId == 0) && mostrarErrores
+                }"
+                [disabled]="!clienteSeleccionado || clienteSeleccionado === 0 || direccionesCliente.length === 0"
+                required
+              >
+                <ng-template ng-option-tmp let-item="item">
+                  <div class="py-1">
+                    <div class="fw-medium">{{item.diCl_DireccionExacta}}</div>
+                    <small class="text-muted" *ngIf="item.diCl_Referencia">
+                      <i class="ri-information-line me-1"></i>{{item.diCl_Referencia}}
+                    </small>
+                  </div>
+                </ng-template>
+              </ng-select>
             </div>
             <div
-              class="text-danger mt-1"
+              class="invalid-feedback d-block"
               *ngIf="(!venta.direccionId || venta.direccionId == 0) && mostrarErrores"
             >
-              <small>La dirección es requerida</small>
+              <i class="ri-error-warning-line me-1"></i>
+              La dirección es requerida
+            </div>
+            <div
+              class="form-text text-muted"
+              *ngIf="!clienteSeleccionado || clienteSeleccionado === 0"
+            >
+              <i class="ri-information-line me-1"></i>
+              Primero seleccione un cliente
+            </div>
+            <div
+              class="form-text text-warning"
+              *ngIf="clienteSeleccionado && clienteSeleccionado > 0 && direccionesCliente.length === 0"
+            >
+              <i class="ri-alert-line me-1"></i>
+              Este cliente no tiene direcciones registradas
             </div>
           </div>
           
@@ -756,53 +771,78 @@
           <div class="col-12">
             <div class="card resumen-card border-0">
               <div class="card-header resumen-header">
-                <h6 class="mb-0 resumen-title">
+                <p class=" resumen-title">
                   <i class="ri-information-line me-2"></i>
-                  Información de la Venta
-                </h6>
+                  <strong>Información de la Venta</strong>
+                </p>
               </div>
               <div class="card-body resumen-body">
-                <div class="row">
-                  <div class="col-md-3">
-                    <div class="info-item">
-                      <strong class="info-label">Sucursal:</strong>
-                      <p class="info-value">{{ getNombreSucursal() }}</p>
+                <!-- Información de la venta en formato título/descripción -->
+                <div class="row g-4">
+                  <div class="col-12 col-md-4">
+                    <div class="info-item text-center">
+                      <h6 class="info-title">
+                        <i class="ri-building-line text-primary d-block mb-1"></i>
+                        Sucursal
+                      </h6>
+                      <p class="info-description">{{ getNombreSucursal() }}</p>
                     </div>
                   </div>
-                  <div class="col-md-3">
-                    <div class="info-item">
-                      <strong class="info-label">Tipo:</strong>
-                      <p class="info-value">{{ venta.fact_TipoVenta }}</p>
+                  
+                  <div class="col-12 col-md-4">
+                    <div class="info-item text-center">
+                      <h6 class="info-title">
+                        <i class="ri-price-tag-3-line text-success d-block mb-1"></i>
+                        Tipo de Venta
+                      </h6>
+                      <p class="info-description">{{ venta.fact_TipoVenta }}</p>
                     </div>
                   </div>
-                  <div class="col-md-3">
-                    <div class="info-item">
-                      <strong class="info-label">Fecha:</strong>
-                      <p class="info-value">
+                  
+                  <div class="col-12 col-md-4">
+                    <div class="info-item text-center">
+                      <h6 class="info-title">
+                        <i class="ri-calendar-line text-info d-block mb-1"></i>
+                        Fecha de Emisión
+                      </h6>
+                      <p class="info-description">
                         {{ venta.fact_FechaEmision | date : "dd/MM/yyyy" }}
                       </p>
                     </div>
                   </div>
-                  <div class="col-md-3">
-                    <div class="info-item">
-                      <strong class="info-label">Total Productos:</strong>
-                      <p class="info-value highlight">
+                </div>
+                
+                <!-- Segunda fila -->
+                <div class="row g-4 mt-1">
+                  <div class="col-12 col-md-4">
+                    <div class="info-item text-center">
+                      <h6 class="info-title">
+                        <i class="ri-user-line text-warning d-block mb-1"></i>
+                        Cliente
+                      </h6>
+                      <p class="info-description">{{ getNombreCliente() }}</p>
+                    </div>
+                  </div>
+                  
+                  <div class="col-12 col-md-4">
+                    <div class="info-item text-center">
+                      <h6 class="info-title">
+                        <i class="ri-map-pin-line text-danger d-block mb-1"></i>
+                        Dirección
+                      </h6>
+                      <p class="info-description">{{ getNombreDireccion() }}</p>
+                    </div>
+                  </div>
+                  
+                  <div class="col-12 col-md-4">
+                    <div class="info-item text-center">
+                      <h6 class="info-title">
+                        <i class="ri-shopping-cart-line text-purple d-block mb-1"></i>
+                        Total Productos
+                      </h6>
+                      <p class="info-description highlight">
                         {{ getTotalProductosSeleccionados() }}
                       </p>
-                    </div>
-                  </div>
-                </div>
-                <div class="row mt-3">
-                  <div class="col-md-6">
-                    <div class="info-item">
-                      <strong class="info-label">Cliente:</strong>
-                      <p class="info-value">{{ getNombreCliente() }}</p>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="info-item">
-                      <strong class="info-label">Dirección:</strong>
-                      <p class="info-value">{{ getNombreDireccion() }}</p>
                     </div>
                   </div>
                 </div>

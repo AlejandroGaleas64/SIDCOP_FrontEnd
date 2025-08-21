@@ -361,8 +361,10 @@ private inicializar(): void {
 
   // ========== CONTROL DE CANTIDADES ==========
   aumentarCantidad(index: number): void {
-    if (index < 0 || index >= this.productos.length) return;
-    const producto = this.productos[index];
+    // Obtener el producto de la página actual
+    const productosPaginados = this.getProductosPaginados();
+    if (index < 0 || index >= productosPaginados.length) return;
+    const producto = productosPaginados[index];
 
     if (!this.venta.regC_Id || this.venta.regC_Id === 0) {
       this.mostrarWarning('Debe seleccionar una sucursal primero');
@@ -384,15 +386,19 @@ private inicializar(): void {
   }
 
   disminuirCantidad(index: number): void {
-    if (index >= 0 && index < this.productos.length && this.productos[index].cantidad > 0) {
-      this.productos[index].cantidad--;
+    // Obtener el producto de la página actual
+    const productosPaginados = this.getProductosPaginados();
+    if (index >= 0 && index < productosPaginados.length && productosPaginados[index].cantidad > 0) {
+      productosPaginados[index].cantidad--;
       this.actualizarEstadoNavegacion();
     }
   }
 
   validarCantidad(index: number): void {
-    if (index < 0 || index >= this.productos.length) return;
-    const producto = this.productos[index];
+    // Obtener el producto de la página actual
+    const productosPaginados = this.getProductosPaginados();
+    if (index < 0 || index >= productosPaginados.length) return;
+    const producto = productosPaginados[index];
     let cantidad = producto.cantidad || 0;
 
     cantidad = Math.max(0, Math.min(999, cantidad));
@@ -434,11 +440,23 @@ private inicializar(): void {
 
   private aplicarFiltros(): void {
     const termino = this.busquedaProducto.toLowerCase().trim();
-    this.productosFiltrados = !termino
+    
+    // Filtrar productos por término de búsqueda
+    const productosFiltrados = !termino
       ? [...this.productos]
       : this.productos.filter((p) =>
           p.prod_Descripcion.toLowerCase().includes(termino)
         );
+    
+    // Ordenar productos: primero los que tienen stock, luego los sin stock
+    this.productosFiltrados = productosFiltrados.sort((a, b) => {
+      // Si ambos tienen stock o ambos no tienen stock, mantener orden alfabético
+      if (a.tieneStock === b.tieneStock) {
+        return a.prod_Descripcion.localeCompare(b.prod_Descripcion);
+      }
+      // Los que tienen stock van primero (true > false)
+      return b.tieneStock ? 1 : -1;
+    });
   }
 
   getProductosPaginados(): any[] {
