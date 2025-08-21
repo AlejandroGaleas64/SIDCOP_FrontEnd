@@ -256,10 +256,10 @@
             </div>
 
             <!-- Grid de productos -->
-            <div *ngIf="!cargandoDetalles && detallesFactura.length > 0" class="row g-3">
+            <div *ngIf="!cargandoDetalles && detallesFactura.length > 0" class="row g-6">
               <div *ngFor="let detalle of detallesFactura; trackBy: trackByDetalleId" 
-                   class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <div class="card product-card h-100 shadow-sm">
+                   class="col-10 col-sm-6 col-md-6 col-lg-4 flex-wrap">
+                <div class="card product-card h-100 w-150 flex-wrap shadow-sm">
                   <!-- Imagen del producto -->
                   <div class="product-image-container">
                     <img 
