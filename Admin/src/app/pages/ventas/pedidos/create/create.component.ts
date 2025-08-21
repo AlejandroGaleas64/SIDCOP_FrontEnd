@@ -288,57 +288,67 @@ export class CreateComponent {
     return producto ? producto.cantidad || 0 : 0;
   }
 
+  getPrecioBasePorCantidad(producto: any, cantidad: number): number {
+  let precioBase = producto.prod_PrecioUnitario || 0;
+
+  if (producto.listasPrecio_JSON && cantidad > 0) {
+    let escalaAplicada = null;
+
+    for (const lp of producto.listasPrecio_JSON) {
+      if (cantidad >= lp.PreP_InicioEscala && cantidad <= lp.PreP_FinEscala) {
+        escalaAplicada = lp;
+        break;
+      }
+    }
+
+    if (!escalaAplicada && producto.listasPrecio_JSON.length > 0) {
+      const ultimaEscala = producto.listasPrecio_JSON[producto.listasPrecio_JSON.length - 1];
+      if (cantidad > ultimaEscala.PreP_FinEscala) {
+        escalaAplicada = ultimaEscala;
+      }
+    }
+
+    if (escalaAplicada) {
+      precioBase = escalaAplicada.PreP_PrecioContado;
+    }
+  }
+
+  return precioBase;
+}
+
+
 obtenerProductosSeleccionados(): any[] {
   return this.productos
     .filter((p) => p.cantidad > 0)
     .map((p) => {
-      // Precio base de lista o unitario
-      let precioBase = p.prod_PrecioUnitario || 0;
-      if (p.listasPrecio_JSON && p.cantidad > 0) {
-        let escalaAplicada = null;
-        for (const lp of p.listasPrecio_JSON) {
-          if (p.cantidad >= lp.PreP_InicioEscala && p.cantidad <= lp.PreP_FinEscala) {
-            escalaAplicada = lp;
-            break;
-          }
-        }
-        if (!escalaAplicada && p.listasPrecio_JSON.length > 0) {
-          const ultimaEscala = p.listasPrecio_JSON[p.listasPrecio_JSON.length - 1];
-          if (p.cantidad > ultimaEscala.PreP_FinEscala) {
-            escalaAplicada = ultimaEscala;
-          }
-        }
-        if (escalaAplicada) {
-          precioBase = escalaAplicada.PreP_PrecioContado;
-        }
-      }
+      const cantidad = p.cantidad;
 
-      // Precio final con descuento/escalas
-      const precioFinal = this.getPrecioPorCantidad(p, p.cantidad);
+      // Precio base puro, sin descuento ni impuesto
+      const precioBase = this.getPrecioBasePorCantidad(p, cantidad);
 
-      // Calcular impuesto (formato decimal, ej: 0.10)
-      const impuesto = p.prod_Impuesto
-        ? precioFinal * p.prod_Impuesto
+      // Precio final con descuentos aplicados, sin impuesto
+      const precioFinalSinImpuesto = this.getPrecioPorCantidad(p, cantidad);
+
+      // Impuesto si corresponde
+      const aplicaImpuesto = p.impu_Valor && p.prod_PagaImpuesto === 'S';
+      const impuesto = aplicaImpuesto
+        ? precioFinalSinImpuesto * p.impu_Valor
         : 0;
 
-      // Calcular subtotal
-      const subtotal = precioFinal * p.cantidad;
-
-      // Calcular descuento aplicado (si lo necesitas mostrar)
-      const descuento = p.prod_Descuento || 0;
+      const subtotal = precioFinalSinImpuesto * cantidad;
 
       return {
         prod_Id: p.prod_Id,
-        peDe_Cantidad: p.cantidad,
-        peDe_ProdPrecio: precioBase,
+        peDe_Cantidad: cantidad,
+        peDe_ProdPrecio: precioBase, // este es el base sin descuentos ni impuestos
         peDe_Impuesto: impuesto,
-        peDe_Descuento: descuento,
         peDe_Subtotal: subtotal,
-        peDe_ProdPrecioFinal: precioFinal,
-        // ...otros campos individuales...
+        peDe_ProdPrecioFinal: precioFinalSinImpuesto + impuesto, // unitario final con impuesto
+        // Otros campos si necesitas
       };
     });
 }
+
 
   // ========== MÉTODOS DE CLIENTES (SIN CAMBIOS) ==========
 
@@ -633,6 +643,8 @@ generarSiguienteCodigo(): void {
     if (this.pedido.diCl_Id && this.pedido.pedi_FechaEntrega) {
       // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
+
+      
       this.mostrarAlertaError = false;
 
       const pedidoGuardar = {
