@@ -504,6 +504,7 @@ export class InvoiceService {
     const pageWidth = doc.internal.pageSize.width;
     //let yPos = pageHeight - 80;
     yPos += 10;
+    let yPosStart = yPos;
 
     // Línea separadora
     doc.setDrawColor(this.COLORES.dorado);
@@ -531,17 +532,17 @@ export class InvoiceService {
     doc.text(`TOTAL: L. ${this.facturaDetalle.fact_Total.toFixed(2)}`, rightX - 38, yPos, { align: 'right' });
 
     // Información adicional (lado izquierdo)
-    yPos = pageHeight - 70;
+    yPos = yPosStart + 10;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.text(`Rango autorizado: ${this.facturaDetalle.fact_RangoInicialAutorizado} - ${this.facturaDetalle.fact_RangoFinalAutorizado}`, 50, yPos);
     yPos += 5;
     doc.text(`Fecha límite emisión: ${this.formatearFecha(this.facturaDetalle.fact_FechaLimiteEmision)}`, 50, yPos);
     yPos += 5;
-    if (this.facturaDetalle.fact_Referencia) {
-      doc.text(`Referencia: ${this.facturaDetalle.fact_Referencia}`, 50, yPos);
-      yPos += 5;
-    }
+    // if (this.facturaDetalle.fact_Referencia) {
+    //   doc.text(`Referencia: ${this.facturaDetalle.fact_Referencia}`, 50, yPos);
+    //   yPos += 5;
+    // }
     if (this.facturaDetalle.fact_AutorizadoPor) {
       doc.text(`Autorizado por: ${this.facturaDetalle.fact_AutorizadoPor}`, 50, yPos);
     }

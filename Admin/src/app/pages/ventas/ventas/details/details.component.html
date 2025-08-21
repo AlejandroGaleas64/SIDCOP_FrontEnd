@@ -259,7 +259,7 @@
             <div *ngIf="!cargandoDetalles && detallesFactura.length > 0" class="row g-6">
               <div *ngFor="let detalle of detallesFactura; trackBy: trackByDetalleId" 
                    class="col-10 col-sm-6 col-md-6 col-lg-4 flex-wrap">
-                <div class="card product-card h-100 w-150 flex-wrap shadow-sm">
+                <div class="card product-card h-100 flex-wrap shadow-sm m-tooltip">
                   <!-- Imagen del producto -->
                   <div class="product-image-container">
                     <img 
@@ -293,7 +293,7 @@
                     </h6>
 
                     <!-- Información adicional -->
-                    <div class="product-info mt-auto">
+                    <div class="product-info">
                       <!-- Cantidad -->
                       <div class="info-row">
                         <span class="info-label">
@@ -307,7 +307,7 @@
                       <div class="info-row mt-1">
                         <span class="info-label">
                           <i class="ri-price-tag-3-line me-1"></i>
-                          Precio Unit.:
+                          Precio:
                         </span>
                         <span class="info-value">L. {{ detalle.faDe_PrecioUnitario?.toFixed(2) || '0.00' }}</span>
                       </div>
