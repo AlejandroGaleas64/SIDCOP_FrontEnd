@@ -229,7 +229,7 @@
 
                     <!-- Controles de cantidad -->
                     <div class="cantidad-controls-premium">
-                      <label class="form-label-premium">Cantidad Facturada</label>
+                      <label class="form-label-premium">Cantidad a Devolver</label>
                       <div class="input-group-premium">
                         <button class="btn-cantidad-premium btn-minus" type="button"
                           (click)="disminuirCantidad(getProductoIndex(producto.prod_Id))"
@@ -249,18 +249,18 @@
                       <div class="stock-info mt-2">
                         <small class="text-muted">
                           <i class="ri-information-line me-1"></i>
-                          {{ producto.cantidadVendida }} de {{ producto.cantidadOriginal }} (cantidad original vendida)
+                          {{ producto.cantidadOriginal - producto.cantidadVendida }} de {{ producto.cantidadOriginal }} (nueva cantidad a insertar)
                         </small>
                       </div>
                       <!-- Mostrar información de devolución solo si la cantidad es menor a la original -->
-                      <div class="stock-info mt-1" *ngIf="producto.cantidadVendida >= 0 && producto.cantidadVendida < producto.cantidadOriginal">
+                      <div class="stock-info mt-1" *ngIf="producto.cantidadVendida > 0 && producto.cantidadVendida <= producto.cantidadOriginal">
                         <small class="text-success">
                           <i class="ri-check-line me-1"></i>
-                          Seleccionado para devolución: {{ producto.cantidadOriginal - producto.cantidadVendida }} unidad(es)
+                          Seleccionado para devolución: {{ producto.cantidadVendida }} unidad(es)
                         </small>
                       </div>
                       <!-- Mostrar cuando no hay devolución (cantidad completa) -->
-                      <div class="stock-info mt-1" *ngIf="producto.cantidadVendida === producto.cantidadOriginal">
+                      <div class="stock-info mt-1" *ngIf="producto.cantidadVendida === 0">
                         <small class="text-muted">
                           <i class="ri-check-line me-1"></i>
                           Sin devolución (cantidad completa)

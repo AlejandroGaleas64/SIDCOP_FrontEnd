@@ -32,6 +32,27 @@
   <div class="flex-grow-1">
     <div class="row">
 
+      <div class="col-12 col-md-6">
+        <div class="mb-3">
+          <label for="pedidoCodigo" class="form-label">Código</label>
+          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          <div class="d-flex align-items-center">
+            <i class="ri-attachment-line"
+              [ngStyle]="{
+                  border: (!pedidoEditada.pedi_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!pedidoEditada.pedi_Codigo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            </i>
+            <input type="text" class="form-control" [class.is-invalid]="!pedidoEditada.pedi_Codigo.trim() && mostrarErrores"
+              id="pedidoCodigo" [(ngModel)]="pedidoEditada.pedi_Codigo" placeholder="Ingrese el codigo del pedido" required
+              [disabled]="true" />
+          </div>
+          <div class="text-danger mt-1" *ngIf="!pedidoEditada.pedi_Codigo.trim() && mostrarErrores">
+            <small>El campo codigo del pedido es requerido</small>
+          </div>
+        </div>
+      </div>
+
 
       <div class="col-md-6">
         <label class="form-label">
@@ -195,11 +216,11 @@
                       {{ producto.prod_DescripcionCorta }}
                     </h6>
 
-                     <div class="precio-producto mb-3">
+                    <div class="precio-producto mb-3">
                       <span class="text-muted">Precio:</span>
-                     <span class="fw-bold text-dark">
-  L {{ getPrecioPorCantidad(producto, producto.cantidad).toFixed(2) }}
-</span>
+                      <span class="fw-bold text-dark">
+                        L {{ getPrecioPorCantidad(producto, producto.cantidad).toFixed(2) }}
+                      </span>
 
                     </div>
 

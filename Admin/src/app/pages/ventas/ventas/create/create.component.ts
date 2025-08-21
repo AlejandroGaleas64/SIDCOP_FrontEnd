@@ -79,7 +79,7 @@ private inicializar(): void {
     fact_Numero: '', // Se generará en el backend
     fact_TipoDeDocumento: '01',
     regC_Id: 19,
-    diCl_Id: 41, // Nuevo campo que reemplaza a clie_Id
+    diCl_Id: 0, // Nuevo campo que reemplaza a clie_Id
     direccionId: 0, // Se llenará cuando se seleccione un cliente y sus direcciones
     fact_TipoVenta: '', // se llenará en el formulario
     fact_FechaEmision: hoy,
@@ -115,19 +115,16 @@ private inicializar(): void {
         // Verificar la estructura de los datos para depuración
         if (this.vendedores && this.vendedores.length > 0) {
           const primerVendedor = this.vendedores[0];
-   
-          // Verificar si los vendedores tienen alguna propiedad relacionada con sucursal
           const propiedadesSucursal = Object.keys(primerVendedor).filter(key => 
             key.toLowerCase().includes('sucu') || 
             key.toLowerCase().includes('sucur') || 
             key.toLowerCase().includes('regc'));
           
-
+          console.log('Propiedades de sucursal encontradas en vendedores:', propiedadesSucursal);
         }
       },
       error: (error) => {
         this.mostrarError('Error al cargar datos iniciales');
-
         this.cargando = false;
       }
     });
@@ -168,12 +165,10 @@ private inicializar(): void {
           this.venta.fact_Latitud = position.coords.latitude;
           this.venta.fact_Longitud = position.coords.longitude;
           this.obteniendoUbicacion = false;
-          console.log('Ubicación obtenida:', this.venta.fact_Latitud, this.venta.fact_Longitud);
         },
         (error) => {
           this.obteniendoUbicacion = false;
           this.errorUbicacion = 'No se pudo obtener la ubicación: ' + this.getErrorUbicacion(error);
-          console.error('Error de geolocalización:', error);
         }
       );
     } else {
@@ -219,9 +214,6 @@ private inicializar(): void {
       return Number(vendedor.sucu_Id) === sucursalId;
     });
     
-    // Mostrar los vendedores filtrados para depuración
-    console.log('Vendedores filtrados por sucursal:', vendedoresFiltrados);
-    
     return vendedoresFiltrados;
   }
   
@@ -234,7 +226,6 @@ private inicializar(): void {
     
     // Si no hay ID de vendedor seleccionado, salir
     if (!this.venta.vend_Id || this.venta.vend_Id === 0) {
-      console.warn('No hay vendedor seleccionado');
       return;
     }
     
@@ -242,30 +233,29 @@ private inicializar(): void {
     const vendedorSeleccionado = this.vendedores.find(v => Number(v.vend_Id) === Number(this.venta.vend_Id));
     
     if (!vendedorSeleccionado) {
-      console.warn('No se encontró el vendedor seleccionado en la lista');
+      console.warn('Vendedor no encontrado con ID:', this.venta.vend_Id);
       return;
     }
     
-    console.log('Vendedor seleccionado:', vendedorSeleccionado);
-    
     // Verificar si el vendedor tiene el campo regC_Id
     if (vendedorSeleccionado.regC_Id !== undefined) {
-      // Almacenar el regC_Id del vendedor
       this.venta.regC_Id_Vendedor = vendedorSeleccionado.regC_Id;
-      console.log('regC_Id del vendedor seleccionado:', this.venta.regC_Id_Vendedor);
+      console.log('regC_Id_Vendedor asignado:', this.venta.regC_Id_Vendedor);
     } else {
-      console.warn('El vendedor seleccionado no tiene el campo regC_Id:', vendedorSeleccionado);
       // Intentar buscar cualquier propiedad que contenga 'regc'
       const regCProperty = Object.keys(vendedorSeleccionado).find(key => 
         key.toLowerCase().includes('regc'));
       
       if (regCProperty) {
         this.venta.regC_Id_Vendedor = vendedorSeleccionado[regCProperty];
-        console.log(`Campo alternativo encontrado (${regCProperty}):`, this.venta.regC_Id_Vendedor);
+        console.log('regC_Id_Vendedor encontrado en propiedad alternativa:', regCProperty, this.venta.regC_Id_Vendedor);
       } else {
-        console.warn('No se encontró ninguna propiedad relacionada con regC_Id');
+        console.warn('No se encontró regC_Id para el vendedor seleccionado');
       }
     }
+    
+    // Actualizar estado de navegación
+    this.actualizarEstadoNavegacion();
   }
 
   // ========== INVENTARIO POR SUCURSAL ==========
@@ -282,23 +272,24 @@ private inicializar(): void {
       this.venta.vend_Id = 0;
       // Limpiamos el regC_Id_Vendedor si no hay vendedores
       this.venta.regC_Id_Vendedor = undefined;
-      
-      // Si no hay vendedores para esta sucursal pero hay vendedores en general,
-      // usar todos los vendedores como alternativa
-      if (this.vendedores && this.vendedores.length > 0) {
-        // Mostrar mensaje en consola
-     }
+      console.warn('No hay vendedores disponibles para la sucursal seleccionada');
     }
+    
+    // Limpiar cantidades si cambió la sucursal
     if (this.sucursalSeleccionadaAnterior !== this.venta.regC_Id) {
       this.limpiarCantidadesSeleccionadas();
       this.sucursalSeleccionadaAnterior = this.venta.regC_Id;
     }
 
+    // Cargar inventario de la nueva sucursal
     if (this.venta.regC_Id && this.venta.regC_Id > 0) {
       this.cargarInventarioSucursal();
     } else {
       this.limpiarInventario();
     }
+    
+    // Actualizar estado de navegación
+    this.actualizarEstadoNavegacion();
   }
 
 
@@ -319,7 +310,7 @@ private inicializar(): void {
           this.cargandoInventario = false;
         },
         error: (error) => {
-
+          console.error('Error al cargar inventario de sucursal:', error);
           this.mostrarError('Error al cargar el inventario de la sucursal');
           this.cargandoInventario = false;
           this.limpiarInventario();
@@ -370,8 +361,10 @@ private inicializar(): void {
 
   // ========== CONTROL DE CANTIDADES ==========
   aumentarCantidad(index: number): void {
-    if (index < 0 || index >= this.productos.length) return;
-    const producto = this.productos[index];
+    // Obtener el producto de la página actual
+    const productosPaginados = this.getProductosPaginados();
+    if (index < 0 || index >= productosPaginados.length) return;
+    const producto = productosPaginados[index];
 
     if (!this.venta.regC_Id || this.venta.regC_Id === 0) {
       this.mostrarWarning('Debe seleccionar una sucursal primero');
@@ -393,15 +386,19 @@ private inicializar(): void {
   }
 
   disminuirCantidad(index: number): void {
-    if (index >= 0 && index < this.productos.length && this.productos[index].cantidad > 0) {
-      this.productos[index].cantidad--;
+    // Obtener el producto de la página actual
+    const productosPaginados = this.getProductosPaginados();
+    if (index >= 0 && index < productosPaginados.length && productosPaginados[index].cantidad > 0) {
+      productosPaginados[index].cantidad--;
       this.actualizarEstadoNavegacion();
     }
   }
 
   validarCantidad(index: number): void {
-    if (index < 0 || index >= this.productos.length) return;
-    const producto = this.productos[index];
+    // Obtener el producto de la página actual
+    const productosPaginados = this.getProductosPaginados();
+    if (index < 0 || index >= productosPaginados.length) return;
+    const producto = productosPaginados[index];
     let cantidad = producto.cantidad || 0;
 
     cantidad = Math.max(0, Math.min(999, cantidad));
@@ -443,11 +440,23 @@ private inicializar(): void {
 
   private aplicarFiltros(): void {
     const termino = this.busquedaProducto.toLowerCase().trim();
-    this.productosFiltrados = !termino
+    
+    // Filtrar productos por término de búsqueda
+    const productosFiltrados = !termino
       ? [...this.productos]
       : this.productos.filter((p) =>
           p.prod_Descripcion.toLowerCase().includes(termino)
         );
+    
+    // Ordenar productos: primero los que tienen stock, luego los sin stock
+    this.productosFiltrados = productosFiltrados.sort((a, b) => {
+      // Si ambos tienen stock o ambos no tienen stock, mantener orden alfabético
+      if (a.tieneStock === b.tieneStock) {
+        return a.prod_Descripcion.localeCompare(b.prod_Descripcion);
+      }
+      // Los que tienen stock van primero (true > false)
+      return b.tieneStock ? 1 : -1;
+    });
   }
 
   getProductosPaginados(): any[] {
@@ -515,7 +524,7 @@ private inicializar(): void {
     const errores = [];
 
     if (!this.venta.regC_Id || this.venta.regC_Id == 0) errores.push('Sucursal');
-    if (!this.venta.diCl_Id || this.venta.diCl_Id == 0) errores.push('Cliente');
+    if (!this.clienteSeleccionado || this.clienteSeleccionado == 0) errores.push('Cliente');
     if (!this.venta.direccionId || this.venta.direccionId == 0) errores.push('Dirección del cliente');
     if (!this.venta.vend_Id || this.venta.vend_Id == 0) errores.push('Vendedor');
     if (!this.venta.fact_TipoVenta) errores.push('Tipo de venta (Contado/Crédito)');
@@ -539,7 +548,7 @@ private inicializar(): void {
   }
   
   getNombreCliente(): string {
-    const cliente = this.clientes.find((c) => c.diCl_Id == this.venta.diCl_Id);
+    const cliente = this.clientes.find((c) => c.clie_Id == this.clienteSeleccionado);
     return cliente ? `${cliente.clie_NombreNegocio} - ${cliente.clie_Nombres} ${cliente.clie_Apellidos}` : 'No seleccionado';
   }
   
@@ -548,9 +557,29 @@ private inicializar(): void {
     return direccion?.diCl_DireccionExacta || 'No seleccionada';
   }
   
+  getNombreVendedor(): string {
+    const vendedor = this.vendedores.find((v) => v.vend_Id == this.venta.vend_Id);
+    return vendedor ? `${vendedor.vend_Nombres} ${vendedor.vend_Apellidos}` : 'No seleccionado';
+  }
+
+  // ========== CÁLCULOS FINANCIEROS ==========
+  getSubtotal(): number {
+    return this.productos
+      .filter((p) => p.cantidad > 0)
+      .reduce((total, p) => total + (p.cantidad * p.prod_PrecioUnitario), 0);
+  }
+
+  getImpuestos(): number {
+    // Asumiendo ISV del 15% sobre el subtotal
+    return this.getSubtotal() * 0.15;
+  }
+
+  getTotalGeneral(): number {
+    return this.getSubtotal() + this.getImpuestos();
+  }
+  
   // ========== DIRECCIONES DEL CLIENTE ==========
   cargarDireccionesCliente(clienteId: number): void {
-    console.log('ID del cliente recibido:', clienteId);
     if (!clienteId || clienteId === 0) {
       this.direccionesCliente = [];
       this.venta.direccionId = 0; // Resetear la dirección seleccionada
@@ -575,28 +604,23 @@ private inicializar(): void {
         next: (response) => {
           if (response) {
             this.direccionesCliente = response;
-            console.log('Direcciones cargadas:', this.direccionesCliente);
             // Si hay direcciones disponibles, seleccionar la primera por defecto
             if (this.direccionesCliente.length > 0) {
               const primeraDireccion = this.direccionesCliente[0];
               this.venta.direccionId = primeraDireccion.diCl_Id;
               // Actualizamos diCl_Id con el ID de la dirección seleccionada
               this.actualizarDireccionSeleccionada(primeraDireccion.diCl_Id);
-              console.log('Primera dirección seleccionada automáticamente:', primeraDireccion);
             } else {
               this.venta.direccionId = 0;
               this.venta.diCl_Id = 0;
-              console.log('No hay direcciones disponibles para este cliente');
             }
           } else {
             this.direccionesCliente = [];
             this.venta.direccionId = 0;
             this.venta.diCl_Id = 0;
-            console.log('No hay datos de direcciones en la respuesta');
           }
         },
         error: (error) => {
-          console.error('Error al cargar direcciones del cliente:', error);
           this.direccionesCliente = [];
           this.venta.direccionId = 0;
           this.venta.diCl_Id = 0;
@@ -606,12 +630,18 @@ private inicializar(): void {
   }
   
   actualizarDireccionSeleccionada(direccionId: number): void {
-    // Este método se ejecuta cuando se cambia la dirección seleccionada
-    console.log('Dirección seleccionada:', direccionId);
+    if (!direccionId || direccionId === 0) {
+      this.venta.diCl_Id = 0;
+      this.venta.direccionId = 0;
+      return;
+    }
     
-    // Asignamos el ID de la dirección seleccionada al campo diCl_Id
+    // Actualizar el ID de dirección del cliente para el backend
     this.venta.diCl_Id = direccionId;
-    console.log('diCl_Id actualizado:', this.venta.diCl_Id);
+    this.venta.direccionId = direccionId;
+    
+    // Actualizar el estado de navegación
+    this.actualizarEstadoNavegacion();
   }
 
   getTotalProductosSeleccionados(): number {
@@ -737,9 +767,15 @@ private inicializar(): void {
     this.venta.usua_Creacion = this.usuarioId;
     this.venta.fact_FechaEmision = new Date();
     this.venta.fact_FechaLimiteEmision = new Date();
-    this.venta.regC_Id = 19;
-    this.venta.diCl_Id = 41;
-    this.venta.vend_Id = 1;
+    this.venta.regC_Id = 0;
+    this.venta.diCl_Id = 0;
+    this.venta.direccionId = 0;
+    this.venta.vend_Id = 0;
+    
+    // Resetear selección de cliente y direcciones
+    this.clienteSeleccionado = 0;
+    this.direccionesCliente = [];
+    
     this.productos.forEach((p) => {
       p.cantidad = 0;
       p.stockDisponible = 0;
@@ -784,9 +820,10 @@ private crearVenta(): void {
   const datosEnviar = {
     fact_Numero: '',
     fact_TipoDeDocumento: '01',
-    regC_Id: this.venta.regC_Id,
+    regC_Id: this.venta.regC_Id_Vendedor,
     regC_Id_Vendedor: this.venta.regC_Id_Vendedor, // ID de registro CAI del vendedor
-    diCl_Id: this.venta.diCl_Id, // ID de la dirección del cliente (NO el ID del cliente)
+    diCl_Id: this.venta.diCl_Id,
+    direccionId: this.venta.direccionId, // ID de la dirección del cliente (NO el ID del cliente)
     vend_Id: this.venta.vend_Id,
     fact_TipoVenta: this.venta.fact_TipoVenta,
     fact_FechaEmision: this.venta.fact_FechaEmision.toISOString(),
@@ -799,7 +836,7 @@ private crearVenta(): void {
   };
   
   // Verificamos que regC_Id_Vendedor tenga un valor
-  console.log('regC_Id_Vendedor:', this.venta.regC_Id_Vendedor);
+
 
   // Verificamos que diCl_Id tenga un valor válido
   if (!datosEnviar.diCl_Id || datosEnviar.diCl_Id === 0) {
@@ -810,14 +847,11 @@ private crearVenta(): void {
   
   // Verificamos que regC_Id_Vendedor tenga un valor válido
   if (!datosEnviar.regC_Id_Vendedor) {
-    console.warn('Advertencia: No se ha encontrado el registro CAI del vendedor');
     // Si no se encuentra el regC_Id_Vendedor, usamos el regC_Id de la sucursal como alternativa
     datosEnviar.regC_Id_Vendedor = datosEnviar.regC_Id;
-    console.log('Usando regC_Id como alternativa:', datosEnviar.regC_Id_Vendedor);
   }
 
-  // Verifica en consola lo que se envía
-  console.log('Datos enviados al backend:', datosEnviar);
+  console.log(datosEnviar);
 
   this.http
     .post<any>(`${environment.apiBaseUrl}/Facturas/InsertarEnSucursal`, datosEnviar, {
@@ -838,6 +872,9 @@ private crearVenta(): void {
               action: 'detalles',
               mostrarDetalles: true // Indicador explícito para mostrar detalles
             });
+            
+            // Limpiar el formulario después de crear la venta exitosamente
+            this.limpiarFormulario();
           }, 2000);
         } else {
           this.mostrarError('No se pudo obtener el ID de la venta');
@@ -845,7 +882,63 @@ private crearVenta(): void {
       },
       error: (err) => {
         this.guardando = false;
-        this.mostrarError('Error al guardar la venta');
+        
+        // DEBUGGING DETALLADO - Analizar estructura completa del error
+        console.group('🔍 ANÁLISIS DETALLADO DEL ERROR');
+        console.log('1. Error completo:', err);
+        console.log('2. Tipo de err:', typeof err);
+        console.log('3. err.error:', err.error);
+        console.log('4. Tipo de err.error:', typeof err.error);
+        console.log('5. err.status:', err.status);
+        console.log('6. err.statusText:', err.statusText);
+        console.log('7. err.message:', err.message);
+        console.log('8. err.name:', err.name);
+        
+        // Si err.error es string, intentar parsearlo como JSON
+        if (typeof err.error === 'string') {
+          console.log('9. err.error es string, intentando parsear JSON...');
+          try {
+            const parsedError = JSON.parse(err.error);
+            console.log('10. JSON parseado exitosamente:', parsedError);
+          } catch (parseError) {
+            console.log('10. Error al parsear JSON:', parseError);
+          }
+        }
+        
+        // Verificar todas las propiedades del objeto error
+        console.log('11. Propiedades de err:', Object.keys(err));
+        if (err.error && typeof err.error === 'object') {
+          console.log('12. Propiedades de err.error:', Object.keys(err.error));
+        }
+        console.groupEnd();
+        
+        // Intentar extraer el mensaje de error de diferentes formas
+        let errorMessage = 'Error al guardar la venta';
+        
+        // Método 1: err.error como objeto con message
+        if (err.error && typeof err.error === 'object' && err.error.message) {
+          errorMessage = err.error.message;
+          console.log('✅ Mensaje extraído de err.error.message:', errorMessage);
+        }
+        // Método 2: err.error como string JSON
+        else if (typeof err.error === 'string') {
+          try {
+            const parsedError = JSON.parse(err.error);
+            if (parsedError.message) {
+              errorMessage = parsedError.message;
+              console.log('✅ Mensaje extraído de JSON parseado:', errorMessage);
+            }
+          } catch (e) {
+            console.log('❌ No se pudo parsear err.error como JSON');
+          }
+        }
+        // Método 3: err.message directo
+        else if (err.message) {
+          errorMessage = err.message;
+          console.log('✅ Mensaje extraído de err.message:', errorMessage);
+        }
+        
+        this.mostrarError(errorMessage);
       },
     });
 }
