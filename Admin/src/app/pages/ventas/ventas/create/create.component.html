@@ -603,11 +603,19 @@
 
                       <!-- Nombre del producto -->
                       <h6
-                        class="producto-titulo-premium mb-3"
+                        class="producto-titulo-premium mb-2"
                         [class.text-muted]="!producto.tieneStock"
                       >
                         {{ producto.prod_Descripcion }}
                       </h6>
+
+                      <!-- Precio del producto -->
+                      <div class="precio-producto-premium mb-3">
+                        <span class="precio-valor" [class.text-muted]="!producto.tieneStock">
+                          L. {{ producto.prod_PrecioUnitario | number:'1.2-2' }}
+                        </span>
+                        <span class="precio-unidad text-muted">/ unidad</span>
+                      </div>
 
                       <!-- Controles de cantidad -->
                       <div class="cantidad-controls-premium">
@@ -847,17 +855,17 @@
                   
                   <div class="col-12 col-md-4">
                     <div class="info-item text-center d-flex flex-column align-items-center">
-                      <i class="ri-file-text-line text-muted fs-3 mb-0"></i>
-                      <h6 class="info-title mb-0">Referencia</h6>
-                      <p class="info-description mb-0">{{ venta.fact_Referencia || 'Sin referencia' }}</p>
+                      <i class="ri-money-dollar-circle-line text-success fs-3 mb-0"></i>
+                      <h6 class="info-title mb-0">Subtotal</h6>
+                      <p class="info-description mb-0">L. {{ getSubtotal() | number:'1.2-2' }}</p>
                     </div>
                   </div>
                   
                   <div class="col-12 col-md-4">
                     <div class="info-item text-center d-flex flex-column align-items-center">
-                      <i class="ri-time-line text-info fs-3 mb-0"></i>
-                      <h6 class="info-title mb-0">Hora de Creación</h6>
-                      <p class="info-description mb-0">{{ venta.fact_FechaEmision | date : "HH:mm" }}</p>
+                      <i class="ri-calculator-line text-warning fs-3 mb-0"></i>
+                      <h6 class="info-title mb-0">Total General</h6>
+                      <p class="info-description highlight mb-0">L. {{ getTotalGeneral() | number:'1.2-2' }}</p>
                     </div>
                   </div>
                 </div>

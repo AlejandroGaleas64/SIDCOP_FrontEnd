@@ -561,6 +561,22 @@ private inicializar(): void {
     const vendedor = this.vendedores.find((v) => v.vend_Id == this.venta.vend_Id);
     return vendedor ? `${vendedor.vend_Nombres} ${vendedor.vend_Apellidos}` : 'No seleccionado';
   }
+
+  // ========== CÁLCULOS FINANCIEROS ==========
+  getSubtotal(): number {
+    return this.productos
+      .filter((p) => p.cantidad > 0)
+      .reduce((total, p) => total + (p.cantidad * p.prod_PrecioUnitario), 0);
+  }
+
+  getImpuestos(): number {
+    // Asumiendo ISV del 15% sobre el subtotal
+    return this.getSubtotal() * 0.15;
+  }
+
+  getTotalGeneral(): number {
+    return this.getSubtotal() + this.getImpuestos();
+  }
   
   // ========== DIRECCIONES DEL CLIENTE ==========
   cargarDireccionesCliente(clienteId: number): void {
