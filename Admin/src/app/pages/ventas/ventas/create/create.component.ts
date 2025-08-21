@@ -115,19 +115,16 @@ private inicializar(): void {
         // Verificar la estructura de los datos para depuración
         if (this.vendedores && this.vendedores.length > 0) {
           const primerVendedor = this.vendedores[0];
-   
-          // Verificar si los vendedores tienen alguna propiedad relacionada con sucursal
           const propiedadesSucursal = Object.keys(primerVendedor).filter(key => 
             key.toLowerCase().includes('sucu') || 
             key.toLowerCase().includes('sucur') || 
             key.toLowerCase().includes('regc'));
           
-
+          console.log('Propiedades de sucursal encontradas en vendedores:', propiedadesSucursal);
         }
       },
       error: (error) => {
         this.mostrarError('Error al cargar datos iniciales');
-
         this.cargando = false;
       }
     });
@@ -229,7 +226,6 @@ private inicializar(): void {
     
     // Si no hay ID de vendedor seleccionado, salir
     if (!this.venta.vend_Id || this.venta.vend_Id === 0) {
-
       return;
     }
     
@@ -237,27 +233,29 @@ private inicializar(): void {
     const vendedorSeleccionado = this.vendedores.find(v => Number(v.vend_Id) === Number(this.venta.vend_Id));
     
     if (!vendedorSeleccionado) {
-
+      console.warn('Vendedor no encontrado con ID:', this.venta.vend_Id);
       return;
     }
     
-
-    
     // Verificar si el vendedor tiene el campo regC_Id
     if (vendedorSeleccionado.regC_Id !== undefined) {
-      // Almacenar el regC_Id del vendedor
       this.venta.regC_Id_Vendedor = vendedorSeleccionado.regC_Id;
-
+      console.log('regC_Id_Vendedor asignado:', this.venta.regC_Id_Vendedor);
     } else {
-
       // Intentar buscar cualquier propiedad que contenga 'regc'
       const regCProperty = Object.keys(vendedorSeleccionado).find(key => 
         key.toLowerCase().includes('regc'));
       
       if (regCProperty) {
         this.venta.regC_Id_Vendedor = vendedorSeleccionado[regCProperty];
-      } 
+        console.log('regC_Id_Vendedor encontrado en propiedad alternativa:', regCProperty, this.venta.regC_Id_Vendedor);
+      } else {
+        console.warn('No se encontró regC_Id para el vendedor seleccionado');
+      }
     }
+    
+    // Actualizar estado de navegación
+    this.actualizarEstadoNavegacion();
   }
 
   // ========== INVENTARIO POR SUCURSAL ==========
@@ -274,23 +272,24 @@ private inicializar(): void {
       this.venta.vend_Id = 0;
       // Limpiamos el regC_Id_Vendedor si no hay vendedores
       this.venta.regC_Id_Vendedor = undefined;
-      
-      // Si no hay vendedores para esta sucursal pero hay vendedores en general,
-      // usar todos los vendedores como alternativa
-      if (this.vendedores && this.vendedores.length > 0) {
-        // Mostrar mensaje en consola
-     }
+      console.warn('No hay vendedores disponibles para la sucursal seleccionada');
     }
+    
+    // Limpiar cantidades si cambió la sucursal
     if (this.sucursalSeleccionadaAnterior !== this.venta.regC_Id) {
       this.limpiarCantidadesSeleccionadas();
       this.sucursalSeleccionadaAnterior = this.venta.regC_Id;
     }
 
+    // Cargar inventario de la nueva sucursal
     if (this.venta.regC_Id && this.venta.regC_Id > 0) {
       this.cargarInventarioSucursal();
     } else {
       this.limpiarInventario();
     }
+    
+    // Actualizar estado de navegación
+    this.actualizarEstadoNavegacion();
   }
 
 
@@ -311,7 +310,7 @@ private inicializar(): void {
           this.cargandoInventario = false;
         },
         error: (error) => {
-
+          console.error('Error al cargar inventario de sucursal:', error);
           this.mostrarError('Error al cargar el inventario de la sucursal');
           this.cargandoInventario = false;
           this.limpiarInventario();
@@ -834,6 +833,9 @@ private crearVenta(): void {
               action: 'detalles',
               mostrarDetalles: true // Indicador explícito para mostrar detalles
             });
+            
+            // Limpiar el formulario después de crear la venta exitosamente
+            this.limpiarFormulario();
           }, 2000);
         } else {
           this.mostrarError('No se pudo obtener el ID de la venta');
@@ -841,7 +843,63 @@ private crearVenta(): void {
       },
       error: (err) => {
         this.guardando = false;
-        this.mostrarError('Error al guardar la venta');
+        
+        // DEBUGGING DETALLADO - Analizar estructura completa del error
+        console.group('🔍 ANÁLISIS DETALLADO DEL ERROR');
+        console.log('1. Error completo:', err);
+        console.log('2. Tipo de err:', typeof err);
+        console.log('3. err.error:', err.error);
+        console.log('4. Tipo de err.error:', typeof err.error);
+        console.log('5. err.status:', err.status);
+        console.log('6. err.statusText:', err.statusText);
+        console.log('7. err.message:', err.message);
+        console.log('8. err.name:', err.name);
+        
+        // Si err.error es string, intentar parsearlo como JSON
+        if (typeof err.error === 'string') {
+          console.log('9. err.error es string, intentando parsear JSON...');
+          try {
+            const parsedError = JSON.parse(err.error);
+            console.log('10. JSON parseado exitosamente:', parsedError);
+          } catch (parseError) {
+            console.log('10. Error al parsear JSON:', parseError);
+          }
+        }
+        
+        // Verificar todas las propiedades del objeto error
+        console.log('11. Propiedades de err:', Object.keys(err));
+        if (err.error && typeof err.error === 'object') {
+          console.log('12. Propiedades de err.error:', Object.keys(err.error));
+        }
+        console.groupEnd();
+        
+        // Intentar extraer el mensaje de error de diferentes formas
+        let errorMessage = 'Error al guardar la venta';
+        
+        // Método 1: err.error como objeto con message
+        if (err.error && typeof err.error === 'object' && err.error.message) {
+          errorMessage = err.error.message;
+          console.log('✅ Mensaje extraído de err.error.message:', errorMessage);
+        }
+        // Método 2: err.error como string JSON
+        else if (typeof err.error === 'string') {
+          try {
+            const parsedError = JSON.parse(err.error);
+            if (parsedError.message) {
+              errorMessage = parsedError.message;
+              console.log('✅ Mensaje extraído de JSON parseado:', errorMessage);
+            }
+          } catch (e) {
+            console.log('❌ No se pudo parsear err.error como JSON');
+          }
+        }
+        // Método 3: err.message directo
+        else if (err.message) {
+          errorMessage = err.message;
+          console.log('✅ Mensaje extraído de err.message:', errorMessage);
+        }
+        
+        this.mostrarError(errorMessage);
       },
     });
 }
