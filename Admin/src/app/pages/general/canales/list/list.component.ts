@@ -75,9 +75,9 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
 export class ListComponent implements OnInit {
   private readonly exportConfig = {
         // Configuración básica
-        title: 'Listado de Estados Civiles',                    // Título del reporte
-        filename: 'Estados Civiles',                           // Nombre base del archivo
-  
+        title: 'Listado de Canales',                    // Título del reporte
+        filename: 'Canales',                           // Nombre base del archivo
+
         // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
         columns: [
           { key: 'No', header: 'No.', width: 8, align: 'center' as const },

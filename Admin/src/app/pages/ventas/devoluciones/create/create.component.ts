@@ -32,6 +32,7 @@ export class CreateComponent implements OnInit {
     devo_EnSucursal: false
   };
 
+  facturaOriginal: any = null;
   vendedores: any[] = [];
   clientes: any[] = [];
   clientesFiltrados: any[] = [];
@@ -51,6 +52,9 @@ export class CreateComponent implements OnInit {
   productosFiltrados: any[] = [];
   paginaActual = 1;
   productosPorPagina = 12;
+
+  clienteSeleccionado: any = null;
+  vendedorSeleccionado: any = null;
 
   cargando = false;
   mostrarErrores = false;
@@ -102,14 +106,16 @@ export class CreateComponent implements OnInit {
   onVendedorSeleccionado(vendedor: any) {
     if (!vendedor) { 
       this.clientesFiltrados = []; 
+      this.facturasFiltradas = [];
+      this.vendedorSeleccionado = null;
+      this.clienteSeleccionado = null;
       return; 
     }
 
+    this.vendedorSeleccionado = vendedor; // Guardar referencia
     this.cargarClientesPorRuta(vendedor.ruta_Id);
-    this.cargarFacturarPorCliente(vendedor.vend_Id);
     console.log('Vendedor seleccionado:', vendedor);
   }
-
 
   cargarClientesPorRuta(rutaId: number) {
     if (!rutaId) { 
@@ -143,19 +149,24 @@ export class CreateComponent implements OnInit {
   }
 
   onClienteSeleccionado(cliente: any) {
+    console.log('Cliente recibido en onClienteSeleccionado:', cliente);
+    
     if (!cliente) { 
       this.direcciones = [];
+      this.facturasFiltradas = [];
+      this.clienteSeleccionado = null;
       return;
     }
 
+    this.clienteSeleccionado = cliente; // Guardar referencia
     this.cargarDireccionesCliente(cliente.clie_Id);
     console.log('Cliente seleccionado:', cliente);
   }
 
-
   cargarDireccionesCliente(clienteId: number) {
     if (!clienteId) { 
       this.direcciones = [];
+      this.facturasFiltradas = [];
       return; 
     }
 
@@ -165,14 +176,87 @@ export class CreateComponent implements OnInit {
     }).subscribe({
       next: (data) => { 
         this.direcciones = data || []; 
-        this.cargando = false;
         console.log('Direcciones cargadas:', this.direcciones);
+        
+        // Cargar facturas después de tener las direcciones
+        if (this.vendedorSeleccionado && this.direcciones.length > 0) {
+          this.cargarYFiltrarFacturas();
+        } else if (this.direcciones.length === 0) {
+          console.log('No hay direcciones para este cliente');
+          this.facturasFiltradas = [];
+        }
+        
+        this.cargando = false;
       },
       error: () => { 
         this.mostrarMensaje('Error al cargar las direcciones del cliente', 'error'); 
         this.cargando = false; 
         this.direcciones = []; 
+        this.facturasFiltradas = [];
       }
+    });
+  }
+
+  cargarYFiltrarFacturas() {
+    if (!this.vendedorSeleccionado) {
+      console.error('No hay vendedor seleccionado');
+      this.facturasFiltradas = [];
+      return;
+    }
+
+    if (!this.direcciones || this.direcciones.length === 0) {
+      console.error('No hay direcciones cargadas');
+      this.facturasFiltradas = [];
+      return;
+    }
+
+    console.log('Cargando facturas para vendedor:', this.vendedorSeleccionado.vend_Id);
+    
+    this.cargando = true;
+    this.http.get<any>(`${environment.apiBaseUrl}/Facturas/ListarPorVendedor/${this.vendedorSeleccionado.vend_Id}`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (res) => {
+        console.log('Respuesta facturas completa:', res);
+        const todasFacturas = res?.data || res || []; // Intentar ambas estructuras
+
+        // Obtener los IDs de las direcciones
+        const direccionesIds = this.direcciones.map(d => d.diCl_Id);
+        console.log('IDs de direcciones:', direccionesIds);
+
+        // Log de las facturas para ver su estructura
+        console.log('Todas las facturas:', todasFacturas);
+        if (todasFacturas.length > 0) {
+          console.log('Ejemplo de factura:', todasFacturas[0]);
+          console.log('Campos disponibles:', Object.keys(todasFacturas[0]));
+        }
+
+        // Filtrar facturas - revisar diferentes nombres de campo posibles
+        this.facturasFiltradas = todasFacturas.filter((factura: any) => {
+          // Intentar diferentes nombres de campo que podrían contener el ID de dirección
+          const direccionId = factura.dicl_Id || factura.diCl_Id || factura.direccion_Id || factura.cliente_direccion_Id;
+          const coincide = direccionesIds.includes(direccionId);
+          
+          if (coincide) {
+            console.log(`Factura ${factura.fact_Numero || factura.numero} coincide con dirección ${direccionId}`);
+          }
+          
+          return coincide;
+        });
+
+        console.log('Facturas filtradas final:', this.facturasFiltradas);
+        
+        if (this.facturasFiltradas.length === 0) {
+          console.warn('No se encontraron facturas que coincidan con las direcciones del cliente');
+          console.log('Verificar si el nombre del campo de dirección en las facturas es correcto');
+        }
+      },
+      error: (err) => { 
+        console.error('Error cargando facturas:', err);
+        this.mostrarMensaje('Error al cargar la lista de facturas', 'error'); 
+        this.facturasFiltradas = []; 
+      },
+      complete: () => this.cargando = false
     });
   }
 
@@ -188,7 +272,19 @@ export class CreateComponent implements OnInit {
     }).subscribe({
       next: (res) => {
         console.log('Respuesta completa:', res);
-        this.facturasFiltradas = res?.data || []; // 👈 ahora sí solo el array
+        const todasFacturas = res?.data || [];
+
+        // Solo filtrar si ya tenemos direcciones cargadas
+        if (this.direcciones && this.direcciones.length > 0) {
+          const direccionesIds = this.direcciones.map(d => d.diCl_Id);
+          this.facturasFiltradas = todasFacturas.filter((f: any) => 
+            direccionesIds.includes(f.dicl_Id)
+          );
+        } else {
+          // Si no hay direcciones, no mostrar facturas
+          this.facturasFiltradas = [];
+        }
+
         console.log('Facturas filtradas:', this.facturasFiltradas);
       },
       error: (err) => { 
@@ -208,7 +304,29 @@ export class CreateComponent implements OnInit {
     }
 
     this.devolucion.fact_Id = factura.fact_Id;
+
+    // Mantenemos la carga de productos como antes
     this.listarProductos(factura.fact_Id);
+
+    // Además, mostramos los datos completos de la factura
+    this.obtenerFacturaCompleta(factura.fact_Id);
+  }
+
+  obtenerFacturaCompleta(factId: number) {
+    if (!factId) return;
+
+    this.http.get<any>(`${environment.apiBaseUrl}/Facturas/ObtenerCompleta/${factId}`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (facturaCompleta) => {
+        this.facturaOriginal = facturaCompleta;
+        console.log('📄 Factura completa recibida:', facturaCompleta);
+      },
+      error: (err) => {
+        console.error('❌ Error al obtener factura completa:', err);
+        this.mostrarMensaje('Error al cargar la factura completa', 'error');
+      }
+    });
   }
 
   listarProductos(id: number): void {
@@ -219,13 +337,14 @@ export class CreateComponent implements OnInit {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (data) => {
-        // data ya es un array de productos
+        // Inicializar productos con la cantidad vendida original como máximo
         this.productos = (data || []).map((producto: any) => ({
           ...producto,
-          cantidad: 0,
+          cantidadVendida: 0, // Cantidad actual seleccionada para devolución
+          cantidadOriginal: producto.cantidadVendida || 0, // Cantidad original de la factura (límite máximo)
           observaciones: '',
-          stockDisponible: 0,
-          tieneStock: false
+          stockDisponible: producto.cantidadVendida || 0, // Para mantener compatibilidad
+          tieneStock: (producto.cantidadVendida || 0) > 0
         }));
         this.aplicarFiltros();
         console.log('Productos cargados:', this.productos);
@@ -239,70 +358,52 @@ export class CreateComponent implements OnInit {
     if (index >= 0 && index < this.productos.length) {
       const producto = this.productos[index];
       
-      // Validar que hay sucursal seleccionada
-      // if (!this.traslado.tras_Origen || this.traslado.tras_Origen === 0) {
-      //   this.mostrarWarning('Debe seleccionar una sucursal de origen primero');
-      //   return;
-      // }
-
-      // Validar que el producto tiene stock
-      if (!producto.tieneStock) {
-        this.mostrarMensaje(`El producto "${producto.prod_Descripcion}" no tiene stock disponible en esta sucursal`);
+      // Validar que no exceda la cantidad original de la factura
+      if (producto.cantidadVendida >= producto.cantidadOriginal) {
+        this.mostrarMensaje(`No puede devolver más de ${producto.cantidadOriginal} unidades de "${producto.prod_Descripcion}". Esta fue la cantidad original vendida., 'advertencia'`);
         return;
       }
 
-      // Validar que no exceda el stock disponible
-      if (producto.cantidad >= producto.stockDisponible) {
-        this.mostrarMensaje(`Stock insuficiente. Solo hay ${producto.stockDisponible} unidades disponibles de "${producto.prod_Descripcion}"`);
-        return;
-      }
-
-      producto.cantidad = (producto.cantidad || 0) + 1;
-      // this.actualizarEstadoNavegacion();
+      producto.cantidadVendida = (producto.cantidadVendida || 0) + 1;
     }
   }
-  
+
   disminuirCantidad(index: number): void {
-    if (index >= 0 && index < this.productos.length && this.productos[index].cantidad > 0) {
-      this.productos[index].cantidad--;
-      // this.actualizarEstadoNavegacion();
+    if (index >= 0 && index < this.productos.length && this.productos[index].cantidadVendida > 0) {
+      this.productos[index].cantidadVendida--;
     }
   }
-  
+
   validarCantidad(index: number): void {
     if (index >= 0 && index < this.productos.length) {
       const producto = this.productos[index];
-      let cantidad = producto.cantidad || 0;
+      let cantidad = producto.cantidadVendida || 0;
 
       // Validar rango básico
-      cantidad = Math.max(0, Math.min(999, cantidad));
+      cantidad = Math.max(0, cantidad);
 
-      // Validar contra stock disponible
-      if (cantidad > 0) {
-        // Validar que hay sucursal seleccionada
-        // if (!this.traslado.tras_Origen || this.traslado.tras_Origen === 0) {
-        //   this.mostrarWarning('Debe seleccionar una sucursal de origen primero');
-        //   producto.cantidad = 0;
-        //   return;
-        // }
-
-        // Validar que el producto tiene stock
-        if (!producto.tieneStock) {
-          this.mostrarMensaje(`El producto "${producto.prod_Descripcion}" no tiene stock disponible en esta sucursal`);
-          producto.cantidad = 0;
-          return;
-        }
-
-        // Validar que no exceda el stock disponible
-        if (cantidad > producto.stockDisponible) {
-          this.mostrarMensaje(`Stock insuficiente. Solo hay ${producto.stockDisponible} unidades disponibles de "${producto.prod_Descripcion}"`);
-          cantidad = producto.stockDisponible;
-        }
+      // Validar que no exceda la cantidad original de la factura
+      if (cantidad > producto.cantidadOriginal) {
+        this.mostrarMensaje(`No puede devolver más de ${producto.cantidadOriginal} unidades de "${producto.prod_Descripcion}". Esta fue la cantidad original vendida., 'advertencia'`);
+        cantidad = producto.cantidadOriginal;
       }
 
-      producto.cantidad = cantidad;
-      // this.actualizarEstadoNavegacion();
+      producto.cantidadVendida = cantidad;
     }
+  }
+
+  // Método para obtener productos que realmente van a devolución (cantidad menor a la original)
+  obtenerProductosParaDevolucion(): any[] {
+    return this.productos
+      .filter(producto => producto.cantidadVendida < producto.cantidadOriginal)
+      .map(producto => ({
+        prod_Id: producto.prod_Id,
+        prod_Descripcion: producto.prod_Descripcion,
+        cantidadDevolucion: producto.cantidadOriginal - producto.cantidadVendida, // Cantidad real a devolver
+        cantidadVendida: producto.cantidadVendida, // Cantidad que se queda
+        cantidadOriginal: producto.cantidadOriginal, // Cantidad original
+        observaciones: producto.observaciones || ''
+      }));
   }
 
   // ========== MÉTODOS PARA BÚSQUEDA Y PAGINACIÓN ==========
@@ -393,7 +494,7 @@ export class CreateComponent implements OnInit {
       .map(producto => ({
         prod_Id: producto.prod_Id,
         prod_Descripcion: producto.prod_Descripcion,
-        cantidad: producto.cantidad,
+        cantidad: producto.cantidadVendida,
         observaciones: producto.observaciones || ''
       }));
   }
@@ -434,7 +535,344 @@ export class CreateComponent implements OnInit {
     return item.clie_Codigo?.toLowerCase().includes(term) || item.clie_Nombres?.toLowerCase().includes(term) || item.clie_Apellidos?.toLowerCase().includes(term) || item.clie_NombreNegocio?.toLowerCase().includes(term);
   };
 
-  guardar(){
+  guardar() {
+    console.log('\n=== INICIO DE insertarDevolucion ===');
     
+    // Validaciones básicas
+    if (!this.devolucion.fact_Id) {
+      this.mostrarMensaje('Debe seleccionar una factura', 'error');
+      return;
+    }
+
+    if (!this.devolucion.devo_Motivo || this.devolucion.devo_Motivo.trim() === '') {
+      this.mostrarMensaje('Debe ingresar el motivo de la devolución', 'error');
+      return;
+    }
+
+    if (!this.clienteSeleccionado) {
+      this.mostrarMensaje('Debe seleccionar un cliente', 'error');
+      return;
+    }
+
+    // Obtener productos seleccionados (con cantidad > 0)
+    // const productosSeleccionados = this.productos.filter(producto => producto.cantidad > 0);
+    
+    // if (productosSeleccionados.length === 0) {
+    //   this.mostrarMensaje('Debe seleccionar al menos un producto para devolver', 'error');
+    //   return;
+    // }
+
+    const productosParaDevolver = this.productos.filter(producto => {
+      const cantidadADevolver = producto.cantidadVendida || 0;
+      console.log(`Evaluando producto ${producto.prod_Descripcion}:`, {
+        cantidadOriginal: producto.cantidadOriginal,
+        cantidadVendida: producto.cantidadVendida,
+        cantidadADevolver: cantidadADevolver
+      });
+      return cantidadADevolver > 0; // Solo productos con cantidad seleccionada > 0
+    });
+
+    console.log('Total productos evaluados:', this.productos.length);
+    console.log('Productos que cumplen el filtro:', productosParaDevolver.length);
+
+    if (productosParaDevolver.length === 0) {
+      this.mostrarMensaje('Debe seleccionar al menos un producto para devolver. Use los controles + y - para establecer la cantidad a devolver.', 'error');
+      return;
+    }
+
+    console.log('fact_Id:', this.devolucion.fact_Id);
+    console.log('clie_Id:', this.clienteSeleccionado.clie_Id);
+    console.log('devo_Motivo:', this.devolucion.devo_Motivo);
+    console.log('Productos seleccionados:', this.productos.length);
+
+    // Construir el XML de detalles
+  let detalleXml = '<DevolucionDetalle>';
+    
+    productosParaDevolver.forEach((producto, index) => {
+      const cantidadADevolver = producto.cantidadVendida || 0; // Esta es la cantidad que el usuario seleccionó para devolver
+      
+      console.log(`  Producto ${index + 1}:`);
+      console.log(`    prod_Id: ${producto.prod_Id}`);
+      console.log(`    cantidadOriginal: ${producto.cantidadOriginal}`);
+      console.log(`    cantidadADevolver: ${cantidadADevolver}`);
+      console.log(`    descripcion: ${producto.prod_Descripcion}`);
+      
+      // Estructura XML idéntica a Flutter
+      detalleXml += `<Producto><Prod_Id>${producto.prod_Id}</Prod_Id><DevD_Cantidad>${cantidadADevolver}</DevD_Cantidad></Producto>`;
+    });
+    
+    detalleXml += '</DevolucionDetalle>';
+    
+    console.log('XML generado paso a paso:');
+    console.log('- Inicio XML:', '<DevolucionDetalle>');
+    productosParaDevolver.forEach((producto, index) => {
+      const cantidadADevolver = producto.cantidadVendida || 0;
+      const xmlProducto = `<Producto><Prod_Id>${producto.prod_Id}</Prod_Id><DevD_Cantidad>${cantidadADevolver}</DevD_Cantidad></Producto>`;
+      console.log(`- Producto ${index + 1}:`, xmlProducto);
+    });
+    console.log('- Fin XML:', '</DevolucionDetalle>');
+
+    const now = new Date().toISOString();
+    const fechaDevolucion = this.devolucion.devo_Fecha ? new Date(this.devolucion.devo_Fecha).toISOString() : now;
+    
+    // Obtener el ID del usuario actual
+    const usuarioId = getUserId() || 1; // Usar 1 como fallback si no se puede obtener
+
+    // Construir el body de la petición
+    const body = {
+      devo_Id: 0,
+      clie_Id: this.clienteSeleccionado.clie_Id,
+      fact_Id: this.devolucion.fact_Id,
+      devo_Fecha: fechaDevolucion,
+      devo_Motivo: this.devolucion.devo_Motivo.trim(),
+      usua_Creacion: usuarioId,
+      devo_FechaCreacion: now,
+      usua_Modificacion: 0,
+      devo_FechaModificacion: now,
+      devo_Estado: true,
+      nombre_Completo: ' ',
+      clie_NombreNegocio: ' ',
+      usuarioCreacion: ' ',
+      usuarioModificacion: ' ',
+      devoDetalle_XML: detalleXml,
+      item: []
+    };
+
+    console.log('Body de la petición:', body);
+    console.log('XML generado:', detalleXml);
+
+    console.log('FACTURA ID A ELIMINAR:', this.devolucion.fact_Id);
+    this.cargando = true;
+    this.mostrarErrores = false;
+
+    this.http.post<any>(`${environment.apiBaseUrl}/Devoluciones/Insertar`, body, {
+      headers: { 
+        'x-api-key': environment.apiKey,
+        'Content-Type': 'application/json'
+      }
+    }).subscribe({
+      next: (response) => {
+        console.log('Respuesta del servidor:', response);
+        
+        if (response && response.success === true) {
+          this.mostrarMensaje('Devolución creada exitosamente', 'exito');
+          
+          this.anularFactura(this.devolucion.fact_Id);
+
+          this.crearFacturaConProductosRestantes();
+          // Limpiar el formulario después de guardar
+          this.limpiarFormularioCompleto();
+          
+          // Emitir evento de guardado exitoso
+          this.onSave.emit(response);
+          // Opcional: navegar a otra página o cerrar el formulario
+          // this.router.navigate(['/devoluciones']);
+        } else {
+          const mensajeError = response?.message || 'Error al procesar la devolución';
+          this.mostrarMensaje(mensajeError, 'error');
+        }
+      },
+      error: (error) => {
+        console.error('Error en insertarDevolucion:', error);
+        
+        let mensajeError = 'Error al crear la devolución';
+        
+        if (error.error?.message) {
+          mensajeError = error.error.message;
+        } else if (error.message) {
+          mensajeError = error.message;
+        } else if (error.status) {
+          mensajeError = `Error en la solicitud: ${error.status}`;
+        }
+        
+        this.mostrarMensaje(mensajeError, 'error');
+      },
+      complete: () => {
+        this.cargando = false;
+      }
+    });
+  }
+
+  // Método para generar número de factura aleatorio con el formato 000-000-00-00000000
+  generarNumeroFacturaAleatorio(): string {
+    const pad = (num: number, size: number) => {
+      let s = num.toString();
+      while (s.length < size) s = '0' + s;
+      return s;
+    };
+
+    const part1 = pad(this.getRandomInt(1, 999), 3);
+    const part2 = pad(this.getRandomInt(1, 999), 3);
+    const part3 = pad(this.getRandomInt(1, 99), 2);
+    const part4 = pad(this.getRandomInt(1, 99999999), 8);
+
+    return `${part1}-${part2}-${part3}-${part4}`;
+  }
+
+  getRandomInt(min: number, max: number): number {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  // Nuevo método para crear la factura con productos restantes
+  crearFacturaConProductosRestantes(): void {
+    if (!this.facturaOriginal) {
+      this.mostrarMensaje('No se ha cargado la factura original', 'error');
+      return;
+    }
+
+    if (!this.clienteSeleccionado || !this.vendedorSeleccionado) {
+      this.mostrarMensaje('Faltan datos de cliente o vendedor para crear la factura', 'error');
+      return;
+    }
+
+    // Filtrar solo productos con cantidadVendida > 0 (productos restantes)
+    const productosRestantes = this.productos
+      .filter(p => (p.cantidadVendida || 0) > 0)
+      .map(p => ({
+        prod_Id: p.prod_Id,
+        faDe_Cantidad: p.cantidadVendida || 0
+      }));
+
+    if (productosRestantes.length === 0) {
+      this.mostrarMensaje('No hay productos restantes para crear la nueva factura', 'advertencia');
+      return;
+    }
+
+    // Generar nuevo número de factura aleatorio
+    const nuevoNumero = this.generarNumeroFacturaAleatorio();
+
+    // Construir el body para la nueva factura
+    const body = {
+      fact_Numero: nuevoNumero,
+      fact_TipoDeDocumento: this.facturaOriginal.fact_TipoDeDocumento || 'FACTURA',
+      regC_Id: this.facturaOriginal.regC_Id || 20,
+      diCl_Id: this.facturaOriginal.diCl_Id || this.direcciones[0]?.diCl_Id || 0,
+      vend_Id: this.vendedorSeleccionado.vend_Id,
+      fact_TipoVenta: this.facturaOriginal.fact_TipoVenta || 'CONTADO',
+      fact_FechaEmision: new Date().toISOString(),
+      fact_Latitud: this.facturaOriginal.fact_Latitud || 14.123456,
+      fact_Longitud: this.facturaOriginal.fact_Longitud || -87.123456,
+      fact_Referencia: `Factura ajustada por devolución - Original: ${this.facturaOriginal.fact_Numero}`,
+      fact_AutorizadoPor: this.facturaOriginal.fact_AutorizadoPor || 'yo',
+      usua_Creacion: getUserId() || 1,
+      detallesFacturaInput: productosRestantes
+    };
+
+    console.log('Creando nueva factura:', body);
+
+    this.http.post<any>(`${environment.apiBaseUrl}/Facturas/Insertar`, body, {
+      headers: {
+        'x-api-key': environment.apiKey,
+        'Content-Type': 'application/json'
+      }
+    }).subscribe({
+      next: (response) => {
+        console.log('Nueva factura creada:', response);
+        if (response && (response.success === true || response.Success === true)) {
+          this.mostrarMensaje('Nueva factura creada exitosamente', 'exito');
+        } else {
+          this.mostrarMensaje(response?.message || 'Error al crear la nueva factura', 'error');
+        }
+      },
+      error: (error) => {
+        const errMsg = error.error?.message || error.message || 'Error en la creación de la factura';
+        this.mostrarMensaje(errMsg, 'error');
+      }
+    });
+  }
+
+
+  anularFactura(fact_Id: number) {
+    // if (!fact_Id) {
+    //   console.error('No se proporcionó un ID de factura válido para anular');
+    //   this.mostrarMensaje('Error: No se puede anular la factura sin un ID válido', 'error');
+    //   return;
+    // }
+    
+    console.log('Anulando factura con ID:', fact_Id);
+
+    // Obtener el ID del usuario actual
+    const usuarioId = getUserId() || 1;
+
+    const body = {
+      fact_Id: fact_Id,
+      motivo: this.devolucion.devo_Motivo || 'Anulación por devolución',
+      usua_Modificacion: usuarioId
+    };
+
+    console.log('Body para anular factura:', body);
+
+    this.http.post<any>(`${environment.apiBaseUrl}/Facturas/AnularFactura`, body, {
+      headers: { 
+        'x-api-key': environment.apiKey,
+        'Content-Type': 'application/json'
+      }
+    }).subscribe({
+      next: (response) => {
+        console.log('Respuesta de anulación de factura:', response);
+        
+        if (response && (response.success === true || response.Success === true)) {
+          console.log('Factura anulada exitosamente');
+          this.mostrarMensaje('Factura anulada exitosamente', 'exito');
+        } else {
+          console.warn('Respuesta inesperada al anular factura:', response);
+          // Aunque la respuesta no tenga el formato esperado, 
+          // si no hay error HTTP, podríamos considerar que fue exitoso
+          this.mostrarMensaje('Factura procesada para anulación', 'exito');
+        }
+      },
+      error: (error) => {
+        console.error('Error al anular la factura:', error);
+        
+        let mensajeError = 'Error al anular la factura';
+        
+        if (error.error?.message) {
+          mensajeError += ': ' + error.error.message;
+        } else if (error.message) {
+          mensajeError += ': ' + error.message;
+        } else if (error.status) {
+          mensajeError += ` (HTTP ${error.status})`;
+        }
+        
+        this.mostrarMensaje(mensajeError, 'error');
+      }
+    });
+  }
+
+  // Método auxiliar para limpiar el formulario completo
+  limpiarFormularioCompleto() {
+    // Resetear el objeto devolucion
+    this.devolucion = {
+      devo_Id: null,
+      fact_Id: null,
+      devo_Fecha: '',
+      devo_Motivo: '',
+      usua_Creacion: 0,
+      devo_FechaCreacion: '',
+      usua_modificacion: 0,
+      devo_FechaModificacion: '',
+      devo_EnSucursal: false
+    };
+
+    // Limpiar selecciones
+    this.vendedorSeleccionado = null;
+    this.clienteSeleccionado = null;
+
+    // Limpiar arrays
+    this.clientesFiltrados = [];
+    this.facturasFiltradas = [];
+    this.direcciones = [];
+    this.productos = [];
+    this.productosFiltrados = [];
+
+    // Resetear búsqueda y paginación
+    this.busquedaProducto = '';
+    this.paginaActual = 1;
+
+    // Limpiar estados de error
+    this.mostrarErrores = false;
+    this.cerrarAlerta();
   }
 }

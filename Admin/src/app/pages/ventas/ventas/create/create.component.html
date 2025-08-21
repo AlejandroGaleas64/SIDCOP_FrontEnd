@@ -216,11 +216,11 @@
                   class="ri-user-line"
                   [ngStyle]="{
                     border:
-                      (!venta.clie_Id || venta.clie_Id == 0) && mostrarErrores
+                      (!clienteSeleccionado || clienteSeleccionado == 0) && mostrarErrores
                         ? '1px solid #f9bcc4'
                         : '1px solid #e9ecf5',
                     backgroundColor:
-                      (!venta.clie_Id || venta.clie_Id == 0) && mostrarErrores
+                      (!clienteSeleccionado || clienteSeleccionado == 0) && mostrarErrores
                         ? '#fff5f6'
                         : '#f2f3f9',
                     padding: '0.525rem 0.525rem',
@@ -230,34 +230,88 @@
                     borderBottomLeftRadius: '8px'
                   }"
                 ></i>
-                <select
+                <ng-select
                   id="cliente"
                   name="cliente"
-                  class="form-select"
-                  [class.is-invalid]="
-                    (!venta.clie_Id || venta.clie_Id == 0) && mostrarErrores
-                  "
-                  [(ngModel)]="venta.clie_Id"
+                  [items]="clientes"
+                  bindLabel="clie_NombreNegocio"
+                  bindValue="clie_Id"
+                  placeholder="Seleccione cliente"
+                  [searchable]="true"
+                  [clearable]="false"
+                  [(ngModel)]="clienteSeleccionado"
+                  (ngModelChange)="cargarDireccionesCliente($event)"
+                  [ngClass]="{
+                    'is-invalid': (!clienteSeleccionado || clienteSeleccionado == 0) && mostrarErrores
+                  }"
                   required
                 >
-                  <option value="0" disabled selected>
-                    Seleccione cliente
-                  </option>
-                  <option
-                    *ngFor="let cliente of clientes"
-                    [value]="cliente.clie_Id"
-                  >
-                    {{cliente.clie_NombreNegocio}}
- ({{ cliente.clie_Nombres }} {{ cliente.clie_Apellidos }} )                  </option>
-                </select>
+                  <ng-template ng-label-tmp let-item="item">
+                    {{item.clie_NombreNegocio}} - {{item.clie_Nombres}} {{item.clie_Apellidos}}
+                  </ng-template>
+                  <ng-template ng-option-tmp let-item="item">
+                    {{item.clie_NombreNegocio}} ({{item.clie_Nombres}} {{item.clie_Apellidos}})
+                  </ng-template>
+                </ng-select>
                 <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
               </div>
             </div>
             <div
               class="text-danger mt-1"
-              *ngIf="(!venta.clie_Id || venta.clie_Id == 0) && mostrarErrores"
+              *ngIf="(!clienteSeleccionado || clienteSeleccionado == 0) && mostrarErrores"
             >
               <small>El cliente es requerido</small>
+            </div>
+          </div>
+
+          <!-- Selector de Dirección del Cliente -->
+          <div class="col-md-6">
+            <label class="form-label">Dirección del Cliente<span class="text-danger">*</span></label>
+            <div class="mb-3">
+              <div class="d-flex align-items-center">
+                <i
+                  class="ri-map-pin-line"
+                  [ngStyle]="{
+                    border:
+                      (!venta.direccionId || venta.direccionId == 0) && mostrarErrores
+                        ? '1px solid #f9bcc4'
+                        : '1px solid #e9ecf5',
+                    backgroundColor:
+                      (!venta.direccionId || venta.direccionId == 0) && mostrarErrores
+                        ? '#fff5f6'
+                        : '#f2f3f9',
+                    padding: '0.525rem 0.525rem',
+                    position: 'relative',
+                    left: '7px',
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px'
+                  }"
+                ></i>
+                <ng-select
+                  class="form-control"
+                  name="direccion"
+                  [items]="direccionesCliente"
+                  bindLabel="diCl_DireccionExacta"
+                  bindValue="diCl_Id"
+                  placeholder="Seleccione dirección"
+                  [searchable]="true"
+                  [clearable]="false"
+                  [(ngModel)]="venta.direccionId"
+                  (ngModelChange)="actualizarDireccionSeleccionada($event)"
+                  [ngClass]="{
+                    'is-invalid': (!venta.direccionId || venta.direccionId == 0) && mostrarErrores
+                  }"
+                  [disabled]="!clienteSeleccionado || clienteSeleccionado === 0 || direccionesCliente.length === 0"
+                  required
+                >
+                </ng-select>
+              </div>
+            </div>
+            <div
+              class="text-danger mt-1"
+              *ngIf="(!venta.direccionId || venta.direccionId == 0) && mostrarErrores"
+            >
+              <small>La dirección es requerida</small>
             </div>
           </div>
           
@@ -292,6 +346,7 @@
                     (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
                   "
                   [(ngModel)]="venta.vend_Id"
+                  (change)="onVendedorChange()"
                   [disabled]="!venta.regC_Id || venta.regC_Id === 0 || getVendedoresPorSucursal().length === 0"
                   required
                 >
@@ -734,6 +789,20 @@
                       <p class="info-value highlight">
                         {{ getTotalProductosSeleccionados() }}
                       </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="row mt-3">
+                  <div class="col-md-6">
+                    <div class="info-item">
+                      <strong class="info-label">Cliente:</strong>
+                      <p class="info-value">{{ getNombreCliente() }}</p>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="info-item">
+                      <strong class="info-label">Dirección:</strong>
+                      <p class="info-value">{{ getNombreDireccion() }}</p>
                     </div>
                   </div>
                 </div>
