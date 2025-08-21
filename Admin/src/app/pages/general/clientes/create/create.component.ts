@@ -9,13 +9,14 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { MapaSelectorComponent } from '../mapa-selector/mapa-selector.component';
 import { Aval } from 'src/app/Modelos/general/Aval.Model';
 import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente.Model';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { getUserId } from 'src/app/core/utils/user-utils';
 
 
 @Component({
   selector: 'app-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, NgxMaskDirective, MapaSelectorComponent],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgxMaskDirective, MapaSelectorComponent, NgSelectModule],
   templateUrl: './create.component.html',
   styleUrl: './create.component.scss',
   providers: [provideNgxMask()]
@@ -447,6 +448,29 @@ export class CreateComponent {
     const colonia = this.colonias.find(c => c.colo_Id === colo_Id);
     return colonia?.colo_Descripcion || 'Colonia no encontrada';
   }
+
+  //Para buscar colonias en DDL
+ searchColonias = (term: string, item: any) => {
+      term = term.toLowerCase();
+      return (
+        item.colo_Descripcion?.toLowerCase().includes(term) ||
+        item.muni_Descripcion?.toLowerCase().includes(term) ||
+        item.depa_Descripcion?.toLowerCase().includes(term)
+      );
+    };
+
+    direccionExactaInicial: string = '';
+
+    onColoniaSeleccionada(colo_Id: number) {
+      const coloniaSeleccionada = this.colonias.find((c: any) => c.colo_Id === colo_Id);
+      if (coloniaSeleccionada) {
+        this.direccionExactaInicial = coloniaSeleccionada.colo_Descripcion;
+        this.direccionPorCliente.diCl_DireccionExacta = coloniaSeleccionada.colo_Descripcion;
+      } else {
+        this.direccionExactaInicial = '';
+        this.direccionPorCliente.diCl_DireccionExacta = '';
+      }
+    }
 
   cliente: Cliente = {
     clie_Id: 0,

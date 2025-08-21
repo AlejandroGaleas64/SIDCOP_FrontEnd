@@ -2,9 +2,7 @@
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="card-title mb-4">Crear Nuevo Cliente</h5>
     <div class="d-flex justify-content-end align-items-center mb-2">
-      <span
-        class="codigo-cliente-mini"
-        [ngClass]="{'codigo-placeholder': !cliente.clie_Codigo}">
+      <span class="codigo-cliente-mini" [ngClass]="{'codigo-placeholder': !cliente.clie_Codigo}">
         {{ cliente.clie_Codigo || 'CLIE-RT-000-000000' }}
       </span>
     </div>
@@ -316,11 +314,12 @@
               </i>
               <input type="email" class="form-control" id="clienteCorreo" [(ngModel)]="cliente.clie_Correo"
                 placeholder="Ingrese el correo del cliente (opcional)"
-                [class.is-invalid]="cliente.clie_Correo && mostrarErrores || !esCorreoValido(cliente.clie_Correo)"/>
-              </div>
-              <div class="text-danger mt-1" *ngIf="cliente.clie_Correo && mostrarErrores || !esCorreoValido(cliente.clie_Correo)">
-                <small> Ingrese un correo válido. </small>
-              </div>
+                [class.is-invalid]="cliente.clie_Correo && mostrarErrores || !esCorreoValido(cliente.clie_Correo)" />
+            </div>
+            <div class="text-danger mt-1"
+              *ngIf="cliente.clie_Correo && mostrarErrores || !esCorreoValido(cliente.clie_Correo)">
+              <small> Ingrese un correo válido. </small>
+            </div>
           </div>
         </div>
       </div>
@@ -1028,32 +1027,35 @@
 
           <!-- Colonia -->
           <div class="col-md-6">
+            <label class="form-label">Colonia<span class="text-danger">*</span></label>
             <div class="mb-3">
-              <label for="colo_Id" class="form-label">Colonia</label>
-              <span class="text-danger" *ngIf="mostrarErrores">*</span>
               <div class="d-flex align-items-center">
-                <i class="ri-community-line"
+                <i class="ri-route-line"
                   [ngStyle]="{
-                  border: (!direccionPorCliente.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                  backgroundColor: (!direccionPorCliente.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                border: (!direccionPorCliente.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!direccionPorCliente.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
-                <select id="colo_Id" name="colo_Id" class="form-select" [(ngModel)]="direccionPorCliente.colo_Id"
-                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores" required>
-                  <option [ngValue]="0" disabled>Seleccione una Colonia</option>
-                  <option *ngFor="let colonia of TodasColonias" [ngValue]="colonia.colo_Id">
-                    {{ colonia.colo_Descripcion }}, {{ colonia.muni_Descripcion }}, {{ colonia.depa_Descripcion }}
-                  </option>
-                </select>
-                <div *ngIf="cargandoColonias" class="form-text text-muted">
-                  Cargando Colonias...
-                </div>
+                <ng-select class="w-100" [items]="TodasColonias" bindLabel="colo_Descripcion" bindValue="colo_Id"
+                  [(ngModel)]="direccionPorCliente.colo_Id" [searchable]="true" [clearable]="false"
+                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores"
+                  placeholder="Seleccione una colonia" required [searchFn]="searchColonias"
+                  (ngModelChange)="onColoniaSeleccionada($event)">
+                  <ng-template ng-label-tmp let-item="item">
+                    {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
+                  </ng-template>
+                  <ng-template ng-option-tmp let-item="item">
+                    {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
+                  </ng-template>
+                </ng-select>
+                <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
               </div>
               <div class="text-danger mt-1" *ngIf="!direccionPorCliente.colo_Id && mostrarErrores">
-                <small>El campo Colonias es requerido</small>
+                <small>El campo Colonia es requerido</small>
               </div>
             </div>
           </div>
+
 
           <!-- Dirección Exacta -->
           <div class="col-md-6">
