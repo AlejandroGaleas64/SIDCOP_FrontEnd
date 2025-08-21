@@ -216,11 +216,11 @@
                   class="ri-user-line"
                   [ngStyle]="{
                     border:
-                      (!venta.diCl_Id || venta.diCl_Id == 0) && mostrarErrores
+                      (!clienteSeleccionado || clienteSeleccionado == 0) && mostrarErrores
                         ? '1px solid #f9bcc4'
                         : '1px solid #e9ecf5',
                     backgroundColor:
-                      (!venta.diCl_Id || venta.diCl_Id == 0) && mostrarErrores
+                      (!clienteSeleccionado || clienteSeleccionado == 0) && mostrarErrores
                         ? '#fff5f6'
                         : '#f2f3f9',
                     padding: '0.525rem 0.525rem',
@@ -258,7 +258,7 @@
             </div>
             <div
               class="text-danger mt-1"
-              *ngIf="(!venta.diCl_Id || venta.diCl_Id == 0) && mostrarErrores"
+              *ngIf="(!clienteSeleccionado || clienteSeleccionado == 0) && mostrarErrores"
             >
               <small>El cliente es requerido</small>
             </div>
@@ -301,7 +301,7 @@
                   [ngClass]="{
                     'is-invalid': (!venta.direccionId || venta.direccionId == 0) && mostrarErrores
                   }"
-                  [disabled]="!venta.diCl_Id || venta.diCl_Id === 0 || direccionesCliente.length === 0"
+                  [disabled]="!clienteSeleccionado || clienteSeleccionado === 0 || direccionesCliente.length === 0"
                   required
                 >
                 </ng-select>
