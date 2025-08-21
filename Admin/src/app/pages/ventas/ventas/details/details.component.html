@@ -258,7 +258,7 @@
             <!-- Grid de productos -->
             <div *ngIf="!cargandoDetalles && detallesFactura.length > 0" class="row g-6">
               <div *ngFor="let detalle of detallesFactura; trackBy: trackByDetalleId" 
-                   class="col-10 col-sm-6 col-md-6 col-lg-4 flex-wrap">
+                   class="col-10 col-sm-6 col-md-6 col-lg-4 flex-column">
                 <div class="card product-card h-100 flex-wrap shadow-sm m-tooltip">
                   <!-- Imagen del producto -->
                   <div class="product-image-container">
@@ -295,61 +295,50 @@
                     <!-- Información adicional -->
                     <div class="product-info mt-auto">
                       <!-- Cantidad -->
-                      <div class="info-row">
+                      <div class="">
                         <span class="info-label">
                           <i class="ri-stack-line me-1"></i>
-                          Cantidad:
+                          Cantidad:     
                         </span>
-                        <span class="info-value fw-bold">{{ detalle.faDe_Cantidad || 0 }}</span>
+                        <span class="info-value">{{ detalle.faDe_Cantidad || 0 }}</span>
                       </div>
 
                       <!-- Precio Unitario -->
-                      <div class="info-row mt-1">
+                      <div class="">
                         <span class="info-label">
                           <i class="ri-price-tag-3-line me-1"></i>
                           Precio:
                         </span>
-                        <span class="info-value">L. {{ detalle.faDe_PrecioUnitario?.toFixed(2) || '0.00' }}</span>
+                        <span class="info-value">L.{{ detalle.faDe_PrecioUnitario?.toFixed(2) || '0.00' }}</span>
                       </div>
 
                       <!-- Subtotal -->
-                      <div class="info-row mt-1">
+                      <div class="">
                         <span class="info-label">
                           <i class="ri-calculator-line me-1"></i>
                           Subtotal:
                         </span>
-                        <span class="info-value">L. {{ detalle.faDe_Subtotal?.toFixed(2) || '0.00' }}</span>
+                        <span class="info-value">L.{{ detalle.faDe_Subtotal?.toFixed(2) || '0.00' }}</span>
                       </div>
 
                       <!-- Impuesto -->
-                      <div class="info-row mt-1">
+                      <div class="">
                         <span class="info-label">
                           <i class="ri-percent-line me-1"></i>
                           Impuesto:
                         </span>
-                        <span class="info-value">L. {{ detalle.faDe_Impuesto?.toFixed(2) || '0.00' }}</span>
+                        <span class="info-value">L.{{ detalle.faDe_Impuesto?.toFixed(2) || '0.00' }}</span>
                       </div>
 
                       <!-- Total -->
-                      <div class="info-row mt-1">
+                      <div class="">
                         <span class="info-label">
                           <i class="ri-money-dollar-box-line me-1"></i>
                           Total:
                         </span>
-                        <span class="info-value fw-bold text-success">L. {{ detalle.faDe_Total?.toFixed(2) || '0.00' }}</span>
+                        <span class="info-value fw-bold text-success">L.{{ detalle.faDe_Total?.toFixed(2) || '0.00' }}</span>
                       </div>
 
-                      <!-- Información del impuesto -->
-                      <div class="info-row mt-2" *ngIf="detalle.impu_Descripcion">
-                        <span class="info-label">
-                          <i class="ri-information-line me-1"></i>
-                          Impuesto:
-                        </span>
-                        <span class="info-value" 
-                              [title]="detalle.impu_Descripcion">
-                          {{ (detalle.impu_Descripcion | slice:0:20) }}{{ (detalle.impu_Descripcion && detalle.impu_Descripcion.length > 20) ? '...' : '' }}
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </div>
