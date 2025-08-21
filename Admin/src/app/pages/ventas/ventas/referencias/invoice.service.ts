@@ -359,11 +359,11 @@ export class InvoiceService {
       // Crear encabezado de factura
       const startY = await this.crearEncabezadoFactura(doc);
 
-      // Crear tabla de productos
-      await this.crearTablaProductos(doc, startY);
+      // Crear tabla de productos y obtener la posición final
+      const finalY = await this.crearTablaProductos(doc, startY);
 
-      // Crear pie de factura con totales
-      this.crearPieFactura(doc);
+      // Crear pie de factura con totales usando la posición final de la tabla
+      this.crearPieFactura(doc, finalY);
 
       const filename = this.generateFilename(`Factura_${this.facturaDetalle.fact_Numero}`, 'pdf');
       doc.save(filename);
@@ -463,8 +463,8 @@ export class InvoiceService {
     return yPos;
   }
 
-  private async crearTablaProductos(doc: jsPDF, startY: number) {
-    if (!this.facturaDetalle || !this.facturaDetalle.detalleFactura.length) return;
+  private async crearTablaProductos(doc: jsPDF, startY: number): Promise<number> {
+    if (!this.facturaDetalle || !this.facturaDetalle.detalleFactura.length) return startY;
 
     const headers = ['Código', 'Descripción', 'Cantidad', 'Precio', 'Total'];
     const rows = this.facturaDetalle.detalleFactura.map(item => [
@@ -474,6 +474,9 @@ export class InvoiceService {
       `L${item.faDe_PrecioUnitario.toFixed(2)}`,
       `L${(item.faDe_Cantidad*item.faDe_PrecioUnitario).toFixed(2)}`
     ]);
+
+    // Variable para capturar la posición final de la tabla
+    let finalTableY = startY;
 
     autoTable(doc, {
       startY: startY,
@@ -509,15 +512,32 @@ export class InvoiceService {
       margin: { left: 15, right: 15 },
       tableWidth: 'auto' as any,
       theme: 'grid' as any,
+      didDrawPage: (data: any) => {
+        // Capturar la posición final Y de la tabla en cada página
+        finalTableY = data.cursor.y;
+      }
     });
+
+    // Retornar la posición final donde terminó la tabla
+    return finalTableY + 10; // Agregar un pequeño margen después de la tabla
   }
 
-  private crearPieFactura(doc: jsPDF) {
+  private crearPieFactura(doc: jsPDF, startY?: number) {
     if (!this.facturaDetalle) return;
 
     const pageHeight = doc.internal.pageSize.height;
     const pageWidth = doc.internal.pageSize.width;
-    let yPos = pageHeight - 120;
+    
+    // Usar startY si se proporciona, de lo contrario usar posición fija desde abajo
+    let yPos = startY || pageHeight - 120;
+    
+    // Verificar si hay espacio suficiente en la página actual
+    const espacioNecesario = 100; // Espacio aproximado que necesita el pie de factura
+    if (yPos + espacioNecesario > pageHeight - 20) {
+      // Si no hay espacio suficiente, crear nueva página
+      doc.addPage();
+      yPos = 20; // Empezar desde arriba en la nueva página
+    }
 
     // Sección de totales (lado derecho)
     const rightX = pageWidth - 15;
@@ -577,23 +597,20 @@ export class InvoiceService {
     doc.setFontSize(12);
     doc.text('Gran Total:', labelX, yPos);
     doc.text(`L${this.facturaDetalle.fact_Total.toFixed(2)}`, rightX, yPos, { align: 'right' });
+    yPos += 15;
 
     // Información legal en la parte inferior
-    yPos = pageHeight - 35;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     
     // Importe en letras
-    yPos += 5;
     const importeEnLetras = this.numeroALetras(this.facturaDetalle.fact_Total);
     doc.text(importeEnLetras, 15, yPos);
     yPos += 8;
     
     // Fecha límite y rango autorizado
     doc.text(`Fecha Límite ${this.formatearFecha(this.facturaDetalle.fact_FechaLimiteEmision)}`, 15, yPos);
-    yPos += 5;
-    
-    // Información adicional
+    yPos += 8;
     
     // Fecha de impresión
     const fechaImpresion = new Date().toLocaleDateString('es-HN');
