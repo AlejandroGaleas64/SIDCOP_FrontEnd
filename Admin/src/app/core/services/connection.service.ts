@@ -8,8 +8,10 @@ import { catchError, map, switchMap, timeout } from 'rxjs/operators';
 })
 export class ConnectionService {
   // URLs de API
-  private localUrl = 'http://192.168.1.146:8091';
-  private remoteUrl = 'http://192.168.1.146:8091';
+  // private localUrl = 'http://localhost:8091';
+  // private localUrl = 'http://192.168.1.146:8091';
+  private localUrl = 'http://200.59.27.115:8091';
+  private remoteUrl = 'http://200.59.27.115:8091';
 
   // Sujeto observable para la URL actual de la API
   private currentApiUrlSubject = new BehaviorSubject<string>(this.localUrl);
