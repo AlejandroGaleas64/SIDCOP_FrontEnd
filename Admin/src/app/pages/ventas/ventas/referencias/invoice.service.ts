@@ -413,8 +413,7 @@ export class InvoiceService {
 
     yPos -=6;
 
-    doc.text(`No.`, 74, yPos + 56);
-    doc.text(`${this.facturaDetalle.fact_Numero}`, 54, yPos + 60);
+    doc.text(`No. ${this.facturaDetalle.fact_Numero}`, 54, yPos + 56);
     doc.text(`Fecha: ${this.formatearFecha(this.facturaDetalle.fact_FechaEmision)}`,   54, yPos + 62,);
     doc.text(`Tipo: ${this.facturaDetalle.fact_TipoVenta}`,  54, yPos + 68);
     doc.text(`CAI: ${this.facturaDetalle.regC_Descripcion}`,  54, yPos + 74);
