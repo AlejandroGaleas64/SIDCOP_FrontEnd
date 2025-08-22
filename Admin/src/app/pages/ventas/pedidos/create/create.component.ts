@@ -288,57 +288,66 @@ export class CreateComponent {
     return producto ? producto.cantidad || 0 : 0;
   }
 
-obtenerProductosSeleccionados(): any[] {
-  return this.productos
-    .filter((p) => p.cantidad > 0)
-    .map((p) => {
-      // Precio base de lista o unitario
-      let precioBase = p.prod_PrecioUnitario || 0;
-      if (p.listasPrecio_JSON && p.cantidad > 0) {
-        let escalaAplicada = null;
-        for (const lp of p.listasPrecio_JSON) {
-          if (p.cantidad >= lp.PreP_InicioEscala && p.cantidad <= lp.PreP_FinEscala) {
-            escalaAplicada = lp;
-            break;
-          }
-        }
-        if (!escalaAplicada && p.listasPrecio_JSON.length > 0) {
-          const ultimaEscala = p.listasPrecio_JSON[p.listasPrecio_JSON.length - 1];
-          if (p.cantidad > ultimaEscala.PreP_FinEscala) {
-            escalaAplicada = ultimaEscala;
-          }
-        }
-        if (escalaAplicada) {
-          precioBase = escalaAplicada.PreP_PrecioContado;
+  getPrecioBasePorCantidad(producto: any, cantidad: number): number {
+    let precioBase = producto.prod_PrecioUnitario || 0;
+
+    if (producto.listasPrecio_JSON && cantidad > 0) {
+      let escalaAplicada = null;
+
+      for (const lp of producto.listasPrecio_JSON) {
+        if (cantidad >= lp.PreP_InicioEscala && cantidad <= lp.PreP_FinEscala) {
+          escalaAplicada = lp;
+          break;
         }
       }
 
-      // Precio final con descuento/escalas
-      const precioFinal = this.getPrecioPorCantidad(p, p.cantidad);
+      if (!escalaAplicada && producto.listasPrecio_JSON.length > 0) {
+        const ultimaEscala =
+          producto.listasPrecio_JSON[producto.listasPrecio_JSON.length - 1];
+        if (cantidad > ultimaEscala.PreP_FinEscala) {
+          escalaAplicada = ultimaEscala;
+        }
+      }
 
-      // Calcular impuesto (formato decimal, ej: 0.10)
-      const impuesto = p.prod_Impuesto
-        ? precioFinal * p.prod_Impuesto
-        : 0;
+      if (escalaAplicada) {
+        precioBase = escalaAplicada.PreP_PrecioContado;
+      }
+    }
 
-      // Calcular subtotal
-      const subtotal = precioFinal * p.cantidad;
+    return precioBase;
+  }
 
-      // Calcular descuento aplicado (si lo necesitas mostrar)
-      const descuento = p.prod_Descuento || 0;
+  obtenerProductosSeleccionados(): any[] {
+    return this.productos
+      .filter((p) => p.cantidad > 0)
+      .map((p) => {
+        const cantidad = p.cantidad;
 
-      return {
-        prod_Id: p.prod_Id,
-        peDe_Cantidad: p.cantidad,
-        peDe_ProdPrecio: precioBase,
-        peDe_Impuesto: impuesto,
-        peDe_Descuento: descuento,
-        peDe_Subtotal: subtotal,
-        peDe_ProdPrecioFinal: precioFinal,
-        // ...otros campos individuales...
-      };
-    });
-}
+        // Precio base puro, sin descuento ni impuesto
+        const precioBase = this.getPrecioBasePorCantidad(p, cantidad);
+
+        // Precio final con descuentos aplicados, sin impuesto
+        const precioFinalSinImpuesto = this.getPrecioPorCantidad(p, cantidad);
+
+        // Impuesto si corresponde
+        const aplicaImpuesto = p.impu_Valor && p.prod_PagaImpuesto === 'S';
+        const impuesto = aplicaImpuesto
+          ? precioFinalSinImpuesto * p.impu_Valor
+          : 0;
+
+        const subtotal = precioFinalSinImpuesto * cantidad;
+
+        return {
+          prod_Id: p.prod_Id,
+          peDe_Cantidad: cantidad,
+          peDe_ProdPrecio: precioBase, // este es el base sin descuentos ni impuestos
+          peDe_Impuesto: impuesto,
+          peDe_Subtotal: subtotal,
+          peDe_ProdPrecioFinal: precioFinalSinImpuesto + impuesto, // unitario final con impuesto
+          // Otros campos si necesitas
+        };
+      });
+  }
 
   // ========== MÉTODOS DE CLIENTES (SIN CAMBIOS) ==========
 
@@ -354,64 +363,78 @@ obtenerProductosSeleccionados(): any[] {
 
   pedidos: any[] = [];
 
-   cargarPedidos() {
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Pedido/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => {this.pedidos = data;  this.generarSiguienteCodigo();},
-      error => {
-        console.error('Error al cargar las pedios:', error);
-      }
+  cargarPedidos() {
+    this.http
+      .get<any[]>(`${environment.apiBaseUrl}/Pedido/Listar`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe(
+        (data) => {
+          this.pedidos = data;
+          this.generarSiguienteCodigo();
+        },
+        (error) => {
+          console.error('Error al cargar las pedios:', error);
+        }
+      );
+  }
+
+  generarSiguienteCodigo(): void {
+    const direccionSeleccionada = this.Direccines.find(
+      (d) => d.diCl_Id === this.pedido.diCl_Id
     );
-  }
-
-generarSiguienteCodigo(): void {
-  const direccionSeleccionada = this.Direccines.find(d => d.diCl_Id === this.pedido.diCl_Id);
-  if (!direccionSeleccionada) {
-    console.error("Dirección no encontrada.");
-    return;
-  }
-
-  const clienteId = direccionSeleccionada.clie_Id;
-
-  const cliente = this.Clientes.find(c => c.clie_Id === clienteId);
-  if (!cliente || !cliente.ruta_Id) {
-    console.error("Cliente no encontrado o sin ruta_Id.");
-    return;
-  }
-
-  const rutaId = cliente.ruta_Id;
-
-  // Obtener la ruta del backend
-  this.http.get<any>(`${environment.apiBaseUrl}/Rutas/Buscar/${rutaId}`, {
-    headers: { 'x-api-key': environment.apiKey }
-  }).subscribe({
-    next: (ruta) => {
-      const rutaCodigo = ruta.ruta_Codigo; // ej: RT-012
-      const rutaCodigoNumerico = rutaCodigo.split('-')[1]; // extrae "012"
-
-      // Filtrar códigos existentes de esta ruta
-      const codigosRuta = this.pedidos
-        .map(p => p.pedi_Codigo)
-        .filter(c => new RegExp(`^PED-${rutaCodigoNumerico}-\\d{8}$`).test(c));
-
-      let siguienteNumero = 1;
-      if (codigosRuta.length > 0) {
-        const ultimoCodigo = codigosRuta.sort().pop()!;
-        const numero = parseInt(ultimoCodigo.split('-')[2], 10);
-        siguienteNumero = numero + 1;
-      }
-
-      const nuevoCodigo = `PED-${rutaCodigoNumerico}-${siguienteNumero.toString().padStart(8, '0')}`;
-      this.pedido.pedi_Codigo = nuevoCodigo;
-      console.log("Código generado:", nuevoCodigo);
-    },
-    error: (error) => {
-      console.error("Error al obtener ruta:", error);
+    if (!direccionSeleccionada) {
+      console.error('Dirección no encontrada.');
+      return;
     }
-  });
-}
 
+    const clienteId = direccionSeleccionada.clie_Id;
 
+    const cliente = this.Clientes.find((c) => c.clie_Id === clienteId);
+    if (!cliente || !cliente.ruta_Id) {
+      console.error('Cliente no encontrado o sin ruta_Id.');
+      return;
+    }
+
+    const rutaId = cliente.ruta_Id;
+
+    // Obtener la ruta del backend
+    this.http
+      .get<any>(`${environment.apiBaseUrl}/Rutas/Buscar/${rutaId}`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe({
+        next: (ruta) => {
+          const rutaCodigo = ruta.ruta_Codigo; // ej: RT-012
+          const rutaCodigoNumerico = rutaCodigo.split('-')[1]; // extrae "012"
+
+          // Filtrar códigos existentes de esta ruta
+          const codigosRuta = this.pedidos
+            .map((p) => p.pedi_Codigo)
+            .filter((c) =>
+              new RegExp(`^PED-${rutaCodigoNumerico}-\\d{8}$`).test(c)
+            );
+
+          let siguienteNumero = 1;
+          if (codigosRuta.length > 0) {
+            const ultimoNumero = codigosRuta
+              .map((codigo) => parseInt(codigo.split('-')[2], 10)) // extraer solo el número final
+              .sort((a, b) => b - a)[0]; // ordenar descendentemente y tomar el mayor
+
+            siguienteNumero = ultimoNumero + 1;
+          }
+
+          const nuevoCodigo = `PED-${rutaCodigoNumerico}-${siguienteNumero
+            .toString()
+            .padStart(8, '0')}`;
+          this.pedido.pedi_Codigo = nuevoCodigo;
+          console.log('Código generado:', nuevoCodigo);
+        },
+        error: (error) => {
+          console.error('Error al obtener ruta:', error);
+        },
+      });
+  }
 
   cargarClientes() {
     this.http
@@ -432,8 +455,6 @@ generarSiguienteCodigo(): void {
       });
   }
 
-  
-
   cargarDirecciones(clienteId: number) {
     this.http
       .get<any>(
@@ -444,7 +465,7 @@ generarSiguienteCodigo(): void {
       )
       .subscribe((data) => (this.Direccines = data));
 
-      //this.cargarPedidos();
+    //this.cargarPedidos();
   }
 
   onClienteSeleccionado(clienteId: number) {
@@ -455,9 +476,21 @@ generarSiguienteCodigo(): void {
   }
 
   onDireccionSeleccionada(direccionId: number) {
-  this.pedido.diCl_Id = parseInt(direccionId.toString());
-  this.generarSiguienteCodigo();
-}
+    this.pedido.diCl_Id = parseInt(direccionId.toString());
+     this.http
+    .get<any[]>(`${environment.apiBaseUrl}/Pedido/Listar`, {
+      headers: { 'x-api-key': environment.apiKey },
+    })
+    .subscribe({
+      next: (data) => {
+        this.pedidos = data;
+        this.generarSiguienteCodigo(); // ✅ Ahora sí se llama con los pedidos cargados
+      },
+      error: (error) => {
+        console.error('Error al cargar los pedidos:', error);
+      },
+    });
+  }
 
   cargarProductosPorCliente(clienteId: number): void {
     this.http
@@ -633,12 +666,13 @@ generarSiguienteCodigo(): void {
     if (this.pedido.diCl_Id && this.pedido.pedi_FechaEntrega) {
       // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
+
       this.mostrarAlertaError = false;
 
       const pedidoGuardar = {
         pedi_Id: 0,
         diCl_Id: this.pedido.diCl_Id,
-        pedi_Codigo: this.pedido.pedi_Codigo, //meter el codigo 
+        pedi_Codigo: this.pedido.pedi_Codigo, //meter el codigo
         vend_Id: getUserId(), // Asumiendo que el usuario actual es el vendedor
         pedi_FechaPedido: new Date().toISOString(),
         pedi_FechaEntrega: this.pedido.pedi_FechaEntrega,
