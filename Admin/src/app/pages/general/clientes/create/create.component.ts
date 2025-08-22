@@ -85,8 +85,8 @@ export class CreateComponent {
 
   esCorreoValido(correo: string): boolean {
     if (!correo) return true;
-    // Solo acepta gmail.com y hotmail.com, y debe tener @ y .com
-    return /^[\w\.-]+@(gmail|hotmail|outlook)\.com$/.test(correo.trim());
+    // Debe contener "@" y terminar en ".com"
+    return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
   }
 
   //Declarado para validar la direccion
@@ -450,27 +450,27 @@ export class CreateComponent {
   }
 
   //Para buscar colonias en DDL
- searchColonias = (term: string, item: any) => {
-      term = term.toLowerCase();
-      return (
-        item.colo_Descripcion?.toLowerCase().includes(term) ||
-        item.muni_Descripcion?.toLowerCase().includes(term) ||
-        item.depa_Descripcion?.toLowerCase().includes(term)
-      );
-    };
+  searchColonias = (term: string, item: any) => {
+    term = term.toLowerCase();
+    return (
+      item.colo_Descripcion?.toLowerCase().includes(term) ||
+      item.muni_Descripcion?.toLowerCase().includes(term) ||
+      item.depa_Descripcion?.toLowerCase().includes(term)
+    );
+  };
 
-    direccionExactaInicial: string = '';
+  direccionExactaInicial: string = '';
 
-    onColoniaSeleccionada(colo_Id: number) {
-      const coloniaSeleccionada = this.colonias.find((c: any) => c.colo_Id === colo_Id);
-      if (coloniaSeleccionada) {
-        this.direccionExactaInicial = coloniaSeleccionada.colo_Descripcion;
-        this.direccionPorCliente.diCl_DireccionExacta = coloniaSeleccionada.colo_Descripcion;
-      } else {
-        this.direccionExactaInicial = '';
-        this.direccionPorCliente.diCl_DireccionExacta = '';
-      }
+  onColoniaSeleccionada(colo_Id: number) {
+    const coloniaSeleccionada = this.colonias.find((c: any) => c.colo_Id === colo_Id);
+    if (coloniaSeleccionada) {
+      this.direccionExactaInicial = coloniaSeleccionada.colo_Descripcion;
+      this.direccionPorCliente.diCl_DireccionExacta = coloniaSeleccionada.colo_Descripcion;
+    } else {
+      this.direccionExactaInicial = '';
+      this.direccionPorCliente.diCl_DireccionExacta = '';
     }
+  }
 
   cliente: Cliente = {
     clie_Id: 0,
@@ -664,7 +664,7 @@ export class CreateComponent {
     }).subscribe(clientes => {
       const clientesRuta = clientes.filter(c => c.ruta_Id === +ruta_Id);
       let maxCorrelativo = 0;
-    
+
       clientesRuta.forEach(c => {
         const match = c.clie_Codigo?.match(/CLIE-RT-\d{3}-(\d{6})/);
         if (match) {
