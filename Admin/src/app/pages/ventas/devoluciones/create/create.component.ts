@@ -747,7 +747,7 @@ export class CreateComponent implements OnInit {
     const body = {
       fact_Numero: nuevoNumero,
       fact_TipoDeDocumento: this.facturaOriginal.fact_TipoDeDocumento || 'FACTURA',
-      regC_Id: this.facturaOriginal.regC_Id || 20,
+      regC_Id: this.facturaOriginal.regC_Id || 21,
       diCl_Id: this.facturaOriginal.diCl_Id || this.direcciones[0]?.diCl_Id || 0,
       vend_Id: this.vendedorSeleccionado.vend_Id,
       fact_TipoVenta: this.facturaOriginal.fact_TipoVenta || 'CONTADO',
@@ -756,7 +756,7 @@ export class CreateComponent implements OnInit {
       fact_Longitud: this.facturaOriginal.fact_Longitud || -87.123456,
       fact_Referencia: `Factura ajustada por devolución - Original: ${this.facturaOriginal.fact_Numero}`,
       fact_AutorizadoPor: this.facturaOriginal.fact_AutorizadoPor || 'yo',
-      usua_Creacion: getUserId() || 1,
+      usua_Creacion: getUserId(),
       detallesFacturaInput: productosRestantes
     };
 
