@@ -799,3 +799,310 @@
   .product-card:nth-child(4n) {
     animation-delay: 0.3s;
   }
+
+
+
+
+  /* Estilos para el modal de configuración de impresión */
+.modal-print-config {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1055;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  outline: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-print-config.show {
+  display: block !important;
+}
+
+.modal-dialog {
+  position: relative;
+  width: auto;
+  margin: 0.5rem;
+  pointer-events: none;
+}
+
+.modal-dialog-centered {
+  display: flex;
+  align-items: center;
+  min-height: calc(100% - 1rem);
+}
+
+.modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  pointer-events: auto;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0.5rem;
+  outline: 0;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Estilos para las opciones de método de impresión */
+.config-section {
+  margin-bottom: 1.5rem;
+}
+
+.config-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.method-option {
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #fff;
+}
+
+.method-option:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+}
+
+.method-option.active {
+  border-color: #007bff;
+  background: #f8f9ff;
+  box-shadow: 0 2px 12px rgba(0, 123, 255, 0.15);
+}
+
+.method-title {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.method-description {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Estilos para los controles USB */
+.usb-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+  flex-wrap: wrap;
+}
+
+.usb-status {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.usb-status.connected {
+  color: #198754;
+}
+
+.usb-status.disconnected {
+  color: #ffc107;
+}
+
+.usb-status.not-selected {
+  color: #6c757d;
+}
+
+.usb-status i {
+  font-size: 0.5rem;
+}
+
+/* Estilos para la configuración de red */
+.network-config {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #dee2e6;
+}
+
+.network-config.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (min-width: 576px) {
+  .modal-dialog {
+    max-width: 540px;
+    margin: 1.75rem auto;
+  }
+}
+
+@media (min-width: 992px) {
+  .modal-dialog {
+    max-width: 700px;
+  }
+}
+
+/* Prevenir scroll del body cuando el modal está abierto */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Mejorar la apariencia del botón de cerrar */
+.btn-close-white {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Estilos para el spinner */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Mejorar el contraste en el header */
+.modal-header.bg-primary {
+  background-color: #007bff !important;
+}
+
+.modal-header.bg-primary .modal-title,
+.modal-header.bg-primary i {
+  color: white !important;
+}
+
+
+
+/* CSS adicional para Zebra Browser Print Wrapper */
+
+.zebra-wrapper-controls {
+  border: 1px solid #e3e6f0;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 0.5rem;
+  background-color: #f8f9fc;
+}
+
+.printer-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #e3e6f0;
+  border-radius: 0.25rem;
+}
+
+.printer-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-bottom: 1px solid #e3e6f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.printer-item:last-child {
+  border-bottom: none;
+}
+
+.printer-item:hover {
+  background-color: #f1f3f4;
+}
+
+.printer-item.selected {
+  background-color: #e3f2fd;
+  border-left: 3px solid #2196f3;
+}
+
+.printer-info {
+  flex: 1;
+}
+
+.printer-name {
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  align-items: center;
+}
+
+.printer-details {
+  margin-top: 0.25rem;
+}
+
+.printer-actions {
+  flex-shrink: 0;
+}
+
+.connection-status {
+  background-color: white;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #dee2e6;
+}
+
+.selected-printer .alert {
+  margin-bottom: 0.5rem;
+}
+
+.printer-controls {
+  padding-top: 0.5rem;
+  border-top: 1px solid #dee2e6;
+  margin-top: 0.5rem;
+}
+
+/* Animación de carga */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Estado de la impresora */
+.alert-success {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.alert-warning {
+  background-color: #fff3cd;
+  border-color: #ffeaa7;
+  color: #856404;
+}
+
+/* Método seleccionado */
+.method-option.active .zebra-wrapper-controls {
+  border-color: #007bff;
+  background-color: #f0f7ff;
+}
