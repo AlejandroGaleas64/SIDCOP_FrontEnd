@@ -5,18 +5,34 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+import { ViewChild, ElementRef } from '@angular/core';
+import Cropper from 'cropperjs';
 
 @Component({
   selector: 'app-edit-config-factura',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    HttpClientModule,
+    NgSelectModule,
+    NgxMaskDirective,
+  ],
   templateUrl: './edit.component.html',
-  styleUrl: './edit.component.scss'
+  styleUrls: ['./edit.component.scss'],
+  providers: [provideNgxMask()]
 })
 export class EditConfigFacturaComponent implements OnChanges {
   @Input() configFacturaData: any | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<any>();
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('imageCropper', { static: false }) imageElement!: ElementRef;
+
+  cropper!: Cropper;
+  croppedImage: string | null = null;
+  showCropper = false;
 
   configFactura: any = {
     coFa_Id: 0,
@@ -35,10 +51,10 @@ export class EditConfigFacturaComponent implements OnChanges {
   };
 
   configFacturaOriginal: any = {};
-  
+
   // Catálogos
   colonia: any[] = [];
-  
+
   logoSeleccionado = false;
 
   mostrarErrores = false;
@@ -51,7 +67,7 @@ export class EditConfigFacturaComponent implements OnChanges {
   mensajeError = '';
   mensajeWarning = '';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['configFacturaData']?.currentValue) {
@@ -113,23 +129,72 @@ export class EditConfigFacturaComponent implements OnChanges {
     }
   }
 
-  onImagenSeleccionada(event: any) {
-    // Obtenemos el archivo seleccionado desde el input tipo file
+  abrirModalCropper() {
+    this.fileInput.nativeElement.value = '';
+    this.fileInput.nativeElement.click();
+  }
+
+  cerrarModalCropper() {
+    this.showCropper = false;
+    if (this.cropper) this.cropper.destroy();
+  }
+
+  onFileChange(event: any) {
     const file = event.target.files[0];
-
     if (file) {
-      // para enviar la imagen a Cloudinary
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'configuracion_empresa');
-      //Subidas usuarios Carpeta identificadora en Cloudinary
-      //dbt7mxrwk es el nombre de la cuenta de Cloudinary
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.showCropper = true;
+        setTimeout(() => {
+          const image = this.imageElement.nativeElement as HTMLImageElement;
+          image.src = e.target.result;
+          image.onload = () => {
+            if (this.cropper) this.cropper.destroy();
+            this.cropper = new Cropper(image, {
+              aspectRatio: 1,
+              viewMode: 1,
+              autoCropArea: 1,
+              minCropBoxWidth: 120,
+              minCropBoxHeight: 120,
+              background: false,
+              guides: true,
+              movable: true,
+              zoomable: true,
+              scalable: false,
+              cropBoxResizable: true,
+              dragMode: 'move',
+            });
+          };
+        }, 0);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
 
-      fetch(url, {
-        method: 'POST',
-        body: formData
-      })
+  cropAndUpload() {
+    if (!this.cropper) return;
+    const canvas = this.cropper.getCroppedCanvas({
+      width: 120,
+      height: 120,
+      imageSmoothingQuality: 'high'
+    });
+    this.croppedImage = canvas.toDataURL('image/png');
+    this.showCropper = false;
+    if (this.cropper) this.cropper.destroy();
+    this.uploadToCloudinary(this.croppedImage);
+  }
+
+  uploadToCloudinary(base64: string) {
+    const file = this.dataURLtoFile(base64, 'logo.png');
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'configuracion_empresa');
+    const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
+
+    fetch(url, {
+      method: 'POST',
+      body: formData
+    })
       .then(response => response.json())
       .then(data => {
         console.log('Imagen subida a Cloudinary:', data);
@@ -138,7 +203,19 @@ export class EditConfigFacturaComponent implements OnChanges {
       .catch(error => {
         console.error('Error al subir la imagen a Cloudinary:', error);
       });
+  }
+
+  dataURLtoFile(dataurl: string, filename: string) {
+    const arr = dataurl.split(',');
+    const match = arr[0].match(/:(.*?);/);
+    const mime = match ? match[1] : '';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
     }
+    return new File([u8arr], filename, { type: mime });
   }
 
   validarEdicion(): void {
@@ -304,7 +381,7 @@ export class EditConfigFacturaComponent implements OnChanges {
     if (a.colo_Id !== b.colo_Id) {
       const coloniaAnterior = this.colonia.find(c => c.colo_Id === b.colo_Id);
       const coloniaNueva = this.colonia.find(c => c.colo_Id === a.colo_Id);
-      
+
       this.cambiosDetectados.colonia = {
         anterior: coloniaAnterior ? `${coloniaAnterior.colo_Descripcion} - ${coloniaAnterior.muni_Descripcion} - ${coloniaAnterior.depa_Descripcion}` : 'No seleccionada',
         nuevo: coloniaNueva ? `${coloniaNueva.colo_Descripcion} - ${coloniaNueva.muni_Descripcion} - ${coloniaNueva.depa_Descripcion}` : 'No seleccionada',
@@ -323,7 +400,7 @@ export class EditConfigFacturaComponent implements OnChanges {
     return Object.keys(this.cambiosDetectados).length > 0;
   }
 
-  
+
   // Método para obtener la lista de cambios como array
   obtenerListaCambios(): any[] {
     return Object.values(this.cambiosDetectados);

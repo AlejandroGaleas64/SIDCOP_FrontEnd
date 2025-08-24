@@ -35,7 +35,7 @@ export class DashbComponent implements OnInit {
   aniosSelect: number[] = [];
   anioSeleccionado: number = 2025;
   barraMesSelected: any;
-  mesNumeroSelected: number = 7;
+  mesNumeroSelected: number = new Date().getMonth() + 1; 
 
   categoriaSelected: any = null;
   categoriasddl: any[] = [];
@@ -43,11 +43,12 @@ export class DashbComponent implements OnInit {
 
   vendedormesesddl: any[] = [];
   vendedormesSelected = {
-        Mes: 7,
+        Mes: new Date().getMonth() + 1,
         Anio: 2025,
-        MesNombre: 'Julio'
+        MesNombre: "Agosto"
       };
   
+      
 
   graficocategorias: boolean = false;
   categoriasdata: any[] = [];
@@ -299,7 +300,7 @@ export class DashbComponent implements OnInit {
     colors = colorArr;
 
     this.multipleRadialbarChart = {
-      series: this.categoriasdata.map(item => item.Cantidad/this.barraMesSelected.Cantidad * 100),      
+      series: this.categoriasdata.map(item => parseFloat( (item.Cantidad/this.barraMesSelected.Cantidad * 100).toFixed(2)) ),      
       chart: {
         height: 350,
         type: "radialBar",
@@ -340,6 +341,16 @@ export class DashbComponent implements OnInit {
       },
       labels: this.categoriasdata.map(item => item.Categoria),
       colors: colors,
+      tooltip: {
+      y: {
+        formatter: (val: number, opts: any) => {
+          // opts contains info about the hovered slice
+          const label = opts.w.globals.labels[opts.seriesIndex];
+          // You can access more data from this.categoriasdata if needed
+          return `${label}: ${val} ventas`;
+        }
+      }
+    }
     };
 
     const attributeToMonitor = 'data-theme';
@@ -511,8 +522,11 @@ export class DashbComponent implements OnInit {
                                   .sort((a, b) => a.Mes - b.Mes);
 
           this.vendedormesSelected = this.vendedormesesddl.filter(
-            item => item.Mes === getMonth(new Date())
-          ).map(item => item)[0];   
+            item => item.Mes == getMonth(new Date()) +1
+            
+          )[0];   
+
+          console.log("meses month: ", getMonth(new Date()) )
 
           // this.vendedormesSelected.MesNombre = this.vendedormesesddl.filter(
           //   item => item.Mes === getMonth(new Date())

@@ -1,0 +1,277 @@
+<div class="d-flex flex-column" style="height: 100%; min-height: 250px;">
+  <!-- Título del componente -->
+  <h5 class="card-title mb-4">Crear nueva visita</h5>
+
+  <!-- Contenedor de alertas flotantes -->
+  <div class="alert-container">
+    <div *ngIf="mostrarAlertaExito" class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+      <strong>¡Éxito!</strong> {{ mensajeExito }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+    <div *ngIf="mostrarAlertaWarning" class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+      <strong>¡Atención!</strong> {{ mensajeWarning }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+    <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+      <strong>¡Error!</strong> {{ mensajeError }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <div class="flex-grow-1">
+    <div class="row">
+      <!-- Selector de Vendedor -->
+      <div class="col-12 col-md-6 mb-3">
+        <label for="vendedor" class="form-label">Vendedor <span class="text-danger">*</span></label>
+        <div class="d-flex align-items-center">
+          <i class="ri-user-2-line" [ngStyle]="{
+            border: (!visita.vendedor && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (!visita.vendedor && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.425rem 0.425rem',
+            position: 'relative', left: '7px',
+            zIndex: 1,
+            borderTopLeftRadius: '8px',
+            borderBottomLeftRadius: '8px'}">
+          </i>
+          <ng-select id="vendedor" [items]="vendedores"  
+              bindLabel="vendedorNombre"
+              [loading]="cargando"
+              [clearable]="false"
+              [searchable]="true"
+              [(ngModel)]="visita.vendedor"
+              (change)="onVendedorSeleccionado($event)"
+              [class.is-invalid]="!visita.vendedor && mostrarErrores"
+              placeholder="Seleccione un vendedor"
+              required
+              style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+            <ng-template ng-label-tmp let-item="item">
+                {{ item.vendedorNombre }}
+            </ng-template>
+            <ng-template ng-option-tmp let-item="item">
+                {{ item.vendedorNombre }} {{ item.vendedorApellido }} - {{ item.rutaDescripcion }}
+            </ng-template>
+          </ng-select>
+        </div>
+        <div class="text-danger mt-1" *ngIf="!visita.vendedor && mostrarErrores">
+           <small>El campo Vendedor es requerido</small>
+        </div>
+      </div>
+
+      <!-- Selector de Cliente -->
+      <div class="col-12 col-md-6 mb-3">
+        <label class="form-label">Cliente <span class="text-danger">*</span></label>
+        <div class="d-flex align-items-center">
+          <i class="ri-user-line" [ngStyle]="{
+            border: (!visita.cliente && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (!visita.cliente && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.425rem 0.425rem',
+            position: 'relative', left: '7px',
+            zIndex: 1,
+            borderTopLeftRadius: '8px',
+            borderBottomLeftRadius: '8px'
+          }"></i>
+          <ng-select class="w-100"
+              [items]="clientesFiltrados"
+              bindLabel="clie_NombreNegocio"
+              bindValue="clie_Id"
+              [loading]="cargando"
+              [clearable]="false"
+              [searchable]="true"
+              [(ngModel)]="visita.cliente"
+              (change)="onClienteSeleccionado($event)"
+              [class.is-invalid]="!visita.cliente && mostrarErrores"
+              placeholder="Seleccione un cliente"
+              [disabled]="!visita.vendedor"
+              [searchFn]="searchCliente"
+              required
+              style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+              <ng-template ng-label-tmp let-item="item">
+                  {{ item.clie_Codigo }} - {{ item.clie_Nombres }} {{ item.clie_Apellidos }}
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                  <div>
+                      <div><strong>{{ item.clie_Codigo }}</strong> - {{ item.clie_Nombres }} {{ item.clie_Apellidos }}</div>
+                      <small class="text-muted">{{ item.clie_NombreNegocio }}</small>
+                  </div>
+              </ng-template>
+          </ng-select>
+        </div>
+        <div class="text-danger mt-1" *ngIf="!visita.cliente && mostrarErrores">
+           <small>El campo Cliente es requerido</small>
+        </div>
+      </div>
+
+      <!-- Selector de Dirección -->
+      <div class="col-12 col-md-6 mb-3">
+        <label for="direccion" class="form-label">Dirección <span class="text-danger">*</span></label>
+        <div class="d-flex align-items-center">
+          <i class="ri-map-pin-line" [ngStyle]="{
+            border: (!visita.direccion && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (!visita.direccion && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.425rem 0.425rem',
+            position: 'relative', left: '7px',
+            zIndex: 1,
+            borderTopLeftRadius: '8px',
+            borderBottomLeftRadius: '8px'
+          }"></i>
+          <ng-select id="direccion"
+              [items]="direcciones"
+              bindLabel="diCl_DireccionExacta"
+              [loading]="cargando"
+              [clearable]="false"
+              [searchable]="true"
+              [(ngModel)]="visita.direccion"
+              [class.is-invalid]="!visita.direccion && mostrarErrores"
+              placeholder="Seleccione una dirección"
+              [disabled]="!visita.cliente"
+              required
+              style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+              <ng-template ng-label-tmp let-item="item">
+                  {{ item.diCl_DireccionExacta }}
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                  <div>
+                      <div>{{ item.diCl_DireccionExacta }}</div>
+                      <small class="text-muted">{{ item.diCl_Referencia || 'Sin referencia' }}</small>
+                  </div>
+              </ng-template>
+          </ng-select>
+        </div>
+        <div class="text-danger mt-1" *ngIf="!visita.direccion && mostrarErrores">
+           <small>El campo Dirección es requerido</small>
+        </div>
+      </div>
+
+      <!-- Estado de Visita -->
+      <div class="col-12 col-md-6 mb-3">
+        <label for="esVi_Id" class="form-label">Estado de Visita <span class="text-danger">*</span></label>
+        <div class="d-flex align-items-center">
+          <i class="ri-checkbox-circle-line" [ngStyle]="{
+            border: (!visita.esVi_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (!visita.esVi_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.425rem 0.425rem',
+            position: 'relative', left: '7px',
+            zIndex: 1,
+            borderTopLeftRadius: '8px',
+            borderBottomLeftRadius: '8px'
+          }"></i>
+          <ng-select id="esVi_Id"
+              [items]="estadosVisita"
+              bindLabel="esVi_Descripcion"
+              bindValue="esVi_Id"
+              [clearable]="true"
+              [searchable]="false"
+              [(ngModel)]="visita.esVi_Id"
+              [class.is-invalid]="!visita.esVi_Id && mostrarErrores"
+              placeholder="Seleccione un estado"
+              required
+              style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.esVi_Descripcion }}
+              </ng-template>
+          </ng-select>
+        </div>
+        <div class="text-danger mt-1" *ngIf="!visita.esVi_Id && mostrarErrores">
+           <small>El campo Estado es requerido</small>
+        </div>
+      </div>
+
+      <!-- Fecha de Visita -->
+      <div class="col-12 col-md-6 mb-3">
+        <label for="clVi_Fecha" class="form-label">Fecha de Visita <span class="text-danger">*</span></label>
+        <div class="d-flex align-items-center">
+          <i class="ri-calendar-line" [ngStyle]="{
+            border: (!visita.clVi_Fecha && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (!visita.clVi_Fecha && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.525rem 0.525rem',
+            borderTopLeftRadius: '8px',
+            borderBottomLeftRadius: '8px'
+          }"></i>
+          <input type="date" 
+              id="clVi_Fecha" 
+              class="form-control"
+              [class.is-invalid]="!visita.clVi_Fecha && mostrarErrores"
+              [(ngModel)]="visita.clVi_Fecha"
+              [max]="maxDate"
+              [attr.min]="minDate"
+              placeholder="Seleccione una fecha"
+              required
+              style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;" />
+        </div>
+        <div class="text-danger mt-1" *ngIf="!visita.clVi_Fecha && mostrarErrores">
+           <small>El campo Fecha es requerido</small>
+        </div>
+      </div>
+
+      <!-- Observaciones -->
+      <div class="col-12 mb-3">
+        <label for="ClVi_Observaciones" class="form-label">Observaciones</label>
+        <textarea id="ClVi_Observaciones" 
+            class="form-control" 
+            [(ngModel)]="visita.clVi_Observaciones" 
+            rows="3"
+            maxlength="500" 
+            placeholder="Ingrese observaciones adicionales sobre la visita"></textarea>
+        <div class="form-text text-end">{{ (visita.clVi_Observaciones || '').length }}/500</div>
+      </div>
+
+      <!-- Imagen de la visita (Dropzone igual empleados) -->
+      <div class="col-lg-12">
+        <div class="mb-3">
+          <label class="form-label">Imagen de la visita<span class="text-danger">*</span></label>
+          <dropzone
+            class="dropzone"
+            [config]="dropzoneConfig"
+            [message]="'Selecciona una imagen para subir.'"
+            (success)="onFileSelected($event)">
+          </dropzone>
+
+          <ul class="list-unstyled mb-0" *ngIf="uploadedFiles.length > 0" id="dropzone-preview">
+            <li class="mt-2" *ngFor="let file of uploadedFiles">
+              <div class="border rounded">
+                <div class="d-flex flex-wrap gap-2 p-2">
+                  <div class="flex-shrink-0 me-3">
+                    <div class="avatar-sm bg-light rounded p-2">
+                      <img class="img-fluid rounded d-block" [src]="file.dataURL || file" alt="Imagen-Visita" />
+                    </div>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="pt-1">
+                      <h5 class="fs-md mb-1" *ngIf="file.name">{{ file.name }}</h5>
+                      <p class="fs-sm text-muted mb-0" *ngIf="file.size">{{ file.size }}</p>
+                    </div>
+                  </div>
+                  <div class="flex-shrink-0 ms-3">
+                    <button (click)="removeFile(file)" class="btn btn-sm btn-danger">Eliminar</button>
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Botones -->
+  <div class="mt-auto pt-3">
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-primary gold" (click)="cancelar()">
+            <span class="btn-text">Cancelar</span>
+            <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+          </button>
+          <button type="button" class="btn btn-primary" (click)="guardar()">
+            <span class="btn-text">Guardar</span>
+            <span class="btn-icon"><i class="ri-save-line"></i></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

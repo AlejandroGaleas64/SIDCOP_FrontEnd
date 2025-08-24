@@ -11,8 +11,8 @@ export class RegistroCAI {
   nCai_Descripcion: string = '';
   regC_RangoInicial: string = '';
   regC_RangoFinal: string = '';
-  regC_FechaInicialEmision: Date = new Date();
-  regC_FechaFinalEmision: Date = new Date();
+  regC_FechaInicialEmision: Date = new Date() || null;
+  regC_FechaFinalEmision: Date = new Date() || null;
 
   estado?: string = '';
   secuencia?: number = 0;

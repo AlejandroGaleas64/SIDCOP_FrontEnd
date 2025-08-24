@@ -1,5 +1,5 @@
 export class ClientesPorVendedor{
-    vendedor: string = "",
+    vendedor: string = "";
     veRu_Dias: number = 0;
     ruta_Id: number = 0;
     ruta_Descripcion: string = '';

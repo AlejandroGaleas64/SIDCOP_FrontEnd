@@ -26,7 +26,8 @@
          "CLIENTES": "Clientes",
         "PROVEEDORES": "Proveedores",
          "EMPLEADOS": "Empleados",
-         "VISITASCLIENTES": "Visitas Clientes"
+         "VISITASCLIENTES": "Visitas Clientes",
+         "ESTADOSVISITA": "Estado de Visita"
       }
     },
     "INVENTARIO": {
@@ -44,14 +45,16 @@
       "TEXT": "Ventas",
       "LIST": {
         "IMPUESTOS": "Impuestos",
-        "CONFIGURACIONFACTURA": "Configuración de Factura",
+        "CONFIGURACIONFACTURA": "Configuración de la Empresa",
         "CAIS": "CAIS",
         "VENDEDORES": "Vendedores",
         "REGISTROCAIS": "Registros CAI",
         "PUNTOSEMISION": "Puntos Emision",
         "CUENTASPORCOBRAR": "Cuentas por Cobrar",
         "LISTASPRECIOS": "Listas de Precios",
-        "PEDIDOS": "Pedidos"
+        "PEDIDOS": "Pedidos",
+        "DEVOLUCIONES": "Devoluciones",
+        "VENTA": "Ventas"
       }
     },
     "LOGISTICA": {
@@ -65,15 +68,18 @@
     "REPORTES": {
       "TEXT": "Reportes",
       "LIST": {
-        "REPORTEPRODUCTOS": "Reporte Productos",
-        "REPORTECLIENTESMASFACTURADOS": "Reporte Clientes Más Facturados",
-        "REPORTEPRODUCTOSPORRUTA": "Reporte Productos por Ruta",
-        "REPORTERECARGAPORSBODEGA": "Reporte Recargas Por Bodega",
-        "REPORTEDEVOLUCIONES": "Reporte Devoluciones",
-        "REPORTERUTAS": "Reporte Rutas",
-        "REPORTEPRODUCTOSVENDIDOS": "Reporte Total de Productos Vendidos",
-        "REPORTEVENDEDORESVENTAS": "Reporte Total de Ventas por Vendedor",
-        "REPORTECUENTASCLIENTES": "Reporte Cuentas Por Cliente"
+        "REPORTEPRODUCTOS": " Productos",
+        "REPORTECLIENTESMASFACTURADOS": " Clientes Más Facturados",
+        "REPORTEPRODUCTOSPORRUTA": " Productos por Ruta",
+        "REPORTERECARGAPORSBODEGA": " Recargas Por Bodega",
+        "REPORTEDEVOLUCIONES": " Devoluciones",
+        "REPORTEPRODUCTOSVENDIDOS": " Total de Productos Vendidos",
+        "REPORTEVENDEDORESVENTAS": " Total de Ventas por Vendedor",
+        "REPORTECUENTASCLIENTES": " Cuentas Por Cliente",
+        "REPORTEVENDEDORESPORRUTA": " Vendedores Por Ruta",
+        "REPORTECLIENTES": " Clientes"
+        ,
+         "REPORTEPEDIDOSPORFECHA": " Pedidos Por Fecha"
       }
     },
     "DASHBOARD": {
@@ -83,7 +89,8 @@
         "CRM": "CRM",
         "ECOMMERCE": "Comercio electrónico",
         "LEARNING": "Aprendiendo",
-        "REALESTATE": "Bienes raíces"
+        "REALESTATE": "Bienes raíces",
+        "DASHBOARD": "Dashboard"
       }
     }
   }

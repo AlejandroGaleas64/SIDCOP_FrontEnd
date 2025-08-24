@@ -69,6 +69,7 @@ activeTab: number = 1;
     prod_CostoTotal: 0,
     prod_PagaImpuesto: "",
     prod_EsPromo: "",
+    prod_Impulsado: false,
     prod_Estado: true,
     usua_Creacion: 0,
     prod_FechaCreacion: new Date(),
@@ -105,6 +106,24 @@ activeTab: number = 1;
 
   precioFormatoValido: boolean = true;
   precioValido: boolean = true;
+
+  // Puente booleano para el switch (UI) <-> 'S'/'N' (backend)
+  get pagaImpuestoBool(): boolean {
+    const v: any = this.producto?.prod_PagaImpuesto;
+    // Acepta 'S'/'N' y también boolean por si ya fue mapeado
+    if (typeof v === 'string') {
+      return v.toUpperCase() === 'S';
+    }
+    return !!v;
+  }
+
+  set pagaImpuestoBool(value: boolean) {
+    this.producto.prod_PagaImpuesto = value ? 'S' : 'N';
+    if (!value) {
+      // Si no paga impuesto, limpiar impuesto seleccionado
+      this.producto.impu_Id = 0;
+    }
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['productoData'] && changes['productoData'].currentValue) {
@@ -162,7 +181,8 @@ activeTab: number = 1;
 
       // Si solo necesitas los IDs
       const clientesIds = clientesLista.map((c: any) => c.id);
-      this.producto.idClientes = clientesIds;
+      // Importante: crear copias para evitar referencias compartidas que impidan detectar cambios
+      this.producto.idClientes = [...clientesIds];
       console.log('Productos lista:', productosLista);
       // Transformar y aplicar las cantidades de productos seleccionados
       if (productosLista.length > 0) {
@@ -196,7 +216,8 @@ activeTab: number = 1;
   console.log('Cantidades aplicadas a productos:', cantidadesPorProducto);
 }
       
-      this.clientesSeleccionados = clientesIds;
+      // Copia independiente para que las mutaciones del UI no modifiquen el arreglo original por referencia
+      this.clientesSeleccionados = [...clientesIds];
       
       console.log('Clientes seleccionados cargados:', this.clientesSeleccionados);
       console.log('Productos cargados:', this.productos);
@@ -218,7 +239,7 @@ activeTab: number = 1;
   }
 
   onPagaImpuestoChange() {
-    if (!this.producto.prod_PagaImpuesto) {
+    if (!this.pagaImpuestoBool) {
       this.producto.impu_Id = 0;
     }
   }
@@ -272,6 +293,11 @@ activeTab: number = 1;
   cancelar(): void {
     this.activeTab = 1
     this.cerrarAlerta();
+    this.producto = { ...this.productoOriginal };
+    this.productoData = null;
+    this.seleccionados = [];
+    this.clientesSeleccionados = [];
+    this.productos.forEach(producto => producto.cantidad = 0);
     this.onCancel.emit();
   }
 
@@ -305,9 +331,9 @@ activeTab: number = 1;
     }
 
     if (a.prod_PagaImpuesto !== b.prod_PagaImpuesto) {
-      this.cambiosDetectados.codigo = {
-        anterior: b.prod_PagaImpuesto == 'S' || 's'? 'Sí' : 'No',
-        nuevo: a.prod_PagaImpuesto == 'S' ? 'Sí' : 'No',
+      this.cambiosDetectados.pagaImpuesto = {
+        anterior: (b.prod_PagaImpuesto ?? '').toString().toUpperCase() === 'S' ? 'Sí' : 'No',
+        nuevo: (a.prod_PagaImpuesto ?? '').toString().toUpperCase() === 'S' ? 'Sí' : 'No',
         label: 'Paga Impuesto'
       };
     }
@@ -482,6 +508,8 @@ if (serializeProductos(productosOriginal) !== serializeProductos(productosActual
       this.producto.prod_PrecioUnitario >= 0
     ) {
       const productosSeleccionados = this.obtenerProductosSeleccionados();
+      // Mapear correctamente boolean -> 'S'/'N'
+      this.producto.prod_PagaImpuesto = this.pagaImpuestoBool ? 'S' : 'N';
       const promocionActualizar = {
         ...this.producto,
         usua_Modificacion: getUserId(),
@@ -594,8 +622,16 @@ if (serializeProductos(productosOriginal) !== serializeProductos(productosActual
 validarPasoInformacionGeneral(): boolean {
   const d = this.producto;
 
-    return !!d.prod_Codigo?.trim() && !!d.prod_Descripcion?.trim() && !!d.prod_DescripcionCorta?.trim() &&
-          !!d.prod_PrecioUnitario != null && d.prod_PrecioUnitario >= 0;
+    const isv = d.prod_PagaImpuesto? 'S' : 'N';
+  return !!d.prod_Codigo?.trim()
+    && !!d.prod_Descripcion?.trim()
+    && !!d.prod_DescripcionCorta?.trim()
+    && d.prod_PrecioUnitario != null
+    && d.prod_PrecioUnitario > 0
+     && (
+      (isv === 'N') ||
+      (isv === 'S'  && d.impu_Id != null && d.impu_Id > 0)
+    );
 }
 
 

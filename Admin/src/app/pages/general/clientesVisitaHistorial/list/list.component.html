@@ -1,141 +1,140 @@
 <app-breadcrumbs [title]="'Historial de Visitas'" [breadcrumbItems]="[
     { label: 'General' },
-    { label: 'Visitas Sin Venta', active: true }
+    { label: 'Visitas', active: true }
   ]">
-  <img class="breadcrumbs-icon ms-2 icon-breadcrumb" src="assets/images/svg/visitas.svg" alt="icono breadcrumb" />
+  <img class="breadcrumbs-icon ms-2 icon-breadcrumb" src="assets/images/svg/visitas2.svg" alt="icono breadcrumb" />
 </app-breadcrumbs>
 
 <div class="card">
   <div class="card-body">
-    <div class="row align-items-center g-2">
-      
-      <div class="col-6 d-flex justify-content-end">
-        <!-- Opciones de exportación alineadas a la derecha -->
-        <!-- <div class="export-buttons d-flex gap-1 mb-2">
-          <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarExcel()" title="Exportar a Excel">
+    <div class="row align-items-center g-2" *ngIf="!showCreateForm && !showDetailsForm">
+      <div class="col-lg-3 me-auto">
+        <button type="button" class="btn btn-primary me-2 mb-2" (click)="crear()">
+          <span class="btn-text">Nuevo</span>
+          <span class="btn-icon"><i class="ri-add-line"></i></span>
+        </button>
+      </div>
+
+      <div class="col-lg-5 d-flex align-items-center justify-content-end gap-2 mb-2">
+        <div class="export-buttons d-flex gap-1 mb-2">
+          <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarExcel()"
+            title="Exportar a Excel">
             <span class="btn-text">Excel</span>
             <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
           </button>
-          <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarPDF()" title="Exportar a PDF">
+          <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarPDF()"
+            title="Exportar a PDF">
             <span class="btn-text">PDF</span>
             <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
           </button>
-          <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarCSV()" title="Exportar a CSV">
+          <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarCSV()"
+            title="Exportar a CSV">
             <span class="btn-text">CSV</span>
             <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
           </button>
-        </div> -->
+        </div>
+        <div class="position-relative" style="min-width: 200px;">
+          <input type="text" class="form-control ps-5" placeholder="Buscar..." [(ngModel)]="busqueda"
+            (ngModelChange)="filtradorVendedores()" />
+          <i class="ri-search-line search-icon"
+            style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #aaa;"></i>
+        </div>
       </div>
-      <div class="col-2 ms-auto position-relative">
-        <!-- <input type="text" class="form-control ps-5" placeholder="Buscar..." [(ngModel)]="busqueda" (ngModelChange)="filtradorVendedores()" /> -->
-        <i class="ri-search-line search-icon"
-          style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #aaa;"></i>
-      </div>
-      <!-- </div> -->
+    </div>
 
-      <!-- Collapse para el formulario de creación -->
-      <!-- <div class="collapse" [ngClass]="{ 'show': showCreateForm }" id="createFormCollapse">
+    <!-- Collapse para el formulario de creación -->
+    <div *ngIf="showCreateForm" @fadeExpand style="min-height: 400px; padding: 0.5rem;">
       <div class="mb-3 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
         <div class="container-fluid flex-grow-1">
           <app-create (onCancel)="cerrarFormulario()" (onSave)="guardarVisita($event)"></app-create>
         </div>
       </div>
-    </div> -->
-
-      <!-- Collapse para el formulario de detalles -->
-      <div *ngIf="showDetailsForm" @fadeExpand class="card card-body mb-3 d-flex flex-column"
-        style="min-height: 400px; padding: 0.5rem;">
-        <div class="container-fluid flex-grow-1">
-          <app-details [visitaData]="visitaDetalle" (onClose)="cerrarFormularioDetalles()"></app-details>
-        </div>
-      </div>
-
     </div>
 
-    <div *ngIf="!showCreateForm && !showDetailsForm">
-      <div class="row row-cols-xxl-5 g-4 mx-2 mb-4">
+    <!-- Collapse para el formulario de detalles -->
+    <div *ngIf="showDetailsForm" @fadeExpand style="min-height: 400px; padding: 0.5rem;">
+      <div class="container-fluid flex-grow-1">
+        <app-details [visitaData]="visitasDetalle" (onClose)="cerrarFormularioDetalles()"></app-details>
+      </div>
+    </div>
+  </div>
 
-        <ng-container *ngFor="let vendedor of vendedoresFiltrados; trackBy: trackByVendedorId">
-          <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4 mx-auto">
-            <div class="card card-vendedor position-relative h-100">
-              <div class="card-header p-0 position-relative header-bg" style="background: #f5f5f5;">
-                <div class="header-overlay"></div>
-                <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
-                  <span class="nombre-vendedor text-break">{{ vendedor.vend_Nombres }} {{ vendedor.vend_Apellidos
-                    }}</span>
-                  <!-- <i class="ri-user-3-line" style="font-size: 3em; color: #bdbdbd;"></i> -->
-                </div>
-                <div style="position: absolute; top: 0px; right: 0px; z-index:1;"
-                  *ngIf="showEdit || showDelete || showDetails">
-                  <div class="dropdown-action-list" (document:click)="onDocumentClick($event, vendedor.vend_Id)">
-                    <button class="buttonConfig" [attr.aria-expanded]="activeActionRow === vendedor.vend_Id"
-                      (click)="onActionMenuClick(vendedor.vend_Id)">
-                      <i class="ri-settings-3-line" style="color: #c0a07a; font-size: 1.4em;"></i>
-                    </button>
-                    <span class="acciones-text"></span>
-                    <ul *ngIf="activeActionRow === vendedor.vend_Id" class="dropdown-menu show"
-                      style="left: -100px; z-index: 10000;">
-                      <li *ngIf="showDetails">
-                        <button class="dropdown-action-btn" (click)="detalles(vendedor)">Detalles <i
-                            class="ri-error-warning-fill"></i></button>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
+  <div *ngIf="!showCreateForm && !showDetailsForm">
+    <div class="row row-cols-xxl-5 g-4 mx-2 mb-4">
+      <ng-container *ngFor="let vendedor of vendedoresFiltrados; trackBy: trackByVendedorId">
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4 mx-auto">
+          <div class="card card-empleado position-relative h-100">
+            <div class="card-header p-0 position-relative"
+              style="height: 90px; background: #141a2f; border-top-left-radius: 1rem; border-top-right-radius: 1rem; display: flex; justify-content: center; align-items: flex-end;">
+              <div
+                style="position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; background: #d6b68a; border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem;">
               </div>
               <div
-                style="height: 4.5px; background-color: #d6b58d; width: 100%; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;">
+                style="background: #fff; border-radius: 50%; padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 2px solid #d6b68a; margin-bottom: -35px; z-index:1;">
+                <img [src]="vendedor.vend_Imagen" (error)="onImgError($event)" alt="Vendedor"
+                  class="avatar-img rounded-circle"
+                  style="width: 64px; height: 64px; object-fit: cover; display: block;" />
               </div>
-              <div class="card-body pt-4 mt-2 px-3 text-center">
-                <!-- <h5 class="fw-bold mb-1 text-dark" style="font-size: 1.125rem;">
-                {{ vendedor.Vend_Nombres }} {{ vendedor.Vend_Apellidos }}
-              </h5> -->
-                <ul class="list-unstyled mb-4 mt-3 ps-0"
-                  style="display: flex; flex-direction: column; align-items: baseline;">
-                  <li class="d-flex justify-content-center align-items-center gap-2 mb-1">
-                    <i class="bx bx-id-card" style="color: #141A2F;"></i>
-                    <span class="text-muted text-break">Código: {{ vendedor.vend_Codigo }}</span>
-                  </li>
-                  <!-- <li class="d-flex justify-content-center align-items-center gap-2 mb-1">
-                  <i class="bx bx-id-card" style="color: #141A2F;"></i>
-                  <span class="text-muted text-break">Nombre Completo: {{ vendedor.vend_Nombres }} {{ vendedor.vend_Apellidos }}</span>
-                </li> -->
-                  <li class="d-flex justify-content-center align-items-center gap-2 mb-1">
-                    <i class="bx bx-id-card" style="color: #141A2F;"></i>
-                    <span class="text-muted text-break">
-                      Tipo:
+              <div style="position: absolute; top: 0px; right: 0px; z-index:1;" *ngIf="showDetails">
+                <div class="dropdown-action-list" (document:click)="onDocumentClick($event, vendedor.vend_Id)">
+                  <button class="buttonConfig" [attr.aria-expanded]="activeActionRow === vendedor.vend_Id"
+                    (click)="onActionMenuClick(vendedor.vend_Id)">
+                    <i class="ri-settings-3-line" style="color: white; font-size: 1.4em;"></i>
+                  </button>
+                  <span class="acciones-text">Acciones</span>
+                  <ul *ngIf="activeActionRow === vendedor.vend_Id" class="dropdown-menu show" style="left: -100px;">
+                    <li *ngIf="showDetails">
+                      <button class="dropdown-action-btn" (click)="detalles(vendedor)">Detalles <i
+                          class="ri-error-warning-fill"></i></button>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="card-body pt-5 mt-2 px-3 pb-0 text-center">
+              <h5 class="fw-bold mb-1 text-dark" style="font-size: 1.125rem;">
+                {{ vendedor.vend_Nombres }} {{ vendedor.vend_Apellidos }}
+              </h5>
+              <ul class="list-unstyled mb-0 mt-4 ps-0"
+                style="display: flex; flex-direction: column; align-items: center;">
+                <li class="d-flex justify-content-center align-items-center" style="gap: 4px;">
+                  <span class="text-break" style="font-size: 0.8em;">-Código<p class="text-muted"
+                      style="font-size: 1.5em;">{{ vendedor.vend_Codigo }}</p></span>
+                </li>
+                <li class="d-flex justify-content-center align-items-center" style="gap: 4px;">
+                  <span class="text-break" style="font-size: 0.8em;">-Tipo<p class="text-muted"
+                      style="font-size: 1.5em;">
                       <ng-container [ngSwitch]="vendedor.vend_Tipo">
                         <span *ngSwitchCase="'F'">Entregador</span>
                         <span *ngSwitchCase="'P'">Preventista</span>
                         <span *ngSwitchCase="'V'">Venta directa</span>
                         <span *ngSwitchDefault>Desconocido</span>
                       </ng-container>
-                    </span>
-                  </li>
-                  <li class="d-flex justify-content-center align-items-center gap-2 mb-1">
-                    <i class="bi bi-telephone" style="color: #141A2F;"></i>
-                    <span class="text-muted">Teléfono: {{ vendedor.vend_Telefono }}</span>
-                  </li>
-                </ul>
-                <!-- <button class="btn btn-primary btn-sm mt-2" (click)="verDetalle(vendedor)">Ver más</button> -->
-              </div>
+                    </p></span>
+                </li>
+                <li class="d-flex justify-content-center align-items-center" style="gap: 4px;">
+                  <span class="text-break" style="font-size: 0.8em;">-Teléfono<p class="text-muted"
+                      style="font-size: 1.5em;">{{ vendedor.vend_Telefono }}</p></span>
+                </li>
+              </ul>
             </div>
           </div>
-        </ng-container>
-      </div>
+        </div>
+      </ng-container>
+    </div>
 
-      <div class="row align-items-center mb-3 mx-2" id="pagination-element">
-        <div class="col-sm">
-          <div class="text-sm-start">
-            Mostrando del <span>{{startIndex}}</span> - <span>{{endIndex}}</span> de
-            <span>{{vendedoresFiltrados?.length}}</span> registros
-          </div>
+    <div class="row align-items-center mb-3 mx-2" id="pagination-element">
+      <div class="col-sm">
+        <div class="text-sm-start">
+          Mostrando del <span>{{startIndex}}</span> - <span>{{endIndex}}</span> de
+          <span>{{vendedoresFiltrados?.length}}</span> registros
         </div>
-        <div class="col-sm-auto mt-3 mt-sm-0 text-md-right float-md-end gridjs-pagination">
-          <pagination [(ngModel)]="currentPage" [totalItems]="vendedoresFiltrados.length" [itemsPerPage]="itemsPerPage"
-            (pageChanged)="pageChanged($event)">
-          </pagination>
-        </div>
+      </div>
+      <div class="col-sm-auto mt-3 mt-sm-0 text-md-right float-md-end gridjs-pagination">
+        <pagination [(ngModel)]="currentPage" [totalItems]="vendedoresFiltrados.length" [itemsPerPage]="itemsPerPage"
+          (pageChanged)="pageChanged($event)">
+        </pagination>
       </div>
     </div>
   </div>
+</div>

@@ -25,54 +25,36 @@
       <div class="row">
         <!-- Primera columna -->
         <div class="col-md-6">
-          <!-- Departamento -->
+          <!-- Colonia -->
           <div class="mb-3">
-            <label for="depa_Codigo" class="form-label">Departamento<span class="text-danger">*</span></label>
-            <div class="d-flex align-items-center">
-              <i class="ri-map-pin-line" [ngStyle]="{
-                border: (!departamentoSeleccionado && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!departamentoSeleccionado && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
-              <select
-                id="depa_Codigo"
-                class="form-select"
-                [class.is-invalid]="!departamentoSeleccionado && mostrarErrores"
-                [(ngModel)]="departamentoSeleccionado"
-                name="depa_Codigo"
-                (change)="onDepartamentoChange()"
-                required>
-                <option value="" disabled selected>Seleccione un departamento</option>
-                <option *ngFor="let departamento of departamentos" [value]="departamento.depa_Codigo">
-                  {{ departamento.depa_Descripcion }}
-                </option>
-              </select>
-              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-            </div>
-            <div class="text-danger mt-1" *ngIf="!departamentoSeleccionado && mostrarErrores">
-              <small>El campo Departamento es requerido</small>
-            </div>
-          </div>
-          <!-- Municipio -->
-         <div class="mb-3">
-            <label for="colo_Id" class="form-label">Colonia<span class="text-danger">*</span></label>
+            <label for="coloniaUnificada" class="form-label">Colonia<span class="text-danger">*</span></label>
             <div class="d-flex align-items-center">
               <i class="ri-home-2-line" [ngStyle]="{
                 border: (!sucursal.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
                 backgroundColor: (!sucursal.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
-              <select
-                id="colo_Id"
-                class="form-select"
-                [class.is-invalid]="!sucursal.colo_Id && mostrarErrores"
+              <ng-select
+                class="w-100"
+                [items]="colonias"
+                bindLabel="colo_Descripcion"
+                bindValue="colo_Id"
                 [(ngModel)]="sucursal.colo_Id"
                 name="colo_Id"
-                [disabled]="!municipioSeleccionado"
-                required>
-                <option value="" disabled selected>Seleccione una colonia</option>
-                <option *ngFor="let colonia of colonias" [value]="colonia.colo_Id">
-                  {{ colonia.colo_Descripcion }}
-                </option>
-              </select>
+                (change)="onColoniaSeleccionada($event)"
+                [searchable]="true"
+                [clearable]="false"
+                [class.is-invalid]="!sucursal.colo_Id && mostrarErrores"
+                placeholder="Seleccione una colonia"
+                required
+                [searchFn]="searchColonias"
+              >
+                <ng-template ng-label-tmp let-item="item">
+                  {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
+                </ng-template>
+                <ng-template ng-option-tmp let-item="item">
+                  {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
+                </ng-template>
+              </ng-select>
               <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
             </div>
             <div class="text-danger mt-1" *ngIf="!sucursal.colo_Id && mostrarErrores">
@@ -102,9 +84,9 @@
               <small>El campo Descripción es requerido</small>
             </div>
           </div>
-          <!-- Teléfono 1 (intercambiado con Teléfono 2) -->
+          <!-- Teléfono 1 -->
           <div class="mb-3">
-            <label for="sucu_Telefono2" class="form-label">Teléfono 1<span class="text-danger">*</span></label>
+            <label for="sucu_Telefono1" class="form-label">Teléfono 1<span class="text-danger">*</span></label>
             <div class="d-flex align-items-center">
               <i class="ri-phone-line" [ngStyle]="{
                 border: (!sucursal.sucu_Telefono1.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
@@ -114,7 +96,7 @@
                 type="text"
                 class="form-control"
                 [class.is-invalid]="!sucursal.sucu_Telefono1.trim() && mostrarErrores"
-                id="sucu_Telefono2"
+                id="sucu_Telefono1"
                 [(ngModel)]="sucursal.sucu_Telefono1"
                 name="sucu_Telefono1"
                 placeholder="Ingrese el teléfono 1"
@@ -127,37 +109,25 @@
               <small>El campo Teléfono 1 es requerido</small>
             </div>
           </div>
+          <!-- Teléfono 2 debajo de Teléfono 1 -->
+          <div class="mb-3">
+            <label for="sucu_Telefono2" class="form-label">Teléfono 2</label>
+            <div class="d-flex align-items-center">
+              <i class="ri-phone-line" style="border: 1px solid #e9ecf5; background-color: #f2f3f9; padding: 0.525rem 0.525rem; position: relative; left: 7px; border-top-left-radius: 8px; border-bottom-left-radius: 8px;"></i>
+              <input
+                type="text"
+                class="form-control"
+                id="sucu_Telefono2"
+                [(ngModel)]="sucursal.sucu_Telefono2"
+                name="sucu_Telefono2"
+                placeholder="Ingrese el teléfono 2"
+                maxlength="9"
+                (input)="onTelefonoInput($event, 'sucu_Telefono2')" >
+            </div>
+          </div>
         </div>
         <!-- Segunda columna -->
         <div class="col-md-6">
-          <!-- Colonia -->
-          <div class="mb-3">
-            <label for="muni_Codigo" class="form-label">Municipio<span class="text-danger">*</span></label>
-            <div class="d-flex align-items-center">
-              <i class="ri-map-pin-user-line" [ngStyle]="{
-                border: (!municipioSeleccionado && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!municipioSeleccionado && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
-              <select
-                id="muni_Codigo"
-                class="form-select"
-                [class.is-invalid]="!municipioSeleccionado && mostrarErrores"
-                [(ngModel)]="municipioSeleccionado"
-                name="muni_Codigo"
-                (change)="onMunicipioChange()"
-                [disabled]="!departamentoSeleccionado"
-                required>
-                <option value="" disabled selected>Seleccione un municipio</option>
-                <option *ngFor="let municipio of municipios" [value]="municipio.muni_Codigo">
-                  {{ municipio.muni_Descripcion }}
-                </option>
-              </select>
-              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-            </div>
-            <div class="text-danger mt-1" *ngIf="!municipioSeleccionado && mostrarErrores">
-              <small>Debe seleccionar un municipio</small>
-            </div>
-          </div>
           <!-- Dirección Exacta -->
           <div class="mb-3">
             <label for="sucu_DireccionExacta" class="form-label">Dirección Exacta<span class="text-danger">*</span></label>
@@ -181,18 +151,43 @@
               <small>El campo Dirección es requerido</small>
             </div>
           </div>
-          <!-- Correo (ahora después de descripción) -->
+          <!-- Código Sucursal (misma posición que en editar) -->
+          <div class="mb-3">
+            <label for="sucu_Codigo" class="form-label">Código Sucursal<span class="text-danger">*</span></label>
+            <div class="d-flex align-items-center">
+              <i class="ri-barcode-line" [ngStyle]="{
+                border: (!sucursal.sucu_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!sucursal.sucu_Codigo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
+              <input
+                type="text"
+                class="form-control"
+                [class.is-invalid]="!sucursal.sucu_Codigo.trim() && mostrarErrores"
+                id="sucu_Codigo"
+                [(ngModel)]="sucursal.sucu_Codigo"
+                name="sucu_Codigo"
+                placeholder="Código de la sucursal"
+                required
+                [disabled]="true" />
+              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+            </div>
+            <div class="text-danger mt-1" *ngIf="!sucursal.sucu_Codigo.trim() && mostrarErrores">
+              <small>El campo Código Sucursal es requerido</small>
+            </div>
+          </div>
+          <!-- Código Sucursal -->
+        
           <div class="mb-3">
             <label for="sucu_Correo" class="form-label">Correo<span class="text-danger">*</span></label>
             <div class="d-flex align-items-center">
               <i class="ri-mail-line" [ngStyle]="{
-                border: (!sucursal.sucu_Correo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!sucursal.sucu_Correo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: (!sucursal.sucu_Correo.trim() || (sucursal.sucu_Correo && !validarCorreo(sucursal.sucu_Correo))) && mostrarErrores ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!sucursal.sucu_Correo.trim() || (sucursal.sucu_Correo && !validarCorreo(sucursal.sucu_Correo))) && mostrarErrores ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
               <input
                 type="email"
                 class="form-control"
-                [class.is-invalid]="!sucursal.sucu_Correo.trim() && mostrarErrores"
+                [class.is-invalid]="(!sucursal.sucu_Correo.trim() || (sucursal.sucu_Correo && !validarCorreo(sucursal.sucu_Correo))) && mostrarErrores"
                 id="sucu_Correo"
                 [(ngModel)]="sucursal.sucu_Correo"
                 name="sucu_Correo"
@@ -200,24 +195,13 @@
                 required />
               <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
             </div>
-            <div class="text-danger mt-1" *ngIf="!sucursal.sucu_Correo.trim() && mostrarErrores">
-              <small>El campo Correo es requerido</small>
-            </div>
-          </div>
-          <!-- Teléfono 2 (intercambiado con Teléfono 1) -->
-          <div class="mb-3">
-            <label for="sucu_Telefono2" class="form-label">Teléfono 2</label>
-            <div class="d-flex align-items-center">
-              <i class="ri-phone-line" style="border: 1px solid #e9ecf5; background-color: #f2f3f9; padding: 0.525rem 0.525rem; position: relative; left: 7px; border-top-left-radius: 8px; border-bottom-left-radius: 8px;"></i>
-              <input
-                type="text"
-                class="form-control"
-                id="sucu_Telefono2"
-                [(ngModel)]="sucursal.sucu_Telefono2"
-                name="sucu_Telefono2"
-                placeholder="Ingrese el teléfono 2"
-                maxlength="9"
-                (input)="onTelefonoInput($event, 'sucu_Telefono2')" >
+            <div *ngIf="mostrarErrores">
+              <div class="text-danger mt-1" *ngIf="!sucursal.sucu_Correo.trim()">
+                <small>El campo Correo es requerido</small>
+              </div>
+              <div class="text-danger mt-1" *ngIf="sucursal.sucu_Correo.trim() && !validarCorreo(sucursal.sucu_Correo)">
+                <small>Ingrese un correo válido</small>
+              </div>
             </div>
           </div>
         </div>

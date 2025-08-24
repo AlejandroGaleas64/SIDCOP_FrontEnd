@@ -31,6 +31,29 @@
 
   <div class="flex-grow-1">
     <div class="row">
+      <div class="col-12 col-md-6">
+        <div class="mb-3">
+          <label for="pedidoCodigo" class="form-label">Código</label>
+          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          <div class="d-flex align-items-center">
+            <i class="ri-attachment-line"
+              [ngStyle]="{
+                  border: (!pedido.pedi_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!pedido.pedi_Codigo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            </i>
+            <input type="text" class="form-control" [class.is-invalid]="!pedido.pedi_Codigo.trim() && mostrarErrores"
+              id="pedidoCodigo" [(ngModel)]="pedido.pedi_Codigo" placeholder="Ingrese el codigo del pedido" required
+              [disabled]="true" />
+          </div>
+          <div class="text-danger mt-1" *ngIf="!pedido.pedi_Codigo.trim() && mostrarErrores">
+            <small>El campo codigo del pedido es requerido</small>
+          </div>
+        </div>
+      </div>
+
+
+
       <!-- Select de Cliente -->
       <div class="col-md-6">
         <label class="form-label">
@@ -95,8 +118,9 @@
               }">
             </i>
             <select id="direccion" name="direccion" class="form-select" [(ngModel)]="pedido.diCl_Id"
-              [class.is-invalid]="!pedido.diCl_Id && mostrarErrores" required>
-              <option value="" disabled selected>
+              [class.is-invalid]="!pedido.diCl_Id && mostrarErrores" required
+              (change)="onDireccionSeleccionada(pedido.diCl_Id)">
+              <option value="0" disabled selected>
                 Seleccione una dirección
               </option>
               <option *ngFor="let direccion of Direccines" [value]="direccion.diCl_Id">
@@ -215,7 +239,7 @@
                     <div class="precio-producto mb-3">
                       <span class="text-muted">Precio:</span>
                       <span class="fw-bold text-dark">
-                        L {{ getPrecioPorCantidad(producto, producto.cantidad).toFixed(2) }}
+                        L {{ producto.precio.toFixed(2) }}
                       </span>
                     </div>
 
@@ -235,7 +259,8 @@
                               getProductoIndex(producto.prod_Id)
                             ].cantidad =
                               $event > 999 ? 999 : $event < 0 ? 0 : $event;
-                            validarCantidad(producto.prod_Id)
+                            validarCantidad(producto.prod_Id);
+                              actualizarPrecio(productos[getProductoIndex(producto.prod_Id)]);
                           " min="0" max="999" />
 
                         <button class="btn-cantidad-premium btn-plus" type="button"

@@ -18,6 +18,22 @@ export class EditComponent {
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Municipio>();
 
+  // Devuelve la lista de cambios detectados para el modal de confirmación
+  obtenerListaCambios() {
+    const cambios = [];
+    
+    // Comparar descripción
+    if (this.municipio.muni_Descripcion?.trim() !== this.municipioOriginal?.trim()) {
+      cambios.push({
+        label: 'Descripción',
+        anterior: this.municipioOriginal,
+        nuevo: this.municipio.muni_Descripcion
+      });
+    }
+    
+    return cambios;
+  }
+
  municipio: Municipio = {
     muni_Codigo: '',
     muni_Descripcion: '',

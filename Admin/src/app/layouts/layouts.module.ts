@@ -4,6 +4,9 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
+// Componentes standalone
+import { ConnectionStatusComponent } from '../shared/components/connection-status/connection-status.component';
+
 // Language
 import { LanguageService } from '../core/services/language.service';
 import { TranslateModule } from '@ngx-translate/core';
@@ -58,7 +61,8 @@ import { HorizontalTopbarComponent } from './horizontal-topbar/horizontal-topbar
     FormsModule,
     ReactiveFormsModule,
     ModalModule,
-    NgxSpinnerModule.forRoot({ type: 'ball-scale-multiple' })
+    NgxSpinnerModule.forRoot({ type: 'ball-scale-multiple' }),
+    ConnectionStatusComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [LanguageService],

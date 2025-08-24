@@ -1,6 +1,6 @@
 <div class="d-flex flex-column" style="height: 100%; min-height: 250px;">
   <!-- Título del componente -->
-  <h5 class="card-title mb-4">Editar Bodega</h5>
+  <h5 class="card-title mb-4">Crear Nuevo Vendedor</h5>
   
   <!-- Contenedor de alertas flotantes -->
   <div class="alert-container">
@@ -26,208 +26,239 @@
     </div>
   </div>
   
-  <div class="flex-grow-1">
-    <div class="row">
-      <div class="col-md-6">
-        <label  class="form-label">Codigo<span class="text-danger">*</span></label>
-        <div class="mb-3">
-          <div class="d-flex align-items-center">
-            <i class="ri-attachment-line" [ngStyle]="{
-                border: (!vendedor.vend_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!vendedor.vend_Codigo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
-            <input 
-              type="text" 
-              class="form-control" 
-              [class.is-invalid]="!vendedor.vend_Codigo.trim() && mostrarErrores"
-              id="vendedorCodigo"
-              [(ngModel)]="vendedor.vend_Codigo"
-              placeholder="Ingrese el codigo del vendedor"
-              required>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+  <div class="container-fluid">
+    <div class="row align-items-center">
+
+      <!-- Imagen de Vendedor -->
+      <div class="col-12 col-md-4 d-flex justify-content-center align-items-center mb-4 mb-md-0"
+        style="min-height: 220px;">
+        <div
+          [ngStyle]="{ border: '1px solid #d6b68a', borderRadius: '50%', position: 'relative', overflow: 'hidden', width: '120px', height: '120px', backgroundColor: '#f5f5f5'}"
+          class="mx-auto mb-3">
+          <input type="file" accept="image/*" (change)="onImagenSeleccionada($event)"
+            style="opacity: 0; position: absolute; width: 100%; height: 100%; left: 0; top: 0; cursor: pointer; z-index: 2;" />
+          <div *ngIf="!vendedor.vend_Imagen"
+            style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1;">
           </div>
-          <div class="text-danger mt-1" *ngIf="!vendedor.vend_Codigo.trim() && mostrarErrores">
-            <small>El campo codigo del vendedor es requerido</small>
-          </div>
+          <img *ngIf="vendedor.vend_Imagen" [src]="vendedor.vend_Imagen" alt="Previsualización"
+            style="width: 100%; height: 100%; object-fit: cover; z-index: 0;" />
         </div>
       </div>
 
+      <div class="col-12 col-md-8">
+        <div class="row">
+
+          <!-- Codigo -->
+          <div class="col-12 col-md-6">
+            <div class="mb-3">
+              <label for="vendedorCodigo" class="form-label">Codigo</label>
+              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-attachment-line" [ngStyle]="{
+                  border: (!vendedor.vend_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!vendedor.vend_Codigo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [class.is-invalid]="!vendedor.vend_Codigo.trim() && mostrarErrores"
+                  id="vendedorCodigo"
+                  [(ngModel)]="vendedor.vend_Codigo"
+                  placeholder="Ingrese el codigo del vendedor"
+                  required
+                  [disabled]="true"
+                />
+              </div>
+              <div class="text-danger mt-1" *ngIf="!vendedor.vend_Codigo.trim() && mostrarErrores">
+                <small>El campo codigo del vendedor es requerido</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Identidad -->
+          <div class="col-12 col-md-6">
+            <div class="mb-3">
+              <label for="vend_DNI" class="form-label">Identidad</label>
+              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-bank-card-line" [ngStyle]="{
+                  border: (!vendedor.vend_DNI.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!vendedor.vend_DNI.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [class.is-invalid]="!vendedor.vend_DNI.trim() && mostrarErrores"
+                  id="vend_DNI"
+                  [(ngModel)]="vendedor.vend_DNI"
+                  placeholder="Ingrese la identidad del vendedor"
+                  required
+                  mask="0000-0000-00000"
+                />
+              </div>
+              <div class="text-danger mt-1" *ngIf="!vendedor.vend_DNI.trim() && mostrarErrores">
+                <small>El campo Identidad es requerido</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nombres -->
+          <div class="col-12 col-md-6">
+            <div class="mb-3">
+              <label for="vend_Nombres" class="form-label">Nombres</label>
+              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-user-line" [ngStyle]="{
+                  border: (!vendedor.vend_Nombres.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!vendedor.vend_Nombres.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [class.is-invalid]="!vendedor.vend_Nombres.trim() && mostrarErrores"
+                  id="vend_Nombres"
+                  [(ngModel)]="vendedor.vend_Nombres"
+                  placeholder="Ingrese los nombres del vendedor"
+                  required
+                />
+              </div>
+              <div class="text-danger mt-1" *ngIf="!vendedor.vend_Nombres.trim() && mostrarErrores">
+                <small>El campo Nombres es requerido</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Apellidos -->
+          <div class="col-12 col-md-6">
+            <div class="mb-3">
+              <label for="vend_Apellidos" class="form-label">Apellidos</label>
+              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-user-line" [ngStyle]="{
+                  border: (!vendedor.vend_Apellidos.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!vendedor.vend_Apellidos.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [class.is-invalid]="!vendedor.vend_Apellidos.trim() && mostrarErrores"
+                  id="vend_Apellidos"
+                  [(ngModel)]="vendedor.vend_Apellidos"
+                  placeholder="Ingrese los apellidos del vendedor"
+                  required
+                />
+              </div>
+              <div class="text-danger mt-1" *ngIf="!vendedor.vend_Apellidos.trim() && mostrarErrores">
+                <small>El campo Apellidos es requerido</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Telefono -->
+          <div class="col-12 col-md-6">
+            <div class="mb-3">
+              <label for="vend_Telefono" class="form-label">Telefono</label>
+              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-phone-line" [ngStyle]="{
+                  border: (!vendedor.vend_Telefono.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!vendedor.vend_Telefono.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  [class.is-invalid]="!vendedor.vend_Telefono.trim() && mostrarErrores"
+                  id="vend_Telefono"
+                  [(ngModel)]="vendedor.vend_Telefono"
+                  placeholder="Ingrese el telefono del vendedor"
+                  required
+                  mask="0000-0000"
+                />
+              </div>
+              <div class="text-danger mt-1" *ngIf="!vendedor.vend_Telefono.trim() && mostrarErrores">
+                <small>El campo telefono es requerido</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sexo -->
+          <div class="col-12 col-md-6">
+            <div class="mb-3">
+              <label class="form-label d-block">Sexo</label>
+              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              <div class="sexo-toggle d-flex">
+                <label class="sexo-option me-2" [class.selected]="vendedor.vend_Sexo === 'M'">
+                  <input type="radio" name="sexo" value="M" [(ngModel)]="vendedor.vend_Sexo" required />
+                  <i class="ri-men-line sexo-icon"></i>
+                  <span>Masculino</span>
+                </label>
+                <label class="sexo-option" [class.selected]="vendedor.vend_Sexo === 'F'">
+                  <input type="radio" name="sexo" value="F" [(ngModel)]="vendedor.vend_Sexo" />
+                  <i class="ri-women-line sexo-icon"></i>
+                  <span>Femenino</span>
+                </label>
+              </div>
+              <div class="text-danger mt-1" *ngIf="!vendedor.vend_Sexo.trim() && mostrarErrores">
+                <small>El campo sexo es requerido</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Correo -->
+          <div class="col-12 col-md-6">
+            <div class="mb-3">
+              <label for="vend_Correo" class="form-label">Correo</label>
+              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              <div class="d-flex align-items-center">
+                <i class="ri-mail-line" [ngStyle]="{
+                  border: (!vendedor.vend_Correo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!vendedor.vend_Correo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
+                <input 
+                  type="email" 
+                  class="form-control" 
+                  [class.is-invalid]="!vendedor.vend_Correo.trim() && mostrarErrores"
+                  id="vend_Correo"
+                  [(ngModel)]="vendedor.vend_Correo"
+                  placeholder="Ingrese el Correo del vendedor"
+                  required
+                  pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                />
+              </div>
+              <div class="text-danger mt-1" *ngIf="!vendedor.vend_Telefono.trim() && mostrarErrores">
+                <small>El campo correo es requerido</small>
+              </div>
+            </div>
+          </div>
+          <!-- Supervisor -->
       <div class="col-md-6">
-        <label  class="form-label">Identidad<span class="text-danger">*</span></label>
         <div class="mb-3">
-          <div class="d-flex align-items-center">
-             <i class="ri-bank-card-line" [ngStyle]="{
-                border: (!vendedor.vend_DNI.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!vendedor.vend_DNI.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
-            <input 
-              type="text" 
-              class="form-control" 
-              [class.is-invalid]="!vendedor.vend_DNI.trim() && mostrarErrores"
-              id="vend_DNI"
-              [(ngModel)]="vendedor.vend_DNI"
-              placeholder="Ingrese la identidad del vendedor"
-              required
-              mask="0000-0000-00000"
-              
-              >
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-          </div>
-          <div class="text-danger mt-1" *ngIf="!vendedor.vend_DNI.trim() && mostrarErrores">
-            <small>El campo Identidad es requerido</small>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <label  class="form-label">Nombres<span class="text-danger">*</span></label>
-        <div class="mb-3">
-          <div class="d-flex align-items-center">
-             <i class="ri-user-line" [ngStyle]="{
-                border: (!vendedor.vend_Nombres.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!vendedor.vend_Nombres.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
-            <input 
-              type="text" 
-              class="form-control" 
-              [class.is-invalid]="!vendedor.vend_Nombres.trim() && mostrarErrores"
-              id="vend_Nombres"
-              [(ngModel)]="vendedor.vend_Nombres"
-              placeholder="Ingrese los nombres del vendedor"
-              required>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-          </div>
-          <div class="text-danger mt-1" *ngIf="!vendedor.vend_Nombres.trim() && mostrarErrores">
-            <small>El campo Nombres es requerido</small>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <label  class="form-label">Apellidos<span class="text-danger">*</span></label>
-        <div class="mb-3">
-          <div class="d-flex align-items-center">
-            <i class="ri-user-line" [ngStyle]="{
-                border: (!vendedor.vend_Apellidos.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!vendedor.vend_Apellidos.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
-            <input 
-              type="text" 
-              class="form-control" 
-              [class.is-invalid]="!vendedor.vend_Apellidos.trim() && mostrarErrores"
-              id="vend_Apellidos"
-              [(ngModel)]="vendedor.vend_Apellidos"
-              placeholder="Ingrese los apellidos del vendedor"
-              required>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-          </div>
-          <div class="text-danger mt-1" *ngIf="!vendedor.vend_Apellidos.trim() && mostrarErrores">
-            <small>El campo Apellidos es requerido</small>
-          </div>
-        </div>
-      </div>
-
-       <div class="col-md-6">
-        <label  class="form-label">Telefono<span class="text-danger">*</span></label>
-        <div class="mb-3">
-          <div class="d-flex align-items-center">
-            <i class="ri-phone-line" [ngStyle]="{
-                border: (!vendedor.vend_Telefono.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!vendedor.vend_Telefono.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
-            <input 
-              type="text" 
-              class="form-control" 
-              [class.is-invalid]="!vendedor.vend_Telefono.trim() && mostrarErrores"
-              id="vend_Telefono"
-              [(ngModel)]="vendedor.vend_Telefono"
-              placeholder="Ingrese el telefono del vendedor"
-              required
-              mask="0000-0000"
-              >
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-          </div>
-          <div class="text-danger mt-1" *ngIf="!vendedor.vend_Telefono.trim() && mostrarErrores">
-            <small>El campo telefono es requerido</small>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <div class="mb-3">
-          <label class="form-label d-block">Sexo <span class="text-danger">*</span></label>
-            <div class="sexo-toggle d-flex">
-              <label class="sexo-option me-2" [class.selected]="vendedor.vend_Sexo === 'M'">
-                <input type="radio" name="sexo" value="M" [(ngModel)]="vendedor.vend_Sexo" required />
-                <i class="ri-men-line sexo-icon"></i>
-                <span>Masculino</span>
-              </label>
-              <label class="sexo-option" [class.selected]="vendedor.vend_Sexo === 'F'">
-                <input type="radio" name="sexo" value="F" [(ngModel)]="vendedor.vend_Sexo" />
-                <i class="ri-women-line sexo-icon"></i>
-                <span>Femenino</span>
-              </label>
-          </div>
-          <div class="text-danger mt-1" *ngIf="!vendedor.vend_Sexo.trim() && mostrarErrores">
-            <small>El campo sexo es requerido</small>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <label  class="form-label">Correo<span class="text-danger">*</span></label>
-        <div class="mb-3">
-          <div class="d-flex align-items-center">
-            <i class="ri-mail-line" [ngStyle]="{
-                border: (!vendedor.vend_Correo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!vendedor.vend_Correo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
-            <input 
-              type="email" 
-              class="form-control" 
-              [class.is-invalid]="!vendedor.vend_Correo.trim() && mostrarErrores"
-              id="vend_Correo"
-              [(ngModel)]="vendedor.vend_Correo"
-              placeholder="Ingrese el Correo del vendedor"
-              required
-              pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-              >
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-          </div>
-          <div class="text-danger mt-1" *ngIf="!vendedor.vend_Telefono.trim() && mostrarErrores">
-            <small>El campo correo es requerido</small>
-          </div>
-        </div>
-      </div>
-
-
-      <div class="col-md-6">
-        <label  class="form-label">Supervisor<span class="text-danger">*</span></label>
-        <div class="mb-3">
+          <label class="form-label">Supervisor</label>
+          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           <div class="d-flex align-items-center">
             <i class="ri-shield-user-line" [ngStyle]="{
-                border: (!vendedor.vend_Supervisor && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!vendedor.vend_Supervisor && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
-           <ng-select
+              border: (!vendedor.vend_Supervisor && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (!vendedor.vend_Supervisor && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            </i>
+            <ng-select
               class="w-100"
-                [items]="supervisores"
-                bindLabel="nombreCompleto"
-                bindValue="empl_Id"
-                [(ngModel)]="vendedor.vend_Supervisor"
-                [searchable]="true"
-                [clearable]="false"
-                [class.is-invalid]="!vendedor.vend_Supervisor && mostrarErrores"
-                placeholder="Seleccione un Supervisor"
-                required
-              >
+              [items]="supervisores"
+              bindLabel="nombreCompleto"
+              bindValue="empl_Id"
+              [(ngModel)]="vendedor.vend_Supervisor"
+              [searchable]="true"
+              [clearable]="false"
+              [class.is-invalid]="!vendedor.vend_Supervisor && mostrarErrores"
+              placeholder="Seleccione un Supervisor"
+              required
+            >
               <ng-template ng-label-tmp let-item="item">
                 {{ item.nombreCompleto}}  
               </ng-template>
@@ -235,7 +266,6 @@
                  {{ item.nombreCompleto}} 
               </ng-template>
             </ng-select>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!vendedor.vend_Supervisor && mostrarErrores">
             <small>El campo Supervisor es requerido</small>
@@ -243,81 +273,86 @@
         </div>
       </div>
 
-
+      <!-- ¿Tiene Ayudante? -->
       <div class="col-md-6">
-  <label class="form-label">¿Tiene Ayudante?<span class="text-danger">*</span></label>
-  <div class="mb-3">
-    <div class="d-flex align-items-center">
-      <div class="form-check form-switch">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          id="ayudanteSwitch"
-          [(ngModel)]="tieneAyudante"
-          required
-        >
-        <label class="form-check-label ms-2" for="ayudanteSwitch">
-          {{ tieneAyudante ? 'Sí' : 'No' }}
-        </label>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="col-md-6" *ngIf="tieneAyudante">
-  <label class="form-label">Ayudante<span class="text-danger">*</span></label>
-  <div class="mb-3">
-    <div class="d-flex align-items-center">
-      <i class=" ri-user-shared-line" [ngStyle]="{
-        border: (!vendedor.vend_Ayudante && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-        backgroundColor: (!vendedor.vend_Ayudante && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-        padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-      </i>
-      <ng-select
-        class="w-100"
-        [items]="ayudantes"
-        bindLabel="nombreCompleto"
-        bindValue="empl_Id"
-        [(ngModel)]="vendedor.vend_Ayudante"
-        [searchable]="true"
-        [clearable]="false"
-        placeholder="Seleccione un Ayudante"
-        required
-      >
-        <ng-template ng-label-tmp let-item="item">
-          {{ item.nombreCompleto }}
-        </ng-template>
-        <ng-template ng-option-tmp let-item="item">
-          {{ item.nombreCompleto }}
-        </ng-template>
-      </ng-select>
-    </div>
-  </div>
-</div>
-
-      <div class="col-md-6">
-        <label  class="form-label">Colonia<span class="text-danger">*</span></label>
         <div class="mb-3">
+          <label class="form-label">¿Tiene Ayudante?</label>
+          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          <div class="d-flex align-items-center">
+            <div class="form-check form-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="ayudanteSwitch"
+                [(ngModel)]="tieneAyudante"
+                required
+              >
+              <label class="form-check-label ms-2" for="ayudanteSwitch">
+                {{ tieneAyudante ? 'Sí' : 'No' }}
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ayudante -->
+      <div class="col-md-6" *ngIf="tieneAyudante">
+        <div class="mb-3">
+          <label class="form-label">Ayudante</label>
+          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          <div class="d-flex align-items-center">
+            <i class=" ri-user-shared-line" [ngStyle]="{
+              border: (!vendedor.vend_Ayudante && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (!vendedor.vend_Ayudante && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            </i>
+            <ng-select
+              class="w-100"
+              [items]="ayudantes"
+              bindLabel="nombreCompleto"
+              bindValue="empl_Id"
+              [(ngModel)]="vendedor.vend_Ayudante"
+              [searchable]="true"
+              [clearable]="false"
+              placeholder="Seleccione un Ayudante"
+              required
+            >
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.nombreCompleto }}
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                {{ item.nombreCompleto }}
+              </ng-template>
+            </ng-select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Colonia -->
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label class="form-label">Colonia</label>
+          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           <div class="d-flex align-items-center">
             <i class="ri-route-line" [ngStyle]="{
-                border: (!vendedor.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!vendedor.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              border: (!vendedor.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (!vendedor.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
             </i>
-           <ng-select
+            <ng-select
               class="w-100"
-                [items]="colonia"
-                bindLabel="colo_Descripcion"
-                bindValue="colo_Id"
-                [(ngModel)]="vendedor.colo_Id"
-                [searchable]="true"
-                [clearable]="false"
-                [class.is-invalid]="!vendedor.colo_Id && mostrarErrores"
-                placeholder="Seleccione una colonia"
-                required
-                [searchFn]="searchColonias"
-                (ngModelChange)="onColoniaSeleccionada($event)"
-              >
+              [items]="colonia"
+              bindLabel="colo_Descripcion"
+              bindValue="colo_Id"
+              [(ngModel)]="vendedor.colo_Id"
+              [searchable]="true"
+              [clearable]="false"
+              [class.is-invalid]="!vendedor.colo_Id && mostrarErrores"
+              placeholder="Seleccione una colonia"
+              required
+              [searchFn]="searchColonias"
+              (ngModelChange)="onColoniaSeleccionada($event)"
+            >
               <ng-template ng-label-tmp let-item="item">
                 {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
               </ng-template>
@@ -325,7 +360,6 @@
                 {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
               </ng-template>
             </ng-select>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!vendedor.colo_Id && mostrarErrores">
             <small>El campo Colonia es requerido</small>
@@ -333,28 +367,28 @@
         </div>
       </div>
 
-
+      <!-- Direccion Exacta -->
       <div class="col-md-6">
-        <label  class="form-label">Direccion Exacta<span class="text-danger">*</span></label>
         <div class="mb-3">
+          <label for="vend_DireccionExacta" class="form-label">Direccion Exacta</label>
+          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           <div class="d-flex align-items-center">
             <i class="ri-road-map-line" [ngStyle]="{
-                border: (!vendedor.vend_DireccionExacta.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!vendedor.vend_DireccionExacta.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
+              border: (!vendedor.vend_DireccionExacta.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (!vendedor.vend_DireccionExacta.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            </i>
             <input 
               type="text" 
               class="form-control" 
               [class.is-invalid]="!vendedor.vend_DireccionExacta.trim() && mostrarErrores"
               id="vend_DireccionExacta"
               [(ngModel)]="vendedor.vend_DireccionExacta"
-               [disabled]="!vendedor.colo_Id"
+              [disabled]="!vendedor.colo_Id"
               [value]="direccionExactaInicial"
               placeholder="Ingrese la Direccion exacta del vendedor"
               required
-              >
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+            />
           </div>
           <div class="text-danger mt-1" *ngIf="!vendedor.vend_DireccionExacta.trim() && mostrarErrores">
             <small>El campo Direccion Exacta es requerida</small>
@@ -362,29 +396,30 @@
         </div>
       </div>
 
-
+      <!-- Sucursal -->
       <div class="col-md-6">
-        <label  class="form-label">Sucursal<span class="text-danger">*</span></label>
         <div class="mb-3">
+          <label class="form-label">Sucursal</label>
+          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           <div class="d-flex align-items-center">
             <i class="ri-map-pin-2-line" [ngStyle]="{
-                border: (!vendedor.sucu_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!vendedor.sucu_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
+              border: (!vendedor.sucu_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (!vendedor.sucu_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            </i>
             <ng-select
               class="w-100"
-                [items]="sucursales"
-                bindLabel="sucu_Descripcion"
-                bindValue="sucu_Id"
-                [(ngModel)]="vendedor.sucu_Id"
-                [searchable]="true"
-                [clearable]="false"
-                [class.is-invalid]="!vendedor.sucu_Id && mostrarErrores"
-                placeholder="Seleccione una sucursal"
-                required
-                [searchFn]="searchSucursal"
-              >
+              [items]="sucursales"
+              bindLabel="sucu_Descripcion"
+              bindValue="sucu_Id"
+              [(ngModel)]="vendedor.sucu_Id"
+              [searchable]="true"
+              [clearable]="false"
+              [class.is-invalid]="!vendedor.sucu_Id && mostrarErrores"
+              placeholder="Seleccione una sucursal"
+              required
+              [searchFn]="searchSucursal"
+            >
               <ng-template ng-label-tmp let-item="item">
                 {{ item.sucu_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
               </ng-template>
@@ -392,7 +427,6 @@
                 {{ item.sucu_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
               </ng-template>
             </ng-select>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!vendedor.sucu_Id && mostrarErrores">
             <small>El campo sucursal es requerido</small>
@@ -400,32 +434,29 @@
         </div>
       </div>
 
-
-
-
+      <!-- Tipo de Vendedor -->
       <div class="col-md-6">
-        <label  class="form-label">Tipo de Vendedor<span class="text-danger">*</span></label>
         <div class="mb-3">
+          <label for="tipoVendedor" class="form-label">Tipo de Vendedor</label>
+          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           <div class="d-flex align-items-center">
-             <i class="ri-group-line" [ngStyle]="{
-                border: (!vendedor.vend_Tipo && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!vendedor.vend_Tipo && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
-             <select 
-                id="tipoVendedor" 
-                name="tipoVendedor" 
-                class="form-select"
-                [class.is-invalid]="!vendedor.vend_Tipo && mostrarErrores"
-                [(ngModel)]="vendedor.vend_Tipo"
-                required>
-                    <option value="" disabled selected>Seleccione una opción</option>
-                    <option value="P"  selected>Preventista</option>
-                    <option value="V"  selected>Venta Directa</option>
-                    <option value="F"  selected>Entregador</option>
-                    
+            <i class="ri-group-line" [ngStyle]="{
+              border: (!vendedor.vend_Tipo && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (!vendedor.vend_Tipo && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            </i>
+            <select 
+              id="tipoVendedor" 
+              name="tipoVendedor" 
+              class="form-select"
+              [class.is-invalid]="!vendedor.vend_Tipo && mostrarErrores"
+              [(ngModel)]="vendedor.vend_Tipo"
+              required>
+              <option value="" disabled selected>Seleccione una opción</option>
+              <option value="P"  selected>Preventista</option>
+              <option value="V"  selected>Venta Directa</option>
+              <option value="F"  selected>Entregador</option>
             </select>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!vendedor.vend_Tipo && mostrarErrores">
             <small>El campo tipo de vendedor es requerido</small>
@@ -433,102 +464,107 @@
         </div>
       </div>
       
+      <!-- ¿Es Contratista? -->
       <div class="col-md-6">
-  <label class="form-label">¿Es Contratista?<span class="text-danger">*</span></label>
-  <div class="mb-3">
-    <div class="d-flex align-items-center">
-      <div class="form-check form-switch">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          id="contratistaSwitch"
-          [(ngModel)]="vendedor.vend_EsExterno"
-          [class.is-invalid]="mostrarErrores && vendedor.vend_EsExterno === undefined"
-          required
-        >
-        <label class="form-check-label ms-2" for="contratistaSwitch">
-          {{ vendedor.vend_EsExterno ? 'Sí' : 'No' }}
-        </label>
-      </div>
-      <span class="text-danger ms-2" *ngIf="mostrarErrores && vendedor.vend_EsExterno === undefined">*</span>
-    </div>
-    <div class="text-danger mt-1" *ngIf="mostrarErrores && vendedor.vend_EsExterno === undefined">
-      <small>Debe indicar si es contratista</small>
-    </div>
-  </div>
-</div>
-
-<div class="card mb-3">
-  <div class="card-body">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <label class="form-label mb-0">Rutas y Días</label>
-      
-      <button type="button" class="btn btn-primary" (click)="agregarRuta()">
-        <span class="btn-text">Agregar Ruta</span>
-        <span class="btn-icon"><i class="ri-add-line"></i></span>
-      </button>
-    </div>
-    <div *ngFor="let ruta of rutasVendedor; let i = index" class="row align-items-end mb-2">
-      <div class="col-md-5">
-        <label class="form-label">Ruta</label>
-        <div class="d-flex align-items-center">
-        
-        <i class="ri-group-line" [ngStyle]="{
-          border: (!vendedor.vend_Tipo && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-          backgroundColor: (!vendedor.vend_Tipo && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-          padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-        </i>
-        <ng-select
-          [items]="rutasDisponiblesFiltradas[i]"
-          bindLabel="ruta_Descripcion"
-          bindValue="ruta_Id"
-          [(ngModel)]="rutasVendedor[i].ruta_Id"
-          (change)="onRutaChange(i)"
-          placeholder="Seleccione una ruta"
-          [clearable]="false"
-          required>
-        </ng-select>
+        <div class="mb-3">
+          <label class="form-label">¿Es Contratista?</label>
+          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          <div class="d-flex align-items-center">
+            <div class="form-check form-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="contratistaSwitch"
+                [(ngModel)]="vendedor.vend_EsExterno"
+                [class.is-invalid]="mostrarErrores && vendedor.vend_EsExterno === undefined"
+                required
+              >
+              <label class="form-check-label ms-2" for="contratistaSwitch">
+                {{ vendedor.vend_EsExterno ? 'Sí' : 'No' }}
+              </label>
+            </div>
+          </div>
+          <div class="text-danger mt-1" *ngIf="mostrarErrores && vendedor.vend_EsExterno === undefined">
+            <small>Debe indicar si es contratista</small>
+          </div>
         </div>
       </div>
-      <div class="col-md-5">
-        <label class="form-label">Días</label>
-        <div class="d-flex align-items-center">
-        <i class="ri-group-line" [ngStyle]="{
-          border: (!vendedor.vend_Tipo && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-          backgroundColor: (!vendedor.vend_Tipo && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-          padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-        </i>
-        <ng-select
-          [items]="diasDisponiblesFiltradas[i]"
-          bindLabel="nombre"
-          bindValue="id"
-          [multiple]="true"
-          [(ngModel)]="rutasVendedor[i].diasSeleccionados"
-          (change)="actualizarDias(i, rutasVendedor[i].diasSeleccionados)"
-          placeholder="Seleccione días"
-          [clearable]="false"
-          required
-          [dropdownPosition]="'bottom'"
-          [maxSelectedItems]="7"
-          [closeOnSelect]="false"
-          [virtualScroll]="true"
-          style="min-width: 180px;">
-        </ng-select>
         </div>
       </div>
-      <div class="col-md-2 d-flex align-items-center">
-        <button type="button" class="btn btn-danger btn-sm" (click)="eliminarRuta(i)">
-          <i class="ri-delete-bin-line"></i>
-        </button>
+    </div>
+
+    <!-- Rutas y Días -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <label class="form-label mb-0">Rutas y Días</label>
+          
+          <button type="button" class="btn btn-primary" (click)="agregarRuta()">
+            <span class="btn-text">Agregar Ruta</span>
+            <span class="btn-icon"><i class="ri-add-line"></i></span>
+          </button>
+        </div>
+        <div *ngFor="let ruta of rutasVendedor; let i = index" class="row align-items-end mb-2">
+          <div class="col-md-5">
+            <label class="form-label">Ruta</label>
+            <div class="d-flex align-items-center">
+            
+            <i class="ri-guide-line" [ngStyle]="{
+              border: (!vendedor.vend_Tipo && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (!vendedor.vend_Tipo && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            </i>
+            <ng-select
+              [items]="rutasDisponiblesFiltradas[i]"
+              bindLabel="ruta_Descripcion"
+              bindValue="ruta_Id"
+              [(ngModel)]="rutasVendedor[i].ruta_Id"
+              (change)="onRutaChange(i)"
+              placeholder="Seleccione una ruta"
+              [clearable]="false"
+              required>
+            </ng-select>
+            </div>
+          </div>
+          <div class="col-md-5">
+            <label class="form-label">Días</label>
+            <div class="d-flex align-items-center">
+            <i class=" ri-calendar-2-line" [ngStyle]="{
+              border: (!vendedor.vend_Tipo && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (!vendedor.vend_Tipo && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            </i>
+            <ng-select
+              [items]="diasDisponiblesFiltradas[i]"
+              bindLabel="nombre"
+              bindValue="id"
+              [multiple]="true"
+              [(ngModel)]="rutasVendedor[i].diasSeleccionados"
+              (change)="actualizarDias(i, rutasVendedor[i].diasSeleccionados)"
+              placeholder="Seleccione días"
+              [clearable]="false"
+              required
+              [dropdownPosition]="'bottom'"
+              [maxSelectedItems]="7"
+              [closeOnSelect]="false"
+              [virtualScroll]="true"
+              style="min-width: 180px;">
+            </ng-select>
+            </div>
+          </div>
+          <div class="col-md-2 d-flex align-items-center" *ngIf="rutasVendedor.length > 1">
+            <button type="button" class="btn btn-danger btn-sm" (click)="eliminarRuta(i)">
+              <i class="ri-delete-bin-line"></i>
+            </button>
+          </div>
+          <div class="col-md-2" *ngIf="rutasVendedor.length === 1"></div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-    </div>
   </div>
   
-  <div class="mt-auto pt-3">
+  <div class="mt-auto pt-3" >
     <div class="row">
       <div class="col-12">
         <div class="d-flex justify-content-end gap-2">
@@ -547,34 +583,117 @@
 </div>
 
 <!-- Modal de confirmación para editar -->
-<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }" [style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
-        <span>Confirmación</span>
-        <i class="ri-close-line custom-modal-close" (click)="cancelarEdicion()"></i>
+<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }"
+[style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
+<div class="modal-dialog modal-dialog-centered" role="document">
+  <div class="modal-content">
+    <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
+      <span>Confirmación</span>
+      <i class="ri-close-line custom-modal-close" (click)="cancelarEdicion()"></i>
+    </div>
+    <hr class="custom-modal-divider">
+    <div class="modal-body custom-modal-body">
+      <div class="text-center mb-3">
+        <p class="mt-2 custom-modal-text">
+          <i class="ri-edit-line me-2 custom-modal-alert-icon"></i>
+          ¿Estás seguro que deseas guardar los siguientes cambios en la configuración?
+        </p>
       </div>
-      <hr class="custom-modal-divider">
-      <div class="modal-body custom-modal-body">
-        <div class="text-center">
-          <p class="mt-2 custom-modal-text">
-            <i class="ri-edit-line me-2 custom-modal-alert-icon" (click)="cancelarEdicion()"></i>
-            ¿Estás seguro que deseas editar la bodega <strong>"{{ vendedorOriginal }}"</strong> por <strong>"{{ vendedor.vend_Nombres }} {{ vendedor.vend_Apellidos }}"</strong>?
-          </p>
+      
+      <!-- Lista de cambios detectados -->
+      <div class="changes-list" style="max-height: 300px; overflow-y: auto;">
+        <div *ngFor="let cambio of obtenerListaCambios()" class="change-item mb-3 p-3" 
+             style="border: 1px solid #e9ecef; border-radius: 8px; background-color: #f8f9fa;">
+          <div class="d-flex align-items-center mb-2">
+            <i class="ri-arrow-right-circle-line me-2 text-primary"></i>
+            <strong class="text-primary">{{ cambio.label }}</strong>
+          </div>
+          <div class="row">
+            <div class="col-6">
+              <small class="text-muted d-block">Original :</small>
+              <div class="p-2" style="background-color: #fff2f2; border-left: 3px solid #dc3545; border-radius: 4px;">
+                <span class="text-dark">{{ cambio.anterior }}</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block">Nuevo:</small>
+              <div class="p-2" style="background-color: #f0fff4; border-left: 3px solid #28a745; border-radius: 4px;">
+                <span class="text-dark">{{ cambio.nuevo }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="modal-footer custom-modal-footer">
-        <button type="button" class="btn btn-primary  btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
-          <span class="btn-text">No</span>
-          <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
-        </button>
-        <button type="button" class="btn btn-primary  btn-minw-5 btn-sm" (click)="confirmarEdicion()">
-          <span class="btn-text">Si</span>
-          <span class="btn-icon"><i class="ri-save-line"></i></span>
-        </button>
+
+        <!-- Detalle de cambios en Rutas -->
+        <div *ngIf="cambiosDetectados?.rutas?.detalle?.length" class="mt-3">
+          <small class="text-muted d-block mb-2">Detalle de cambios en rutas</small>
+          <div *ngFor="let det of cambiosDetectados.rutas.detalle" class="p-3 mb-2" style="border: 1px dashed #cbd3da; border-radius: 8px;">
+            <div class="d-flex align-items-center mb-2">
+              <i class="ri-route-line me-2 text-secondary"></i>
+              <strong>{{ det.accion }}: {{ det.ruta }}</strong>
+            </div>
+            <!-- Agregada/Eliminada muestran una sola fila de días -->
+            <div *ngIf="det.dias" class="mt-1">
+              <small class="text-muted d-block">Días:</small>
+              <div class="p-2" style="background:#f8f9fa; border-radius:6px;">{{ det.dias }}</div>
+            </div>
+            <!-- Modificada muestra antes y después -->
+            <div *ngIf="det.diasAnteriores || det.diasNuevos" class="row mt-1">
+              <div class="col-6">
+                <small class="text-muted d-block">Anterior:</small>
+                <div class="p-2" style="background:#fff2f2; border-left:3px solid #dc3545; border-radius:4px;">{{ det.diasAnteriores || '—' }}</div>
+              </div>
+              <div class="col-6">
+                <small class="text-muted d-block">Nuevo:</small>
+                <div class="p-2" style="background:#f0fff4; border-left:3px solid #28a745; border-radius:4px;">{{ det.diasNuevos || '—' }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      
+     
+      <div *ngIf="cambiosDetectados.imagen" class="mt-3 text-center">
+        <small class="text-muted d-block mb-2">Vista previa de la imagen:</small>
+        <div class="d-flex justify-content-center align-items-center gap-3">
+          <div class="text-center">
+            <small class="text-muted d-block">Anterior</small>
+            <img *ngIf="vendedorOriginal.vend_Imagen" 
+                 [src]="vendedorOriginal.vend_Imagen" 
+                 alt="Imagen anterior"
+                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6;">
+            <div *ngIf="!vendedorOriginal.vend_Imagen" 
+                 style="width: 60px; height: 60px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+              <i class="ri-image-line text-muted"></i>
+            </div>
+          </div>
+          <i class="ri-arrow-right-line text-primary"></i>
+          <div class="text-center">
+            <small class="text-muted d-block">Nuevo</small>
+            <img *ngIf="vendedor.vend_Imagen" 
+                 [src]="vendedor.vend_Imagen" 
+                 alt="Imagen nueva"
+                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6;">
+            <div *ngIf="!vendedor.vend_Imagen" 
+                 style="width: 60px; height: 60px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+              <i class="ri-image-line text-muted"></i>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+    <div class="modal-footer custom-modal-footer">
+      <button type="button" class="btn btn-primary btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
+        <span class="btn-text">No</span>
+        <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+      </button>
+      <button type="button" class="btn btn-primary btn-minw-5 btn-sm" (click)="confirmarEdicion()">
+        <span class="btn-text">Sí</span>
+        <span class="btn-icon"><i class="ri-save-line"></i></span>
+      </button>
+    </div>
   </div>
+</div>
 </div>
 
 <!-- Overlay para el modal -->

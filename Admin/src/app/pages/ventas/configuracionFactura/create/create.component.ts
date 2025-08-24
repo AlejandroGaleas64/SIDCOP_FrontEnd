@@ -5,13 +5,21 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 
 @Component({
   selector: 'app-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    HttpClientModule, 
+    NgSelectModule,
+    NgxMaskDirective
+  ],
   templateUrl: './create.component.html',
-  styleUrl: './create.component.scss'
+  styleUrls: ['./create.component.scss'],
+  providers: [provideNgxMask()]
 })
 export class CreateComponent {
   @Output() onCancel = new EventEmitter<void>();

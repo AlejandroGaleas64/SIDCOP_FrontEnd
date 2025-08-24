@@ -1,7 +1,8 @@
-import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { Sucursales } from 'src/app/Modelos/general/Sucursales.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
@@ -9,11 +10,107 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 @Component({
   selector: 'app-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule],
   templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss'
 })
-export class EditComponent implements OnChanges {
+export class EditComponent implements OnInit, OnChanges {
+  searchColonias = (term: string, item: any) => {
+    term = term.toLowerCase();
+    return (
+      item.colo_Descripcion?.toLowerCase().includes(term) ||
+      item.muni_Descripcion?.toLowerCase().includes(term) ||
+      item.depa_Descripcion?.toLowerCase().includes(term)
+    );
+  };
+
+  ngOnInit(): void {
+    // Obtener colonias igual que en crear
+    this.http.get<any>(`${environment.apiBaseUrl}/Colonia/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe((data) => {
+      this.colonias = Array.isArray(data)
+        ? data.map(c => ({ ...c, colo_Id: Number(c.colo_Id) }))
+        : [];
+    });
+  }
+
+  onColoniaSeleccionada(id: any) {
+    this.sucursal.colo_Id = typeof id === 'object' && id !== null ? Number(id.colo_Id) : Number(id);
+  }
+  hayDiferencias(): boolean {
+    const a = this.sucursal;
+    const b: Sucursales = this.sucursalData ?? {
+      sucu_Id: 0,
+      secuencia: 0,
+      sucu_Descripcion: '',
+      colo_Id: 0,
+      sucu_DireccionExacta: '',
+      sucu_Telefono1: '',
+      sucu_Telefono2: '',
+      sucu_Codigo: '',
+      sucu_Correo: '',
+      usua_Creacion: 0,
+      sucu_FechaCreacion: new Date(),
+      sucu_Estado: true
+    };
+    this.cambiosDetectados = {};
+    if ((a.sucu_Descripcion?.trim() || '') !== (b.sucu_Descripcion?.trim() || '')) {
+      this.cambiosDetectados.descripcion = {
+        anterior: b.sucu_Descripcion,
+        nuevo: a.sucu_Descripcion,
+        label: 'Descripción de la Sucursal'
+      };
+    }
+    if (a.colo_Id !== b.colo_Id) {
+      this.cambiosDetectados.colonia = {
+        anterior: b.colo_Id,
+        nuevo: a.colo_Id,
+        label: 'Colonia'
+      };
+    }
+    if ((a.sucu_DireccionExacta?.trim() || '') !== (b.sucu_DireccionExacta?.trim() || '')) {
+      this.cambiosDetectados.direccion = {
+        anterior: b.sucu_DireccionExacta,
+        nuevo: a.sucu_DireccionExacta,
+        label: 'Dirección Exacta'
+      };
+    }
+    if ((a.sucu_Telefono1?.trim() || '') !== (b.sucu_Telefono1?.trim() || '')) {
+      this.cambiosDetectados.telefono1 = {
+        anterior: b.sucu_Telefono1,
+        nuevo: a.sucu_Telefono1,
+        label: 'Teléfono 1'
+      };
+    }
+    if ((a.sucu_Telefono2?.trim() || '') !== (b.sucu_Telefono2?.trim() || '')) {
+      this.cambiosDetectados.telefono2 = {
+        anterior: b.sucu_Telefono2,
+        nuevo: a.sucu_Telefono2,
+        label: 'Teléfono 2'
+      };
+    }
+    if ((a.sucu_Codigo?.trim() || '') !== (b.sucu_Codigo?.trim() || '')) {
+      this.cambiosDetectados.codigo = {
+        anterior: b.sucu_Codigo,
+        nuevo: a.sucu_Codigo,
+        label: 'Código Sucursal'
+      };
+    }
+    if ((a.sucu_Correo?.trim() || '') !== (b.sucu_Correo?.trim() || '')) {
+      this.cambiosDetectados.correo = {
+        anterior: b.sucu_Correo,
+        nuevo: a.sucu_Correo,
+        label: 'Correo'
+      };
+    }
+    return Object.keys(this.cambiosDetectados).length > 0;
+  }
+  cambiosDetectados: any = {};
+
+  obtenerListaCambios(): any[] {
+    return Object.values(this.cambiosDetectados); 
+  }
   aplicarMascaraTelefono(valor: string): string {
     valor = valor.replace(/[^\d]/g, '').slice(0, 8);
     let resultado = '';
@@ -27,9 +124,43 @@ export class EditComponent implements OnChanges {
   onTelefonoInput(event: Event, campo: 'sucu_Telefono1' | 'sucu_Telefono2') {
     const input = event.target as HTMLInputElement;
     if (input && input.value !== undefined) {
-      this.sucursal[campo] = this.aplicarMascaraTelefono(input.value);
+
+      let valor = input.value.replace(/[^\d]/g, '');
+      if (valor.length > 8) {
+        valor = valor.slice(0, 8);
+        input.value = valor;
+      }
+      this.sucursal[campo] = this.aplicarMascaraTelefono(valor);
     }
   }
+
+aplicarmascaracodigo(valor: string): string {
+  return valor.replace(/[^\d]/g, '').slice(0, 3);
+}
+
+  oncodigoinput(event: Event, campo: 'sucu_Codigo') {
+    const input = event.target as HTMLInputElement;
+    if (input && input.value !== undefined) {
+      // Limita el valor a máximo 3 caracteres, incluso si el usuario pega más
+      let valor = input.value.replace(/[^\d]/g, '');
+      if (valor.length > 3) {
+        valor = valor.slice(0, 3);
+        input.value = valor; // Refleja el cambio en el input visualmente
+      }
+      this.sucursal[campo] = valor;
+    }
+  }
+
+  aplicarmascaracorreo(correo: string): string {
+    return correo.includes("@") && correo.trim().endsWith(".com") ? correo : '';
+  }
+
+  validarCorreo(correo: string): boolean {
+    return correo.includes("@") && correo.trim().endsWith(".com");
+  }
+
+    
+
   // Overlay de carga animado
   mostrarOverlayCarga = false;
   @Input() sucursalData: Sucursales | null = null;
@@ -45,6 +176,7 @@ export class EditComponent implements OnChanges {
     sucu_DireccionExacta: '',
     sucu_Telefono1: '',
     sucu_Telefono2: '',
+    sucu_Codigo: '',
     sucu_Correo: '',
     usua_Creacion: 0,
     sucu_FechaCreacion: new Date(),
@@ -73,7 +205,23 @@ export class EditComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['sucursalData'] && changes['sucursalData'].currentValue) {
-      this.sucursal = { ...changes['sucursalData'].currentValue };
+      console.log('ngOnChanges sucursalData:', changes['sucursalData'].currentValue);
+      // Normalizar los campos para evitar null/undefined
+      const data = { ...changes['sucursalData'].currentValue };
+      this.sucursal = {
+        sucu_Id: data.sucu_Id ?? 0,
+        secuencia: data.secuencia ?? 0,
+        sucu_Descripcion: data.sucu_Descripcion ?? '',
+        colo_Id: data.colo_Id ?? 0,
+        sucu_DireccionExacta: data.sucu_DireccionExacta ?? '',
+        sucu_Telefono1: data.sucu_Telefono1 ?? '',
+        sucu_Telefono2: data.sucu_Telefono2 ?? '',
+        sucu_Codigo: data.sucu_Codigo ?? '',
+        sucu_Correo: data.sucu_Correo ?? '',
+        usua_Creacion: data.usua_Creacion ?? 0,
+        sucu_FechaCreacion: data.sucu_FechaCreacion ? new Date(data.sucu_FechaCreacion) : new Date(),
+        sucu_Estado: data.sucu_Estado ?? true
+      };
       this.sucursalOriginal = this.sucursal.sucu_Descripcion || '';
       this.mostrarErrores = false;
       this.cerrarAlerta();
@@ -160,22 +308,33 @@ export class EditComponent implements OnChanges {
   validarEdicion(): void {
     this.mostrarErrores = true;
 
+    if (!this.aplicarmascaracorreo(this.sucursal.sucu_Correo)) {
+    this.mostrarAlertaWarning = true;
+    this.mostrarErrores = true;
+    
+    this.mensajeWarning = 'Debe ingresar un correo valido';
+    setTimeout(() => this.cerrarAlerta(), 4000);
+    return;
+    }
+    // Validación estricta para sucu_Codigo
+    if (!this.sucursal.sucu_Codigo || this.sucursal.sucu_Codigo.trim().length !== 3) {
+      this.mostrarAlertaWarning = true;
+      this.mostrarErrores = true;
+      this.mensajeWarning = 'El código de sucursal debe tener 3 caracteres.';
+      setTimeout(() => this.cerrarAlerta(), 4000);
+      return;
+    }   
+    
     if (
       this.sucursal.sucu_Descripcion.trim() &&
       this.sucursal.colo_Id &&
       this.sucursal.sucu_DireccionExacta.trim() &&
+      this.sucursal.sucu_Codigo &&
+      this.sucursal.sucu_Codigo.trim() &&
       this.sucursal.sucu_Telefono1.trim() &&
       this.sucursal.sucu_Correo.trim()
     ) {
-      const hayCambios =
-        this.sucursal.sucu_Descripcion.trim() !== this.sucursalData?.sucu_Descripcion?.trim() ||
-        this.sucursal.colo_Id !== this.sucursalData?.colo_Id ||
-        this.sucursal.sucu_DireccionExacta.trim() !== this.sucursalData?.sucu_DireccionExacta?.trim() ||
-        this.sucursal.sucu_Telefono1.trim() !== this.sucursalData?.sucu_Telefono1?.trim() ||
-        this.sucursal.sucu_Telefono2?.trim() !== this.sucursalData?.sucu_Telefono2?.trim() ||
-        this.sucursal.sucu_Correo.trim() !== this.sucursalData?.sucu_Correo?.trim();
-
-      if (hayCambios) {
+      if (this.hayDiferencias()) {
         this.mostrarConfirmacionEditar = true;
       } else {
         this.mostrarAlertaWarning = true;
