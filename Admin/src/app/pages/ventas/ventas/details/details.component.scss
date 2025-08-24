@@ -999,3 +999,110 @@ body.modal-open {
 .modal-header.bg-primary i {
   color: white !important;
 }
+
+
+
+/* CSS adicional para Zebra Browser Print Wrapper */
+
+.zebra-wrapper-controls {
+  border: 1px solid #e3e6f0;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 0.5rem;
+  background-color: #f8f9fc;
+}
+
+.printer-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #e3e6f0;
+  border-radius: 0.25rem;
+}
+
+.printer-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-bottom: 1px solid #e3e6f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.printer-item:last-child {
+  border-bottom: none;
+}
+
+.printer-item:hover {
+  background-color: #f1f3f4;
+}
+
+.printer-item.selected {
+  background-color: #e3f2fd;
+  border-left: 3px solid #2196f3;
+}
+
+.printer-info {
+  flex: 1;
+}
+
+.printer-name {
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  align-items: center;
+}
+
+.printer-details {
+  margin-top: 0.25rem;
+}
+
+.printer-actions {
+  flex-shrink: 0;
+}
+
+.connection-status {
+  background-color: white;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #dee2e6;
+}
+
+.selected-printer .alert {
+  margin-bottom: 0.5rem;
+}
+
+.printer-controls {
+  padding-top: 0.5rem;
+  border-top: 1px solid #dee2e6;
+  margin-top: 0.5rem;
+}
+
+/* Animación de carga */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Estado de la impresora */
+.alert-success {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.alert-warning {
+  background-color: #fff3cd;
+  border-color: #ffeaa7;
+  color: #856404;
+}
+
+/* Método seleccionado */
+.method-option.active .zebra-wrapper-controls {
+  border-color: #007bff;
+  background-color: #f0f7ff;
+}

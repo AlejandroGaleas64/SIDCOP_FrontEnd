@@ -444,20 +444,20 @@
             Seleccionar Método de Impresión
           </div>
           
-          <!-- Opción USB -->
+          <!-- Nueva Opción: Zebra Browser Print Wrapper (Recomendado) -->
           <div class="method-option" 
-            [class.active]="configuracionImpresion.metodoImpresion === 'browserprint'"
-            (click)="seleccionarMetodo('browserprint')">
+            [class.active]="configuracionImpresion.metodoImpresion === 'zebra-wrapper'"
+            (click)="seleccionarMetodo('zebra-wrapper')">
           <div class="method-title">
             <i class="ri-printer-cloud-line me-2"></i>
-            Zebra Browser Print (Recomendado)
+            Zebra Browser Print Wrapper (Recomendado)
           </div>
           <p class="method-description">
-            Conecta directamente con impresoras Zebra usando Browser Print Service
+            Conecta directamente con impresoras Zebra usando la librería optimizada
           </p>
           
-          <!-- Controles Browser Print -->
-          <div class="browser-print-controls" *ngIf="configuracionImpresion.metodoImpresion === 'browserprint'">
+          <!-- Controles Zebra Wrapper -->
+          <div class="zebra-wrapper-controls" *ngIf="configuracionImpresion.metodoImpresion === 'zebra-wrapper'">
             <!-- Estado de conexión -->
             <div class="connection-status mb-3">
               <div class="d-flex align-items-center justify-content-between">
@@ -466,7 +466,7 @@
                         [class.bg-success]="browserPrintDisponible"
                         [class.bg-danger]="!browserPrintDisponible">
                     <i class="ri-circle-fill me-1"></i>
-                    {{ browserPrintDisponible ? 'Browser Print Conectado' : 'Browser Print Desconectado' }}
+                    {{ browserPrintDisponible ? 'Zebra Wrapper Conectado' : 'Sin Impresoras Zebra' }}
                   </span>
                 </div>
                 
@@ -477,14 +477,14 @@
                   <i class="ri-refresh-line me-1" 
                     [class.spin]="verificandoConexion"></i>
                   <span *ngIf="!verificandoConexion">Actualizar</span>
-                  <span *ngIf="verificandoConexion">Verificando...</span>
+                  <span *ngIf="verificandoConexion">Buscando...</span>
                 </button>
               </div>
             </div>
 
             <!-- Lista de impresoras disponibles -->
             <div class="printer-selection mb-3" *ngIf="browserPrintDisponible && dispositivosDisponibles.length > 0">
-              <label class="form-label">Impresora Disponibles:</label>
+              <label class="form-label">Impresoras Zebra Disponibles:</label>
               <div class="printer-list">
                 <div class="printer-item" 
                     *ngFor="let dispositivo of dispositivosDisponibles"
@@ -496,7 +496,7 @@
                       {{ dispositivo.name }}
                     </div>
                     <div class="printer-details text-muted small">
-                      {{ dispositivo.connection }} - {{ dispositivo.device_type }}
+                      {{ dispositivo.connection }} - {{ dispositivo.deviceType }}
                     </div>
                   </div>
                   <div class="printer-actions" *ngIf="dispositivoSeleccionado?.uid === dispositivo.uid">
@@ -514,6 +514,18 @@
                   <strong>Impresora seleccionada:</strong> {{ informacionImpresora }}
                 </div>
               </div>
+              
+              <!-- Estado de la impresora -->
+              <div class="alert mb-3" 
+                   [class.alert-success]="estadoImpresora.isReadyToPrint"
+                   [class.alert-warning]="!estadoImpresora.isReadyToPrint && estadoImpresora.errors">
+                <div class="d-flex align-items-center">
+                  <i class="ri-information-line me-2"></i>
+                  <div class="flex-grow-1">
+                    <strong>Estado:</strong> {{ estadoImpresoraTexto }}
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Botones de control -->
@@ -521,36 +533,50 @@
               <button type="button" 
                       class="btn btn-sm btn-outline-success"
                       (click)="probarImpresoraBrowserPrint()"
-                      [disabled]="!dispositivoSeleccionado || conectandoUSB">
+                      [disabled]="!dispositivoSeleccionado || verificandoConexion">
                 <i class="ri-check-line me-1"></i>
-                <span *ngIf="!conectandoUSB">Probar</span>
-                <span *ngIf="conectandoUSB">Probando...</span>
+                <span *ngIf="!verificandoConexion">Probar Impresora</span>
+                <span *ngIf="verificandoConexion">Probando...</span>
               </button>
             </div>
 
-            <!-- Mensaje de ayuda si no hay Browser Print -->
+            <!-- Mensaje de ayuda si no hay impresoras -->
             <div class="alert alert-warning" *ngIf="!browserPrintDisponible">
               <i class="ri-warning-line me-2"></i>
-              <strong>Browser Print no detectado</strong>
+              <strong>No se encontraron impresoras Zebra</strong>
               <p class="mb-1 mt-2">Para usar impresión directa:</p>
               <ol class="mb-0">
-                <li>Descargue e instale <strong>Zebra Browser Print</strong></li>
-                <li>Ejecute la aplicación Browser Print</li>
-                <li>Conecte su impresora Zebra</li>
+                <li>Asegúrese de tener <strong>Zebra Browser Print</strong> instalado y ejecutándose</li>
+                <li>Conecte su impresora Zebra y verifique que esté encendida</li>
+                <li>Verifique que los drivers estén instalados correctamente</li>
                 <li>Haga clic en "Actualizar" arriba</li>
               </ol>
             </div>
 
-            <!-- Mensaje si no hay impresoras -->
-            <div class="alert alert-info" *ngIf="browserPrintDisponible && dispositivosDisponibles.length === 0">
+            <!-- Mensaje si hay Browser Print pero no impresoras -->
+            <div class="alert alert-info" *ngIf="!verificandoConexion && dispositivosDisponibles.length === 0">
               <i class="ri-information-line me-2"></i>
-              <strong>No se encontraron impresoras</strong>
+              <strong>Browser Print activo pero sin impresoras</strong>
               <p class="mb-0 mt-2">
+                Zebra Browser Print está funcionando pero no se encontraron impresoras. 
                 Verifique que su impresora Zebra esté conectada, encendida y correctamente instalada.
               </p>
             </div>
           </div>
         </div>
+          
+          <!-- Opción Browser Print Original (mantener como backup) -->
+          <div class="method-option" 
+            [class.active]="configuracionImpresion.metodoImpresion === 'browserprint'"
+            (click)="seleccionarMetodo('browserprint')">
+          <div class="method-title">
+            <i class="ri-printer-cloud-line me-2"></i>
+            Zebra Browser Print (Clásico)
+          </div>
+          <p class="method-description">
+            Método tradicional usando Browser Print Service directamente
+          </p>
+          </div>
           
           <!-- Opción Descarga -->
           <div class="method-option" 
@@ -646,9 +672,10 @@
           <div>
             <strong>Información:</strong>
             <ul class="mb-0 mt-2">
-              <li>Para USB: Asegúrate de usar Chrome 89+ o Edge 89+</li>
-              <li>Para red: La impresora debe estar en la misma red</li>
-              <li>El formato ZPL es compatible con impresoras Zebra y compatibles</li>
+              <li><strong>Zebra Browser Print Wrapper:</strong> Método recomendado para impresoras Zebra</li>
+              <li><strong>Compatibilidad:</strong> Funciona con Chrome, Edge, Firefox y Safari</li>
+              <li><strong>Red:</strong> Para impresoras en red, use la IP y puerto 9100</li>
+              <li><strong>ZPL:</strong> Compatible con todas las impresoras Zebra y compatibles</li>
             </ul>
           </div>
         </div>
@@ -665,7 +692,7 @@
         <button type="button" 
                 class="btn btn-primary d-flex align-items-center" 
                 (click)="imprimirFacturaZPL()"
-                [disabled]="imprimiendo">
+                [disabled]="imprimiendo || (configuracionImpresion.metodoImpresion === 'zebra-wrapper' && !dispositivoSeleccionado)">
           <span *ngIf="!imprimiendo">
             <i class="ri-printer-line me-2"></i>
             Imprimir
