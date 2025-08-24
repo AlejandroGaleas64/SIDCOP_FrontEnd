@@ -22,27 +22,54 @@ export interface BrowserPrintStatus {
   providedIn: 'root'
 })
 export class ZebraBrowserPrintService {
-  private readonly BROWSER_PRINT_URL = 'http://localhost:9101';
-  private readonly DEFAULT_TIMEOUT = 10000; // 10 segundos
+  private readonly BROWSER_PRINT_URL = 'https:localhost:9101'; // URL correcta del Browser Print Service
+  private readonly DEFAULT_TIMEOUT = 5000; // 5 segundos
   private selectedDevice: BrowserPrintDevice | null = null;
   
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    this.initService();
+  }
+
+  private async initService() {
+    try {
+      const isAvailable = await this.checkBrowserPrintStatus();
+      if (isAvailable) {
+        const defaultDevice = await this.getDefaultDevice();
+        if (defaultDevice) {
+          this.selectedDevice = defaultDevice;
+          console.log('Impresora Zebra detectada:', defaultDevice.name);
+        }
+      }
+    } catch (error) {
+      console.error('Error al inicializar el servicio de impresión:', error);
+    }
+  }
 
   /**
    * Verifica si Browser Print está ejecutándose
    */
   async checkBrowserPrintStatus(): Promise<boolean> {
     try {
-      const response = await firstValueFrom(
-        this.http.get(`${this.BROWSER_PRINT_URL}/available`, {
-          responseType: 'text' as 'json'
-        }).pipe(
-          timeout(this.DEFAULT_TIMEOUT),
-          map(response => response as string)
-        )
-      );
-      
-      return response === 'yes';
+      // Usar fetch API para mejor compatibilidad
+      const response = await fetch(`${this.BROWSER_PRINT_URL}/status`, {
+        method: 'GET',
+        headers: {
+          'Accept': '*/*',
+          'Cache-Control': 'no-cache'
+        }
+      });
+
+      if (!response.ok) {
+        console.error('Error en respuesta del servicio:', {
+          status: response.status,
+          statusText: response.statusText
+        });
+        return false;
+      }
+
+      const text = await response.text();
+      console.log('Estado del servicio:', text);
+      return true;
     } catch (error) {
       console.error('Browser Print no está disponible:', error);
       return false;
@@ -54,13 +81,25 @@ export class ZebraBrowserPrintService {
    */
   async getAvailableDevices(): Promise<BrowserPrintDevice[]> {
     try {
-      const devices = await firstValueFrom(
-        this.http.get<BrowserPrintDevice[]>(`${this.BROWSER_PRINT_URL}/available_printers`)
-        .pipe(
-          timeout(this.DEFAULT_TIMEOUT),
-          map(response => response || [])
-        )
-      );
+      const response = await fetch(`${this.BROWSER_PRINT_URL}/available_printers`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+      }
+
+      const devices = await response.json() as BrowserPrintDevice[];
+      
+      if (devices.length === 0) {
+        console.warn('No se encontraron impresoras Zebra conectadas');
+      } else {
+        console.log('Impresoras encontradas:', devices.map(d => d.name));
+      }
       
       return devices;
     } catch (error) {
@@ -111,36 +150,73 @@ export class ZebraBrowserPrintService {
    * Envía código ZPL a la impresora seleccionada
    */
   async printZPL(zplCode: string, deviceUid?: string): Promise<boolean> {
-    const targetDevice = deviceUid || this.selectedDevice?.uid;
-    
-    if (!targetDevice) {
-      throw new Error('No se ha seleccionado ningún dispositivo');
-    }
-
     try {
+      // Primero verificar que el servicio esté disponible
+      const isAvailable = await this.checkBrowserPrintStatus();
+      if (!isAvailable) {
+        throw new Error('El servicio de impresión no está disponible');
+      }
+
+      // Obtener o verificar el dispositivo
+      const targetDevice = deviceUid || this.selectedDevice?.uid;
+      if (!targetDevice) {
+        const devices = await this.getAvailableDevices();
+        if (devices.length > 0) {
+          this.selectedDevice = devices[0];
+        } else {
+          throw new Error('No hay impresoras Zebra disponibles');
+        }
+      }
+
+      // Verificar que el código ZPL sea válido
+      if (!zplCode.startsWith('^XA') || !zplCode.endsWith('^XZ')) {
+        console.warn('Advertencia: El código ZPL podría no ser válido');
+      }
+
       const headers = new HttpHeaders({
-        'Content-Type': 'text/plain'
+        'Content-Type': 'text/plain',
+        'Accept': '*/*',
+        'Cache-Control': 'no-cache'
       });
 
-      await firstValueFrom(
-        this.http.post(
-          `${this.BROWSER_PRINT_URL}/write`,
-          zplCode,
-          {
-            headers,
-            params: { device: targetDevice },
-            responseType: 'text' as 'json'
-          }
-        ).pipe(
-          timeout(this.DEFAULT_TIMEOUT * 3), // 30 segundos para impresión
-          map(response => response as string)
-        )
-      );
+      console.log('Enviando a imprimir:', {
+        url: `${this.BROWSER_PRINT_URL}/write`,
+        device: this.selectedDevice?.name,
+        zplLength: zplCode.length
+      });
+
+      // Construir la URL con el parámetro de dispositivo si existe
+      let url = `${this.BROWSER_PRINT_URL}/write`;
+      if (this.selectedDevice?.uid) {
+        url += `?device=${encodeURIComponent(this.selectedDevice.uid)}`;
+      }
+
+      // Usar fetch API en lugar de HttpClient para mejor compatibilidad
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain',
+          'Accept': '*/*',
+          'Cache-Control': 'no-cache'
+        },
+        body: zplCode
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error de impresión: ${response.statusText}`);
+      }
 
       console.log('Impresión enviada exitosamente');
       return true;
     } catch (error) {
       console.error('Error al imprimir:', error);
+      if (error instanceof HttpErrorResponse) {
+        console.error('Detalles del error HTTP:', {
+          status: error.status,
+          statusText: error.statusText,
+          url: error.url
+        });
+      }
       throw new Error('Error al enviar el documento a la impresora: ' + (error as Error)?.message);
     }
   }
