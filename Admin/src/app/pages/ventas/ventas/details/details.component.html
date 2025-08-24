@@ -11,26 +11,30 @@
   </div>
   
   <!-- Botón de regresar -->
-  <div class="d-flex justify-content-between mb-3 flex-wrap">
-    <button type="button" class="btn btn-primary mb-3" (click)="cerrar()">
-      <span class="btn-text">Regresar</span>
-      <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
-    </button>
-    <button type="button" class="btn btn-primary mb-3" (click)="EnviarFactura()">
-      <span class="btn-text"> Factura</span>
-      <span class="btn-icon"><i class="ri-file-list-3-line"></i></span>
-    </button>
-    <button
-          (click)="abrirConfiguracionImpresion()"
-          [disabled]="!facturaDetalle || imprimiendo"
-          class="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-          title="Imprimir en impresora ZPL">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-          </svg>
-          <span *ngIf="!imprimiendo">ZPL</span>
-          <span *ngIf="imprimiendo">Procesando...</span>
-        </button>
+  <div class="d-flex justify-content-between mb-3 flex-wrap">     
+      <button type="button" class="btn btn-primary mb-3" (click)="cerrar()">       
+          <span class="btn-text">Regresar</span>       
+          <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>     
+      </button>     
+      
+      <button type="button" class="btn btn-primary mb-3" (click)="EnviarFactura()">       
+          <span class="btn-text">Factura</span>       
+          <span class="btn-icon"><i class="ri-file-list-3-line"></i></span>     
+      </button>     
+      
+      <button           
+          (click)="abrirConfiguracionImpresion()"           
+          [disabled]="!facturaDetalle || imprimiendo"           
+          class="btn btn-primary mb-3"           
+          title="Imprimir factura en impresora ZPL">           
+          <span class="btn-text" *ngIf="!imprimiendo">Imprimir Factura</span>           
+          <span class="btn-text" *ngIf="imprimiendo">Procesando...</span>         
+          <span class="btn-icon">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">             
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>             
+              </svg>
+          </span>
+      </button>   
   </div>
   
   <!-- Contenido de detalles -->
@@ -532,7 +536,7 @@
             <div class="printer-controls d-flex gap-2">
               <button type="button" 
                       class="btn btn-sm btn-outline-success"
-                      (click)="probarImpresoraBrowserPrint()"
+                      (click)="printBarcode('this is a test print')"
                       [disabled]="!dispositivoSeleccionado || verificandoConexion">
                 <i class="ri-check-line me-1"></i>
                 <span *ngIf="!verificandoConexion">Probar Impresora</span>
@@ -564,107 +568,6 @@
             </div>
           </div>
         </div>
-          
-          <!-- Opción Browser Print Original (mantener como backup) -->
-          <div class="method-option" 
-            [class.active]="configuracionImpresion.metodoImpresion === 'browserprint'"
-            (click)="seleccionarMetodo('browserprint')">
-          <div class="method-title">
-            <i class="ri-printer-cloud-line me-2"></i>
-            Zebra Browser Print (Clásico)
-          </div>
-          <p class="method-description">
-            Método tradicional usando Browser Print Service directamente
-          </p>
-          </div>
-          
-          <!-- Opción Descarga -->
-          <div class="method-option" 
-               [class.active]="configuracionImpresion.metodoImpresion === 'download'"
-               (click)="seleccionarMetodo('download')">
-            <div class="method-title">
-              <i class="ri-download-line me-2"></i>
-              Descargar Archivo ZPL
-            </div>
-            <p class="method-description">
-              Descarga el archivo ZPL para enviarlo manualmente a la impresora
-            </p>
-          </div>
-          
-          <!-- Opción Navegador -->
-          <div class="method-option" 
-               [class.active]="configuracionImpresion.metodoImpresion === 'browser'"
-               (click)="seleccionarMetodo('browser')">
-            <div class="method-title">
-              <i class="ri-browser-line me-2"></i>
-              Imprimir vía Navegador
-            </div>
-            <p class="method-description">
-              Abre el código ZPL en una nueva ventana para imprimir desde el navegador
-            </p>
-          </div>
-          
-          <!-- Opción Socket -->
-          <div class="method-option" 
-               [class.active]="configuracionImpresion.metodoImpresion === 'socket'"
-               (click)="seleccionarMetodo('socket')">
-            <div class="method-title">
-              <i class="ri-wifi-line me-2"></i>
-              Conexión de Red (Socket)
-            </div>
-            <p class="method-description">
-              Envía directamente a una impresora en red por IP
-            </p>
-          </div>
-          
-          <!-- Opción Portapapeles -->
-          <div class="method-option" 
-               [class.active]="configuracionImpresion.metodoImpresion === 'clipboard'"
-               (click)="seleccionarMetodo('clipboard')">
-            <div class="method-title">
-              <i class="ri-clipboard-line me-2"></i>
-              Copiar al Portapapeles
-            </div>
-            <p class="method-description">
-              Copia el código ZPL al portapapeles para uso manual
-            </p>
-          </div>
-        </div>
-        
-        <!-- Configuración de Red (solo visible para método socket) -->
-        <div class="config-section network-config" 
-             [class.active]="configuracionImpresion.metodoImpresion === 'socket'"
-             *ngIf="configuracionImpresion.metodoImpresion === 'socket'">
-          <div class="config-title">
-            <i class="ri-settings-4-line"></i>
-            Configuración de Red
-          </div>
-          
-          <div class="row g-3">
-            <div class="col-md-8">
-              <label for="printerIp" class="form-label">IP de la Impresora</label>
-              <input type="text" 
-                     class="form-control" 
-                     id="printerIp"
-                     [(ngModel)]="configuracionImpresion.printerIp"
-                     placeholder="192.168.1.100"
-                     pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
-              <div class="form-text">Ejemplo: 192.168.1.100</div>
-            </div>
-            
-            <div class="col-md-4">
-              <label for="printerPort" class="form-label">Puerto</label>
-              <input type="number" 
-                     class="form-control" 
-                     id="printerPort"
-                     [(ngModel)]="configuracionImpresion.printerPort"
-                     placeholder="9100"
-                     min="1"
-                     max="65535">
-              <div class="form-text">Por defecto: 9100</div>
-            </div>
-          </div>
-        </div>
         
         <!-- Información adicional -->
         <div class="alert alert-info d-flex align-items-start" role="alert">
@@ -674,8 +577,6 @@
             <ul class="mb-0 mt-2">
               <li><strong>Zebra Browser Print Wrapper:</strong> Método recomendado para impresoras Zebra</li>
               <li><strong>Compatibilidad:</strong> Funciona con Chrome, Edge, Firefox y Safari</li>
-              <li><strong>Red:</strong> Para impresoras en red, use la IP y puerto 9100</li>
-              <li><strong>ZPL:</strong> Compatible con todas las impresoras Zebra y compatibles</li>
             </ul>
           </div>
         </div>
@@ -691,7 +592,7 @@
         
         <button type="button" 
                 class="btn btn-primary d-flex align-items-center" 
-                (click)="imprimirFacturaZPL()"
+                (click)="imprimirFacturaDirecta()"
                 [disabled]="imprimiendo || (configuracionImpresion.metodoImpresion === 'zebra-wrapper' && !dispositivoSeleccionado)">
           <span *ngIf="!imprimiendo">
             <i class="ri-printer-line me-2"></i>

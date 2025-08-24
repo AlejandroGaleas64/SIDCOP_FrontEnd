@@ -20,57 +20,88 @@ export class ZplPrintingService {
    * Convierte un número a letras en español (Honduras)
    */
   private convertirNumeroALetras(numero: number): string {
-    const unidades = ['', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
-    const decenas = ['', '', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
-    const especiales = ['diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve'];
-    const centenas = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
+    const unidades = ['', 'UNO', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+    const decenas = ['', '', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+    const especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISEIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
+    const centenas = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
 
-    if (numero === 0) return 'cero';
-    if (numero === 100) return 'cien';
-    if (numero === 1000) return 'mil';
+    if (numero === 0) return 'CERO';
 
     let resultado = '';
     const entero = Math.floor(numero);
     const decimal = Math.round((numero - entero) * 100);
 
+    // Función auxiliar para convertir números menores a 1000
+    const convertirMenorMil = (num: number): string => {
+      if (num === 0) return '';
+      if (num === 100) return 'CIEN';
+      
+      let res = '';
+      
+      // Centenas
+      if (num >= 100) {
+        const c = Math.floor(num / 100);
+        res += centenas[c] + ' ';
+      }
+
+      // Decenas y unidades
+      const resto = num % 100;
+      if (resto >= 20) {
+        const d = Math.floor(resto / 10);
+        const u = resto % 10;
+        res += decenas[d];
+        if (u > 0) {
+          res += ' Y ' + unidades[u];
+        }
+      } else if (resto >= 10) {
+        res += especiales[resto - 10];
+      } else if (resto > 0) {
+        res += unidades[resto];
+      }
+
+      return res.trim();
+    };
+
     // Procesar parte entera
-    if (entero >= 1000) {
-      const miles = Math.floor(entero / 1000);
-      if (miles === 1) {
-        resultado += 'mil ';
+    if (entero >= 1000000) {
+      const millones = Math.floor(entero / 1000000);
+      if (millones === 1) {
+        resultado += 'UN MILLON ';
       } else {
-        resultado += this.convertirNumeroALetras(miles) + ' mil ';
+        resultado += convertirMenorMil(millones) + ' MILLONES ';
       }
     }
 
-    const resto = entero % 1000;
-    if (resto >= 100) {
-      const c = Math.floor(resto / 100);
-      resultado += centenas[c] + ' ';
-    }
-
-    const restoDecenas = resto % 100;
-    if (restoDecenas >= 20) {
-      const d = Math.floor(restoDecenas / 10);
-      const u = restoDecenas % 10;
-      resultado += decenas[d];
-      if (u > 0) {
-        resultado += ' y ' + unidades[u];
+    const restoMiles = entero % 1000000;
+    if (restoMiles >= 1000) {
+      const miles = Math.floor(restoMiles / 1000);
+      if (miles === 1) {
+        resultado += 'MIL ';
+      } else {
+        resultado += convertirMenorMil(miles) + ' MIL ';
       }
-    } else if (restoDecenas >= 10) {
-      resultado += especiales[restoDecenas - 10];
-    } else if (restoDecenas > 0) {
-      resultado += unidades[restoDecenas];
     }
 
-    // Agregar decimales si existen
+    const restoUnidades = entero % 1000;
+    if (restoUnidades > 0) {
+      resultado += convertirMenorMil(restoUnidades);
+    }
+
+    // Si no hay parte entera, agregar CERO
+    if (entero === 0) {
+      resultado = 'CERO';
+    }
+
+    // Agregar centavos si existen
     if (decimal > 0) {
-      resultado += ' con ' + decimal.toString().padStart(2, '0') + '/100';
+      const centavosEnLetras = convertirMenorMil(decimal);
+      resultado += ' CON ' + centavosEnLetras + ' CENTAVOS';
+    } else {
+      resultado += ' CON CERO CENTAVOS';
     }
 
     return resultado.trim();
-  }
-
+}
   /**
    * Formatea fecha para ZPL
    */
@@ -222,13 +253,13 @@ export class ZplPrintingService {
 
     // Total final alineado a la derecha y destacado
     totalesZPL += `^FO${margenDerecho},${totalY}^FB${anchoTexto},1,0,R^CF0,22,24^FDTotal: L${total}^FS\n`;
-    totalY += 25;
+    totalY += 40;
 
     // Total en letras
     const totalNum = parseFloat(total.replace('L', '')) || 0;
-    const totalEnLetras = `Son: ${this.convertirNumeroALetras(totalNum)} lempiras`;
+    const totalEnLetras = `${this.convertirNumeroALetras(totalNum)}`;
     totalesZPL += `^FO0,${totalY}^FB${anchoEtiqueta},2,0,C,0^CF0,22,24^FD${totalEnLetras}^FS\n`;
-    totalY += 50;
+    totalY += 20;
 
     // Footer con posiciones dinámicas
     const footerY = totalY + 50;
@@ -286,34 +317,34 @@ ${logoZPL}
 ^FO0,250^FB360,2,0,C,0^FH^FD${empresaDireccion}^FS
 
 ^CF0,22,24
-^FO0,290^FB360,1,0,C,0^FH^FDTel: ${empresaTelefono}^FS
-^FO0,315^FB360,1,0,C,0^FH^FD${empresaCorreo}^FS
-^FO0,340^FB360,1,0,C,0^FH^FD${empresaRTN}^FS
+^FO0,295^FB360,1,0,C,0^FH^FDTel: ${empresaTelefono}^FS
+^FO0,320^FB360,1,0,C,0^FH^FD${empresaCorreo}^FS
+^FO0,345^FB360,1,0,C,0^FH^FD${empresaRTN}^FS
 
-^FO0,365^GB360,2,2^FS
+^FO0,370^GB360,2,2^FS
 
 ^FX ===== INFORMACION DE FACTURA IZQUIERDA =====
 ^CF0,22,24
-^FO0,390^FB360,2,0,L,0^FDCAI: ${cai}^FS
-^FO0,440^FB360,2,0,L,0^FDNo. Factura: ${factNumero}^FS
-^FO0,490^FB360,1,0,L,0^FDFecha Emision: ${factFecha}^FS
-^FO0,515^FB360,1,0,L,0^FDTipo Venta: ${factTipo}^FS
-^FO0,540^FB360,1,0,L,0^FDCliente: ${clienteNombre}^FS
-^FO0,565^FB360,1,0,L,0^FDCodigo Cliente: ${clienteCodigo}^FS
-^FO0,590^FB360,2,0,L,0^FDDireccion cliente: ${clienteDireccion}^FS
-^FO0,640^FB360,1,0,L,0^FDRTN cliente: ${clienteRTN}^FS
-^FO0,665^FB360,1,0,L,0^FDVendedor: ${vendedorNombre}^FS
-^FO0,690^FB360,1,0,L,0^FDNo Orden de compra exenta:^FS
-^FO0,715^FB360,2,0,L,0^FDNo Constancia de reg de exonerados:^FS
-^FO0,765^FB360,1,0,L,0^FDNo Registro de la SAG:^FS
+^FO0,395^FB360,2,0,L,0^FDCAI: ${cai}^FS
+^FO0,445^FB360,2,0,L,0^FDNo. Factura: ${factNumero}^FS
+^FO0,495^FB360,1,0,L,0^FDFecha Emision: ${factFecha}^FS
+^FO0,520^FB360,1,0,L,0^FDTipo Venta: ${factTipo}^FS
+^FO0,545^FB360,1,0,L,0^FDCliente: ${clienteNombre}^FS
+^FO0,570^FB360,1,0,L,0^FDCodigo Cliente: ${clienteCodigo}^FS
+^FO0,595^FB360,2,0,L,0^FDDireccion cliente: ${clienteDireccion}^FS
+^FO0,645^FB360,1,0,L,0^FDRTN cliente: ${clienteRTN}^FS
+^FO0,670^FB360,1,0,L,0^FDVendedor: ${vendedorNombre}^FS
+^FO0,695^FB360,1,0,L,0^FDNo Orden de compra exenta:^FS
+^FO0,720^FB360,2,0,L,0^FDNo Constancia de reg de exonerados:^FS
+^FO0,770^FB360,1,0,L,0^FDNo Registro de la SAG:^FS
 
 ^FX ===== TABLA PRODUCTOS (4 COLUMNAS) =====
-^FO0,810^GB360,2,2^FS
-^FO0,825^CF0,22,24^FDProd^FS
-^FO165,825^CF0,22,24^FDCant^FS
-^FO210,825^CF0,22,24^FDPrecio^FS
-^FO295,825^CF0,22,24^FDMonto^FS
-^FO0,845^GB360,1,1^FS
+^FO0,815^GB360,2,2^FS
+^FO0,830^CF0,22,24^FDProd^FS
+^FO165,830^CF0,22,24^FDCant^FS
+^FO210,830^CF0,22,24^FDPrecio^FS
+^FO295,830^CF0,22,24^FDMonto^FS
+^FO0,850^GB360,1,1^FS
 
 ^FX ===== PRODUCTOS =====
 ${productosZPL}

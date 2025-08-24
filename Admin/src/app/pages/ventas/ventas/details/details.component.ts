@@ -8,9 +8,8 @@ import {MapaSelectorComponent} from 'src/app/pages/logistica/rutas/mapa-selector
 import { InvoiceService } from '../referencias/invoice.service';
 import { ZplPrintingService } from 'src/app/core/services/zplprinting.service';
 import { FormsModule } from '@angular/forms';
+import ZebraBrowserPrintWrapper from 'zebra-browser-print-wrapper';
 
-// Importar la librería Zebra Browser Print Wrapper
-declare const ZebraBrowserPrintWrapper: any;
 
 interface ApiResponse<T> {
   code: number;
@@ -338,60 +337,73 @@ export class DetailsComponent implements OnChanges, OnDestroy {
   /**
    * Método principal de impresión que decide qué método usar
    */
-  imprimirFacturaZPL(): void {
-    if (!this.facturaDetalle) {
-      this.mostrarMensajeError('No hay datos de factura para imprimir');
-      return;
+  async imprimirFacturaDirecta(): Promise<void> {
+      if (!this.facturaDetalle) {
+        this.mostrarMensajeError('No hay datos de factura para imprimir');
+        return;
+      }
+
+      this.imprimiendo = true;
+      this.mostrarAlertaError = false;
+      this.mostrarAlertaExito = false;
+
+      try {
+        // Create a new instance of the object (igual que printBarcode)
+        const browserPrint = new ZebraBrowserPrintWrapper();
+
+        // Select default printer (igual que printBarcode)
+        const defaultPrinter = await browserPrint.getDefaultPrinter();
+      
+        // Set the printer (igual que printBarcode)
+        browserPrint.setPrinter(defaultPrinter);
+
+        // Check printer status (igual que printBarcode)
+        const printerStatus = await browserPrint.checkPrinterStatus();
+
+        // Check if the printer is ready (igual que printBarcode)
+        if(printerStatus.isReadyToPrint) {
+          
+          // Preparar datos de factura
+          const facturaData = this.prepararDatosParaZPL();
+          
+          // Generar código ZPL de la factura
+          const zplCode = this.zplPrintingService.generateInvoiceZPL(facturaData);
+
+          // Imprimir la factura (igual que printBarcode)
+          await browserPrint.print(zplCode);
+          
+          this.mostrarMensajeExito(`Factura ${facturaData.fact_Numero || 'N/A'} enviada a impresión correctamente`);
+          
+        } else {
+          console.log("Error/s", printerStatus.errors);
+          this.mostrarMensajeError(`Error en la impresora: ${printerStatus.errors}`);
+        }
+
+      } catch (error: any) {
+        console.error('Error al imprimir factura:', error);
+        this.mostrarMensajeError('Error al imprimir factura: ' + error.message);
+      } finally {
+        this.imprimiendo = false;
+      }
     }
 
-    this.imprimiendo = true;
-    this.mostrarAlertaError = false;
-    this.mostrarAlertaExito = false;
-
-    try {
-      const facturaData = this.prepararDatosParaZPL();
-      
-      switch (this.configuracionImpresion.metodoImpresion) {
-        case 'zebra-wrapper':
-          this.imprimirConZebraWrapper(facturaData)
-            .catch(error => {
-              this.mostrarMensajeError('Error al imprimir: ' + error.message);
-            })
-            .finally(() => {
-              this.imprimiendo = false;
-              this.cerrarConfiguracionImpresion();
-            });
-          break;
-        case 'download':
-          this.imprimirPorDescarga(facturaData);
-          break;
-        case 'browser':
-          this.imprimirPorNavegador(facturaData);
-          break;
-        case 'socket':
-          this.imprimirPorSocket(facturaData);
-          break;
-        case 'clipboard':
-          this.copiarAlPortapapeles(facturaData);
-          break;
-        default:
-          this.imprimirConZebraWrapper(facturaData)
-            .catch(error => {
-              this.mostrarMensajeError('Error al imprimir: ' + error.message);
-            })
-            .finally(() => {
-              this.imprimiendo = false;
-              this.cerrarConfiguracionImpresion();
-            });
-      }
-    } catch (error) {
-      console.error('Error en impresión ZPL:', error);
-      this.mostrarMensajeError('Error al generar la impresión ZPL');
-      this.imprimiendo = false;
+  // Métodos de utilidad y otros métodos existentes...
+  /**
+   * Transforma el código de tipo de venta a su descripción completa
+   */
+  private transformarTipoVenta(tipo: string | undefined): string {
+    if (!tipo) return 'EFECTIVO';
+    
+    switch (tipo.toUpperCase()) {
+      case 'CO':
+        return 'CONTADO';
+      case 'CR':
+        return 'CREDITO';
+      default:
+        return tipo;
     }
   }
 
-  // Métodos de utilidad y otros métodos existentes...
   private prepararDatosParaZPL(): any {
     if (!this.facturaDetalle) return {};
 
@@ -402,7 +414,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
       coFa_Telefono1: this.facturaDetalle.coFa_Telefono1 || '2234-5678',
       coFa_Correo: this.facturaDetalle.coFa_Correo || 'info@sidcop.com',
       fact_Numero: this.facturaDetalle.fact_Numero,
-      fact_TipoVenta: this.facturaDetalle.fact_TipoVenta,
+      fact_TipoVenta: this.transformarTipoVenta(this.facturaDetalle.fact_TipoVenta),
       fact_FechaEmision: this.facturaDetalle.fact_FechaEmision,
       fact_TipoDeDocumento: this.facturaDetalle.fact_TipoDeDocumento || 'FACTURA',
       regC_Descripcion: this.facturaDetalle.regC_Descripcion || 'ABC123-XYZ456-789DEF',
@@ -604,4 +616,39 @@ export class DetailsComponent implements OnChanges, OnDestroy {
     // Limpiar recursos si es necesario
     this.zebraBrowserPrint = null;
   }
+
+
+  printBarcode = async (serial: any) => {
+    try {
+
+        // Create a new instance of the object
+        const browserPrint =  new ZebraBrowserPrintWrapper();
+
+        // Select default printer
+        const defaultPrinter =  await browserPrint.getDefaultPrinter();
+    
+        // Set the printer
+        browserPrint.setPrinter(defaultPrinter);
+
+        // Check printer status
+        const printerStatus = await browserPrint.checkPrinterStatus();
+
+        // Check if the printer is ready
+        if(printerStatus.isReadyToPrint) {
+
+            // ZPL script to print a simple barcode
+            const zpl = `^XA
+                        ^BY2,2,100
+                        ^FO20,20^BC^FD${serial}^FS
+                        ^XZ`;
+
+            browserPrint.print(zpl);
+        } else {
+        console.log("Error/s", printerStatus.errors);
+        }
+
+    } catch (error: any) {
+        throw new Error(error);
+    }
+};
 }
