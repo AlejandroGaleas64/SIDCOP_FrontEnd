@@ -51,7 +51,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
   mostrarConfiguracionImpresion = false;
   configuracionImpresion = {
     printerIp: '',
-    printerPort: 9100,
+    printerPort: 9101,
     metodoImpresion: 'usb' // Cambiar default a USB
   };
 
