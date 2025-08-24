@@ -8,6 +8,7 @@ import {MapaSelectorComponent} from 'src/app/pages/logistica/rutas/mapa-selector
 import { InvoiceService } from '../referencias/invoice.service';
 import { ZplPrintingService } from 'src/app/core/services/zplprinting.service'; // Importar el nuevo servicio
 import { UsbZplPrintingService } from 'src/app/core/services/zplusbprinting.service'; // Importar servicio USB
+import { ZebraBrowserPrintService, BrowserPrintDevice, BrowserPrintStatus } from 'src/app/core/services/browserprint.service';
 import { FormsModule } from '@angular/forms';
 
 interface ApiResponse<T> {
@@ -53,6 +54,18 @@ export class DetailsComponent implements OnChanges, OnDestroy {
     printerPort: 9100,
     metodoImpresion: 'usb' // Cambiar default a USB
   };
+
+  // Propiedades para Browser Print
+  private zebraBrowserPrintService = inject(ZebraBrowserPrintService);
+  
+  browserPrintStatus: BrowserPrintStatus = {
+    isConnected: false,
+    devices: []
+  };
+  
+  verificandoConexion = false;
+  dispositivosDisponibles: BrowserPrintDevice[] = [];
+  dispositivoSeleccionado: BrowserPrintDevice | null = null;
 
   // Variables para USB
   impresoraUSB: any = null;
@@ -162,43 +175,44 @@ export class DetailsComponent implements OnChanges, OnDestroy {
      * Imprime la factura usando ZPL con el método seleccionado
      */
     imprimirFacturaZPL(): void {
-      if (!this.facturaDetalle) {
-        this.mostrarMensajeError('No hay datos de factura para imprimir');
-        return;
-      }
-
-      this.imprimiendo = true;
-      this.mostrarAlertaError = false;
-      this.mostrarAlertaExito = false;
-
-      try {
-        const facturaData = this.prepararDatosParaZPL();
-        
-        switch (this.configuracionImpresion.metodoImpresion) {
-          case 'usb':
-           this.imprimirPorUSB(facturaData);
-            break;
-          case 'download':
-            this.imprimirPorDescarga(facturaData);
-            break;
-          case 'browser':
-            this.imprimirPorNavegador(facturaData);
-            break;
-          case 'socket':
-            this.imprimirPorSocket(facturaData);
-            break;
-          case 'clipboard':
-            this.copiarAlPortapapeles(facturaData);
-            break;
-          default:
-            this.imprimirPorUSB(facturaData);
-        }
-      } catch (error) {
-        console.error('Error en impresión ZPL:', error);
-        this.mostrarMensajeError('Error al generar la impresión ZPL');
-        this.imprimiendo = false;
-      }
+    if (!this.facturaDetalle) {
+      this.mostrarMensajeError('No hay datos de factura para imprimir');
+      return;
     }
+
+    this.imprimiendo = true;
+    this.mostrarAlertaError = false;
+    this.mostrarAlertaExito = false;
+
+    try {
+      const facturaData = this.prepararDatosParaZPL();
+      
+      switch (this.configuracionImpresion.metodoImpresion) {
+        case 'browserprint': // Nuevo método
+        case 'usb': // Cambiar USB para usar Browser Print también
+          this.imprimirPorBrowserPrint(facturaData);
+          break;
+        case 'download':
+          this.imprimirPorDescarga(facturaData);
+          break;
+        case 'browser':
+          this.imprimirPorNavegador(facturaData);
+          break;
+        case 'socket':
+          this.imprimirPorSocket(facturaData);
+          break;
+        case 'clipboard':
+          this.copiarAlPortapapeles(facturaData);
+          break;
+        default:
+          this.imprimirPorBrowserPrint(facturaData); // Default a Browser Print
+      }
+    } catch (error) {
+      console.error('Error en impresión ZPL:', error);
+      this.mostrarMensajeError('Error al generar la impresión ZPL');
+      this.imprimiendo = false;
+    }
+  }
 
     /**
      * Prepara los datos de la factura para el formato ZPL
@@ -514,6 +528,130 @@ export class DetailsComponent implements OnChanges, OnDestroy {
   }
 }
 
+
+
+async ngOnInit(): Promise<void> {
+    await this.verificarEstadoBrowserPrint();
+  }
+
+  async verificarEstadoBrowserPrint(): Promise<void> {
+    this.verificandoConexion = true;
+    
+    try {
+      this.browserPrintStatus = await this.zebraBrowserPrintService.getFullStatus();
+      this.dispositivosDisponibles = this.browserPrintStatus.devices;
+      this.dispositivoSeleccionado = this.browserPrintStatus.selectedDevice || null;
+
+      if (this.browserPrintStatus.isConnected && this.dispositivosDisponibles.length > 0) {
+        this.mostrarMensajeExito(`Browser Print conectado. ${this.dispositivosDisponibles.length} impresora(s) encontrada(s)`);
+      } else if (!this.browserPrintStatus.isConnected) {
+        this.mostrarMensajeError('Browser Print no está ejecutándose. Inicie la aplicación Zebra Browser Print.');
+      } else {
+        this.mostrarMensajeError('Browser Print está ejecutándose pero no se encontraron impresoras.');
+      }
+    } catch (error) {
+      console.error('Error al verificar Browser Print:', error);
+      this.mostrarMensajeError('Error al conectar con Browser Print: ' + (error as Error).message);
+    } finally {
+      this.verificandoConexion = false;
+    }
+  }
+
+
+  seleccionarDispositivo(device: BrowserPrintDevice): void {
+    this.dispositivoSeleccionado = device;
+    this.zebraBrowserPrintService.selectDevice(device);
+    this.mostrarMensajeExito(`Impresora seleccionada: ${device.name}`);
+  }
+
+  async refrescarDispositivos(): Promise<void> {
+    await this.verificarEstadoBrowserPrint();
+  }
+
+  private async imprimirPorBrowserPrint(facturaData: any): Promise<void> {
+    try {
+      // Verificar estado de Browser Print
+      if (!this.browserPrintStatus.isConnected) {
+        await this.verificarEstadoBrowserPrint();
+        
+        if (!this.browserPrintStatus.isConnected) {
+          throw new Error('Browser Print no está disponible. Asegúrese de que esté ejecutándose.');
+        }
+      }
+
+      // Verificar que hay dispositivos disponibles
+      if (this.dispositivosDisponibles.length === 0) {
+        throw new Error('No se encontraron impresoras. Verifique que su impresora esté conectada y encendida.');
+      }
+
+      // Seleccionar dispositivo si no hay uno seleccionado
+      if (!this.dispositivoSeleccionado) {
+        this.dispositivoSeleccionado = this.dispositivosDisponibles[0];
+        this.zebraBrowserPrintService.selectDevice(this.dispositivoSeleccionado);
+      }
+
+      // Generar código ZPL
+      const zplCode = this.zplPrintingService.generateInvoiceZPL(facturaData);
+      
+      // Imprimir
+      await this.zebraBrowserPrintService.printZPL(zplCode);
+      
+      this.mostrarMensajeExito(`Documento enviado a: ${this.dispositivoSeleccionado.name}`);
+      
+    } catch (error: any) {
+      console.error('Error en impresión Browser Print:', error);
+      this.mostrarMensajeError('Error al imprimir: ' + error.message);
+    } finally {
+      this.imprimiendo = false;
+      this.cerrarConfiguracionImpresion();
+    }
+  }
+
+  async probarImpresoraBrowserPrint(): Promise<void> {
+    if (!this.dispositivoSeleccionado) {
+      this.mostrarMensajeError('Debe seleccionar una impresora primero');
+      return;
+    }
+
+    this.conectandoUSB = true; // Reutilizar esta variable para el estado
+    
+    try {
+      const success = await this.zebraBrowserPrintService.printTestPage(this.dispositivoSeleccionado.uid);
+      if (success) {
+        this.mostrarMensajeExito('Página de prueba enviada correctamente');
+      }
+    } catch (error: any) {
+      this.mostrarMensajeError('Error al probar impresora: ' + error.message);
+    } finally {
+      this.conectandoUSB = false;
+    }
+  }
+
+  async obtenerEstadoImpresora(): Promise<string> {
+    if (!this.dispositivoSeleccionado) {
+      return 'No seleccionada';
+    }
+
+    try {
+      const estado = await this.zebraBrowserPrintService.getPrinterStatus(this.dispositivoSeleccionado.uid);
+      return estado;
+    } catch (error) {
+      return 'Error al obtener estado';
+    }
+  }
+
+
+  get informacionImpresora(): string {
+    if (!this.dispositivoSeleccionado) {
+      return 'No seleccionada';
+    }
+    
+    return `${this.dispositivoSeleccionado.name} (${this.dispositivoSeleccionado.connection})`;
+  }
+
+  get browserPrintDisponible(): boolean {
+    return this.browserPrintStatus.isConnected;
+  }
   
 
   
