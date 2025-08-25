@@ -76,7 +76,7 @@ export class ListComponent implements OnInit {
     title: 'Listado de Configuraciones de Factura',     // Título del reporte
     filename: 'ConfiguracionesFactura',                  // Nombre base del archivo
     department: 'Ventas',                                // Departamento
-    additionalInfo: 'Sistema de Gestión de Ventas',     // Información adicional
+   // Información adicional
     
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
@@ -240,7 +240,6 @@ export class ListComponent implements OnInit {
       columns: this.exportConfig.columns,
       metadata: {
         department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
       }
     };
   }
