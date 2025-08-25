@@ -301,6 +301,7 @@ tieneAyudante: boolean = false;
     !this.vendedor.vend_Apellidos.trim() ||
     !this.vendedor.vend_Telefono.trim() ||
     !this.vendedor.vend_Correo.trim() ||
+    !this.esCorreoValido(this.vendedor.vend_Correo) ||
     !this.vendedor.vend_Sexo ||
     !this.vendedor.vend_DireccionExacta.trim() ||
     !this.vendedor.sucu_Id ||
@@ -823,5 +824,11 @@ onImagenSeleccionada(event: any) {
     // Devolver solo la lista curada (sin incluir imagen/URL u otros internos)
     return cambios;
 
+  }
+
+    esCorreoValido(correo: string): boolean {
+    if (!correo) return true;
+    // Debe contener "@" y terminar en ".com"
+    return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
   }
 }
