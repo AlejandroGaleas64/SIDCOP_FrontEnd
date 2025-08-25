@@ -325,6 +325,9 @@
               </ng-template>
             </ng-select>
           </div>
+           <div class="text-danger mt-1" *ngIf="!vendedor.vend_Ayudante && tieneAyudante && mostrarErrores">
+            <small>El ayudante es requerido</small>
+          </div>
         </div>
       </div>
 

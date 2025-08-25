@@ -612,7 +612,7 @@ onImagenSeleccionada(event: any) {
         { key: 'vend_Correo', label: 'Correo' },
         { key: 'vend_DireccionExacta', label: 'Dirección Exacta' },
         { key: 'vend_Tipo', label: 'Tipo de Vendedor' },
-        { key: 'vend_EsExterno', label: 'Es Externo' }
+        { key: 'vend_EsExterno', label: 'Es Contratista' }
     ];
 
     console.log('=== COMPARANDO CAMPOS BÁSICOS ===');
