@@ -25,7 +25,7 @@
                 type="button"
                 role="tab"
               >
-                Resumen Clientes
+                Clientes
               </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -36,7 +36,7 @@
                 type="button"
                 role="tab"
               >
-                Resumen Antigüedad
+                Antigüedad
               </button>
             </li>
           </ul>
@@ -386,23 +386,16 @@
                       <tr *ngFor="let data of table.paginated$ | async">
                         <!-- Corregida la condición para mostrar acciones -->
                         <td
-                          *ngIf="
-                            accionPermitida('consultar') ||
-                            accionPermitida('editar') ||
-                            accionPermitida('eliminar') ||
-                            accionPermitida('pagar')
-                          "
+                          *ngIf="accionPermitida('detalle')"
                         >
-                          <div class="dropdown-action-list">
-                            <button
-                              type="button"
-                              class="dropdown-toggle"
-                              (click)="floatingMenuService.open($event, data)"
-                            >
-                              <span>Acciones</span>
-                              <i class="ri-settings-3-line"></i>
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            class="btn btn-primary"
+                            (click)="irADetalles(data.clie_Id)"
+                          >
+                            <span class="btn-text">Detalles</span>
+                            <span class="btn-icon"><i class="ri-eye-line"></i></span>
+                          </button>
                         </td>
                         <td>{{ data.secuencia }}</td>
                         <td>{{ data.cliente }}</td>
@@ -494,6 +487,44 @@
                   <table class="table table-gridjs table-style">
                     <thead>
                       <tr>
+                        <!-- Columna de acciones para el resumen de antigüedad -->
+                        <th
+                          class="gridjs-th"
+                          *ngIf="
+                            accionPermitida('detalle')
+                          "
+                        >
+                          Acciones
+                        </th>
+                        <th
+                          class="gridjs-th"
+                          (click)="sortResumenBy('secuencia')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex">
+                            No.
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'secuencia' &&
+                                  resumenSortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'secuencia' &&
+                                  resumenSortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
                         <th
                           class="gridjs-th"
                           (click)="sortResumenBy('cliente')"
@@ -515,6 +546,35 @@
                                 class="ri-arrow-down-s-line icon-sort"
                                 [ngStyle]="
                                   resumenSortField === 'cliente' &&
+                                  resumenSortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+                        <th
+                          class="gridjs-th"
+                          (click)="sortResumenBy('clie_NombreNegocio')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex">
+                            Negocio
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'clie_NombreNegocio' &&
+                                  resumenSortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'clie_NombreNegocio' &&
                                   resumenSortDirection === 'desc'
                                     ? { color: '#D6B68A' }
                                     : { color: 'white' }
@@ -702,7 +762,22 @@
 
                     <tbody>
                       <tr *ngFor="let item of resumenAntiguedadFiltrado">
+                        <!-- Celda de acciones para el resumen de antigüedad -->
+                        <td
+                          *ngIf="accionPermitida('detalle')"
+                        >
+                          <button
+                            type="button"
+                            class="btn btn-primary"
+                            (click)="irADetalles(item.clie_Id)"
+                          >
+                            <span class="btn-text">Detalles</span>
+                            <span class="btn-icon"><i class="ri-eye-line"></i></span>
+                          </button>
+                        </td>
+                        <td>{{ item.secuencia }}</td>
                         <td>{{ item.cliente }}</td>
+                        <td>{{ item.clie_NombreNegocio }}</td>
                         <td class="text-end">
                           {{
                             item.actual | currency : "LPS" : "symbol" : "1.2-2"
@@ -901,34 +976,4 @@
   *ngIf="mostrarConfirmacionEliminar"
 ></div>
 
-<!-- Menú flotante de acciones -->
-<ul
-  *ngIf="floatingMenuService.show"
-  class="dropdown-menu show"
-  [ngStyle]="{
-    position: 'absolute',
-    top: floatingMenuService.top + 'px',
-    left: floatingMenuService.left + 'px',
-    'z-index': 1050
-  }"
->
-  <li *ngIf="accionPermitida('detalle')">
-    <button
-      type="button"
-      class="dropdown-action-btn"
-      (click)="irADetalles(floatingMenuService.data.clie_Id)"
-    >
-      Detalles <i class="ri-eye-line"></i>
-    </button>
-  </li>
-  <li *ngIf="accionPermitida('pagar')">
-    <button
-      type="button"
-      class="dropdown-action-btn"
-      (click)="irARegistrarPago(floatingMenuService.data.clie_Id)"
-    >
-      Registrar Pago <i class="ri-money-dollar-circle-line"></i>
-    </button>
-  </li>
-
-</ul>
+<!-- El menú flotante ha sido reemplazado por botones directos -->

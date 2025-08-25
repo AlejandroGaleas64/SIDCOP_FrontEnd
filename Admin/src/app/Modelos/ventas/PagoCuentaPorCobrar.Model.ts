@@ -3,7 +3,8 @@ export class PagoCuentaPorCobrar {
   cpCo_Id: number = 0;
   pago_Fecha: Date = new Date();
   pago_Monto: number = 0;
-  pago_FormaPago: string = '';
+  foPa_Id: number = 0;
+  foPa_Descripcion?: string;
   pago_NumeroReferencia?: string;
   pago_Observaciones: string = '';
   usua_Creacion: number = 0;

@@ -12,6 +12,7 @@ import { PaginationModule } from 'ngx-bootstrap/pagination';
 import { CuentaPorCobrar } from 'src/app/Modelos/ventas/CuentasPorCobrar.Model';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
 import { CuentasPorCobrarService } from 'src/app/servicios/ventas/cuentas-por-cobrar.service';
+import { CuentasPorCobrarDataService } from 'src/app/servicios/ventas/cuentas-por-cobrar-data.service';
 
 interface AlertaConfig {
   tipo: 'exito' | 'error' | 'warning';
@@ -78,7 +79,8 @@ export class ListComponent implements OnInit {
     private router: Router, 
     private route: ActivatedRoute,
     public floatingMenuService: FloatingMenuService,
-    private cuentasPorCobrarService: CuentasPorCobrarService
+    private cuentasPorCobrarService: CuentasPorCobrarService,
+    private cuentasPorCobrarDataService: CuentasPorCobrarDataService
   ) {}
 
   ngOnInit(): void {
@@ -277,6 +279,18 @@ export class ListComponent implements OnInit {
   }
 
 irADetalles(id: number): void {
+    // Buscar el cliente en los datos cargados
+    const clienteTabla = this.cuentasPorCobrarDataService.buscarClientePorId(id);
+    const clienteResumen = this.cuentasPorCobrarDataService.buscarClienteEnResumenPorId(id);
+    
+    // Guardar el cliente seleccionado en el servicio compartido
+    if (clienteTabla) {
+      this.cuentasPorCobrarDataService.setClienteSeleccionado(clienteTabla);
+    } else if (clienteResumen) {
+      this.cuentasPorCobrarDataService.setClienteSeleccionado(clienteResumen);
+    }
+    
+    // Navegar a la página de detalles
     this.router.navigate(['/ventas/cuentasporcobrar/details', id]);
     this.floatingMenuService.close();
   }
@@ -337,6 +351,9 @@ irADetalles(id: number): void {
             item.usua_Creacion?.toString() === userId.toString()
           );
 
+      // Guardar los datos en el servicio compartido
+      this.cuentasPorCobrarDataService.setListaCuentasPorCobrar(datosFiltrados);
+      
       this.table.setData(datosFiltrados);
     } else {
       this.mostrarAlerta({
@@ -354,6 +371,9 @@ irADetalles(id: number): void {
         item.secuencia = index + 1;
       });
 
+      // Guardar los datos en el servicio compartido
+      this.cuentasPorCobrarDataService.setResumenAntiguedad(data);
+      
       this.resumenAntiguedad = data;
       this.filtrarResumenAntiguedad();
     } else {

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment.prod';
 import { CuentaPorCobrar } from 'src/app/Modelos/ventas/CuentasPorCobrar.Model';
 import { PagoCuentaPorCobrar } from 'src/app/Modelos/ventas/PagoCuentaPorCobrar.Model';
+import { FormaPago } from 'src/app/Modelos/ventas/FormaPago.Model';
 
 @Injectable({
   providedIn: 'root',
@@ -155,6 +156,13 @@ export class CuentasPorCobrarService {
     );
   }
 
-
-  
+  /**
+   * Obtiene todas las formas de pago disponibles
+   * @returns Lista de formas de pago
+   */
+  obtenerFormasPago(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/FormaDePago/Listar`, {
+      headers: this.headers
+    });
+  }
 }
