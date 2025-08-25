@@ -84,14 +84,15 @@ export class ListComponent implements OnInit {
     title: 'Listado de Puntos de Emision',                    // Título del reporte
     filename: 'Puntos de Emisión',                           // Nombre base del archivo
     department: 'Ventas',                         // Departamento
-    additionalInfo: 'Sistema de Gestión',         // Información adicional
+    additionalInfo: '',         // Información adicional
     
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
       { key: 'No', header: 'No.', width: 8, align: 'center' as const },
       { key: 'Codigo', header: 'Codigo', width: 25, align: 'left' as const },
       { key: 'Descripción', header: 'Descripción', width: 50, align: 'left' as const },
-        { key: 'Sucursal', header: 'Sucursal', width: 75, align: 'left' as const }
+        { key: 'Sucursal', header: 'Sucursal', width: 75, align: 'left' as const },
+        { key: 'Estado', header: 'Estado', width: 75, align: 'left' as const }
     ] as ExportColumn[],
     
     // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
@@ -99,7 +100,8 @@ export class ListComponent implements OnInit {
       'No': modelo?.secuencia || (index + 1),
       'Codigo': this.limpiarTexto(modelo?.puEm_Codigo),
       'Descripción': this.limpiarTexto(modelo?.puEm_Descripcion),
-       'Sucursal': this.limpiarTexto(modelo?.sucu_Descripcion)
+       'Sucursal': this.limpiarTexto(modelo?.sucu_Descripcion),
+       'Estado': this.limpiarTexto(modelo?.estado)
       // Agregar más campos aquí según necesites:
       // 'Campo': this.limpiarTexto(modelo?.campo),
     })
