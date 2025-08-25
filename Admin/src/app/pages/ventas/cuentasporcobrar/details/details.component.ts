@@ -1,16 +1,18 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CuentaPorCobrar } from 'src/app/Modelos/ventas/CuentasPorCobrar.Model';
 import { PagoCuentaPorCobrar } from 'src/app/Modelos/ventas/PagoCuentaPorCobrar.Model';
 import { CuentasPorCobrarService } from 'src/app/servicios/ventas/cuentas-por-cobrar.service';
+import { CuentasPorCobrarDataService } from 'src/app/servicios/ventas/cuentas-por-cobrar-data.service';
 import { environment } from 'src/environments/environment';
 import { ReactiveTableService } from 'src/app/shared/reactive-table.service';
 import { PaginationModule } from 'ngx-bootstrap/pagination';
 import { TableModule } from 'src/app/pages/table/table.module';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
-import { trigger, state, style, transition, animate } from '@angular/animations';
+import { trigger, style, transition, animate } from '@angular/animations';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-details',
@@ -21,36 +23,18 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
   animations: [
     trigger('fadeExpand', [
       transition(':enter', [
-        style({
-          height: '0',
-          opacity: 0,
-          transform: 'scaleY(0.90)',
-          overflow: 'hidden'
-        }),
-        animate('200ms ease-out', style({
-          height: '*',
-          opacity: 1,
-          transform: 'scaleY(1)'
-        }))
+        style({ height: '0', opacity: 0, transform: 'scaleY(0.90)', overflow: 'hidden' }),
+        animate('200ms ease-out', style({ height: '*', opacity: 1, transform: 'scaleY(1)' }))
       ]),
       transition(':leave', [
-        style({
-          height: '*',
-          opacity: 1,
-          transform: 'scaleY(1)',
-          overflow: 'hidden'
-        }),
-        animate('200ms ease-in', style({
-          height: '0',
-          opacity: 0,
-          transform: 'scaleY(0.90)'
-        }))
+        style({ height: '*', opacity: 1, transform: 'scaleY(1)', overflow: 'hidden' }),
+        animate('200ms ease-in', style({ height: '0', opacity: 0, transform: 'scaleY(0.90)' }))
       ])
     ])
   ]
 })
-export class DetailsComponent implements OnInit {
-  // Propiedades para entrada/salida de datos
+export class DetailsComponent implements OnInit, OnDestroy {
+  // Inputs / Outputs
   @Input() set id(value: number) {
     if (value) {
       this.cuentaPorCobrarId = value;
@@ -59,14 +43,15 @@ export class DetailsComponent implements OnInit {
   }
   @Output() onClose = new EventEmitter<void>();
 
+  // Estado principal
   cuentaPorCobrarId: number = 0;
   cuentaPorCobrarDetalle: CuentaPorCobrar | null = null;
   pagos: PagoCuentaPorCobrar[] = [];
   totalPagado: number = 0;
   cargando: boolean = false;
   mostrarOverlayCarga: boolean = false;
-  
-  // Propiedades para la tabla principal
+
+  // Tabla principal
   tablaPrincipal = new ReactiveTableService<any>();
   datosTablaPrincipal: any[] = [];
 
@@ -81,41 +66,57 @@ export class DetailsComponent implements OnInit {
   pagoSeleccionado: PagoCuentaPorCobrar | null = null;
   motivoAnulacion: string = '';
   enviandoAnulacion: boolean = false;
-  
-  // Control del menú flotante
+
+  // Menú flotante
   activeActionRow: number | null = null;
+
+  // Suscripciones
+  private clienteSeleccionadoSub: Subscription | null = null;
+
+  // Acciones disponibles
+  accionesDisponibles: string[] = [];
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private cuentasPorCobrarService: CuentasPorCobrarService,
+    private cuentasPorCobrarDataService: CuentasPorCobrarDataService,
     public table: ReactiveTableService<PagoCuentaPorCobrar>,
     public floatingMenuService: FloatingMenuService
   ) {}
 
   ngOnInit(): void {
-    // Cargar los permisos del usuario
     this.cargarAccionesUsuario();
-
-    // Configurar la tabla principal
     this.configurarTablaPrincipal();
-    
-    // Si tenemos un ID desde la ruta, cargamos los datos
-    this.route.params.subscribe((params) => {
-      if (params['id'] && !this.cuentaPorCobrarId) {
-        this.cuentaPorCobrarId = +params['id'];
-        this.cargarDatos();
-      } else if (!this.cuentaPorCobrarId) {
-        this.router.navigate(['/ventas/cuentasporcobrar/list']);
+
+    this.clienteSeleccionadoSub = this.cuentasPorCobrarDataService.clienteSeleccionado$.subscribe(cliente => {
+      if (cliente) {
+        this.cuentaPorCobrarDetalle = cliente;
+        this.cuentaPorCobrarId = cliente.cpCo_Id || 0;
+        this.prepararDatosTablaPrincipal();
+        this.cargarPagos();
+      } else {
+        this.route.params.subscribe(params => {
+          if (params['id'] && !this.cuentaPorCobrarId) {
+            this.cuentaPorCobrarId = +params['id'];
+            this.cargarDatos();
+          } else if (!this.cuentaPorCobrarId) {
+            this.router.navigate(['/ventas/cuentasporcobrar/list']);
+          }
+        });
       }
     });
   }
-  
-  /**
-   * Configura la tabla principal con los datos de la cuenta por cobrar
-   */
+
+  ngOnDestroy(): void {
+    if (this.clienteSeleccionadoSub) {
+      this.clienteSeleccionadoSub.unsubscribe();
+      this.clienteSeleccionadoSub = null;
+    }
+  }
+
+  /** Configuración de tabla */
   private configurarTablaPrincipal(): void {
-    // Configurar campos de búsqueda para la tabla principal
     this.tablaPrincipal.setConfig([
       'cpCo_Id',
       'fact_Id',
@@ -128,14 +129,10 @@ export class DetailsComponent implements OnInit {
       'secuencia'
     ]);
   }
-  
-  /**
-   * Prepara los datos para la tabla principal
-   */
+
   private prepararDatosTablaPrincipal(): void {
     if (!this.cuentaPorCobrarDetalle) return;
-    
-    // Crear un objeto con los datos que queremos mostrar en la tabla
+
     const datos = [
       {
         cpCo_Id: this.cuentaPorCobrarDetalle.cpCo_Id,
@@ -145,194 +142,148 @@ export class DetailsComponent implements OnInit {
         cpCo_Observaciones: this.cuentaPorCobrarDetalle.cpCo_Observaciones,
         estaVencida: this.estaVencida(),
         cpCo_Saldada: this.cuentaPorCobrarDetalle.cpCo_Saldada,
-        referencia: this.cuentaPorCobrarDetalle.fact_Id, // Usando fact_Id como referencia
+        referencia: this.cuentaPorCobrarDetalle.fact_Id,
         monto: this.cuentaPorCobrarDetalle.cpCo_Valor,
         totalPendiente: this.cuentaPorCobrarDetalle.cpCo_Saldo,
-        secuencia: 1 // Valor por defecto
+        secuencia: 1
       }
     ];
-    
+
     this.datosTablaPrincipal = datos;
     this.tablaPrincipal.setData(datos);
   }
 
+  /** Cargar datos */
   private cargarDatos(): void {
     this.cargando = true;
     this.mostrarOverlayCarga = true;
     this.mostrarAlertaError = false;
 
-    // Cargar datos de la cuenta por cobrar usando el timeline
-    this.cuentasPorCobrarService
-      .obtenerDetalleTimeLine(this.cuentaPorCobrarId)
-      .subscribe({
-        next: (respuesta) => {
-          if (respuesta.success && respuesta.data) {
-            // Mapear los datos de la API a nuestro modelo usando el constructor
-            this.cuentaPorCobrarDetalle = new CuentaPorCobrar({
-              cpCo_Id: respuesta.data.cpCo_Id,
-              clie_Id: respuesta.data.clie_Id,
-              fact_Id: respuesta.data.fact_Id,
-              cpCo_FechaEmision: new Date(respuesta.data.cpCo_FechaEmision),
-              cpCo_FechaVencimiento: new Date(
-                respuesta.data.cpCo_FechaVencimiento
-              ),
-              cpCo_Valor: respuesta.data.cpCo_Valor,
-              cpCo_Saldo: respuesta.data.cpCo_Saldo,
-              cpCo_Observaciones: respuesta.data.cpCo_Observaciones || '',
-              cpCo_Anulado: respuesta.data.cpCo_Anulado,
-              cpCo_Saldada: respuesta.data.cpCo_Saldada,
-              cpCo_Estado: respuesta.data.cpCo_Estado,
-              usua_Creacion: respuesta.data.usua_Creacion,
-              cpCo_FechaCreacion: new Date(respuesta.data.cpCo_FechaCreacion),
-              usua_Modificacion: respuesta.data.usua_Modificacion,
-              cpCo_FechaModificacion: respuesta.data.cpCo_FechaModificacion
-                ? new Date(respuesta.data.cpCo_FechaModificacion)
-                : undefined,
-              clie_Codigo: '',
-              clie_Nombres: respuesta.data.clie_Nombres || '',
-              clie_Apellidos: respuesta.data.clie_Apellidos || '',
-              clie_NombreNegocio: respuesta.data.clie_NombreNegocio || '',
-              clie_Telefono: respuesta.data.clie_Telefono || '',
-              clie_LimiteCredito: 0,
-              clie_Saldo: 0,
-              usuarioCreacion: respuesta.data.usuarioCreacion || '',
-              usuarioModificacion: respuesta.data.usuarioModificacion || '',
-            });
-
-            // Preparar datos para la tabla principal
-            this.prepararDatosTablaPrincipal();
-            
-            // Cargar pagos de esta cuenta
-            this.cargarPagos();
-          } else {
-            this.mostrarAlertaError = true;
-            this.mensajeError =
-              'No se pudo cargar la información de la cuenta por cobrar.';
-            this.cargando = false;
-            this.mostrarOverlayCarga = false;
+    this.cuentasPorCobrarService.obtenerDetalleTimeLine(this.cuentaPorCobrarId).subscribe({
+      next: respuesta => {
+        if (respuesta.success && respuesta.data) {
+          this.datosTablaPrincipal = respuesta.data;
+          this.tablaPrincipal.setData(respuesta.data);
+          
+          // Obtener los datos de la cuenta por cobrar del primer elemento del timeline
+          if (respuesta.data.length > 0) {
+            this.cuentaPorCobrarDetalle = respuesta.data[0] as CuentaPorCobrar;
           }
-        },
-        error: (error: any) => {
+          
+          this.cargarPagos();
+        } else {
           this.mostrarAlertaError = true;
-          this.mensajeError =
-            'Error al conectar con el servidor. Intente nuevamente más tarde.';
-          this.cargando = false;
-          this.mostrarOverlayCarga = false;
-        },
-      });
+          this.mensajeError = 'No se pudo cargar la información de la cuenta por cobrar.';
+        }
+        this.cargando = false;
+        this.mostrarOverlayCarga = false;
+      },
+      error: () => {
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error al conectar con el servidor. Intente nuevamente más tarde.';
+        this.cargando = false;
+        this.mostrarOverlayCarga = false;
+      }
+    });
   }
 
   private cargarPagos(): void {
     this.mostrarOverlayCarga = true;
-    this.cuentasPorCobrarService
-      .obtenerPagosPorCuenta(this.cuentaPorCobrarId)
-      .subscribe({
-        next: (respuesta) => {
-          if (respuesta.success && respuesta.data) {
-            this.pagos = respuesta.data;
-            
-            // Configurar la tabla reactiva
-            this.table.setData(respuesta.data);
-            
-            // Configurar campos de búsqueda
-            this.table.setConfig([
-              'pago_Id',
-              'pago_Fecha',
-              'pago_Monto',
-              'pago_FormaPago',
-              'pago_NumeroReferencia',
-              'pago_Observaciones'
-            ]);
-            
-            this.totalPagado = this.calcularTotalPagado();
-          } else {
-            this.pagos = [];
-            this.table.setData([]);
-            this.totalPagado = 0;
-          }
-          this.cargando = false;
-          this.mostrarOverlayCarga = false;
-        },
-        error: (error: any) => {
+    this.cuentasPorCobrarService.obtenerPagosPorCuenta(this.cuentaPorCobrarId).subscribe({
+      next: respuesta => {
+        if (respuesta.success && respuesta.data) {
+          this.pagos = respuesta.data;
+          this.table.setData(respuesta.data);
+          this.table.setConfig(['pago_Id', 'pago_Fecha', 'pago_Monto', 'foPa_Descripcion', 'pago_NumeroReferencia', 'pago_Observaciones']);
+          this.totalPagado = this.calcularTotalPagado();
+        } else {
           this.pagos = [];
           this.table.setData([]);
           this.totalPagado = 0;
-          this.cargando = false;
-          this.mostrarOverlayCarga = false;
-        },
-      });
+        }
+        this.cargando = false;
+        this.mostrarOverlayCarga = false;
+      },
+      error: () => {
+        this.pagos = [];
+        this.table.setData([]);
+        this.totalPagado = 0;
+        this.cargando = false;
+        this.mostrarOverlayCarga = false;
+      }
+    });
   }
 
+  /** Navegación */
   cerrar(): void {
-    this.onClose.emit();
+    this.router.navigate(['/ventas/cuentasporcobrar/list']);
   }
 
-  registrarPago(): void {
-    if (this.cuentaPorCobrarId) {
-      this.router.navigate(
-        ['/ventas/cuentasporcobrar/payment/', this.cuentaPorCobrarId],
-        { relativeTo: this.route }
-      );
+  registrarPago(cuentaId?: number): void {
+    // Si se proporciona un ID específico, usarlo; de lo contrario, usar el ID general
+    const idAUsar = cuentaId || this.cuentaPorCobrarId;
+    
+    if (idAUsar) {
+      this.router.navigate(['/ventas/cuentasporcobrar/payment/', idAUsar], { relativeTo: this.route });
     }
   }
 
+  /** Alertas */
   cerrarAlerta(): void {
     this.mostrarAlertaError = false;
     this.mensajeError = '';
   }
 
+  cerrarAlertaExito(): void {
+    this.mostrarAlertaExito = false;
+    this.mensajeExito = '';
+  }
+
+  /** Utilidades */
   formatearFecha(fecha: Date | string | null): string {
     if (!fecha) return 'N/A';
     try {
       return new Date(fecha).toLocaleDateString('es-HN');
-    } catch (error) {
+    } catch {
       return 'N/A';
     }
   }
 
   formatearMoneda(valor: number | null): string {
     if (valor === null || valor === undefined) return 'L 0.00';
-    return new Intl.NumberFormat('es-HN', {
-      style: 'currency',
-      currency: 'HNL',
-    }).format(valor);
+    return new Intl.NumberFormat('es-HN', { style: 'currency', currency: 'HNL' }).format(valor);
   }
 
   calcularDiasVencimiento(): number {
-    if (
-      !this.cuentaPorCobrarDetalle ||
-      !this.cuentaPorCobrarDetalle.cpCo_FechaVencimiento
-    ) {
-      return 0;
-    }
-
+    if (!this.cuentaPorCobrarDetalle?.cpCo_FechaVencimiento) return 0;
     const fechaActual = new Date();
-    const fechaVencimiento = new Date(
-      this.cuentaPorCobrarDetalle.cpCo_FechaVencimiento
-    );
-
+    const fechaVencimiento = new Date(this.cuentaPorCobrarDetalle.cpCo_FechaVencimiento);
     const diferencia = fechaVencimiento.getTime() - fechaActual.getTime();
     return Math.ceil(diferencia / (1000 * 3600 * 24));
   }
 
   estaVencida(): boolean {
+    // Si no hay detalle, no podemos determinar si está vencida
+    if (!this.cuentaPorCobrarDetalle) return false;
+    
+    // Si ya está marcada como vencida en los datos
+    if (this.cuentaPorCobrarDetalle.estaVencido) return true;
+    
+    // Calcular basado en la fecha de vencimiento
     return this.calcularDiasVencimiento() < 0;
   }
 
   calcularTotalPagado(): number {
-    return this.pagos
-      .filter((pago) => !pago.pago_Anulado)
-      .reduce((total, pago) => total + (pago.pago_Monto || 0), 0);
+    return this.pagos.filter(p => !p.pago_Anulado).reduce((t, p) => t + (p.pago_Monto || 0), 0);
   }
 
-  // Métodos para anulación de pagos
+  /** Anulación de pagos */
   abrirModalAnulacion(pago: PagoCuentaPorCobrar): void {
     if (pago.pago_Anulado) {
       this.mostrarAlertaError = true;
       this.mensajeError = 'Este pago ya ha sido anulado.';
       return;
     }
-
     this.pagoSeleccionado = pago;
     this.motivoAnulacion = '';
     this.mostrarModalAnulacion = true;
@@ -350,108 +301,64 @@ export class DetailsComponent implements OnInit {
       this.mensajeError = 'Debe ingresar un motivo de anulación.';
       return;
     }
-
     this.enviandoAnulacion = true;
     this.mostrarAlertaError = false;
     this.mostrarAlertaExito = false;
 
-    // Obtener el ID del usuario del environment
     const usuarioId = environment.usua_Id ?? 0;
 
-    this.cuentasPorCobrarService
-      .anularPago(
-        this.pagoSeleccionado.pago_Id || 0,
-        usuarioId,
-        this.motivoAnulacion
-      )
-      .subscribe({
-        next: (respuesta) => {
-          if (respuesta.success) {
-            this.mostrarAlertaExito = true;
-            this.mensajeExito = 'Pago anulado correctamente.';
-            this.cerrarModalAnulacion();
-            // Recargar los pagos para reflejar el cambio
-            this.cargarPagos();
-            // Recargar los datos de la cuenta para actualizar el saldo
-            this.cargarDatos();
-          } else {
-            this.mostrarAlertaError = true;
-            this.mensajeError = respuesta.message || 'Error al anular el pago.';
-          }
-          this.enviandoAnulacion = false;
-        },
-        error: (error) => {
-
+    this.cuentasPorCobrarService.anularPago(this.pagoSeleccionado.pago_Id || 0, usuarioId, this.motivoAnulacion).subscribe({
+      next: respuesta => {
+        if (respuesta.success) {
+          this.mostrarAlertaExito = true;
+          this.mensajeExito = 'Pago anulado correctamente.';
+          this.cerrarModalAnulacion();
+          this.cargarPagos();
+          this.cargarDatos();
+        } else {
           this.mostrarAlertaError = true;
-          this.mensajeError =
-            'Error al conectar con el servidor. Intente nuevamente más tarde.';
-          this.enviandoAnulacion = false;
-        },
-      });
+          this.mensajeError = respuesta.message || 'Error al anular el pago.';
+        }
+        this.enviandoAnulacion = false;
+      },
+      error: () => {
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error al conectar con el servidor. Intente nuevamente más tarde.';
+        this.enviandoAnulacion = false;
+      }
+    });
   }
 
-  cerrarAlertaExito(): void {
-    this.mostrarAlertaExito = false;
-    this.mensajeExito = '';
-  }
-
-  // Acciones disponibles para el usuario en esta pantalla
-  accionesDisponibles: string[] = [];
-
-  /**
-   * Verifica si el usuario tiene permiso para realizar una acción específica
-   * @param accion Nombre de la acción a verificar (ej: 'anular', 'editar', 'crear')
-   * @returns true si el usuario tiene permiso, false en caso contrario
-   */
+  /** Permisos */
   accionPermitida(accion: string): boolean {
-    return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
+    return this.accionesDisponibles.includes(accion.trim().toLowerCase());
   }
-  
-  // Método de compatibilidad para no romper el código existente
+
   tienePermiso(accion: string): boolean {
     return this.accionPermitida(accion);
   }
 
-  /**
-   * Carga las acciones disponibles para el usuario desde localStorage
-   */
   private cargarAccionesUsuario(): void {
-    // OBTENEMOS PERMISOSJSON DEL LOCALSTORAGE
     const permisosRaw = localStorage.getItem('permisosJson');
-
     let accionesArray: string[] = [];
-    
+
     if (permisosRaw) {
       try {
         const permisos = JSON.parse(permisosRaw);
-        
-        // BUSCAMOS EL MÓDULO DE CUENTAS POR COBRAR
-        let modulo = null;
-        
-        if (Array.isArray(permisos)) {
-          // BUSCAMOS EL MÓDULO DE CUENTAS POR COBRAR POR ID
-          modulo = permisos.find((m: any) => m.Pant_Id === 34);
+        let modulo: any = null;
 
+        if (Array.isArray(permisos)) {
+          modulo = permisos.find((m: any) => m.Pant_Id === 34);
         } else if (typeof permisos === 'object' && permisos !== null) {
-          // ESTO ES PARA CUANDO LOS PERMISOS ESTÁN EN UN OBJETO CON CLAVES
           modulo = permisos['Cuentas por Cobrar'] || permisos['cuentas por cobrar'] || null;
         }
-        
-        if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
-          // AQUI SACAMOS SOLO EL NOMBRE DE LA ACCIÓN
+
+        if (modulo?.Acciones && Array.isArray(modulo.Acciones)) {
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
         }
-      } catch (e) {
-      }
+      } catch {}
     }
-    
-    // Filtramos y normalizamos las acciones
-    this.accionesDisponibles = accionesArray
-      .filter((a) => typeof a === 'string' && a.length > 0)
-      .map((a) => a.trim().toLowerCase());
 
-    
-    // Verificar específicamente si existe el permiso de anular
-    const tienePermisoAnular = this.accionPermitida('anular');
+    this.accionesDisponibles = accionesArray.map(a => a.trim().toLowerCase()).filter(a => a.length > 0);
   }
 }
