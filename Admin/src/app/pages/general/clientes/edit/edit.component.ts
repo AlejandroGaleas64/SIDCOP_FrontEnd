@@ -150,10 +150,10 @@ export class EditComponent implements OnChanges {
     this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
   }
 
-  esCorreoValido(correo: string): boolean {
-    if (!correo) return true;
-    // Solo acepta lo que está dentro del parentesis
-    return /^[\w\.-]+@(gmail|hotmail|outlook)\.com$/.test(correo.trim());
+  revisarCorreoValido(correo: string): boolean {
+if (!correo) return true;
+    // Debe contener "@" y terminar en ".com"
+    return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
   }
 
   actualizarFechaNacimiento(event: any) {

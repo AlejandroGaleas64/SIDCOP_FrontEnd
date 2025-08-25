@@ -83,7 +83,13 @@ export class CreateComponent {
     }
   }
 
-  esCorreoValido(correo: string): boolean {
+    // esCorreoValido(correo: string): boolean {
+    //   if (!correo) return true;
+    //   // Debe contener "@" y terminar en ".com"
+    //   return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
+    // }
+
+  revisarCorreoValido(correo: string): boolean {
     if (!correo) return true;
     // Debe contener "@" y terminar en ".com"
     return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
