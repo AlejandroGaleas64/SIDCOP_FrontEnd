@@ -361,16 +361,15 @@
               </thead>
               <tbody>
                 <tr class="gridjs-tr" *ngFor="let dato of (tablaPrincipal.paginated$ | async); let i = index">
-                  <td class="position-relative" *ngIf="accionPermitida('anular')">
-                    <div class="dropdown-action-list">
-                      <button type="button"
-                        class="dropdown-toggle"
-                        [attr.aria-expanded]="false"
-                        (click)="floatingMenuService.open($event, dato)">
-                        <span>Acciones</span>
-                        <i class="ri-settings-3-line"></i>
-                      </button>
-                    </div>
+                  <td class="position-relative" *ngIf="accionPermitida('anular') && !dato.cpCo_Anulado">
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      (click)="registrarPago(dato.cpCo_Id)"
+                    >
+                      <span class="btn-text">Registrar Pago</span>
+                      <span class="btn-icon"><i class="ri-money-dollar-circle-line"></i></span>
+                    </button>
                   </td>
                   <td><span class="fw-semibold">{{ dato.secuencia }}</span></td>
                   <td>{{ dato.referencia }}</td>
@@ -526,19 +525,3 @@
     </div>
   </div>
 </div>
-
-<!-- Menú flotante de acciones -->
-<ul
-  *ngIf="floatingMenuService.show"
-  class="dropdown-menu show"  
-  [ngStyle]="{
-    position: 'absolute',
-    top: floatingMenuService.top + 'px',
-    left: floatingMenuService.left + 'px',
-  }">
-  <li *ngIf="accionPermitida('anular') && !floatingMenuService.data?.cpCo_Anulado">
-    <button type="button" class="dropdown-action-btn" (click)="registrarPago(floatingMenuService.data?.cpCo_Id); floatingMenuService.close()">
-      Registrar Pago <i class="ri-money-dollar-circle-line"></i>
-    </button>
-  </li>
-</ul>

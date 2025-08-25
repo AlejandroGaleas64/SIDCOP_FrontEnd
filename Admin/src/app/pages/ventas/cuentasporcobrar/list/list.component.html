@@ -45,15 +45,38 @@
             <!-- TAB CUENTAS POR COBRAR -->
             <div *ngIf="activeTab === 1">
               <div class="d-flex justify-content-between mb-3 flex-wrap">
-                <!-- Botón de agregar si tiene permisos -->
-                <div class="mb-2" *ngIf="accionPermitida('agregar')">
+                <!-- Botones de acción -->
+                <div class="mb-2 d-flex gap-2">
+                  <!-- Botón de agregar si tiene permisos -->
                   <button
                     type="button"
                     class="btn btn-primary"
                     routerLink="/ventas/cuentasporcobrar/add"
+                    *ngIf="accionPermitida('agregar')"
                   >
                     <i class="ri-add-line me-1"></i> Agregar
                   </button>
+                  
+                  <!-- Botones de exportación -->
+                  <div class="export-buttons d-flex gap-1 mb-2">
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportar('excel')" [disabled]="exportando" title="Exportar a Excel">
+                      <span class="btn-text">Excel</span>
+                      <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
+                      <span *ngIf="exportando && tipoExportacion === 'excel'">Exportando...</span>
+                    </button>
+                    
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportar('pdf')" [disabled]="exportando" title="Exportar a PDF">
+                      <span class="btn-text">PDF</span>
+                      <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
+                      <span *ngIf="exportando && tipoExportacion === 'pdf'">Exportando...</span>
+                    </button>
+                    
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportar('csv')" [disabled]="exportando" title="Exportar a CSV">
+                      <span class="btn-text">CSV</span>
+                      <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
+                      <span *ngIf="exportando && tipoExportacion === 'csv'">Exportando...</span>
+                    </button>
+                  </div>
                 </div>
 
                 <!-- Búsqueda -->
@@ -456,6 +479,29 @@
             <!-- TAB RESUMEN ANTIGÜEDAD -->
             <div *ngIf="activeTab === 2">
               <div class="d-flex justify-content-between mb-3 flex-wrap">
+                <!-- Botones de exportación para la tabla de Antigüedad -->
+                <div class="mb-2">
+                  <div class="export-buttons d-flex gap-1 mb-2">
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarResumen('excel')" [disabled]="exportandoResumen" title="Exportar a Excel">
+                      <span class="btn-text">Excel</span>
+                      <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
+                      <span *ngIf="exportandoResumen && tipoExportacionResumen === 'excel'">Exportando...</span>
+                    </button>
+                    
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarResumen('pdf')" [disabled]="exportandoResumen" title="Exportar a PDF">
+                      <span class="btn-text">PDF</span>
+                      <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
+                      <span *ngIf="exportandoResumen && tipoExportacionResumen === 'pdf'">Exportando...</span>
+                    </button>
+                    
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarResumen('csv')" [disabled]="exportandoResumen" title="Exportar a CSV">
+                      <span class="btn-text">CSV</span>
+                      <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
+                      <span *ngIf="exportandoResumen && tipoExportacionResumen === 'csv'">Exportando...</span>
+                    </button>
+                  </div>
+                </div>
+
                 <div class="search-box mb-2">
                   <div class="d-flex align-items-center">
                     <i
