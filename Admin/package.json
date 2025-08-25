@@ -66,6 +66,7 @@
     "sweetalert2": "^11.14.1",
     "tslib": "^2.6.3",
     "xlsx": "^0.18.5",
+    "zebra-browser-print-wrapper": "^0.1.4",
     "zone.js": "0.14.7"
   },
   "devDependencies": {

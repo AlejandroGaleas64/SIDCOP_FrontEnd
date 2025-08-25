@@ -71,7 +71,6 @@ private readonly exportConfig = {
     title: 'Listado de Impuestos',                     // Título del reporte
     filename: 'Impuestos',                             // Nombre base del archivo
     department: 'Ventas',                              // Departamento
-    additionalInfo: 'Sistema de Gestión de Ventas',   // Información adicional
     
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
@@ -224,7 +223,6 @@ private readonly exportConfig = {
       columns: this.exportConfig.columns,
       metadata: {
         department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
       }
     };
   }
