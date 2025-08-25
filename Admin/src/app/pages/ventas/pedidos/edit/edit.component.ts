@@ -52,7 +52,7 @@ export class EditComponent implements OnInit, OnChanges {
     } else {
       const termino = this.busquedaProducto.toLowerCase().trim();
       this.productosFiltrados = this.productos.filter((producto) =>
-        producto.prod_Descripcion.toLowerCase().includes(termino)
+        producto.prod_DescripcionCorta.toLowerCase().includes(termino)
       );
     }
   }
@@ -269,6 +269,8 @@ export class EditComponent implements OnInit, OnChanges {
       }));
   }
 
+  
+
   cargarProductosPorCliente(clienteId: number): void {
     this.http
       .get<any>(
@@ -326,6 +328,7 @@ export class EditComponent implements OnInit, OnChanges {
 
   pedidoEditada: Pedido = {
     pedi_Id: 0,
+     pedi_Codigo: '',
     diCl_Id: 0,
     vend_Id: 0,
     pedi_FechaPedido: new Date(),
@@ -421,7 +424,7 @@ export class EditComponent implements OnInit, OnChanges {
       this.productosFiltrados = [...this.productos];
     } else {
       this.productosFiltrados = this.productos.filter((producto) =>
-        producto.prod_Descripcion.toLowerCase().includes(query)
+        producto.prod_DescripcionCorta.toLowerCase().includes(query)
       );
     }
     this.paginaActual = 1; // reset a la página 1 tras filtrar
@@ -514,7 +517,7 @@ export class EditComponent implements OnInit, OnChanges {
   validarEdicion(): void {
     this.mostrarErrores = true;
 
-    if (this.pedidoEditada.muni_Descripcion.trim()) {
+    if (this.pedidoEditada.diCl_Id && this.pedidoEditada.pedi_FechaEntrega) {
       if (this.hayDiferencias()) {
         this.mostrarConfirmacionEditar = true;
       } else {
@@ -603,8 +606,8 @@ export class EditComponent implements OnInit, OnChanges {
     }));
 
     const getDescripcionProducto = (id: number) => {
-      const prod = this.productos.find((p) => parseInt(p.prod_Id) === id);
-      return prod ? prod.prod_Descripcion : `ID ${id}`;
+      const prod = this.productos.find((p) => Number(p.prod_Id) === Number(id));
+  return prod && prod.prod_DescripcionCorta ? prod.prod_DescripcionCorta : `ID ${id}`;
     };
 
     const serialize = (arr: any[]) =>
@@ -647,6 +650,7 @@ export class EditComponent implements OnInit, OnChanges {
     ) {
       const PEActualizar = {
         pedi_Id: this.pedidoEditada.pedi_Id,
+         pedi_Codigo: this.pedidoEditada.pedi_Codigo, // El código se actualiza aquí
         diCl_Id: this.pedidoEditada.diCl_Id,
         vend_Id: getUserId(), // Asumiendo que el usuario actual es el vendedor
         pedi_FechaPedido: new Date().toISOString(),

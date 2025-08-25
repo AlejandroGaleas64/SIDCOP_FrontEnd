@@ -78,8 +78,7 @@ export class ListComponent implements OnInit {
         title: 'Listado de Devoluciones',                    // Título del reporte
         filename: 'Devoluciones',                           // Nombre base del archivo
         department: 'Ventas',                         // Departamento
-        additionalInfo: 'Sistema de Gestión',         // Información adicional
-        
+         
         // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
         columns: [
           { key: 'No', header: 'No', width: 15, align: 'left' as const },
@@ -484,9 +483,7 @@ export class ListComponent implements OnInit {
       data: this.obtenerDatosExport(),
       columns: this.exportConfig.columns,
       metadata: {
-        department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
-      }
+        department: this.exportConfig.department,      }
     };
   }
 

@@ -192,6 +192,260 @@
       </div>
     </div>
 
+    <!-- Tabla principal de datos de cuenta por cobrar -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Información de la Cuenta por Cobrar</h5>
+      </div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-3 flex-wrap">
+          <!-- Buscador -->
+          <div class="search-box mb-2">
+            <input
+              type="text"
+              class="form-control search"
+              placeholder="Buscar..."
+              [(ngModel)]="tablaPrincipal.searchTerm"
+              (ngModelChange)="tablaPrincipal.setSearchTerm($event)"
+            />
+            <i class="ri-search-line search-icon"></i>
+          </div>
+        </div>
+
+        <div class="table-radius-container">
+          <div class="table-responsive">
+            <table class="table table-gridjs table-style">
+              <thead>
+                <tr>
+                  <th class="gridjs-th" (click)="tablaPrincipal.sortBy('cpCo_Id')" style="cursor:pointer;">
+                    <span class="table-header-flex">
+                      Código
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column;">
+                        <i
+                          class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'cpCo_Id' &&
+                            tablaPrincipal.sortDirection === 'asc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                        <i
+                          class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'cpCo_Id' &&
+                            tablaPrincipal.sortDirection === 'desc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="tablaPrincipal.sortBy('fact_Id')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
+                      Factura
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i
+                          class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'fact_Id' &&
+                            tablaPrincipal.sortDirection === 'asc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                        <i
+                          class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'fact_Id' &&
+                            tablaPrincipal.sortDirection === 'desc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="tablaPrincipal.sortBy('cpCo_FechaEmision')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
+                      Fecha Emisión
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i
+                          class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'cpCo_FechaEmision' &&
+                            tablaPrincipal.sortDirection === 'asc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                        <i
+                          class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'cpCo_FechaEmision' &&
+                            tablaPrincipal.sortDirection === 'desc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="tablaPrincipal.sortBy('cpCo_FechaVencimiento')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
+                      Fecha Vencimiento
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i
+                          class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'cpCo_FechaVencimiento' &&
+                            tablaPrincipal.sortDirection === 'asc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                        <i
+                          class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'cpCo_FechaVencimiento' &&
+                            tablaPrincipal.sortDirection === 'desc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="tablaPrincipal.sortBy('monto')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
+                      Monto
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i
+                          class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'monto' &&
+                            tablaPrincipal.sortDirection === 'asc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                        <i
+                          class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'monto' &&
+                            tablaPrincipal.sortDirection === 'desc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="tablaPrincipal.sortBy('totalPendiente')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
+                      Total Pendiente
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i
+                          class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'totalPendiente' &&
+                            tablaPrincipal.sortDirection === 'asc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                        <i
+                          class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'totalPendiente' &&
+                            tablaPrincipal.sortDirection === 'desc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="tablaPrincipal.sortBy('estaVencida')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
+                      Estado
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i
+                          class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'estaVencida' &&
+                            tablaPrincipal.sortDirection === 'asc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                        <i
+                          class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'estaVencida' &&
+                            tablaPrincipal.sortDirection === 'desc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                      </span>
+                    </span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="gridjs-tr" *ngFor="let dato of (tablaPrincipal.paginated$ | async); let i = index">
+                  <td><span class="fw-semibold">{{ dato.cpCo_Id }}</span></td>
+                  <td>{{ dato.fact_Id }}</td>
+                  <td>{{ formatearFecha(dato.cpCo_FechaEmision) }}</td>
+                  <td>{{ formatearFecha(dato.cpCo_FechaVencimiento) }}</td>
+                  <td>{{ formatearMoneda(dato.monto) }}</td>
+                  <td>{{ formatearMoneda(dato.totalPendiente) }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="dato.estaVencida ? 'bg-danger' : (dato.cpCo_Saldada ? 'bg-success' : 'bg-warning')">
+                      {{ dato.estaVencida ? 'Vencida' : (dato.cpCo_Saldada ? 'Saldada' : 'Pendiente') }}
+                    </span>
+                  </td>
+                </tr>
+
+                <tr *ngIf="(tablaPrincipal.paginated$ | async)?.length === 0">
+                  <td colspan="7" class="text-center">
+                    No hay datos disponibles
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Paginación -->
+        <div class="row justify-content-md-between align-items-md-center mt-3">
+          <ng-container *ngIf="(tablaPrincipal.paginated$ | async) as paginados">
+            <div class="col-sm-12 col-md-5">
+              <div class="dataTables_info mb-2" role="status" aria-live="polite">
+                Mostrando
+                {{ (tablaPrincipal.page - 1) * tablaPrincipal.pageSizeValue + paginados.length }} de {{ tablaPrincipal.total$ | async }}
+                registros
+              </div>
+            </div>
+            <div class="col-sm-12 col-md-5">
+              <div class="text-md-right float-md-end gridjs-pagination">
+                <pagination [totalItems]="(tablaPrincipal.total$ | async) || 0" [(ngModel)]="tablaPrincipal.page" [itemsPerPage]="tablaPrincipal.pageSizeValue" (pageChanged)="tablaPrincipal.setPage($event.page)"></pagination>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
     <!-- Información del cliente -->
     <div class="card mb-3">
       <div class="card-header">
