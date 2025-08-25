@@ -14,6 +14,7 @@ interface TreeItem {
   expanded: boolean;
   children?: TreeItem[];
   parent?: TreeItem;
+  esReporte?: boolean;
 }
 
 interface Esquema {
@@ -37,7 +38,7 @@ interface Accion {
   standalone: true,
   imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './create.component.html',
-  styleUrl: './create.component.scss'
+  styleUrls: ['./create.component.scss']
 })
 export class CreateComponent {
   @Output() onCancel = new EventEmitter<void>();
@@ -45,8 +46,6 @@ export class CreateComponent {
 
   treeData: TreeItem[] = [];
   selectedItems: TreeItem[] = [];
-
-  // Propiedad para almacenar las acciones por pantalla
   accionesPorPantalla: { AcPa_Id: number, Pant_Id: number, Acci_Id: number }[] = [];
 
   rol: Rol = {
@@ -73,12 +72,11 @@ export class CreateComponent {
   mensajeWarning = '';
 
   constructor(private http: HttpClient) {
-    this.cargarPantallas();
+    this.cargarAccionesPorPantalla();
   }
 
   ngOnInit(): void {
     this.inicializarFormulario();
-    this.cargarAccionesPorPantalla();
   }
 
   private cargarAccionesPorPantalla(): void {
@@ -116,13 +114,10 @@ export class CreateComponent {
       usuarioModificacion: '',
       role_Estado: true
     };
-
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
     this.mostrarAlertaError = false;
     this.mostrarAlertaWarning = false;
-
-    this.cargarPantallas();
   }
 
   private cargarPantallas(): void {
@@ -135,6 +130,7 @@ export class CreateComponent {
           let data = raw.trim();
           if (!data.startsWith('[')) data = `[${data}]`;
           const parsed = JSON.parse(data);
+
           this.treeData = parsed.map((esquema: Esquema) => {
             const esquemaNode: TreeItem = {
               id: esquema.Esquema,
@@ -144,6 +140,7 @@ export class CreateComponent {
               expanded: true,
               children: []
             };
+
             esquemaNode.children = esquema.Pantallas.map((pantalla: Pantalla) => {
               const pantallaNode: TreeItem = {
                 id: `${esquema.Esquema}_${pantalla.Pant_Id}`,
@@ -154,18 +151,29 @@ export class CreateComponent {
                 parent: esquemaNode,
                 children: []
               };
-              pantallaNode.children = pantalla.Acciones.map((accion: Accion) => ({
-                id: `${pantalla.Pant_Id}_${accion.Acci_Id}`,
-                name: accion.Accion,
-                type: 'accion',
-                selected: false,
-                expanded: false,
-                parent: pantallaNode
-              }));
+
+              // Detectamos si la pantalla es un reporte según el esquema
+              const esReporte = esquema.Esquema === 'Reportes';
+              pantallaNode.esReporte = esReporte;
+
+              // Solo agregamos acciones si no es reporte
+              if (!esReporte) {
+                pantallaNode.children = pantalla.Acciones.map((accion: Accion) => ({
+                  id: `${pantalla.Pant_Id}_${accion.Acci_Id}`,
+                  name: accion.Accion,
+                  type: 'accion',
+                  selected: false,
+                  expanded: false,
+                  parent: pantallaNode
+                }));
+              }
+
               return pantallaNode;
             });
+
             return esquemaNode;
           });
+
         } catch (e) {
           console.error('No se pudo parsear:', e);
         }
@@ -179,6 +187,7 @@ export class CreateComponent {
     if (item.type === 'esquema' || item.type === 'pantalla') {
       this.updateChildrenSelection(item, item.selected);
     }
+
     if (item.type === 'accion') {
       const pantalla = item.parent;
       const esquema = pantalla?.parent;
@@ -200,6 +209,7 @@ export class CreateComponent {
         }
       }
     }
+
     if (item.type === 'pantalla') {
       const esquema = item.parent;
       if (item.selected) {
@@ -213,6 +223,7 @@ export class CreateComponent {
         }
       }
     }
+
     this.updateSelectedItems();
   }
 
@@ -232,7 +243,7 @@ export class CreateComponent {
 
   private getAllSelectedItems(items: TreeItem[]): TreeItem[] {
     return items.reduce<TreeItem[]>((acc, item) => {
-      if (item.selected && item.type === 'accion') acc.push(item);
+      if (item.selected && (item.type === 'accion' || (item.type === 'pantalla' && item.esReporte))) acc.push(item);
       if (item.children) acc.push(...this.getAllSelectedItems(item.children));
       return acc;
     }, []);
@@ -254,11 +265,15 @@ export class CreateComponent {
     cambiarExpansion(this.treeData, expandir);
   }
 
+  toggleExpand(item: TreeItem): void {
+    item.expanded = !item.expanded;
+  }
+
   guardar(): void {
     this.mostrarErrores = true;
 
     const descripcionVacia = !this.rol.role_Descripcion.trim();
-    const permisosVacios = !this.selectedItems.some(item => item.type === 'accion');
+    const permisosVacios = !this.selectedItems.length;
 
     if (descripcionVacia || permisosVacios) {
       this.mostrarAlertaWarning = true;
@@ -294,16 +309,13 @@ export class CreateComponent {
       }
     }).subscribe({
       next: () => {
-        // Obtener último rol insertado
         this.http.get<Rol[]>(`${environment.apiBaseUrl}/Roles/Listar`, {
           headers: { 'X-Api-Key': environment.apiKey }
         }).subscribe({
           next: (roles) => {
             const ultimoRol = roles[0];
-
             const permisos = this.getPermisosSeleccionados(ultimoRol.role_Id);
 
-            // Insertar permisos en paralelo
             Promise.all(permisos.map(permiso =>
               this.http.post(`${environment.apiBaseUrl}/Insertar`, permiso!, {
                 headers: {
@@ -341,23 +353,47 @@ export class CreateComponent {
     });
   }
 
+  private getPermisosSeleccionados(roleId: number) {
+    return this.selectedItems.map((item: TreeItem) => {
+      let pantallaId: number | undefined;
+      let accionId: number | undefined;
+
+      if (item.type === 'accion') {
+        pantallaId = item.parent ? Number(item.parent.id.split('_').pop()) : undefined;
+        accionId = Number(item.id.split('_').pop());
+      }
+
+      // Pantalla tipo reporte
+      if (item.type === 'pantalla' && item.esReporte) {
+        pantallaId = Number(item.id.split('_').pop());
+        const acc = this.accionesPorPantalla.find(ap => ap.Pant_Id === pantallaId);
+        if (acc) {
+          return {
+            acPa_Id: acc.AcPa_Id,
+            role_Id: roleId,
+            usua_Creacion: getUserId(),
+            perm_FechaCreacion: new Date().toISOString()
+          };
+        }
+        return null;
+      }
+
+      if (!pantallaId || !accionId) return null;
+
+      const acPa = this.accionesPorPantalla.find(ap => ap.Pant_Id === pantallaId && ap.Acci_Id === accionId);
+      if (!acPa) return null;
+
+      return {
+        acPa_Id: acPa.AcPa_Id,
+        role_Id: roleId,
+        usua_Creacion: getUserId(),
+        perm_FechaCreacion: new Date().toISOString()
+      };
+    }).filter((permiso): permiso is { acPa_Id: number, role_Id: number, usua_Creacion: number, perm_FechaCreacion: string} => permiso !== null);
+  }
+
   cancelar(): void {
     this.clearSelections();
-    this.rol = {
-      role_Id: 0,
-      role_Descripcion: '',
-      usua_Creacion: 0,
-      usua_Modificacion: 0,
-      secuencia: 0,
-      role_FechaCreacion: new Date(),
-      role_FechaModificacion: new Date(),
-      code_Status: 0,
-      message_Status: '',
-      usuarioCreacion: '',
-      usuarioModificacion: '',
-      role_Estado: true
-    };
-    this.mostrarErrores = false;
     this.inicializarFormulario();
     this.onCancel.emit();
   }
@@ -379,40 +415,5 @@ export class CreateComponent {
     this.mensajeError = '';
     this.mostrarAlertaWarning = false;
     this.mensajeWarning = '';
-  }
-
-  toggleExpand(item: TreeItem): void {
-    item.expanded = !item.expanded;
-  }
-
-  private getPermisosSeleccionados(roleId: number): Array<{acPa_Id: number, role_Id: number, usua_Creacion: number, perm_FechaCreacion: string}> {
-    return this.selectedItems
-      .filter((item: TreeItem) => item.type === 'accion')
-      .map((item: TreeItem) => {
-        const pantallaId = item.parent ? Number(item.parent.id.split('_').pop()) : undefined;
-        const accionId = Number(item.id.split('_').pop());
-
-        if (!pantallaId || !accionId) {
-          console.warn(`No se pudo obtener Pant_Id o Accion_Id para item:`, item);
-          return null;
-        }
-
-        const acPa = this.accionesPorPantalla.find((ap: {Pant_Id: number, Acci_Id: number}) => 
-          ap.Pant_Id === pantallaId && ap.Acci_Id === accionId
-        );
-        
-        if (!acPa) {
-          console.warn(`No existe AcPa_Id para Pant_Id=${pantallaId} y Acci_Id=${accionId}`);
-          return null;
-        }
-
-        return {
-          acPa_Id: acPa.AcPa_Id,
-          role_Id: roleId,
-          usua_Creacion: getUserId(),
-          perm_FechaCreacion: new Date().toISOString()
-        };
-      })
-      .filter((permiso): permiso is {acPa_Id: number, role_Id: number, usua_Creacion: number, perm_FechaCreacion: string} => permiso !== null);
   }
 }
