@@ -5,6 +5,9 @@
 
 <div class="row">
   <div class="col-lg-12">
+    <div class="card">
+    <div class="card-body">
+        <div class="row align-items-center g-2" >
 
         <div class="d-flex justify-content-between mb-3 flex-wrap"
           *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
@@ -73,9 +76,9 @@
             </div>
           </div>
         </div>
-        <div class="table-radius-container">
+        
           <!-- Vista de tarjetas (única) -->
-          <div *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+          <div  *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
             <div class="row g-4 mx-2 mb-4 justify-content-start" *ngIf="(table.paginated$ | async) as items">
               <ng-container *ngFor="let v of items">
                 <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
@@ -174,6 +177,8 @@
         </div>
 
       </div>
+    </div>
+    </div>
     </div>
 
 

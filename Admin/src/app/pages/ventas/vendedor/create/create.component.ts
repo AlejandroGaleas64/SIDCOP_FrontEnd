@@ -105,7 +105,7 @@ ordenarPorMunicipioYDepartamento(colonias: any[]): any[] {
 }
 
 listarRutasDisponibles(): void {
-    this.http.get<any>(`${environment.apiBaseUrl}/Rutas/ListarDisponibles`, {
+    this.http.get<any>(`${environment.apiBaseUrl}/Rutas/Listar`, {
         headers: { 'x-api-key': environment.apiKey }
       }).subscribe((data) => {
         this.rutasDisponibles = data;
@@ -246,6 +246,7 @@ tieneAyudante: boolean = false;
     this.vendedor.vend_Apellidos.trim() &&
     this.vendedor.vend_Nombres.trim() && this.vendedor.vend_Codigo.trim() &&
     this.vendedor.vend_Telefono.trim() && this.vendedor.vend_Correo.trim() &&
+    this.esCorreoValido(this.vendedor.vend_Correo) &&
     this.vendedor.vend_DNI.trim() && this.vendedor.vend_Sexo.trim() &&
     this.vendedor.vend_Tipo.trim() && this.vendedor.vend_DireccionExacta.trim() &&
     this.vendedor.sucu_Id > 0 && this.vendedor.colo_Id > 0 && this.rutasVendedor.length > 0
@@ -463,4 +464,11 @@ generarSiguienteCodigo(): string {
         });
     }
   }
+
+   esCorreoValido(correo: string): boolean {
+    if (!correo) return true;
+    // Debe contener "@" y terminar en ".com"
+    return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
+  }
+
 }
