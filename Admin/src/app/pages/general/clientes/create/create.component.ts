@@ -83,7 +83,13 @@ export class CreateComponent {
     }
   }
 
-  esCorreoValido(correo: string): boolean {
+    // esCorreoValido(correo: string): boolean {
+    //   if (!correo) return true;
+    //   // Debe contener "@" y terminar en ".com"
+    //   return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
+    // }
+
+  revisarCorreoValido(correo: string): boolean {
     if (!correo) return true;
     // Debe contener "@" y terminar en ".com"
     return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
@@ -234,10 +240,9 @@ export class CreateComponent {
   tabuladores(no: number) {
     if (no == 1) {
       this.mostrarErrores = true
-      if (this.cliente.clie_Nacionalidad.trim() &&
-        this.cliente.clie_RTN.trim() && this.cliente.clie_Nombres.trim() &&
+      if (this.cliente.clie_Nacionalidad.trim() && this.cliente.clie_Nombres.trim() &&
         this.cliente.clie_Apellidos.trim() && this.cliente.esCv_Id &&
-        this.cliente.clie_FechaNacimiento && this.cliente.tiVi_Id &&
+        this.cliente.tiVi_Id &&
         this.cliente.clie_Telefono.trim()) {
         this.mostrarErrores = false;
         this.activeTab = 2;
