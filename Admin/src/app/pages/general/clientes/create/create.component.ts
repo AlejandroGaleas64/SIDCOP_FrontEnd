@@ -240,10 +240,9 @@ export class CreateComponent {
   tabuladores(no: number) {
     if (no == 1) {
       this.mostrarErrores = true
-      if (this.cliente.clie_Nacionalidad.trim() &&
-        this.cliente.clie_RTN.trim() && this.cliente.clie_Nombres.trim() &&
+      if (this.cliente.clie_Nacionalidad.trim() && this.cliente.clie_Nombres.trim() &&
         this.cliente.clie_Apellidos.trim() && this.cliente.esCv_Id &&
-        this.cliente.clie_FechaNacimiento && this.cliente.tiVi_Id &&
+        this.cliente.tiVi_Id &&
         this.cliente.clie_Telefono.trim()) {
         this.mostrarErrores = false;
         this.activeTab = 2;

@@ -97,7 +97,7 @@ export class EditComponent implements OnChanges {
       } else {
         this.cliente.clie_FechaNacimiento = null;
       }
-      
+
       const formatoCodigo = /^CLIE-RT-\d{3}-\d{6}$/;
 
       if (!formatoCodigo.test(this.cliente.clie_Codigo)) {
@@ -151,7 +151,7 @@ export class EditComponent implements OnChanges {
   }
 
   revisarCorreoValido(correo: string): boolean {
-if (!correo) return true;
+    if (!correo) return true;
     // Debe contener "@" y terminar en ".com"
     return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
   }
@@ -1378,6 +1378,14 @@ if (!correo) return true;
       };
     }
 
+    if (a.clie_Confirmacion !== b.clie_Confirmacion) {
+      this.cambiosDetectados.confirmacionCliente = {
+        anterior: b.clie_Confirmacion ? 'Sí' : 'No',
+        nuevo: a.clie_Confirmacion ? 'Sí' : 'No',
+        label: 'Confirmación de Correo Electrónico'
+      };
+    }
+
     // Comparar fechas de nacimiento en formato YYYY-MM-DD
     const fechaA = a.clie_FechaNacimiento ? new Date(a.clie_FechaNacimiento).toISOString().slice(0, 10) : '';
     const fechaB = b.clie_FechaNacimiento ? new Date(b.clie_FechaNacimiento).toISOString().slice(0, 10) : '';
@@ -1471,10 +1479,6 @@ if (!correo) return true;
     const errores: string[] = [];
 
     // Validar campos básicos requeridos
-    if (!this.cliente.clie_DNI.trim()) {
-      errores.push('DNI');
-    }
-
     if (!this.cliente.clie_RTN.trim()) {
       errores.push('RTN');
     }
