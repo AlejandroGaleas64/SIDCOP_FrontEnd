@@ -99,7 +99,7 @@ listarRutas(): void {
   }
 
 listarRutasDisponibles(): void {
-    this.http.get<any>(`${environment.apiBaseUrl}/Rutas/ListarDisponibles`, {
+    this.http.get<any>(`${environment.apiBaseUrl}/Rutas/Listar`, {
         headers: { 'x-api-key': environment.apiKey }
       }).subscribe((data) => {
         this.rutasDisponibles = data;
