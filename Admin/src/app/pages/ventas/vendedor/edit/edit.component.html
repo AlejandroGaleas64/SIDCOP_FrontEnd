@@ -1,6 +1,6 @@
 <div class="d-flex flex-column" style="height: 100%; min-height: 250px;">
   <!-- Título del componente -->
-  <h5 class="card-title mb-4">Crear Nuevo Vendedor</h5>
+  <h5 class="card-title mb-4">Editar Vendedor</h5>
   
   <!-- Contenedor de alertas flotantes -->
   <div class="alert-container">
@@ -210,14 +210,15 @@
           </div>
 
           <!-- Correo -->
+             <!-- Correo -->
           <div class="col-12 col-md-6">
             <div class="mb-3">
               <label for="vend_Correo" class="form-label">Correo</label>
               <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
               <div class="d-flex align-items-center">
                 <i class="ri-mail-line" [ngStyle]="{
-                  border: (!vendedor.vend_Correo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                  backgroundColor: (!vendedor.vend_Correo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  border: (!vendedor.vend_Correo.trim() && mostrarErrores  || !esCorreoValido(vendedor.vend_Correo)) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!vendedor.vend_Correo.trim() && mostrarErrores || esCorreoValido(vendedor.vend_Correo)) ? '#fff5f6' : '#f2f3f9',
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <input 
@@ -231,8 +232,15 @@
                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
                 />
               </div>
-              <div class="text-danger mt-1" *ngIf="!vendedor.vend_Telefono.trim() && mostrarErrores">
-                <small>El campo correo es requerido</small>
+              <div class="text-danger mt-1" *ngIf="(!vendedor.vend_Correo.trim() || !esCorreoValido(vendedor.vend_Correo))&& mostrarErrores ">
+                <small> {{
+                  !vendedor.vend_Correo.trim() && mostrarErrores
+                    ? 'El campo correo es requerido'
+                    : !esCorreoValido(vendedor.vend_Correo) && mostrarErrores
+                      ? 'El correo no es válido'
+                      : ''
+                }}
+              </small>
               </div>
             </div>
           </div>
@@ -324,6 +332,9 @@
                 {{ item.nombreCompleto }}
               </ng-template>
             </ng-select>
+          </div>
+              <div class="text-danger mt-1" *ngIf="!vendedor.vend_Ayudante && tieneAyudante && mostrarErrores">
+            <small>El ayudante es requerido</small>
           </div>
         </div>
       </div>

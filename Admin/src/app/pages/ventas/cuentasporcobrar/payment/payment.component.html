@@ -189,23 +189,24 @@
                   >
                   </i>
                   <select
-                    id="pago_FormaPago"
-                    formControlName="pago_FormaPago"
+                    id="foPa_Id"
+                    formControlName="foPa_Id"
                     class="form-select"
                     [class.is-invalid]="
-                      pagoForm.get('pago_FormaPago')?.invalid &&
-                      pagoForm.get('pago_FormaPago')?.touched
+                      pagoForm.get('foPa_Id')?.invalid &&
+                      pagoForm.get('foPa_Id')?.touched
                     "
                   >
-                    <option *ngFor="let forma of formasPago" [value]="forma">
-                      {{ forma }}
+                    <option [ngValue]="0" disabled>Seleccione una forma de pago</option>
+                    <option *ngFor="let forma of formasPago" [ngValue]="forma.foPa_Id">
+                      {{ forma.foPa_Descripcion }}
                     </option>
                   </select>
                 </div>
                 <div
                   *ngIf="
-                    pagoForm.get('pago_FormaPago')?.invalid &&
-                    pagoForm.get('pago_FormaPago')?.touched
+                    pagoForm.get('foPa_Id')?.invalid &&
+                    pagoForm.get('foPa_Id')?.touched
                   "
                   class="invalid-feedback"
                 >
