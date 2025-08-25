@@ -13,6 +13,7 @@ import { CuentaPorCobrar } from 'src/app/Modelos/ventas/CuentasPorCobrar.Model';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
 import { CuentasPorCobrarService } from 'src/app/servicios/ventas/cuentas-por-cobrar.service';
 import { CuentasPorCobrarDataService } from 'src/app/servicios/ventas/cuentas-por-cobrar-data.service';
+import { ExportService, ExportConfig } from 'src/app/shared/export.service';
 
 interface AlertaConfig {
   tipo: 'exito' | 'error' | 'warning';
@@ -73,6 +74,13 @@ export class ListComponent implements OnInit {
   // Propiedad para mostrar overlay de carga
   mostrarOverlayCarga = false;
 
+  // Propiedades para exportación de la tabla principal
+  exportando = false;
+  tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
+
+  // Propiedades para exportación de la tabla de resumen
+  exportandoResumen = false;
+  tipoExportacionResumen: 'excel' | 'pdf' | 'csv' | null = null;
 
   constructor(
     public table: ReactiveTableService<CuentaPorCobrar>, 
@@ -80,7 +88,8 @@ export class ListComponent implements OnInit {
     private route: ActivatedRoute,
     public floatingMenuService: FloatingMenuService,
     private cuentasPorCobrarService: CuentasPorCobrarService,
-    private cuentasPorCobrarDataService: CuentasPorCobrarDataService
+    private cuentasPorCobrarDataService: CuentasPorCobrarDataService,
+    private exportService: ExportService
   ) {}
 
   ngOnInit(): void {
@@ -437,8 +446,200 @@ data = data.filter(d =>
   }
 
   navegar(tabDestino: number) {
-  this.activeTab = tabDestino;
+    this.activeTab = tabDestino;
   }
 
+  // Métodos para exportación de la tabla principal
+  async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
+    if (this.exportando) {
+      this.mostrarAlerta({
+        tipo: 'warning',
+        mensaje: 'Ya hay una exportación en progreso...'
+      });
+      return;
+    }
+    if (!this.validarDatosParaExport()) {
+      return;
+    }
+    try {
+      this.exportando = true;
+      this.tipoExportacion = tipo;
+      this.mostrarAlerta({
+        tipo: 'warning',
+        mensaje: `Generando archivo ${tipo.toUpperCase()}...`
+      });
+      const config = this.crearConfiguracionExport();
+      let resultado;
+      switch (tipo) {
+        case 'excel':
+          resultado = await this.exportService.exportToExcel(config);
+          break;
+        case 'pdf':
+          resultado = await this.exportService.exportToPDF(config);
+          break;
+        case 'csv':
+          resultado = await this.exportService.exportToCSV(config);
+          break;
+      }
+      this.manejarResultadoExport(resultado);
+    } catch (error) {
+      console.error(`Error en exportación ${tipo}:`, error);
+      this.mostrarAlerta({
+        tipo: 'error',
+        mensaje: `Error al exportar archivo ${tipo.toUpperCase()}`
+      });
+    } finally {
+      this.exportando = false;
+      this.tipoExportacion = null;
+    }
+  }
 
+  private validarDatosParaExport(): boolean {
+    const datos = this.table.data$.getValue();
+    if (!datos || datos.length === 0) {
+      this.mostrarAlerta({
+        tipo: 'warning',
+        mensaje: 'No hay datos para exportar'
+      });
+      return false;
+    }
+    return true;
+  }
+
+  private crearConfiguracionExport(): ExportConfig {
+    const datos = this.table.data$.getValue();
+    const usuario = localStorage.getItem('usuario') || 'Usuario';
+    const empresa = localStorage.getItem('empresa') || 'SIDCOP';
+    
+    return {
+      title: 'Cuentas por Cobrar',
+      filename: 'Cuentas_por_Cobrar',
+      columns: [
+        { header: 'No.', key: 'secuencia' },
+        { header: 'Cliente', key: 'cliente' },
+        { header: 'Negocio', key: 'clie_NombreNegocio' },
+        { header: 'Teléfono', key: 'clie_Telefono' },
+        { header: 'Facturas Pendientes', key: 'facturasPendientes' },
+        { header: 'Total Facturado', key: 'totalFacturado' },
+        { header: 'Total Pendiente', key: 'totalPendiente' },
+        { header: 'Total Vencido', key: 'totalVencido' },
+        { header: 'Último Pago', key: 'ultimoPago' }
+      ],
+      metadata: {
+        user: usuario,
+        department: empresa
+      },
+      data: datos
+    };
+  }
+
+  private manejarResultadoExport(resultado: any): void {
+    if (resultado?.success) {
+      this.mostrarAlerta({
+        tipo: 'exito',
+        mensaje: resultado.message || 'Archivo exportado exitosamente'
+      });
+    } else {
+      this.mostrarAlerta({
+        tipo: 'error',
+        mensaje: resultado?.message || 'Error al exportar archivo'
+      });
+    }
+  }
+
+  // Métodos para exportación de la tabla de resumen
+  async exportarResumen(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
+    if (this.exportandoResumen) {
+      this.mostrarAlerta({
+        tipo: 'warning',
+        mensaje: 'Ya hay una exportación en progreso...'
+      });
+      return;
+    }
+    if (!this.validarDatosParaExportResumen()) {
+      return;
+    }
+    try {
+      this.exportandoResumen = true;
+      this.tipoExportacionResumen = tipo;
+      this.mostrarAlerta({
+        tipo: 'warning',
+        mensaje: `Generando archivo ${tipo.toUpperCase()}...`
+      });
+      const config = this.crearConfiguracionExportResumen();
+      let resultado;
+      switch (tipo) {
+        case 'excel':
+          resultado = await this.exportService.exportToExcel(config);
+          break;
+        case 'pdf':
+          resultado = await this.exportService.exportToPDF(config);
+          break;
+        case 'csv':
+          resultado = await this.exportService.exportToCSV(config);
+          break;
+      }
+      this.manejarResultadoExportResumen(resultado);
+    } catch (error) {
+      console.error(`Error en exportación ${tipo}:`, error);
+      this.mostrarAlerta({
+        tipo: 'error',
+        mensaje: `Error al exportar archivo ${tipo.toUpperCase()}`
+      });
+    } finally {
+      this.exportandoResumen = false;
+      this.tipoExportacionResumen = null;
+    }
+  }
+
+  private validarDatosParaExportResumen(): boolean {
+    if (!this.resumenAntiguedadFiltrado || this.resumenAntiguedadFiltrado.length === 0) {
+      this.mostrarAlerta({
+        tipo: 'warning',
+        mensaje: 'No hay datos de antigüedad para exportar'
+      });
+      return false;
+    }
+    return true;
+  }
+
+  private crearConfiguracionExportResumen(): ExportConfig {
+    const usuario = localStorage.getItem('usuario') || 'Usuario';
+    const empresa = localStorage.getItem('empresa') || 'SIDCOP';
+    
+    return {
+      title: 'Resumen de Antigüedad de Cuentas por Cobrar',
+      filename: 'Resumen_Antiguedad_CxC',
+      columns: [
+        { header: 'No.', key: 'secuencia' },
+        { header: 'Cliente', key: 'cliente' },
+        { header: 'Negocio', key: 'clie_NombreNegocio' },
+        { header: 'Actual', key: 'actual' },
+        { header: '1-30 días', key: '_1_30' },
+        { header: '31-60 días', key: '_31_60' },
+        { header: '61-90 días', key: '_61_90' },
+        { header: 'Mayor a 90 días', key: 'mayor90' },
+        { header: 'Total', key: 'total' }
+      ],
+      data: this.resumenAntiguedadFiltrado,
+      metadata: {
+        user: usuario,
+        department: empresa
+      }
+    };
+  }
+
+  private manejarResultadoExportResumen(resultado: any): void {
+    if (resultado?.success) {
+      this.mostrarAlerta({
+        tipo: 'exito',
+        mensaje: resultado.message || 'Archivo exportado exitosamente'
+      });
+    } else {
+      this.mostrarAlerta({
+        tipo: 'error',
+        mensaje: resultado?.message || 'Error al exportar archivo'
+      });
+    }
+  }
 }
