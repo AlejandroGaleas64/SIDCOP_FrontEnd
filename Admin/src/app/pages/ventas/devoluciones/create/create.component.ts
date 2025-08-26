@@ -761,7 +761,7 @@ export class CreateComponent implements OnInit {
     // Construir el body para la nueva factura
     const body = {
       fact_Numero: nuevoNumero,
-      fact_TipoDeDocumento: '01',
+      fact_TipoDeDocumento: this.facturaOriginal.fact_TipoDeDocumento || '01',
       regC_Id: this.facturaOriginal.regC_Id || 21,
       diCl_Id: this.facturaOriginal.diCl_Id || this.direcciones[0]?.diCl_Id || 0,
       vend_Id: this.vendedorSeleccionado.vend_Id,
