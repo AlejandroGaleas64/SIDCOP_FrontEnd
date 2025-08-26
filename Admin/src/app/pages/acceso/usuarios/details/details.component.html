@@ -21,7 +21,7 @@
             <div class="col-md-4">
                 <div class="card h-100 shadow-sm employee-photo-card position-relative">
                     <ng-container *ngIf="usuarioDetalle?.usua_Imagen; else noImage">
-                        <img [src]="usuarioDetalle.usua_Imagen" alt="Foto del empleado" class="employee-img-card" />
+                        <img [src]="usuarioDetalle.usua_Imagen" alt="Foto del empleado" class="employee-img-card" (error)="onImgError($event)" />
                         <div class="employee-img-overlay">
                             <span class="employee-img-name">{{ usuarioDetalle.usua_Usuario }}</span>
                         </div>
