@@ -628,7 +628,7 @@ export class CreateComponent implements OnInit {
     console.log('- Fin XML:', '</DevolucionDetalle>');
 
     const now = new Date().toISOString();
-    const fechaDevolucion = this.devolucion.devo_Fecha ? new Date(this.devolucion.devo_Fecha).toISOString() : now;
+    const fechaDevolucion = now;
     
     // Obtener el ID del usuario actual
     const usuarioId = getUserId() || 1; // Usar 1 como fallback si no se puede obtener
@@ -741,13 +741,13 @@ export class CreateComponent implements OnInit {
       this.mostrarMensaje('Faltan datos de cliente o vendedor para crear la factura', 'error');
       return;
     }
-
+    
     // Filtrar solo productos con cantidadVendida > 0 (productos restantes)
     const productosRestantes = this.productos
-      .filter(p => (p.cantidadVendida || 0) > 0)
+      .filter(p => p.cantidadVendida < p.cantidadOriginal)
       .map(p => ({
         prod_Id: p.prod_Id,
-        faDe_Cantidad: p.cantidadVendida || 0
+        faDe_Cantidad: p.cantidadOriginal - p.cantidadVendida
       }));
 
     if (productosRestantes.length === 0) {
