@@ -423,7 +423,7 @@ export class ListComponent implements OnInit {
     setTimeout(()=> {
       this.cargardatos(false);
       this.showCreateForm = false;
-      this.mensajeExito = `Bodega guardada exitosamente`;
+      this.mensajeExito = `Departamento guardada exitosamente`;
       this.mostrarAlertaExito = true;
       setTimeout(() => {
         this.mostrarAlertaExito = false;

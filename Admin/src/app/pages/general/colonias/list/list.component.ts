@@ -507,85 +507,33 @@ export class ListComponent implements OnInit {
   }
 
   guardarColonias(colonia: Colonias): void {
+    console.log('Colonia guardada exitosamente desde create component:', colonia);
     this.mostrarOverlayCarga = true;
-    this.http.post(`${environment.apiBaseUrl}/Colonia/Crear`, colonia, {
-      headers: { 
-        'X-Api-Key': environment.apiKey,
-        'accept': '*/*'
-      }
-    }).subscribe({
-      next: (response: any) => {
-        setTimeout(() => {
-          this.cargardatos(false);
-          if (response.success && response.data && response.data.code_Status === 1) {
-            this.mensajeExito = 'Colonia creada exitosamente';
-            this.mostrarAlertaExito = true;
-            setTimeout(() => {
-              this.mostrarAlertaExito = false;
-              this.mensajeExito = '';
-            }, 3000);
-            this.cerrarFormulario();
-          } else {
-            this.mostrarAlertaError = true;
-            this.mensajeError = response.data?.message_Status || 'Error al crear la colonia.';
-            setTimeout(() => {
-              this.mostrarAlertaError = false;
-              this.mensajeError = '';
-            }, 5000);
-          }
-        }, 1000);
-      },
-      error: (error) => {
-        this.mostrarOverlayCarga = false;
-        this.mostrarAlertaError = true;
-        this.mensajeError = 'Error inesperado al crear la colonia.';
-        setTimeout(() => {
-          this.mostrarAlertaError = false;
-          this.mensajeError = '';
-        }, 5000);
-      }
-    });
+    setTimeout(()=> {
+      this.cargardatos(false);
+      this.showCreateForm = false;
+      this.mensajeExito = `Colonia guardada exitosamente`;
+      this.mostrarAlertaExito = true;
+      setTimeout(() => {
+        this.mostrarAlertaExito = false;
+        this.mensajeExito = '';
+      }, 3000);
+    }, 1000);
   }
 
   actualizarColonias(colonia: Colonias): void {
+    console.log('Colonia actualizada exitosamente desde edit component:', colonia);
     this.mostrarOverlayCarga = true;
-    this.http.post(`${environment.apiBaseUrl}/Colonia/Actualizar`, colonia, {
-      headers: { 
-        'X-Api-Key': environment.apiKey,
-        'accept': '*/*'
-      }
-    }).subscribe({
-      next: (response: any) => {
-        setTimeout(() => {
-          this.cargardatos(false);
-          if (response.success && response.data && response.data.code_Status === 1) {
-            this.mensajeExito = 'Colonia actualizada exitosamente';
-            this.mostrarAlertaExito = true;
-            setTimeout(() => {
-              this.mostrarAlertaExito = false;
-              this.mensajeExito = '';
-            }, 3000);
-            this.cerrarFormularioEdicion();
-          } else {
-            this.mostrarAlertaError = true;
-            this.mensajeError = response.data?.message_Status || 'Error al actualizar la colonia.';
-            setTimeout(() => {
-              this.mostrarAlertaError = false;
-              this.mensajeError = '';
-            }, 5000);
-          }
-        }, 1000);
-      },
-      error: (error) => {
-        this.mostrarOverlayCarga = false;
-        this.mostrarAlertaError = true;
-        this.mensajeError = 'Error inesperado al actualizar la colonia.';
-        setTimeout(() => {
-          this.mostrarAlertaError = false;
-          this.mensajeError = '';
-        }, 5000);
-      }
-    });
+    setTimeout(()=> {
+      this.cargardatos(false);
+      this.showEditForm = false;
+      this.mensajeExito = `Departamento actualizado exitosamente`;
+      this.mostrarAlertaExito = true;
+      setTimeout(() => {
+        this.mostrarAlertaExito = false;
+        this.mensajeExito = '';
+      }, 3000);
+    }, 1000);
   }
 
   confirmarEliminar(  colonia: Colonias): void {
