@@ -47,7 +47,8 @@
               id="departamentoCodigo"
               [(ngModel)]="departamento.depa_Codigo"
               placeholder="Ingrese el codigo del departamento"
-              required>
+              required
+              mask="00">
             <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!departamento.depa_Codigo.trim() && mostrarErrores">

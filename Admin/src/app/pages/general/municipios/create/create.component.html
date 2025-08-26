@@ -79,7 +79,8 @@
               id="municipioCodigo"
               [(ngModel)]="municipio.muni_Codigo"
               placeholder="Ingrese el codigo del municipio"
-              required>
+              required
+              mask="0000">
             <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!municipio.muni_Codigo.trim() && mostrarErrores">

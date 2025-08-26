@@ -1,6 +1,7 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Municipio } from 'src/app/Modelos/general/Municipios.Model';
 import { environment } from 'src/environments/environment.prod';
@@ -9,9 +10,10 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 @Component({
   selector: 'app-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgxMaskDirective],
   templateUrl: './create.component.html',
-  styleUrl: './create.component.scss'
+  styleUrl: './create.component.scss',
+  providers: [provideNgxMask()],
 })
 export class CreateComponent {
    @Output() onCancel = new EventEmitter<void>();
