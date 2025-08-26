@@ -192,7 +192,7 @@ export class ListComponent implements OnInit {
     title: 'Listado de Municipios',
     filename: 'Municipios',
     department: 'General',
-    additionalInfo: 'Sistema de Gestión',
+    additionalInfo: '',
     columns: [
       { key: 'No', header: 'No.', width: 8, align: 'center' as const },
       { key: 'Código', header: 'Código', width: 25, align: 'left' as const },

@@ -81,10 +81,10 @@ export class ListComponent implements OnInit {
   // 🔧 PERSONALIZA AQUÍ TU CONFIGURACIÓN DE EXPORTACIÓN 🔧
   private readonly exportConfig = {
     // Configuración básica
-    title: 'Listado de Colonias',                    // Título del reporte
-    filename: 'Colonias',                           // Nombre base del archivo
-    department: 'General',                         // Departamento
-    additionalInfo: 'Sistema de Gestión',         // Información adicional
+    title: 'Listado de Colonias',                    
+    filename: 'Colonias',                          
+    department: 'General',                         
+    additionalInfo: '',         
     
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
