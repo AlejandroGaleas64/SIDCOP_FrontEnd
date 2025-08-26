@@ -53,7 +53,6 @@
             <option *ngFor="let depa of Departamentos" [value]="depa.depa_Codigo">{{ depa.depa_Descripcion }}</option>
           </select>
           <div *ngIf="cargando" class="form-text text-muted">Cargando Departamentos...</div>
-          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!(selectedDepa ?? '').trim() && mostrarErrores">
             <small>El campo Departamento es requerido</small>
@@ -82,7 +81,6 @@
             <option *ngFor="let muni of Municipios" [value]="muni.muni_Codigo">{{ muni.muni_Descripcion }}</option>
           </select>
           <div *ngIf="cargando" class="form-text text-muted">Cargando Municipios...</div>
-          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!(coloniaEditada.muni_Codigo ?? '').trim() && mostrarErrores">
             <small>El campo Municipio es requerido</small>
