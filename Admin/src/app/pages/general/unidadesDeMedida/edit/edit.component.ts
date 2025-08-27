@@ -108,63 +108,68 @@ export class EditComponent implements OnChanges {
     this.guardar();
   }
 
-  private guardar(): void {
+  guardar(): void {
     this.mostrarErrores = true;
     this.onOverlayChange.emit(true);
-
-    if (this.UnidadDePeso.unPe_Descripcion.trim()) {
-      const UnidadDePesoActualizar = {
-        unPe_Id: this.UnidadDePeso.unPe_Id,
-        unPe_Descripcion: this.UnidadDePeso.unPe_Descripcion.trim(),
-
-        usua_Modificacion: getUserId(),
-        numero: this.UnidadDePeso.secuencia || '',
-        unPe_FechaModificacion: new Date().toISOString(),
-        usuarioCreacion: '',
-        usuarioModificacion: ''
-      };
-
-      this.http.put<any>(`${environment.apiBaseUrl}/UnidadDePeso/Actualizar`, UnidadDePesoActualizar, {
-        headers: {
-          'X-Api-Key': environment.apiKey,
-          'Content-Type': 'application/json',
-          'accept': '*/*'
-        }
-        
-      }).subscribe({
-        
-        next: (response) => {
-          console.log('Datos enviados:', UnidadDePesoActualizar);
-          
-          this.mostrarErrores = false;
-          setTimeout(() => {
-            this.onOverlayChange.emit(false);
-            this.mensajeExito = `Unidad De Peso "${this.UnidadDePeso.unPe_Descripcion}" actualizada exitosamente`;
-            this.mostrarAlertaExito = true;
-            setTimeout(() => {
-              this.mostrarAlertaExito = false;
-              setTimeout(() => {
-                this.onSave.emit(this.UnidadDePeso);
-                this.cancelar();
-              }, 100);
-            }, 2000);
-          }, 300);
-        },
-        error: (error) => {
-          setTimeout(() => {
-            this.onOverlayChange.emit(false);
-            console.error('Error al actualizar Unidad De Peso:', error);
-            this.mostrarAlertaError = true;
-            this.mensajeError = 'Error al actualizar la Unidad De Peso. Por favor, intente nuevamente.';
-            setTimeout(() => this.cerrarAlerta(), 5000);
-          }, 1000);
-        }
-      });
-    } else {
-      this.onOverlayChange.emit(false);
+    this.cerrarAlerta();
+    
+    if (!this.UnidadDePeso.unPe_Descripcion?.trim()) {
       this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
-      setTimeout(() => this.cerrarAlerta(), 4000);
+      this.mensajeWarning = 'Por favor complete el campo de descripción';
+      this.onOverlayChange.emit(false);
+      return;
     }
+
+    const userId = getUserId();
+    
+    if (!userId || userId === 0) {
+      this.mostrarAlertaError = true;
+      this.mensajeError = 'Error: No se pudo obtener el ID del usuario';
+      this.onOverlayChange.emit(false);
+      return;
+    }
+
+    const payload = {
+      unPe_Id: this.UnidadDePeso.unPe_Id,
+      UnPe_Descripcion: this.UnidadDePeso.unPe_Descripcion.trim(),
+      Usua_Modificacion: userId,
+      UnPe_FechaModificacion: new Date().toISOString()
+    };
+
+    console.log('Enviando payload de actualización:', JSON.stringify(payload, null, 2));
+
+    this.http.put<any>(`${environment.apiBaseUrl}/UnidadDePeso/Actualizar`, payload, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Api-Key': environment.apiKey
+      },
+      observe: 'response'
+    }).subscribe({
+      next: (response) => {
+        console.log('Respuesta del servidor:', response);
+        if (response.status === 200 && response.body?.success) {
+          this.mostrarAlertaExito = true;
+          this.mensajeExito = response.body?.message || 'Unidad de peso actualizada correctamente';
+          this.onSave.emit(response.body?.data || this.UnidadDePeso);
+          
+          setTimeout(() => {
+            this.cancelar();
+          }, 2000);
+        } else {
+          this.mostrarAlertaError = true;
+          this.mensajeError = response.body?.message || 'Error al actualizar la unidad de peso';
+          this.onOverlayChange.emit(false);
+        }
+      },
+      error: (error) => {
+        console.error('Error al actualizar:', error);
+        this.mostrarAlertaError = true;
+        this.mensajeError = error.error?.message || 'Error al conectar con el servidor';
+        this.onOverlayChange.emit(false);
+      },
+      complete: () => {
+        this.mostrarConfirmacionEditar = false;
+      }
+    });
   }
 }
