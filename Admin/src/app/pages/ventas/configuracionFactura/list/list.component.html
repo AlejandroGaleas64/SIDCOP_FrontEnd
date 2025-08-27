@@ -177,6 +177,20 @@
                       </span>
                     </span>
                   </th>
+                  <th class="gridjs-th" (click)="table.sortBy('coFa_DiasDevolucion')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
+                      Días de Devolución
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                         <i class="ri-arrow-up-s-line icon-sort"
+                        [ngStyle]="table.sortField === 'coFa_DiasDevolucion' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                      </i>
+                      <i class="ri-arrow-down-s-line icon-sort"
+                        [ngStyle]="table.sortField === 'coFa_DiasDevolucion' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                      </i>
+                      </span>
+                    </span>
+                  </th>
                    <th class="gridjs-th" (click)="table.sortBy('coFa_Telefono1')" style="cursor:pointer;">
                     <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
                    Telefono 1
@@ -238,6 +252,7 @@
                   <td>{{data.coFa_DireccionEmpresa || 'N/A' }}</td>
                   <td>{{data.coFa_RTN || 'N/A'}}</td>
                   <td>{{data.coFa_Correo || 'N/A'}}</td>
+                  <td>{{data.coFa_DiasDevolucion || 'N/A'}}</td>
                   <td>{{data.coFa_Telefono1 || 'N/A'}}</td>
                   <td>{{data.coFa_Telefono2 || 'N/A'}}</td>
                   <td>

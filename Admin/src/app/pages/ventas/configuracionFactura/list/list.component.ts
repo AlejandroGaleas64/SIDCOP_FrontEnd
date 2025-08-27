@@ -151,7 +151,7 @@ export class ListComponent implements OnInit {
   ngOnInit(): void {
     this.breadCrumbItems = [
       { label: 'Ventas' },
-      { label: 'ConfiguracionFactura', active: true }
+      { label: 'Configuración de la Empresa', active: true }
     ];
     this.cargarAccionesUsuario();
   }

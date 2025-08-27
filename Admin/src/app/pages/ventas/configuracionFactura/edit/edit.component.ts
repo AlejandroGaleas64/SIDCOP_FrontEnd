@@ -43,6 +43,7 @@ export class EditConfigFacturaComponent implements OnChanges {
     coFa_Telefono1: '',
     coFa_Telefono2: '',
     coFa_Logo: '',
+    coFa_DiasDevolucion: 0,
     colo_Id: 0,
     usua_Creacion: 0,
     usua_Modificacion: 0,
@@ -268,6 +269,10 @@ export class EditConfigFacturaComponent implements OnChanges {
       errores.push('Logo');
     }
 
+    if (!this.configFactura.coFa_DiasDevolucion) {
+      errores.push('Días de Devolución');
+    }
+
     if (this.configFactura.colo_Id === 0) {
       errores.push('Colonia');
     }
@@ -359,6 +364,14 @@ export class EditConfigFacturaComponent implements OnChanges {
         anterior: b.coFa_Correo,
         nuevo: a.coFa_Correo,
         label: 'Correo Electrónico'
+      };
+    }
+
+    if (a.coFa_DiasDevolucion !== b.coFa_DiasDevolucion) {
+      this.cambiosDetectados.diasDevolucion = {
+        anterior: b.coFa_DiasDevolucion,
+        nuevo: a.coFa_DiasDevolucion,
+        label: 'Días de Devolución'
       };
     }
 

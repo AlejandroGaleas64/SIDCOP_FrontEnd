@@ -51,8 +51,7 @@
 
           <!-- NOMBRE DE LA EMPRESA -->
           <div class="col-md-6 mb-3">
-            <label class="form-label me-2">Nombre de la Empresa</label>
-            <span class="text-danger">*</span>
+            <label class="form-label me-2">Nombre de la Empresa<span class="text-danger">*</span></label>
             <div class="d-flex align-items-center">
               <i class="ri-contacts-line"
                 [ngStyle]="{
@@ -71,8 +70,7 @@
 
           <!-- DIRECCIÓN DE LA EMPRESA -->
           <div class="col-md-6 mb-3">
-            <label class="form-label me-2">Dirección de la Empresa</label>
-            <span class="text-danger">*</span>
+            <label class="form-label me-2">Dirección de la Empresa<span class="text-danger">*</span></label>
             <div class="d-flex align-items-center">
               <i class="ri-map-pin-2-line"
                 [ngStyle]="{
@@ -92,8 +90,7 @@
           <!-- RTN - con validaciones -->
           <div class="col-md-6">
             <div class="mb-3">
-              <label class="form-label">RTN</label>
-              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <label class="form-label">RTN<span class="text-danger">*</span></label>
               <div class="d-flex align-items-center">
                 <i class="ri-newspaper-line"
                   [ngStyle]="{
@@ -124,8 +121,7 @@
 
           <!-- CORREO ELECTRÓNICO - Con validaciones -->
           <div class="col-md-6 mb-3">
-            <label class="form-label me-2">Correo Electrónico</label>
-            <span class="text-danger">*</span>
+            <label class="form-label me-2">Correo Electrónico<span class="text-danger">*</span></label>
             <div class="d-flex align-items-center">
               <i class="ri-mail-unread-line"
                 [ngStyle]="{
@@ -150,8 +146,7 @@
 
           <!-- TELÉFONO 1 -->
           <div class="col-md-6 mb-3">
-            <label class="form-label me-2">Teléfono 1</label>
-            <span class="text-danger">*</span>
+            <label class="form-label me-2">Teléfono 1<span class="text-danger">*</span></label>
             <div class="d-flex align-items-center">
               <i class="ri-phone-fill"
                 [ngStyle]="{
@@ -172,15 +167,12 @@
           <div class="col-md-6 mb-3">
             <label class="form-label">Teléfono 2 (Opcional)</label>
             <div class="d-flex align-items-center">
-              <i class="ri-phone-fill" style="
-                  border: '1px solid #e9ecf5';
-                  backgroundColor: '#f2f3f9';
-                  padding: '0.525rem 0.525rem'; 
-                  position: 'relative'; 
-                  left: '7px'; 
-                  borderTopLeftRadius: '8px'; 
-                  borderBottomLeftRadius: '8px';
-                ">
+              <i class="ri-phone-fill" 
+                [ngStyle]="{
+                  border: '1px solid #e9ecf5',
+                  backgroundColor: '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'
+                }">
               </i>
               <input type="text" class="form-control" mask="0000-0000" maxlength="9" placeholder="0000-0000"
                 [(ngModel)]="configFactura.coFa_Telefono2" />
@@ -209,11 +201,29 @@
                     {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
                   </ng-template>
                 </ng-select>
-                <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
               </div>
               <div class="text-danger mt-1" *ngIf="!configFactura.colo_Id && mostrarErrores">
                 <small>El campo Colonia es requerido</small>
               </div>
+            </div>
+          </div>
+
+          <!-- DIAS DE DEVOLUCION -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label me-2">Días de Devolución<span class="text-danger">*</span></label>
+            <div class="d-flex align-items-center">
+              <i class="ri-phone-fill"
+                [ngStyle]="{
+                  border: (!configFactura.coFa_DiasDevolucion && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!configFactura.coFa_DiasDevolucion && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <input type="number" class="form-control" mask="999" maxlength="3" placeholder="Ingrese los Dias de Devolución"
+                [(ngModel)]="configFactura.coFa_DiasDevolucion"
+                [class.is-invalid]="!configFactura.coFa_DiasDevolucion && mostrarErrores" required />
+            </div>
+            <div class="text-danger mt-1" *ngIf="!configFactura.coFa_DiasDevolucion && mostrarErrores">
+              <small>El campo Días de Devolución es requerido</small>
             </div>
           </div>
         </div>
