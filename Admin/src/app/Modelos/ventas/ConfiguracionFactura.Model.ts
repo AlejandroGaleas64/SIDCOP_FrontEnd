@@ -8,6 +8,7 @@ export class ConfiguracionFactura {
   coFa_Telefono2: string = '';
   coFa_Logo: string = '';
   coFa_DiasDevolucion: number = 0;
+  coFa_RutaMigracion: string = '';
   colo_Id: number = 0;
   usua_Creacion: number = 0;
   coFa_FechaCreacion: Date = new Date();
