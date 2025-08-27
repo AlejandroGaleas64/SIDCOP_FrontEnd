@@ -125,6 +125,20 @@
                     </span>
                   </span>
                 </th>
+                <th class="gridjs-th" (click)="table.sortBy('depa_Descripcion')" style="cursor:pointer;">
+                  <span class="table-header-flex">
+                    Departamento
+                    <!-- iconos para ordenar -->
+                    <span style="display: flex; flex-direction: column;">
+                     <i class="ri-arrow-up-s-line icon-sort"
+                      [ngStyle]="table.sortField === 'depa_Descripcion' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                    </i>
+                    <i class="ri-arrow-down-s-line icon-sort"
+                      [ngStyle]="table.sortField === 'depa_Descripcion' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                    </i>
+                    </span>
+                  </span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -142,7 +156,8 @@
                 </td>
                 <td><span class="fw-semibold">{{data.secuencia}}</span></td>
                 <td><span class="fw-semibold">{{data.muni_Codigo}}</span></td>
-                <td>{{data.muni_Descripcion}}</td>
+                <td><span class="fw-semibold">{{data.muni_Descripcion}}</span></td>
+                <td><span class="fw-semibold">{{data.depa_Descripcion}}</span></td>
               </tr>
             </tbody>
           </table>
