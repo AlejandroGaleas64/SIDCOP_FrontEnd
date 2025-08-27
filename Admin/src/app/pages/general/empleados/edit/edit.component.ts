@@ -8,6 +8,7 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 import { Empleado } from 'src/app/Modelos/general/Empleado.Model';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { DropzoneModule, DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   selector: 'app-edit',
@@ -81,7 +82,7 @@ export class EditComponent implements OnChanges {
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {}
 
   get fechaInicioFormato(): string {
     return new Date(this.empleado.empl_FechaNacimiento).toISOString().split('T')[0];
@@ -192,14 +193,14 @@ export class EditComponent implements OnChanges {
     this.mostrarErrores = true;
     const fechaInicial = new Date(this.empleado.empl_FechaNacimiento).toISOString().split('T')[0];
 
-    // Si hay un archivo local seleccionado en uploadedFiles, subirlo a Cloudinary
+    // Si hay un archivo local seleccionado en uploadedFiles, subirlo al backend
     if (this.uploadedFiles.length > 0 && this.uploadedFiles[0].file) {
       try {
-        const imageUrl = await this.uploadImageToCloudinary(this.uploadedFiles[0].file);
-        this.empleado.empl_Imagen = imageUrl;
+        const imagePath = await this.imageUploadService.uploadImageAsync(this.uploadedFiles[0].file);
+        this.empleado.empl_Imagen = imagePath;
       } catch (error) {
         this.mostrarAlertaError = true;
-        this.mensajeError = 'Error al subir la imagen a Cloudinary.';
+        this.mensajeError = 'Error al subir la imagen al servidor.';
         return; // No continuar si la imagen no se pudo subir
       }
     }
@@ -389,21 +390,9 @@ export class EditComponent implements OnChanges {
 
     
 
-      // Subida directa a Cloudinary
-      async uploadImageToCloudinary(file: File): Promise<string> {
-        const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload'; // demo es el valor de prueba
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', 'empleados'); // preset_prueba es el valor de prueba
-        
-        const response = await fetch(url, {
-          method: 'POST',
-          body: formData
-        });
-        console.log(response);
-        const data = await response.json();
-        if (!data.secure_url) throw new Error('No se pudo obtener la URL de la imagen');
-        return data.secure_url;
+      // Método para obtener la URL completa de la imagen para mostrarla
+      getImageDisplayUrl(imagePath: string): string {
+        return this.imageUploadService.getImageUrl(imagePath);
       }
     
       // File Remove
