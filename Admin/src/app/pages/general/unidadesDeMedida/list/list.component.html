@@ -10,10 +10,10 @@
   </div>
 </div>
 <app-breadcrumbs
-  [title]="'Unidades de Medida'"
+  [title]="'Unidades de Peso'"
   [breadcrumbItems]="[
     { label: 'General' },
-    { label: 'Unidades de medida', active: true }
+    { label: 'Unidades de Peso', active: true }
   ]"
 >
 <img class="icon-breadcrumb" style="width: 10vh; height: 10vh;" src="assets/images/svg/Vector.svg" alt="breadcrumb icon" />
@@ -202,7 +202,7 @@
       <div class="modal-body custom-modal-body">
         <div class="text-center"> 
           <p class="mt-2 custom-modal-text">
-            <i class="ri-alert-line me-2 custom-modal-alert-icon" (click)="cancelarEliminar()"></i>¿Está seguro(a) que desea eliminar la unidad de medida <strong>{{ UnidadDePesoAEliminar?.unPe_Descripcion }}</strong>?
+            <i class="ri-alert-line me-2 custom-modal-alert-icon" (click)="cancelarEliminar()"></i>¿Está seguro(a) que desea eliminar la Unidad De Peso <strong>{{ UnidadDePesoAEliminar?.unPe_Descripcion }}</strong>?
           </p>
         </div>
       </div>

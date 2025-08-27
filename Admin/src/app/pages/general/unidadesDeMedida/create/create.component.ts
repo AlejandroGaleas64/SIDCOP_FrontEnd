@@ -98,7 +98,7 @@ export class CreateComponent {
 
       console.log('Guardando Unidad De Peso:', UnidadDePesoGuardar);
       
-      this.http.post<any>(`${environment.apiBaseUrl}/UnidadesMedida/Insertar`, UnidadDePesoGuardar, {
+      this.http.post<any>(`${environment.apiBaseUrl}/UnidadDePeso/Insertar`, UnidadDePesoGuardar, {
         headers: { 
           'X-Api-Key': environment.apiKey,
           'Content-Type': 'application/json',

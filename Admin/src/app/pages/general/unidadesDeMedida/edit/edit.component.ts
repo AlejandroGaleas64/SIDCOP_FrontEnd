@@ -116,8 +116,7 @@ export class EditComponent implements OnChanges {
       const UnidadDePesoActualizar = {
         unPe_Id: this.UnidadDePeso.unPe_Id,
         unPe_Descripcion: this.UnidadDePeso.unPe_Descripcion.trim(),
-        usua_Creacion: this.UnidadDePeso.usua_Creacion,
-        unPe_FechaCreacion: this.UnidadDePeso.unPe_FechaCreacion,
+
         usua_Modificacion: getUserId(),
         numero: this.UnidadDePeso.secuencia || '',
         unPe_FechaModificacion: new Date().toISOString(),
@@ -125,14 +124,18 @@ export class EditComponent implements OnChanges {
         usuarioModificacion: ''
       };
 
-      this.http.put<any>(`${environment.apiBaseUrl}/UnidadesMedida/Actualizar`, UnidadDePesoActualizar, {
+      this.http.put<any>(`${environment.apiBaseUrl}/UnidadDePeso/Actualizar`, UnidadDePesoActualizar, {
         headers: {
           'X-Api-Key': environment.apiKey,
           'Content-Type': 'application/json',
           'accept': '*/*'
         }
+        
       }).subscribe({
+        
         next: (response) => {
+          console.log('Datos enviados:', UnidadDePesoActualizar);
+          
           this.mostrarErrores = false;
           setTimeout(() => {
             this.onOverlayChange.emit(false);
