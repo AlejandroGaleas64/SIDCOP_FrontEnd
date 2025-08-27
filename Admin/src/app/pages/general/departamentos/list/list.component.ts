@@ -94,7 +94,7 @@ export class ListComponent implements OnInit {
     title: 'Listado de Departamentos',
     filename: 'Departamentos',
     department: 'General',
-    additionalInfo: 'Sistema de Gestión',
+    additionalInfo: '',
     columns: [
       { key: 'No', header: 'No.', width: 8, align: 'center' as const },
       { key: 'Código', header: 'Código', width: 25, align: 'left' as const },
@@ -423,7 +423,7 @@ export class ListComponent implements OnInit {
     setTimeout(()=> {
       this.cargardatos(false);
       this.showCreateForm = false;
-      this.mensajeExito = `Bodega guardada exitosamente`;
+      this.mensajeExito = `Departamento guardada exitosamente`;
       this.mostrarAlertaExito = true;
       setTimeout(() => {
         this.mostrarAlertaExito = false;
