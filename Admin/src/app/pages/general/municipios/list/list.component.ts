@@ -80,7 +80,6 @@ export class ListComponent implements OnInit {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
 
-  // Overlay de carga
   mostrarOverlayCarga = false;
   
   // Acciones disponibles para el usuario
@@ -151,7 +150,7 @@ export class ListComponent implements OnInit {
   municipioAEliminar: Municipio | null = null;
 
   private cargardatos(mostrarOverlay: boolean = true): void {
-    if (mostrarOverlay) this.mostrarOverlayCarga = true;
+    this.mostrarOverlayCarga = true;
     this.http.get<Municipio[]>(`${environment.apiBaseUrl}/Municipios/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
