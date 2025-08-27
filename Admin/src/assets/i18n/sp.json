@@ -27,7 +27,8 @@
         "PROVEEDORES": "Proveedores",
          "EMPLEADOS": "Empleados",
          "VISITASCLIENTES": "Visitas Clientes",
-         "ESTADOSVISITA": "Estado de Visita"
+         "ESTADOSVISITA": "Estado de Visita",
+         "UNIDADESDEPESO": "Unidades de Peso"
       }
     },
     "INVENTARIO": {
