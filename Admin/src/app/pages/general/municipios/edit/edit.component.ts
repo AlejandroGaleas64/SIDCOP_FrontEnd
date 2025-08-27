@@ -127,8 +127,6 @@ export class EditComponent {
         usuarioCreacion: '',
         usuarioModificacion: ''
       };
-      console.log(municipioActualizar);
-      console.log(environment.apiBaseUrl);
 
       this.http.post<any>(`${environment.apiBaseUrl}/Municipios/Actualizar`, municipioActualizar, {
         headers: {
