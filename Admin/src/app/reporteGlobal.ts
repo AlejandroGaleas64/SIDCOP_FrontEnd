@@ -165,23 +165,6 @@ export class PdfReportService {
     doc.text(config.titulo, pageWidth / 2, 27, { align: 'center' });
   }
 
-  private crearPiePagina(doc: jsPDF, data: any, datosReporte?: any[]) {
-    doc.setFontSize(8);
-    doc.setTextColor(this.COLORES.grisTexto);
-    
-    const fecha = new Date();
-    const fechaTexto = fecha.toLocaleDateString('es-HN');
-    const horaTexto = fecha.toLocaleTimeString('es-HN');
-    const totalPages = doc.getNumberOfPages();
-    
-    // Información del usuario
-    const usuarioCreacion = obtenerUsuario() || 'N/A';
-    doc.text(`Generado por: ${usuarioCreacion} | ${fechaTexto} ${horaTexto}`, 20, doc.internal.pageSize.height - 12);
-    
-    // Paginación
-    doc.text(`Página ${data.pageNumber}/${totalPages}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 12, { align: 'right' });
-  }
-
   async generarReportePDF(
     config: ReportConfig, 
     tableData: TableData, 
@@ -233,8 +216,6 @@ export class PdfReportService {
         if (data.pageNumber > 1) {
           this.crearEncabezadoPorPagina(doc, config);
         }
-        // Crear pie de página en todas las páginas
-        this.crearPiePagina(doc, data, datosReporte);
       }
     };
 
@@ -260,8 +241,32 @@ export class PdfReportService {
       }
     }
 
+    const totalPages = doc.getNumberOfPages();
+  
+    // Recorrer todas las páginas para añadir la numeración correcta
+    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+      doc.setPage(pageNum);
+      this.crearPiePaginaConTotal(doc, pageNum, totalPages, datosReporte);
+    }
+
     // Retornar el blob del PDF
     return doc.output('blob');
+  }
+
+  private crearPiePaginaConTotal(doc: jsPDF, pageNumber: number, totalPages: number, datosReporte?: any[]) {
+    doc.setFontSize(8);
+    doc.setTextColor(this.COLORES.grisTexto);
+    
+    const fecha = new Date();
+    const fechaTexto = fecha.toLocaleDateString('es-HN');
+    const horaTexto = fecha.toLocaleTimeString('es-HN');
+    
+    // Información del usuario
+    const usuarioCreacion = obtenerUsuario() || 'N/A';
+    doc.text(`Generado por: ${usuarioCreacion} | ${fechaTexto} ${horaTexto}`, 20, doc.internal.pageSize.height - 12);
+    
+    // Paginación con total correcto
+    doc.text(`Página ${pageNumber}/${totalPages}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 12, { align: 'right' });
   }
 
   // Método de utilidad para formatear números
