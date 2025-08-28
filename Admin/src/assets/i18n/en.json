@@ -28,7 +28,8 @@
         "EMPLEADOS": "Empleados",
         "CARGOS": "Cargos",
         "VISITASCLIENTES": "Visitas",
-        "ESTADOSVISITA": "Estados de Visita"
+        "ESTADOSVISITA": "Estados de Visita",
+        "UNIDADESDEPESO": "Unidades de Peso"
       }
     },
     "INVENTARIO": {

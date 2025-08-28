@@ -64,4 +64,9 @@ export class DetailsComponent {
       minute: '2-digit'
     });
   }
+
+  onImgError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    target.src = 'assets/images/users/32/user-dummy-img.jpg';
+  }
 }

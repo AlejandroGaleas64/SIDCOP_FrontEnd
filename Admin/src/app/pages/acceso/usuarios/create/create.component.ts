@@ -252,30 +252,49 @@ export class CreateComponent {
   }
 
   onImagenSeleccionada(event: any) {
-    // Obtenemos el archivo seleccionado desde el input tipo file
     const file = event.target.files[0];
 
     if (file) {
-      // para enviar la imagen a Cloudinary
+      // Crear vista previa inmediata
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.usuario.usua_Imagen = e.target.result;
+      };
+      reader.readAsDataURL(file);
+
+      // Subir imagen al servidor
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'subidas_usuarios');
-      //Subidas usuarios Carpeta identificadora en Cloudinary
-      //dwiprwtmo es el nombre de la cuenta de Cloudinary
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
+      formData.append('imagen', file);
 
-
-      fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-        .then(response => response.json())
-        .then(data => {
-          this.usuario.usua_Imagen = data.secure_url;
-        })
-        .catch(error => {
-          console.error('Error al subir la imagen a Cloudinary:', error);
-        });
+      this.http.post<any>(`${environment.apiBaseUrl}/Imagen/Subir`, formData, {
+        headers: {
+          'X-Api-Key': environment.apiKey,
+          'accept': '*/*'
+        }
+      }).subscribe({
+        next: (response) => {
+          if (response && response.ruta) {
+            // Reemplazar la vista previa con la URL del servidor
+            this.usuario.usua_Imagen = `${environment.apiBaseUrl}${response.ruta}`;
+          } else {
+            this.mostrarAlertaError = true;
+            this.mensajeError = 'Error al procesar la respuesta del servidor.';
+            setTimeout(() => {
+              this.mostrarAlertaError = false;
+              this.mensajeError = '';
+            }, 5000);
+          }
+        },
+        error: (error) => {
+          console.error('Error al subir la imagen:', error);
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error al subir la imagen. Por favor, intente nuevamente.';
+          setTimeout(() => {
+            this.mostrarAlertaError = false;
+            this.mensajeError = '';
+          }, 5000);
+        }
+      });
     }
   }
 }

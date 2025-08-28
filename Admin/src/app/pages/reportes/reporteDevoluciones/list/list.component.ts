@@ -15,7 +15,7 @@ interface Devolucion {
   clie_NombreNegocio: string;
   fact_Id: number;
   fact_Numero: string;
-  nombreVendedor: string;
+  vendedor: string;
   ruta_Id: number;
   ruta_Descripcion: string;
   sucu_Id: number;
@@ -95,7 +95,7 @@ export class ReporteDevolucionesComponent {
           styles: { cellWidth: 50 } 
         },
         { 
-          content: devolucion.nombreVendedor || 'N/A', 
+          content: devolucion.vendedor || 'N/A', 
           styles: { cellWidth: 35 } 
         },
         { 
