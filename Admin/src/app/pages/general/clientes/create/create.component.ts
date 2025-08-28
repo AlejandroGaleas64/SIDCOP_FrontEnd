@@ -958,5 +958,8 @@ export class CreateComponent {
       this.mapaSelectorComponent.buscarDireccion(query);
     }
   }
+
+  //Llenar autompaticamente colonias al seleccionar un punto en el mapa
+  
 }
 
