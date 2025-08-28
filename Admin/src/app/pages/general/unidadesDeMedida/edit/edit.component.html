@@ -1,6 +1,6 @@
 <div class="d-flex flex-column" style="height: 100%; min-height: 250px;">
   <!-- Título del componente -->
-  <h5 class="card-title mb-4">Editar Unidad de Medida</h5>
+  <h5 class="card-title mb-4">Editar Unidad De Peso</h5>
   
   <!-- Contenedor de alertas flotantes -->
   <div class="alert-container">
@@ -28,17 +28,20 @@
   
   <div class="flex-grow-1">
     <div class="row">
-      <div class="col-md-6">
+
+    <div class="col-md-6">
         <div class="mb-3">
+          <label for="unidadDePesoDesc" class="form-label">Unidad de Peso</label>
+          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           <div class="d-flex align-items-center">
-            <i class="ri-ruler-line" [ngStyle]="{
+             <i class="ri-ruler-line" [ngStyle]="{
               border: (!UnidadDePeso.unPe_Descripcion.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
               backgroundColor: (!UnidadDePeso.unPe_Descripcion.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
               padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
             </i>
-            <input  
-              type="text" 
-              class="form-control" 
+            <input
+              type="text"
+              class="form-control"
               [class.is-invalid]="!UnidadDePeso.unPe_Descripcion.trim() && mostrarErrores"
               id="UnidadDePesoDescripcion"
               [(ngModel)]="UnidadDePeso.unPe_Descripcion"
@@ -51,10 +54,43 @@
           </div>
         </div>
       </div>
+
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="UnidadDePesoCodigo" class="form-label">Abreviatura</label>
+          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          <div class="d-flex align-items-center">
+            <i class="ri-ruler-line" [ngStyle]="{
+              border: (!UnidadDePeso.unPe_Abreviatura.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (!UnidadDePeso.unPe_Abreviatura.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            </i>
+            <input
+              type="text"
+              class="form-control"
+              [class.is-invalid]="!UnidadDePeso.unPe_Abreviatura.trim() && mostrarErrores"
+              id="UnidadDePesoAbreviatura"
+              [(ngModel)]="UnidadDePeso.unPe_Abreviatura"
+              (input)="onAbreviaturaInput($event)"
+              maxlength="2"
+          
+              placeholder="Ingrese la abreviatura de la unidad de medida"
+              required />
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          </div>
+          <div class="text-danger mt-1" *ngIf="!UnidadDePeso.unPe_Abreviatura.trim() && mostrarErrores">
+            <small>El campo Abreviatura de la Unidad de Medida es requerido</small>
+          </div>
+        </div>
+      </div>
+
+    
+
+      <!-- Fin de los campos pedidos -->
     </div>
   </div>
   
-  <div class="mt-auto pt-3">
+  <div class="mt-auto pt-3" >
     <div class="row">
       <div class="col-12">
         <div class="d-flex justify-content-end gap-2">
@@ -62,7 +98,7 @@
             <span class="btn-text">Cancelar</span>
             <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
           </button>
-          <button type="button" class="btn btn-primary" (click)="validarEdicion()">
+          <button type="button" class="btn btn-primary" (click)="guardar()">
             <span class="btn-text">Guardar</span>
             <span class="btn-icon"><i class="ri-save-line"></i></span>
           </button>
@@ -71,62 +107,3 @@
     </div>
   </div>
 </div>
-
-<!-- Modal de confirmación para editar -->
-<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }" [style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
-        <span>Confirmación</span>
-        <i class="ri-close-line custom-modal-close" (click)="cancelarEdicion()"></i>
-      </div>
-      <hr class="custom-modal-divider">
-      <div class="modal-body custom-modal-body">
-        <div class="text-center mb-3">
-          <p class="mt-2 custom-modal-text">
-            <i class="ri-edit-line me-2 custom-modal-alert-icon"></i>
-            ¿Estás seguro que deseas guardar los siguientes cambios en la unidad de medida?
-          </p>
-        </div>
-        <!-- Lista de cambios detectados con diseño de tarjetas -->
-        <div class="changes-list" style="max-height: 300px; overflow-y: auto;">
-          <div *ngFor="let cambio of obtenerListaCambios()" class="change-item mb-3 p-3" 
-               style="border: 1px solid #e9ecef; border-radius: 8px; background-color: #f8f9fa;">
-            <div class="d-flex align-items-center mb-2">
-              <i class="ri-arrow-right-circle-line me-2 text-primary"></i>
-              <strong class="text-primary">{{ cambio.label }}</strong>
-            </div>
-            <div class="row">
-              <div class="col-6">
-                <small class="text-muted d-block">Original:</small>
-                <div class="p-2" style="background-color: #fff2f2; border-left: 3px solid #dc3545; border-radius: 4px;">
-                  <span class="text-dark">{{ cambio.anterior }}</span>
-                </div>
-              </div>
-              <div class="col-6">
-                <small class="text-muted d-block">Nuevo:</small>
-                <div class="p-2" style="background-color: #f0fff4; border-left: 3px solid #28a745; border-radius: 4px;">
-                  <span class="text-dark">{{ cambio.nuevo }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div *ngIf="obtenerListaCambios().length === 0" class="text-muted text-center">No hay cambios detectados.</div>
-      </div>
-      <div class="modal-footer custom-modal-footer">
-        <button type="button" class="btn btn-primary  btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
-          <span class="btn-text">No</span>
-          <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
-        </button>
-        <button type="button" class="btn btn-primary  btn-minw-5 btn-sm" (click)="confirmarEdicion()">
-          <span class="btn-text">Si</span>
-          <span class="btn-icon"><i class="ri-save-line"></i></span>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Overlay para el modal -->
-<div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEditar }" *ngIf="mostrarConfirmacionEditar"></div>

@@ -31,6 +31,7 @@ export class CreateComponent {
   UnidadDePeso: UnidadDePeso = {
     unPe_Id: 0,
     unPe_Descripcion: '',
+    unPe_Abreviatura: '',
     usua_Creacion: 0,
     usua_Modificacion: 0,
     secuencia: 0,
@@ -54,6 +55,7 @@ export class CreateComponent {
     this.UnidadDePeso = {
       unPe_Id: 0,
       unPe_Descripcion: '',
+      unPe_Abreviatura: '',
       usua_Creacion: 0,
       usua_Modificacion: 0,
       secuencia: 0,
@@ -76,12 +78,35 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
+  onAbreviaturaInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    // Remove any non-letter characters and limit to 2 characters
+    let value = input.value.replace(/[^a-zA-Z]/g, '');
+    if (value.length > 2) {
+      value = value.substring(0, 2);
+    }
+    // Update the model
+    this.UnidadDePeso.unPe_Abreviatura = value;
+    // Update the input value
+    input.value = value;
+  }
+
   guardar(): void {
     this.mostrarErrores = true;
     this.onOverlayChange.emit(true);
     
     // Reset all alerts
     this.cerrarAlerta();
+    
+    // Validar que la abreviatura tenga exactamente 2 letras y solo contenga letras
+    const abreviaturaValida = /^[A-Za-z]{2}$/.test(this.UnidadDePeso.unPe_Abreviatura);
+    
+    if (!abreviaturaValida) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'La abreviatura debe contener exactamente 2 letras (sin números ni caracteres especiales)';
+      this.onOverlayChange.emit(false);
+      return;
+    }
     
     if (!this.UnidadDePeso.unPe_Descripcion?.trim()) {
       this.mostrarAlertaWarning = true;
@@ -101,6 +126,7 @@ export class CreateComponent {
 
     const payload = {
       UnPe_Descripcion: this.UnidadDePeso.unPe_Descripcion.trim(),
+      UnPe_Abreviatura: this.UnidadDePeso.unPe_Abreviatura.trim(),
       Usua_Creacion: userId,
       UnPe_FechaCreacion: new Date().toISOString(),
       Usua_Modificacion: 0,
