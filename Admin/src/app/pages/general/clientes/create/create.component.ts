@@ -29,7 +29,7 @@ export class CreateComponent {
   mapaSelectorComponent!: MapaSelectorComponent;
 
   entrando = true;
-  activeTab = 1;
+  activeTab = 3;
 
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -83,11 +83,11 @@ export class CreateComponent {
     }
   }
 
-    // esCorreoValido(correo: string): boolean {
-    //   if (!correo) return true;
-    //   // Debe contener "@" y terminar en ".com"
-    //   return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
-    // }
+  // esCorreoValido(correo: string): boolean {
+  //   if (!correo) return true;
+  //   // Debe contener "@" y terminar en ".com"
+  //   return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
+  // }
 
   revisarCorreoValido(correo: string): boolean {
     if (!correo) return true;
@@ -948,5 +948,15 @@ export class CreateComponent {
     }
   }
 
+  //Buscador de direcciones en el mapa
+  getInputValue(event: Event): string {
+    return (event.target as HTMLInputElement)?.value || '';
+  }
+
+  buscarDireccion(query: string) {
+    if (this.mapaSelectorComponent) {
+      this.mapaSelectorComponent.buscarDireccion(query);
+    }
+  }
 }
 
