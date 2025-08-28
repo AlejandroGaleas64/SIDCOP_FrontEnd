@@ -7,7 +7,8 @@
       "TEXT": "Acceso",
       "LIST": {
         "USUARIOS": "Usuarios",
-        "ROLES": "Roles"
+        "ROLES": "Roles",
+        "MIGRACIONES": "Migraciones"
       }
     },
     "GENERAL": {

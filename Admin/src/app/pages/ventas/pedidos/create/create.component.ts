@@ -412,7 +412,7 @@ export class CreateComponent {
           const codigosRuta = this.pedidos
             .map((p) => p.pedi_Codigo)
             .filter((c) =>
-              new RegExp(`^PED-${rutaCodigoNumerico}-\\d{8}$`).test(c)
+              new RegExp(`^PED-${rutaCodigoNumerico}-\\d{7}$`).test(c)
             );
 
           let siguienteNumero = 1;
@@ -426,7 +426,7 @@ export class CreateComponent {
 
           const nuevoCodigo = `PED-${rutaCodigoNumerico}-${siguienteNumero
             .toString()
-            .padStart(8, '0')}`;
+            .padStart(7, '0')}`;
           this.pedido.pedi_Codigo = nuevoCodigo;
           console.log('Código generado:', nuevoCodigo);
         },
