@@ -2,9 +2,7 @@
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="card-title mb-4">Crear Nuevo Cliente</h5>
     <div class="d-flex justify-content-end align-items-center mb-2">
-      <span
-        class="codigo-cliente-mini"
-        [ngClass]="{'codigo-placeholder': !cliente.clie_Codigo}">
+      <span class="codigo-cliente-mini" [ngClass]="{'codigo-placeholder': !cliente.clie_Codigo}">
         {{ cliente.clie_Codigo || 'CLIE-RT-000-000000' }}
       </span>
     </div>
@@ -316,8 +314,7 @@
                 placeholder="Ingrese el correo del cliente (opcional)"
                 [class.is-invalid]="cliente.clie_Correo && !revisarCorreoValido(cliente.clie_Correo)" />
             </div>
-            <div class="text-danger mt-1"
-              *ngIf="cliente.clie_Correo && !revisarCorreoValido(cliente.clie_Correo)">
+            <div class="text-danger mt-1" *ngIf="cliente.clie_Correo && !revisarCorreoValido(cliente.clie_Correo)">
               <small> Ingrese un correo válido. </small>
             </div>
           </div>
@@ -423,8 +420,7 @@
                 backgroundColor: (!cliente.ruta_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
-              <select id="ruta_Id" class="form-select" [(ngModel)]="cliente.ruta_Id"
-                (change)="onRutaChange($event)"
+              <select id="ruta_Id" class="form-select" [(ngModel)]="cliente.ruta_Id" (change)="onRutaChange($event)"
                 [class.is-invalid]="!cliente.ruta_Id && mostrarErrores" required>
                 <option value="0" disabled>Seleccione una ruta</option>
                 <option *ngFor="let ruta of rutas" [value]="ruta.ruta_Id">
@@ -753,9 +749,9 @@
                 borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <input type="text" class="form-control"
-                  [class.is-invalid]="!aval.aval_Telefono.trim() && mostrarErrores && tieneDatosCredito()" id="avalTelefono"
-                  [(ngModel)]="aval.aval_Telefono" placeholder="Ingrese el teléfono del aval" mask="0000-0000"
-                  [required]="tieneDatosCredito()" />
+                  [class.is-invalid]="!aval.aval_Telefono.trim() && mostrarErrores && tieneDatosCredito()"
+                  id="avalTelefono" [(ngModel)]="aval.aval_Telefono" placeholder="Ingrese el teléfono del aval"
+                  mask="0000-0000" [required]="tieneDatosCredito()" />
               </div>
               <div class="text-danger mt-1" *ngIf="!aval.aval_Telefono.trim() && mostrarErrores && tieneDatosCredito()">
                 <small>El campo Teléfono del Aval es requerido</small>
@@ -848,12 +844,9 @@
                 backgroundColor: (!aval.aval_FechaNacimiento && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
-                <input type="date" 
-                  id="avalFechaNacimiento" 
-                  class="form-control"
+                <input type="date" id="avalFechaNacimiento" class="form-control"
                   [class.is-invalid]="!aval.aval_FechaNacimiento && mostrarErrores"
-                  [(ngModel)]="aval.aval_FechaNacimiento"
-                  [required]="tieneDatosCredito()"  />
+                  [(ngModel)]="aval.aval_FechaNacimiento" [required]="tieneDatosCredito()" />
               </div>
               <div class="text-danger mt-1" *ngIf="!aval.aval_FechaNacimiento && mostrarErrores">
                 <small>El campo Fecha Nacimiento es requerido</small>
@@ -950,12 +943,19 @@
   tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
     <div class="modal-content">
-      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
-        <h3 class="text-muted">Seleccionar una ubicación</h3>
-        <i class="ri-close-line custom-modal-close" (click)="cerrarMapa()"></i>
+      <div class="modal-header custom-modal-header d-flex justify-content-center align-items-center"
+        style="position: relative;">
+        <h3 class="text-muted text-center">Seleccionar una ubicación</h3>
       </div>
       <hr class="custom-modal-divider" />
       <div class="modal-body custom-modal-body">
+        <div class="mb-3 position-relative" style="max-width: 400px; margin: 0 auto;">
+          <i class="ri-search-line"
+            style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #b6b6b6; font-size: 1.2rem;"></i>
+          <input type="text" class="form-control"
+            style="padding-left: 2.2rem; border-radius: 12px; background: #f7f7fa; box-shadow: 0 2px 8px #0001;"
+            placeholder="Buscar dirección..." (input)="buscarDireccion(getInputValue($event))">
+        </div>
         <app-mapa-selector (coordenadasSeleccionadas)="onCoordenadasSeleccionadas($event)"
           [mostrar]="mostrarMapa"></app-mapa-selector>
 
@@ -1093,9 +1093,17 @@
               </div>
             </div>
           </div>
-          <button class="btn btn-primary" (click)="agregarDireccion()">
-            {{ direccionEditandoIndex !== null ? 'Actualizar' : 'Guardar' }}
-          </button>
+          <div class="col-md-12 d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-primary gold" style="height: 100%; transform: rotate(180deg);"
+              (click)="cancelar()">
+              <span class="btn-text" style="transform: rotate(180deg);">Cerrar</span>
+              <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+            </button>
+            <button type="button" class="btn btn-primary" (click)="agregarDireccion()">
+              <span class="btn-text">{{ direccionEditandoIndex !== null ? 'Actualizar' : 'Guardar' }}</span>
+              <span class="btn-icon"><i class="ri-save-line"></i></span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1115,7 +1123,7 @@
         <div class="text-center mb-3">
           <p class="mt-2 custom-modal-text">
             <i class="ri-edit-line me-2 custom-modal-alert-icon"></i>
-            ¿Estás seguro que deseas guardar los siguientes cambios en la configuración?
+            ¿Estás seguro que deseas guardar los siguientes cambios en el cliente?
           </p>
         </div>
 

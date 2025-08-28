@@ -1526,4 +1526,15 @@ export class EditComponent implements OnChanges {
     this.mostrarConfirmacionEditar = false;
     this.guardarCliente();
   }
+
+  //Buscador de direcciones en el mapa
+  getInputValue(event: Event): string {
+    return (event.target as HTMLInputElement)?.value || '';
+  }
+
+  buscarDireccion(query: string) {
+    if (this.mapaSelectorComponent) {
+      this.mapaSelectorComponent.buscarDireccion(query);
+    }
+  }
 }

@@ -270,7 +270,7 @@
               </i>
               <input type="date" id="clienteFechaNacimiento" class="form-control"
                 [class.is-invalid]="!cliente.clie_FechaNacimiento && mostrarErrores"
-                [(ngModel)]="cliente.clie_FechaNacimiento"/>
+                [(ngModel)]="cliente.clie_FechaNacimiento" />
             </div>
           </div>
         </div>
@@ -313,8 +313,7 @@
                 placeholder="Ingrese el correo del cliente (opcional)"
                 [class.is-invalid]="cliente.clie_Correo && !revisarCorreoValido(cliente.clie_Correo)" />
             </div>
-            <div class="text-danger mt-1"
-              *ngIf="cliente.clie_Correo && !revisarCorreoValido(cliente.clie_Correo)">
+            <div class="text-danger mt-1" *ngIf="cliente.clie_Correo && !revisarCorreoValido(cliente.clie_Correo)">
               <small> Ingrese un correo válido. </small>
             </div>
           </div>
@@ -951,6 +950,13 @@
       </div>
       <hr class="custom-modal-divider" />
       <div class="modal-body custom-modal-body">
+        <div class="mb-3 position-relative" style="max-width: 400px; margin: 0 auto;">
+          <i class="ri-search-line"
+            style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #b6b6b6; font-size: 1.2rem;"></i>
+          <input type="text" class="form-control"
+            style="padding-left: 2.2rem; border-radius: 12px; background: #f7f7fa; box-shadow: 0 2px 8px #0001;"
+            placeholder="Buscar dirección..." (input)="buscarDireccion(getInputValue($event))">
+        </div>
         <app-mapa-selector (coordenadasSeleccionadas)="onCoordenadasSeleccionadas($event)"
           [mostrar]="mostrarMapa"></app-mapa-selector>
 
@@ -1076,7 +1082,17 @@
               </div>
             </div>
           </div>
-          <button class="btn btn-primary" (click)="agregarDireccion()">Guardar</button>
+          <div class="col-md-12 d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-primary gold" style="height: 100%; transform: rotate(180deg);"
+              (click)="cancelar()">
+              <span class="btn-text" style="transform: rotate(180deg);">Cerrar</span>
+              <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+            </button>
+            <button type="button" class="btn btn-primary" (click)="agregarDireccion()">
+              <span class="btn-text">Guardar</span>
+              <span class="btn-icon"><i class="ri-save-line"></i></span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
