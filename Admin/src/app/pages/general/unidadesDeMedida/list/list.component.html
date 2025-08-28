@@ -128,6 +128,20 @@
                       </span>
                     </span>
                   </th>
+                    <th class="gridjs-th" (click)="table.sortBy('unPe_Abreviatura')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
+                      Abreviatura
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                         <i class="ri-arrow-up-s-line icon-sort"
+                        [ngStyle]="table.sortField === 'unPe_Abreviatura' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                      </i>
+                      <i class="ri-arrow-down-s-line icon-sort"
+                        [ngStyle]="table.sortField === 'unPe_Abreviatura' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                      </i>
+                      </span>
+                    </span>
+                  </th>
                 </tr>
                 <tr class="gridjs-th"*ngFor="let data of table.paginated$ | async; let i = index">
                   <td class="position-relative" *ngIf="accionPermitida('editar') || accionPermitida('eliminar') || accionPermitida('detalle')">
@@ -143,6 +157,7 @@
                   </td>
                   <td><span class="fw-semibold">{{data.secuencia}}</span></td>
                   <td>{{data.unPe_Descripcion}}</td>
+                     <td>{{data.unPe_Abreviatura}}</td>
                 </tr>
                 </thead>
             </table>
