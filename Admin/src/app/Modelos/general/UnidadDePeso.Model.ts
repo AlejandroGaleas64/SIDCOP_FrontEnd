@@ -1,6 +1,7 @@
 export class UnidadDePeso {
   unPe_Id: number = 0;
   unPe_Descripcion: string = '';
+  unPe_Abreviatura: string = '';
   secuencia: number = 0;
   usua_Creacion: number = 0;
   unPe_FechaCreacion: Date = new Date();
