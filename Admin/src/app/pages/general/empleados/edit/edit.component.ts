@@ -34,11 +34,7 @@ export class EditComponent implements OnChanges {
       this.empleadoOriginal = this.empleado.empl_Apellidos || '';
       // Recargar imagen si existe
       if (this.empleado.empl_Imagen) {
-        this.uploadedFiles = [{
-          dataURL: this.empleado.empl_Imagen,
-          name: 'Imagen actual',
-          size: null
-        }];
+        this.uploadedFiles = [this.empleado.empl_Imagen];
       } else {
         this.uploadedFiles = [];
       }
@@ -100,11 +96,7 @@ export class EditComponent implements OnChanges {
       this.cerrarAlerta();
       // Recargar imagen si existe
       if (this.empleado.empl_Imagen) {
-        this.uploadedFiles = [{
-          dataURL: this.empleado.empl_Imagen,
-          name: 'Imagen actual',
-          size: null
-        }];
+        this.uploadedFiles = [this.empleado.empl_Imagen];
       } else {
         this.uploadedFiles = [];
       }
