@@ -43,6 +43,8 @@ export class EditConfigFacturaComponent implements OnChanges {
     coFa_Telefono1: '',
     coFa_Telefono2: '',
     coFa_Logo: '',
+    coFa_DiasDevolucion: 0,
+    coFa_RutaMigracion: '',
     colo_Id: 0,
     usua_Creacion: 0,
     usua_Modificacion: 0,
@@ -268,6 +270,14 @@ export class EditConfigFacturaComponent implements OnChanges {
       errores.push('Logo');
     }
 
+    if (!this.configFactura.coFa_DiasDevolucion) {
+      errores.push('Días de Devolución');
+    }
+
+    if (!this.configFactura.coFa_RutaMigracion.trim()) {
+      errores.push('Ruta de Migración');
+    }
+
     if (this.configFactura.colo_Id === 0) {
       errores.push('Colonia');
     }
@@ -362,6 +372,14 @@ export class EditConfigFacturaComponent implements OnChanges {
       };
     }
 
+    if (a.coFa_DiasDevolucion !== b.coFa_DiasDevolucion) {
+      this.cambiosDetectados.diasDevolucion = {
+        anterior: b.coFa_DiasDevolucion,
+        nuevo: a.coFa_DiasDevolucion,
+        label: 'Días de Devolución'
+      };
+    }
+
     if (a.coFa_Telefono1 !== b.coFa_Telefono1) {
       this.cambiosDetectados.telefono1 = {
         anterior: b.coFa_Telefono1,
@@ -386,6 +404,14 @@ export class EditConfigFacturaComponent implements OnChanges {
         anterior: coloniaAnterior ? `${coloniaAnterior.colo_Descripcion} - ${coloniaAnterior.muni_Descripcion} - ${coloniaAnterior.depa_Descripcion}` : 'No seleccionada',
         nuevo: coloniaNueva ? `${coloniaNueva.colo_Descripcion} - ${coloniaNueva.muni_Descripcion} - ${coloniaNueva.depa_Descripcion}` : 'No seleccionada',
         label: 'Colonia'
+      };
+    }
+
+    if (a.coFa_RutaMigracion !== b.coFa_RutaMigracion) {
+      this.cambiosDetectados.rutaMigracion = {
+        anterior: b.coFa_RutaMigracion,
+        nuevo: a.coFa_RutaMigracion,
+        label: 'Ruta de Migración'
       };
     }
 

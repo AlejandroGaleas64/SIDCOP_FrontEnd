@@ -1,6 +1,7 @@
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Empleado } from 'src/app/Modelos/general/Empleado.Model';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 @Component({
   selector: 'app-details',
   standalone: true,
@@ -17,6 +18,8 @@ export class DetailsComponent implements OnChanges{
   
     mostrarAlertaError = false;
     mensajeError = '';
+
+    constructor(private imageUploadService: ImageUploadService) {}
   
     ngOnChanges(changes: SimpleChanges): void {
       if (changes['empleadoData'] && changes['empleadoData'].currentValue) {
@@ -63,6 +66,11 @@ export class DetailsComponent implements OnChanges{
       } catch {
         return String(fecha);
       }
+    }
+
+    // Método para obtener la URL completa de la imagen para mostrarla
+    getImageDisplayUrl(imagePath: string): string {
+      return this.imageUploadService.getImageUrl(imagePath);
     }
 
 }
