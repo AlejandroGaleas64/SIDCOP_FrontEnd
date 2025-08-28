@@ -44,6 +44,8 @@ export class CreateComponent {
     coFa_Telefono1: '',
     coFa_Telefono2: '',
     coFa_Logo: '',
+    coFa_DiasDevolucion: 0,
+    coFa_RutaMigracion: '',
     colo_Id: 0
   };
 
@@ -202,6 +204,14 @@ export class CreateComponent {
 
     if (!this.configFactura.coFa_Logo) {
       errores.push('Logo');
+    }
+
+    if (!this.configFactura.coFa_DiasDevolucion) {
+      errores.push('Días de Devolución');
+    }
+
+    if (!this.configFactura.coFa_RutaMigracion.trim()) {
+      errores.push('Ruta de Migración');
     }
 
     if (this.configFactura.colo_Id === 0) {
