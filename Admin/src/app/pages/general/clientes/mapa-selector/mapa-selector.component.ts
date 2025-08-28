@@ -51,6 +51,21 @@ export class MapaSelectorComponent implements AfterViewInit, OnChanges {
     if (changes['puntosVista'] && this.map && this.mapaInicializado) {
       this.agregarPuntosVistaAlMapa();
     }
+
+    //Cargar marcador en el mapa en el editar
+    if (this.coordenadasIniciales && this.map) {
+    const position = new google.maps.LatLng(this.coordenadasIniciales.lat, this.coordenadasIniciales.lng);
+    this.map.setCenter(position);
+    this.map.setZoom(16); // O el zoom que prefieras
+    if (this.marker) {
+      this.marker.setPosition(position);
+    } else {
+      this.marker = new google.maps.Marker({
+        position,
+        map: this.map,
+      });
+    }
+  }
   }
 
   ngAfterViewInit() {

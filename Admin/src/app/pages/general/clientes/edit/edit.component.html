@@ -1,6 +1,6 @@
 <div class="d-flex flex-column" style="height: 100%; min-height: 250px">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h5 class="card-title mb-4">Crear Nuevo Cliente</h5>
+    <h5 class="card-title mb-4">Editar Cliente</h5>
     <div class="d-flex justify-content-end align-items-center mb-2">
       <span class="codigo-cliente-mini" [ngClass]="{'codigo-placeholder': !cliente.clie_Codigo}">
         {{ cliente.clie_Codigo || 'CLIE-RT-000-000000' }}
@@ -451,20 +451,19 @@
         </div>
 
         <div *ngFor="let direccion of direccionesPorCliente; let i = index" class="ubicacion-card">
-          <div class="card-actions">
-            <button class="icon-button delete" (click)="eliminarDireccion(i)"><i class="bx bxs-trash"></i></button>
-          </div>
-
           <div class="card-content">
             <div class="info">
               <h2 class="direccion-nombre">{{ direccion.diCl_Observaciones }}</h2>
-              <p class="detalle"><i class="bx bx-current-location"></i> Lat: {{ direccion.diCl_Latitud }}, Lng:
+              <p class="detalle"><i class="bx bx-current-location"></i> Latitud: {{ direccion.diCl_Latitud }}, Longitud:
                 {{direccion.diCl_Longitud }}</p>
               <p class="detalle"><i class="bx bx-map"></i>Dirección Exacta: {{ direccion.muni_Descripcion }}</p>
             </div>
-
-            <div class="ver-ubicacion">
-              <button class="btn btn-primary" (click)="editarDireccion(i)">
+            <div class="d-flex justify-content-between align-items-center mt-2" style="gap: 12px;">
+              <button type="button" class="btn btn-primary gold" style="height: 100%;" (click)="eliminarDireccion(i)">
+                <span class="btn-text">Eliminar</span>
+                <span class="btn-icon"><i class="ri-delete-bin-line"></i></span>
+              </button>
+              <button class="btn btn-primary btn-sm" (click)="editarDireccion(i)">
                 <span class="btn-text">Ver</span>
                 <span class="btn-icon"><i class="ri-road-map-line"></i></span>
               </button>
@@ -502,6 +501,11 @@
     <!--    Datos Politicos o Del Credito      -->
     <!--=======================================-->
     <div *ngIf="activeTab === 3">
+      <div class="alert alert-info d-flex align-items-center mt-3"
+        style="font-family: 'Inter', sans-serif; border-radius: 10px; background: #eaf4fb; color: #1a355e; font-weight: 500; box-shadow: 0 2px 8px #0001;">
+        <i class="ri-information-line me-2" style="font-size: 1.5rem; color: #1976d2;"></i>
+        Si solicitas un crédito, debes crear al menos un aval.
+      </div>
       <div class="row mx-lg-4">
         <!-- Limite de Crédito-->
         <div class="col-md-6">
@@ -945,7 +949,7 @@
     <div class="modal-content">
       <div class="modal-header custom-modal-header d-flex justify-content-center align-items-center"
         style="position: relative;">
-        <h3 class="text-muted text-center">Seleccionar una ubicación</h3>
+        <h3 class="text-muted text-center">Editar ubicación</h3>
       </div>
       <hr class="custom-modal-divider" />
       <div class="modal-body custom-modal-body">
@@ -956,8 +960,9 @@
             style="padding-left: 2.2rem; border-radius: 12px; background: #f7f7fa; box-shadow: 0 2px 8px #0001;"
             placeholder="Buscar dirección..." (input)="buscarDireccion(getInputValue($event))">
         </div>
-        <app-mapa-selector (coordenadasSeleccionadas)="onCoordenadasSeleccionadas($event)"
-          [mostrar]="mostrarMapa"></app-mapa-selector>
+        <app-mapa-selector
+          [coordenadasIniciales]="direccionPorCliente.diCl_Latitud && direccionPorCliente.diCl_Longitud ? { lat: direccionPorCliente.diCl_Latitud, lng: direccionPorCliente.diCl_Longitud } : null"
+          (coordenadasSeleccionadas)="onCoordenadasSeleccionadas($event)" [mostrar]="mostrarMapa"></app-mapa-selector>
 
         <div class="row mx-lg-4 mt-4">
           <div class="col-md-6">

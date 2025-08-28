@@ -80,6 +80,8 @@ export class EditComponent implements OnChanges {
   direccionesEliminadas: number[] = [];
   avalesEliminados: number[] = [];
 
+  @Input() coordenadasIniciales?: { lat: number, lng: number };
+  
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['clienteData']?.currentValue) {
       this.cliente = { ...changes['clienteData'].currentValue };
@@ -103,6 +105,7 @@ export class EditComponent implements OnChanges {
       if (!formatoCodigo.test(this.cliente.clie_Codigo)) {
         this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
       }
+
       this.cargarDireccionesExistentes();
       this.cargarAvalesExistentes();
     }

@@ -29,7 +29,7 @@ export class CreateComponent {
   mapaSelectorComponent!: MapaSelectorComponent;
 
   entrando = true;
-  activeTab = 2;
+  activeTab = 3;
 
   mostrarErrores = false;
   mostrarAlertaExito = false;
