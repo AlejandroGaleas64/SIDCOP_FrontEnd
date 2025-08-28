@@ -35,6 +35,7 @@ export class EditComponent implements OnChanges {
   UnidadDePeso: UnidadDePeso = {
     unPe_Id: 0,
     unPe_Descripcion: '',
+     unPe_Abreviatura: '',
     usua_Creacion: 0,
     usua_Modificacion: 0,
     secuencia: 0,
@@ -84,6 +85,16 @@ export class EditComponent implements OnChanges {
   validarEdicion(): void {
     this.mostrarErrores = true;
 
+    // Validar que la abreviatura tenga exactamente 2 letras y solo contenga letras
+    const abreviaturaValida = /^[A-Za-z]{2}$/.test(this.UnidadDePeso.unPe_Abreviatura);
+    
+    if (!abreviaturaValida) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'La abreviatura debe contener exactamente 2 letras (sin números ni caracteres especiales)';
+      setTimeout(() => this.cerrarAlerta(), 4000);
+      return;
+    }
+
     if (this.UnidadDePeso.unPe_Descripcion.trim()) {
       if (this.UnidadDePeso.unPe_Descripcion.trim() !== this.UnidadDePesoOriginal) {
         this.mostrarConfirmacionEditar = true;
@@ -113,6 +124,16 @@ export class EditComponent implements OnChanges {
     this.onOverlayChange.emit(true);
     this.cerrarAlerta();
     
+    // Validar que la abreviatura tenga exactamente 2 letras y solo contenga letras
+    const abreviaturaValida = /^[A-Za-z]{2}$/.test(this.UnidadDePeso.unPe_Abreviatura);
+    
+    if (!abreviaturaValida) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'La abreviatura debe contener exactamente 2 letras (sin números ni caracteres especiales)';
+      this.onOverlayChange.emit(false);
+      return;
+    }
+
     if (!this.UnidadDePeso.unPe_Descripcion?.trim()) {
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'Por favor complete el campo de descripción';
@@ -132,6 +153,7 @@ export class EditComponent implements OnChanges {
     const payload = {
       unPe_Id: this.UnidadDePeso.unPe_Id,
       UnPe_Descripcion: this.UnidadDePeso.unPe_Descripcion.trim(),
+      UnPe_Abreviatura: this.UnidadDePeso.unPe_Abreviatura.trim(),
       Usua_Modificacion: userId,
       UnPe_FechaModificacion: new Date().toISOString()
     };
@@ -171,5 +193,18 @@ export class EditComponent implements OnChanges {
         this.mostrarConfirmacionEditar = false;
       }
     });
+  }
+
+  onAbreviaturaInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    // Remove any non-letter characters and limit to 2 characters
+    let value = input.value.replace(/[^a-zA-Z]/g, '');
+    if (value.length > 2) {
+      value = value.substring(0, 2);
+    }
+    // Update the model
+    this.UnidadDePeso.unPe_Abreviatura = value;
+    // Update the input value
+    input.value = value;
   }
 }

@@ -59,8 +59,8 @@ export class ListComponent implements OnInit {
 
   private readonly exportConfig = {
       // Configuración básica
-      title: 'Listado de Unidades de Medida',                 // Título del reporte
-      filename: 'Unidades de Medida',                        // Nombre base del archivo
+      title: 'Listado de Unidades de Peso',                 // Título del reporte
+      filename: 'Unidades de Peso',                        // Nombre base del archivo
 
       // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
       columns: [
@@ -95,7 +95,7 @@ export class ListComponent implements OnInit {
      */
     this.breadCrumbItems = [
       { label: 'General' },
-      { label: 'Unidades de Medida', active: true }
+      { label: 'Unidades de Peso', active: true }
     ];
 
     // OBTENER ACCIONES DISPONIBLES DEL USUARIO
@@ -489,15 +489,15 @@ export class ListComponent implements OnInit {
     if (permisosRaw) {
       try {
         const permisos = JSON.parse(permisosRaw);
-        // BUSCAMOS EL MÓDULO DE UNIDADES DE MEDIDA
+        // BUSCAMOS EL MÓDULO DE UNIDADES DE Peso
         let modulo = null;
         if (Array.isArray(permisos)) {
-          // BUSCAMOS EL MÓDULO DE UNIDADES DE MEDIDA POR ID (AJUSTAR SEGÚN SEA NECESARIO)
+          // BUSCAMOS EL MÓDULO DE UNIDADES DE Peso POR ID (AJUSTAR SEGÚN SEA NECESARIO)
           // Nota: Cambiar el ID según corresponda en tu sistema
           modulo = permisos.find((m: any) => m.Pant_Id === 15); // AJUSTAR ID
         } else if (typeof permisos === 'object' && permisos !== null) {
           // ESTO ES PARA CUANDO LOS PERMISOS ESTÁN EN UN OBJETO CON CLAVES
-          modulo = permisos['Unidades de Medida'] || permisos['unidades de medida'] || null;
+          modulo = permisos['Unidades de Peso'] || permisos['unidades de Peso'] || null;
         }
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
           // AQUI SACAMOS SOLO EL NOMBRE DE LA ACCIÓN
