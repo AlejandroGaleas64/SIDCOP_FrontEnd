@@ -40,7 +40,6 @@ private readonly exportConfig = {
     title: 'Listado de Traslados',                    // Título del reporte
     filename: 'Traslados',                           // Nombre base del archivo
     department: 'Logistica',                         // Departamento
-    additionalInfo: 'SIDCOP',         // Información adicional
     
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
@@ -58,7 +57,7 @@ private readonly exportConfig = {
       'Destino': this.limpiarTexto(traslados?.destino),
       'Fecha': this.limpiarTexto(traslados?.tras_Fecha),
         'Observaciones': (traslados?.tras_Observaciones == null || this.limpiarTexto(traslados?.tras_Observaciones) === '')
-    ? 'N/A'
+    ? 'Sin Observaciones'
     : this.limpiarTexto(traslados?.tras_Observaciones),
       // Agregar más campos aquí según necesites:
       // 'Campo': this.limpiarTexto(modelo?.campo),
@@ -230,7 +229,6 @@ private readonly exportConfig = {
       columns: this.exportConfig.columns,
       metadata: {
         department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
       }
     };
   }
@@ -575,7 +573,7 @@ private cargardatos(): void {
         traslado.tras_Observaciones =
     traslado.tras_Observaciones == null ||
     this.limpiarTexto(traslado.tras_Observaciones) === ''
-      ? 'N/A'
+      ? 'Sin Observaciones'
       : traslado.tras_Observaciones;
       });
 

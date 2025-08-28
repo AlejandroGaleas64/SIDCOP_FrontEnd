@@ -235,7 +235,7 @@
                       <button class="dropdown-action-btn" (click)="confirmarEliminar(cliente)">
                         {{ esClienteActivo(cliente) ? 'Desactivar' : 'Activar' }}
                         <i
-                          [ngClass]="cliente.clie_Estado == 1 || cliente.clie_Estado === true || cliente.clie_Estado == '1' || cliente.clie_Estado == 'true' ? 'ri-delete-bin-line' : 'ri-checkbox-circle-line'"></i>
+                          [ngClass]="cliente.clie_Estado == 1 || cliente.clie_Estado === true || cliente.clie_Estado == '1' || cliente.clie_Estado == 'true' ? 'ri-close-circle-line' : 'ri-checkbox-circle-line'"></i>
                       </button>
                     </li>
                     <li *ngIf="showDetails">

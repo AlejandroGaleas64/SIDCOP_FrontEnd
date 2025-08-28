@@ -80,6 +80,8 @@ export class EditComponent implements OnChanges {
   direccionesEliminadas: number[] = [];
   avalesEliminados: number[] = [];
 
+  @Input() coordenadasIniciales?: { lat: number, lng: number };
+  
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['clienteData']?.currentValue) {
       this.cliente = { ...changes['clienteData'].currentValue };
@@ -103,6 +105,7 @@ export class EditComponent implements OnChanges {
       if (!formatoCodigo.test(this.cliente.clie_Codigo)) {
         this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
       }
+
       this.cargarDireccionesExistentes();
       this.cargarAvalesExistentes();
     }
@@ -1525,5 +1528,16 @@ export class EditComponent implements OnChanges {
   confirmarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
     this.guardarCliente();
+  }
+
+  //Buscador de direcciones en el mapa
+  getInputValue(event: Event): string {
+    return (event.target as HTMLInputElement)?.value || '';
+  }
+
+  buscarDireccion(query: string) {
+    if (this.mapaSelectorComponent) {
+      this.mapaSelectorComponent.buscarDireccion(query);
+    }
   }
 }
