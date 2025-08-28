@@ -36,15 +36,40 @@
             </button>
           </div>
         </div>
-        <div class="col-1 position-relative">
-          <i id="campanita" class="ri-notification-2-fill"
-            style="position: absolute; right: 30px; top: 50%; transform: translateY(-50%); color: #d6b68a; font-size: 1.8em;"
-            (click)="abrirListado()"></i>
-          <span class="badge bg-danger rounded-pill notification-badge"
-            style="position: absolute; right: 18px; top: 40%; transform: translateY(-90%); font-size: 0.7em;">
-            {{ notificacionesSinConfirmar }}
-          </span>
-        </div>
+        <!-- Clientes sin confirmar arriba de la campanita -->
+        <div class="col-1 d-flex flex-column align-items-center justify-content-start"
+  style="min-width: 70px; margin-top: -14px;">
+  <div style="
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: #141a2f;
+    line-height: 1.1;
+    letter-spacing: 0.01em;
+    text-align: center;
+    margin-bottom: 1.5px;
+  ">
+    Clientes sin<br>confirmar
+    <div style="
+      width: 40px;           /* Línea más larga */
+      height: 1.6px;
+      background: #d6b68a;
+      border-radius: 2px;
+      margin: 1.5px auto 0 auto;
+      position: relative;
+      z-index: 1;
+    "></div>
+  </div>
+  <div style="position: relative; width: 32px; height: 22px; margin-top: 2px;">
+    <i id="campanita" class="ri-notification-2-fill"
+      style="color: #d6b68a; font-size: 1.70em; position: absolute; left: 0; top: 0; z-index: 2;"
+      (click)="abrirListado()"></i>
+    <span class="badge bg-dark rounded-pill notification-badge"
+      style="position: absolute; right: -3px; top: -1px; font-size: 0.65em; padding: 0.5px 7px; z-index: 3;">
+      {{ notificacionesSinConfirmar }}
+    </span>
+  </div>
+</div>
         <div class="col-2 ms-auto position-relative">
           <input type="text" class="form-control ps-5" placeholder="Buscar..." [(ngModel)]="busqueda"
             (ngModelChange)="filtradorClientes()" />
@@ -57,11 +82,13 @@
     </div>
 
     <div class="row align-items-center g-2" *ngIf="listadoClientesSinConfirmar" [@fadeExpand]>
+
       <div class="row align-items-center g-2">
         <div class="col-9" style="display: flex; align-items: center;">
           <i class="ri-shield-user-fill text-muted" style="font-size: 1.9em; margin-right: 10px;"></i>
           <h4 class="text-muted" style="padding-top: 5px;">Clientes sin confirmar</h4>
         </div>
+
         <div class="col-1">
           <i id="campanita" class="ri-arrow-down-s-line"
             style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #141a2f; font-size: 2em;"
@@ -171,7 +198,7 @@
                 </li>
                 <li class="d-flex justify-content-center align-items-center gap-2 mb-1">
                   <i class="bx bx-id-card" style="color: #141A2F;"></i>
-                  <span class="text-muted text-break"> {{ cliente.clie_DNI }} </span>
+                  <span class="text-muted text-break"> {{ cliente.clie_DNI ? cliente.clie_DNI : 'N/A' }} </span>
                 </li>
                 <li class="d-flex justify-content-center align-items-center gap-2 mb-1">
                   <i class="bi bi-telephone" style="color: #141A2F;"></i>
@@ -192,7 +219,7 @@
       </div>
       <div class="col-sm-auto mt-3 mt-sm-0 text-md-right float-md-end gridjs-pagination">
         <pagination [(ngModel)]="currentPage" [totalItems]="clientesFiltrados.length" [itemsPerPage]="itemsPerPage"
-          (pageChanged)="pageChanged($event)">
+          [maxSize]="5" (pageChanged)="pageChanged($event)">
         </pagination>
       </div>
     </div>
@@ -276,7 +303,7 @@
                 </li>
                 <li class="d-flex justify-content-center align-items-center gap-2 mb-1">
                   <i class="bx bx-id-card" style="color: #141A2F;"></i>
-                  <span class="text-muted text-break"> {{ cliente.clie_DNI }} </span>
+                  <span class="text-muted text-break"> {{ cliente.clie_DNI ? cliente.clie_DNI : 'N/A' }} </span>
                 </li>
                 <li class="d-flex justify-content-center align-items-center gap-2 mb-1">
                   <i class="bi bi-telephone" style="color: #141A2F;"></i>
@@ -297,8 +324,9 @@
         </div>
       </div>
       <div class="col-sm-auto mt-3 mt-sm-0 text-md-right float-md-end gridjs-pagination">
+        <!-- Limita la cantidad de botones de página visibles a 5 -->
         <pagination [(ngModel)]="currentPage" [totalItems]="clientesFiltrados.length" [itemsPerPage]="itemsPerPage"
-          (pageChanged)="pageChanged($event)">
+          [maxSize]="5" (pageChanged)="pageChanged($event)">
         </pagination>
       </div>
     </div>
