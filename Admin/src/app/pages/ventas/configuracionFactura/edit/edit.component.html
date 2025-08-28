@@ -225,6 +225,9 @@
             <div class="text-danger mt-1" *ngIf="!configFactura.coFa_DiasDevolucion && mostrarErrores">
               <small>El campo Días de Devolución es requerido</small>
             </div>
+            <div class="text-danger mt-1" *ngIf="configFactura.coFa_DiasDevolucion < 1">
+              <small>Los Días de Devolución deben ser mayor a 0</small>
+            </div>
           </div>
 
           <!-- RUTA MIGRACION -->
