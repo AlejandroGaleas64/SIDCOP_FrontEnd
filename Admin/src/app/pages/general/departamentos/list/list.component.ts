@@ -202,8 +202,6 @@ export class ListComponent implements OnInit {
   private limpiarTexto(texto: any): string {
     if (!texto) return '';
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }
