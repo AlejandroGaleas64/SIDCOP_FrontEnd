@@ -25,7 +25,8 @@
     <div class="col-md-4">
       <div class="card h-100 shadow-sm employee-photo-card position-relative">
         <ng-container *ngIf="empleadoDetalle?.empl_Imagen; else noImage">
-          <img [src]="empleadoDetalle.empl_Imagen" alt="Foto del empleado" class="employee-img-card" />
+          <img [src]="getImageDisplayUrl(empleadoDetalle.empl_Imagen || '')" alt="Foto del empleado" class="employee-img-card" />
+
           <div class="employee-img-overlay">
             <span class="employee-img-name">{{ empleadoDetalle.empl_Nombres }} {{ empleadoDetalle.empl_Apellidos }}</span>
           </div>
