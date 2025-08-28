@@ -19,6 +19,7 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 import { isTrustedHtml } from 'ngx-editor/lib/trustedTypesUtil';
 import { Empleado } from 'src/app/Modelos/general/Empleado.Model';
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 import { ReactiveTableService } from 'src/app/shared/reactive-table.service';
 
@@ -175,11 +176,13 @@ export class ListComponent {
   @ViewChild('deleteRecordModal', { static: false }) deleteRecordModal?: ModalDirective;
   editData: any = null;
 
-  constructor(private formBuilder: UntypedFormBuilder, private http: HttpClient, private exportService: ExportService) {}
-  
-
-  ngOnInit(): void {
-    /**
+  constructor(
+    private http: HttpClient, 
+    private exportService: ExportService,
+    private reactiveTableService: ReactiveTableService<Empleado>,
+    private imageUploadService: ImageUploadService,
+    private formBuilder: UntypedFormBuilder
+  ) { /**
      * BreadCrumb
      */
     this.breadCrumbItems = [
@@ -732,6 +735,11 @@ export class ListComponent {
         setTimeout(() => this.mostrarAlertaWarning = false, duracion);
         break;
     }
+  }
+
+  // Método para obtener la URL completa de la imagen para mostrarla
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
   }
 
 }
