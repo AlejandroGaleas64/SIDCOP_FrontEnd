@@ -4,39 +4,87 @@ import {
   EventEmitter,
   Input,
   OnChanges,
+  OnDestroy,
   SimpleChanges,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Pedido } from 'src/app/Modelos/ventas/Pedido.Model';
 import { environment } from 'src/environments/environment.prod';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { jsPDF } from 'jspdf';
+import { PedidoInvoiceService } from '../services/pedido-invoice.service';
+import { ZplPrintingService } from 'src/app/core/services/zplprinting.service';
+import ZebraBrowserPrintWrapper from 'zebra-browser-print-wrapper';
+
+// Interfaces para la nueva librería
+interface ZebraPrinter {
+  name: string;
+  uid: string;
+  connection: string;
+  deviceType?: string;
+}
+
+interface PrinterStatus {
+  isReadyToPrint: boolean;
+  errors: string;
+}
 
 @Component({
   selector: 'app-details',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './details.component.html',
   styleUrl: './details.component.scss',
 })
-export class DetailsComponent implements OnChanges {
+export class DetailsComponent implements OnChanges, OnDestroy {
   @Input() PedidoData: Pedido | null = null;
   @Output() onClose = new EventEmitter<void>();
+
+  private pedidoInvoiceService = inject(PedidoInvoiceService);
+  private zplPrintingService = inject(ZplPrintingService);
 
   PedidoDetalle: Pedido | null = null;
   productos: any[] = [];
   cargando = false;
 
+  // Variables para impresión ZPL
+  private zebraBrowserPrint: any = null;
+  imprimiendo = false;
+  mostrarConfiguracionImpresion = false;
+  configuracionImpresion = {
+    printerIp: '',
+    printerPort: 9101,
+    metodoImpresion: 'zebra-wrapper'
+  };
+
+  // Propiedades para Zebra Browser Print Wrapper
+  verificandoConexion = false;
+  dispositivosDisponibles: ZebraPrinter[] = [];
+  dispositivoSeleccionado: ZebraPrinter | null = null;
+  estadoImpresora: PrinterStatus = { isReadyToPrint: false, errors: '' };
+
   mostrarAlertaError = false;
   mensajeError = '';
+  mostrarAlertaExito = false;
+  mensajeExito = '';
   referenciasLista = [];
   clientesLista = [];
   referenciasNombre: any[] = [];
+
+  async ngOnInit(): Promise<void> {
+    await this.inicializarZebraBrowserPrint();
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['PedidoData'] && changes['PedidoData'].currentValue) {
       this.cargarDetallesSimulado(changes['PedidoData'].currentValue);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.zebraBrowserPrint = null;
   }
 
   // Simulación de carga
@@ -48,6 +96,10 @@ export class DetailsComponent implements OnChanges {
       try {
         this.PedidoDetalle = { ...data };
         this.productos = JSON.parse(this.PedidoDetalle.detallesJson ?? '[]');
+        
+        // Configurar el servicio de invoice con los datos del pedido
+        this.pedidoInvoiceService.setPedidoCompleto(this.PedidoDetalle);
+        
         this.cargando = false;
       } catch (error) {
         console.error('Error al cargar detalles del pedido:', error);
@@ -65,6 +117,11 @@ export class DetailsComponent implements OnChanges {
   cerrarAlerta(): void {
     this.mostrarAlertaError = false;
     this.mensajeError = '';
+  }
+
+  cerrarAlertaExito(): void {
+    this.mostrarAlertaExito = false;
+    this.mensajeExito = '';
   }
 
     // ===== MÉTODOS PRIVADOS PARA PDF (basados en PdfReportService) =====
@@ -459,5 +516,275 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  // ===== MÉTODOS DE IMPRESIÓN ZPL =====
+
+  /**
+   * Inicializa la librería Zebra Browser Print Wrapper
+   */
+  private async inicializarZebraBrowserPrint(): Promise<void> {
+    try {
+      if (typeof ZebraBrowserPrintWrapper === 'undefined') {
+        console.error('ZebraBrowserPrintWrapper no está disponible');
+        this.mostrarMensajeError('La librería Zebra Browser Print Wrapper no está cargada');
+        return;
+      }
+
+      this.zebraBrowserPrint = new ZebraBrowserPrintWrapper();
+      await this.cargarImpresorasDisponibles();
+      
+    } catch (error) {
+      console.error('Error al inicializar Zebra Browser Print:', error);
+      this.mostrarMensajeError('Error al inicializar la impresora Zebra');
+    }
+  }
+
+  /**
+   * Carga la lista de impresoras disponibles
+   */
+  private async cargarImpresorasDisponibles(): Promise<void> {
+    if (!this.zebraBrowserPrint) return;
+
+    this.verificandoConexion = true;
+    
+    try {
+      const impresoras = await this.zebraBrowserPrint.getAvailablePrinters();
+      
+      if (impresoras && Array.isArray(impresoras)) {
+        this.dispositivosDisponibles = impresoras.map((printer: any) => ({
+          name: printer.name || 'Impresora sin nombre',
+          uid: printer.uid || printer.name,
+          connection: printer.connection || 'USB',
+          deviceType: printer.deviceType || 'Zebra'
+        }));
+
+        if (this.dispositivosDisponibles.length > 0) {
+          const defaultPrinter = await this.zebraBrowserPrint.getDefaultPrinter();
+          
+          if (defaultPrinter) {
+            const printerDefault = this.dispositivosDisponibles.find(p => 
+              p.name === defaultPrinter.name || p.uid === defaultPrinter.uid
+            );
+            
+            if (printerDefault) {
+              this.seleccionarDispositivo(printerDefault);
+            } else {
+              this.seleccionarDispositivo(this.dispositivosDisponibles[0]);
+            }
+          } else {
+            this.seleccionarDispositivo(this.dispositivosDisponibles[0]);
+          }
+        }
+
+        this.mostrarMensajeExito(`${this.dispositivosDisponibles.length} impresora(s) encontrada(s)`);
+      } else {
+        this.dispositivosDisponibles = [];
+        this.mostrarMensajeError('No se encontraron impresoras Zebra');
+      }
+      
+    } catch (error) {
+      console.error('Error al cargar impresoras:', error);
+      this.mostrarMensajeError('Error al buscar impresoras: ' + (error as Error).message);
+      this.dispositivosDisponibles = [];
+    } finally {
+      this.verificandoConexion = false;
+    }
+  }
+
+  /**
+   * Selecciona un dispositivo de impresión
+   */
+  seleccionarDispositivo(device: ZebraPrinter): void {
+    this.dispositivoSeleccionado = device;
+    
+    if (this.zebraBrowserPrint) {
+      this.zebraBrowserPrint.setPrinter(device);
+      this.verificarEstadoImpresora();
+      this.mostrarMensajeExito(`Impresora seleccionada: ${device.name}`);
+    }
+  }
+
+  /**
+   * Verifica el estado de la impresora seleccionada
+   */
+  private async verificarEstadoImpresora(): Promise<void> {
+    if (!this.zebraBrowserPrint || !this.dispositivoSeleccionado) {
+      this.estadoImpresora = { isReadyToPrint: false, errors: 'No hay impresora seleccionada' };
+      return;
+    }
+
+    try {
+      this.estadoImpresora = await this.zebraBrowserPrint.checkPrinterStatus();
+    } catch (error) {
+      console.error('Error al verificar estado de impresora:', error);
+      this.estadoImpresora = { 
+        isReadyToPrint: false, 
+        errors: 'Error al verificar estado: ' + (error as Error).message 
+      };
+    }
+  }
+
+  /**
+   * Refresca la lista de dispositivos
+   */
+  async refrescarDispositivos(): Promise<void> {
+    await this.cargarImpresorasDisponibles();
+  }
+
+  /**
+   * Prueba la impresora con una página de prueba
+   */
+  async probarImpresora(): Promise<void> {
+    if (!this.dispositivoSeleccionado) {
+      this.mostrarMensajeError('Debe seleccionar una impresora primero');
+      return;
+    }
+
+    this.verificandoConexion = true;
+    
+    try {
+      await this.verificarEstadoImpresora();
+      
+      if (!this.estadoImpresora.isReadyToPrint) {
+        this.mostrarMensajeError(`La impresora no está lista: ${this.estadoImpresora.errors}`);
+        return;
+      }
+
+      const zplPrueba = `^XA
+^CFD,30
+^FO50,50^FDPágina de Prueba^FS
+^CFD,20
+^FO50,100^FDImpresora: ${this.dispositivoSeleccionado.name}^FS
+^FO50,130^FDFecha: ${new Date().toLocaleString()}^FS
+^CFD,15
+^FO50,170^FDSi puede ver esto, la impresora funciona correctamente^FS
+^XZ`;
+
+      await this.zebraBrowserPrint.print(zplPrueba);
+      this.mostrarMensajeExito('Página de prueba enviada correctamente');
+      
+    } catch (error: any) {
+      console.error('Error al probar impresora:', error);
+      this.mostrarMensajeError('Error al probar impresora: ' + error.message);
+    } finally {
+      this.verificandoConexion = false;
+    }
+  }
+
+  /**
+   * Genera y muestra la vista previa del pedido en PDF
+   */
+  async generarVistaPrevia(): Promise<void> {
+    if (!this.PedidoDetalle) {
+      this.mostrarMensajeError('No hay datos de pedido para mostrar');
+      return;
+    }
+
+    try {
+      const result = await this.pedidoInvoiceService.generarPedidoPDF();
+      if (result.success) {
+        this.mostrarMensajeExito(result.message);
+      } else {
+        this.mostrarMensajeError(result.message);
+      }
+    } catch (error) {
+      console.error('Error al generar vista previa:', error);
+      this.mostrarMensajeError('Error al generar la vista previa del pedido');
+    }
+  }
+
+  /**
+   * Método principal de impresión ZPL
+   */
+  async imprimirPedidoZPL(): Promise<void> {
+    if (!this.PedidoDetalle) {
+      this.mostrarMensajeError('No hay datos de pedido para imprimir');
+      return;
+    }
+
+    this.imprimiendo = true;
+    this.mostrarAlertaError = false;
+    this.mostrarAlertaExito = false;
+
+    try {
+      const browserPrint = new ZebraBrowserPrintWrapper();
+      const defaultPrinter = await browserPrint.getDefaultPrinter();
+      browserPrint.setPrinter(defaultPrinter);
+      const printerStatus = await browserPrint.checkPrinterStatus();
+
+      if (printerStatus.isReadyToPrint) {
+        const pedidoData = this.pedidoInvoiceService.prepararDatosParaZPL();
+        const zplCode = this.zplPrintingService.generateInvoiceZPL(pedidoData);
+        await browserPrint.print(zplCode);
+        
+        this.mostrarMensajeExito(`Pedido ${this.PedidoDetalle.pedi_Id} enviado a impresión correctamente`);
+      } else {
+        this.mostrarMensajeError(`Error en la impresora: ${printerStatus.errors}`);
+      }
+
+    } catch (error: any) {
+      console.error('Error al imprimir pedido:', error);
+      this.mostrarMensajeError('Error al imprimir pedido: ' + error.message);
+    } finally {
+      this.imprimiendo = false;
+    }
+  }
+
+  // ===== MÉTODOS DE CONFIGURACIÓN =====
+
+  abrirConfiguracionImpresion(): void {
+    this.mostrarConfiguracionImpresion = true;
+  }
+
+  cerrarConfiguracionImpresion(): void {
+    this.mostrarConfiguracionImpresion = false;
+  }
+
+  seleccionarMetodo(metodo: string): void {
+    this.configuracionImpresion.metodoImpresion = metodo;
+  }
+
+  onBackdropClick(event: Event): void {
+    if (event.target === event.currentTarget) {
+      this.cerrarConfiguracionImpresion();
+    }
+  }
+
+  private mostrarMensajeError(mensaje: string): void {
+    this.mensajeError = mensaje;
+    this.mostrarAlertaError = true;
+    this.mostrarAlertaExito = false;
+  }
+
+  private mostrarMensajeExito(mensaje: string): void {
+    this.mensajeExito = mensaje;
+    this.mostrarAlertaExito = true;
+    this.mostrarAlertaError = false;
+  }
+
+  // Getters para el template
+  get browserPrintDisponible(): boolean {
+    return this.dispositivosDisponibles.length > 0;
+  }
+
+  get informacionImpresora(): string {
+    if (!this.dispositivoSeleccionado) {
+      return 'No seleccionada';
+    }
+    
+    return `${this.dispositivoSeleccionado.name} (${this.dispositivoSeleccionado.connection})`;
+  }
+
+  get estadoImpresoraTexto(): string {
+    if (!this.dispositivoSeleccionado) {
+      return 'No seleccionada';
+    }
+    
+    if (this.estadoImpresora.isReadyToPrint) {
+      return 'Lista para imprimir';
+    }
+    
+    return `Error: ${this.estadoImpresora.errors}`;
   }
 }
