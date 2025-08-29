@@ -200,6 +200,7 @@ export class ListComponent {
       status: ['', [Validators.required]],
       img: ['']
     });
+
     this.cargarAccionesUsuario();
     this.cargarDatos(true);
     this.contador();
@@ -299,7 +300,7 @@ export class ListComponent {
    */
   private obtenerDatosExport(): any[] {
     try {
-      const datos = this.clientesFiltrados; 
+      const datos = this.clientesFiltrados;
 
       if (!Array.isArray(datos) || datos.length === 0) {
         throw new Error('No hay datos disponibles para exportar');
@@ -611,7 +612,7 @@ export class ListComponent {
     this.clienteDetalle = null;
   }
 
-  activar(cliente: Cliente):void{
+  activar(cliente: Cliente): void {
     this.clienteSeleccionado = cliente;
     this.mostrarModalActivacion = true;
   }
@@ -701,4 +702,6 @@ export class ListComponent {
   esClienteActivo(cliente: any): boolean {
     return cliente.clie_Estado === 1 || cliente.clie_Estado === true;
   }
+
+ 
 }

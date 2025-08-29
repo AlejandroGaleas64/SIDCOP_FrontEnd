@@ -115,20 +115,16 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="clienteRTN" class="form-label">RTN</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
             <div class="d-flex align-items-center">
               <i class="ri-newspaper-line"
                 [ngStyle]="{
-                border: (!cliente.clie_RTN.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.clie_RTN.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: (!cliente.clie_RTN.trim()) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!cliente.clie_RTN.trim()) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
-              <input type="text" class="form-control" [class.is-invalid]="!cliente.clie_RTN.trim() && mostrarErrores"
+              <input type="text" class="form-control" [class.is-invalid]="!cliente.clie_RTN.trim()"
                 id="clienteRTN" [(ngModel)]="cliente.clie_RTN" placeholder="Ingrese el RTN del cliente"
-                mask="00000000000000" required />
-            </div>
-            <div class="text-danger mt-1" *ngIf="!cliente.clie_RTN.trim() && mostrarErrores">
-              <small>El campo RTN es requerido</small>
+                mask="00000000000000"/>
             </div>
           </div>
         </div>
@@ -790,7 +786,7 @@
           <div class="col-md-6">
             <div class="mb-3">
               <label for="colo_Id" class="form-label">Colonia</label>
-              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <span class="text-danger">*</span>
               <div class="d-flex align-items-center">
                 <i class="ri-community-line"
                   [ngStyle]="{
@@ -968,7 +964,7 @@
           <div class="col-md-6">
             <div class="mb-3">
               <label for="clienteDireccionExacta" class="form-label">Latitud</label>
-              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <span class="text-danger">*</span>
               <div class="d-flex align-items-center">
                 <i class="ri-pushpin-2-line"
                   [ngStyle]="{
@@ -994,7 +990,7 @@
           <div class="col-md-6">
             <div class="mb-3">
               <label for="clienteDireccionExacta" class="form-label">Longitud</label>
-              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <span class="text-danger">*</span>
               <div class="d-flex align-items-center">
                 <i class="ri-pushpin-2-line"
                   [ngStyle]="{
@@ -1021,7 +1017,7 @@
           <div class="col-md-6">
             <div class="mb-3">
               <label for="clienteDescripcionDeDireccion" class="form-label">Descripción</label>
-              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <span class="text-danger">*</span>
               <div class="d-flex align-items-center">
                 <i class="ri-attachment-line"
                   [ngStyle]="{
@@ -1047,7 +1043,7 @@
           <div class="col-md-6">
             <div class="mb-3">
               <label for="colo_Id" class="form-label">Colonia</label>
-              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <span class="text-danger">*</span>
               <div class="d-flex align-items-center">
                 <i class="ri-community-line"
                   [ngStyle]="{
@@ -1057,7 +1053,7 @@
                 </i>
                 <select id="colo_Id" name="colo_Id" class="form-select" [(ngModel)]="direccionPorCliente.colo_Id"
                   [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores" required>
-                  <option value="0" disabled>Seleccione una Colonia</option>
+                  <option value="0" disabled>Seleccione una colonia</option>
                   <option *ngFor="let colonia of TodasColonias" [value]="colonia.colo_Id">
                     {{ colonia.colo_Descripcion }}, {{ colonia.muni_Descripcion }}, {{ colonia.depa_Descripcion }}
                   </option>
@@ -1076,7 +1072,7 @@
           <div class="col-md-6">
             <div class="mb-3">
               <label for="clienteDireccionExacta" class="form-label">Dirección Exacta</label>
-              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <span class="text-danger">*</span>
               <div class="d-flex align-items-center">
                 <i class="ri-direction-line"
                   [ngStyle]="{

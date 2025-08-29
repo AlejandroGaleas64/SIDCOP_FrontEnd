@@ -210,7 +210,6 @@ export class EditComponent implements OnChanges {
       if (
         // this.cliente.clie_Codigo.trim() &&
         this.cliente.clie_Nacionalidad.trim() &&
-        this.cliente.clie_RTN.trim() &&
         this.cliente.clie_Nombres.trim() &&
         this.cliente.clie_Apellidos.trim() &&
         this.cliente.esCv_Id &&
@@ -358,11 +357,9 @@ export class EditComponent implements OnChanges {
       if (
         // this.cliente.clie_Codigo.trim() &&
         this.cliente.clie_Nacionalidad.trim() &&
-        this.cliente.clie_RTN.trim() &&
         this.cliente.clie_Nombres.trim() &&
         this.cliente.clie_Apellidos.trim() &&
         this.cliente.esCv_Id &&
-        this.cliente.clie_FechaNacimiento &&
         this.cliente.tiVi_Id &&
         this.cliente.clie_Telefono.trim()
       ) {
@@ -1519,10 +1516,7 @@ export class EditComponent implements OnChanges {
   private validarCampos(): boolean {
     const errores: string[] = [];
 
-    // Validar campos básicos requeridos
-    if (!this.cliente.clie_RTN.trim()) {
-      errores.push('RTN');
-    }
+    // Validar campos básicos requerido
 
     if (!this.cliente.clie_Nombres.trim()) {
       errores.push('Nombres');
