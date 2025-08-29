@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -7,6 +7,7 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { ImageUploadService } from 'src/app/core/services/image-upload.service';
+import Cropper from 'cropperjs';
 
 @Component({
   selector: 'app-create',
@@ -25,6 +26,7 @@ import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 export class CreateComponent {
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<any>();
+  @ViewChild('imageCropper', { static: false }) imageCropper!: ElementRef<HTMLImageElement>;
 
   // Estados de alerta
   mostrarErrores = false;
@@ -34,6 +36,12 @@ export class CreateComponent {
   mensajeError = '';
   mostrarAlertaWarning = false;
   mensajeWarning = '';
+
+  // Cropper properties
+  showCropper = false;
+  cropper: Cropper | null = null;
+  selectedFile: File | null = null;
+  logoSeleccionado = false;
 
   // Modelo
   configFactura = {
@@ -130,18 +138,73 @@ export class CreateComponent {
     }
   }
 
-  async onImagenSeleccionada(event: any) {
+  onFileChange(event: any) {
     const file = event.target.files[0];
-
     if (file) {
+      this.selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imageCropper.nativeElement.src = e.target.result;
+        this.showCropper = true;
+        setTimeout(() => {
+          if (this.cropper) {
+            this.cropper.destroy();
+          }
+          this.cropper = new Cropper(this.imageCropper.nativeElement, {
+            aspectRatio: 1,
+            viewMode: 1,
+            autoCropArea: 0.8,
+            responsive: true,
+            background: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+          });
+        }, 100);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  cerrarModalCropper() {
+    this.showCropper = false;
+    if (this.cropper) {
+      this.cropper.destroy();
+      this.cropper = null;
+    }
+    this.selectedFile = null;
+  }
+
+  async cropAndUpload() {
+    if (this.cropper && this.selectedFile) {
       try {
-        // Subir imagen al backend usando ImageUploadService
-        const imagePath = await this.imageUploadService.uploadImageAsync(file);
-        this.configFactura.coFa_Logo = imagePath;
+        const canvas = this.cropper.getCroppedCanvas({
+          width: 300,
+          height: 300,
+          imageSmoothingEnabled: true,
+          imageSmoothingQuality: 'high'
+        });
+        
+        canvas.toBlob(async (blob: Blob | null) => {
+          if (blob) {
+            const croppedFile = new File([blob], this.selectedFile!.name, {
+              type: this.selectedFile!.type,
+              lastModified: Date.now()
+            });
+            
+            const imagePath = await this.imageUploadService.uploadImageAsync(croppedFile);
+            this.configFactura.coFa_Logo = imagePath;
+            this.logoSeleccionado = true;
+            this.cerrarModalCropper();
+          }
+        }, this.selectedFile.type, 0.9);
       } catch (error) {
-        console.error('Error al subir la imagen:', error);
+        console.error('Error al procesar la imagen:', error);
         this.mostrarAlertaError = true;
-        this.mensajeError = 'Error al subir la imagen. Por favor, inténtelo de nuevo.';
+        this.mensajeError = 'Error al procesar la imagen. Por favor, inténtelo de nuevo.';
         setTimeout(() => {
           this.mostrarAlertaError = false;
           this.mensajeError = '';
