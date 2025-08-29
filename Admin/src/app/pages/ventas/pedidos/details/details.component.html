@@ -174,6 +174,18 @@
      
     </div> -->
 
+    <!-- Botones de facturación -->
+    <div class="d-flex justify-content-end gap-2 mt-4">
+      <button type="button" class="btn btn-outline-primary" (click)="toggleVistaFactura()">
+        <i class="ri-eye-line me-1"></i>
+        Vista Previa Factura
+      </button>
+      <button type="button" class="btn btn-success" (click)="generarFactura()">
+        <i class="ri-file-text-line me-1"></i>
+        Generar Factura
+      </button>
+    </div>
+
     <ng-template #sinProductos>
       <p>No hay productos en este pedido.</p>
     </ng-template>
@@ -184,7 +196,156 @@
   </ng-template>
 </div>
 
+<!-- Vista previa de factura -->
+<div *ngIf="mostrarVistaFactura" class="invoice-preview mt-4">
+  <div class="card">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">
+        <i class="ri-file-text-line me-2"></i>
+        Vista Previa de Factura
+      </h5>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-light btn-sm" (click)="imprimirFactura()">
+          <i class="ri-printer-line me-1"></i>
+          Imprimir
+        </button>
+        <button type="button" class="btn btn-light btn-sm" (click)="descargarFacturaPDF()">
+          <i class="ri-download-line me-1"></i>
+          PDF
+        </button>
+        <button type="button" class="btn btn-light btn-sm" (click)="enviarFacturaEmail()">
+          <i class="ri-mail-line me-1"></i>
+          Email
+        </button>
+        <button type="button" class="btn btn-outline-light btn-sm" (click)="toggleVistaFactura()">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+    </div>
+    <div class="card-body p-4" id="invoice-content">
+      <!-- Encabezado de la factura -->
+      <div class="row mb-4">
+        <div class="col-sm-6">
+          <div class="d-flex align-items-center mb-3">
+            <img *ngIf="configuracionFactura?.coFa_Logo" 
+                 [src]="configuracionFactura?.coFa_Logo" 
+                 alt="Logo" 
+                 class="me-3" 
+                 style="height: 60px;">
+            <div>
+              <h4 class="mb-1">{{ configuracionFactura?.coFa_NombreEmpresa || 'SIDCOP S.A. de C.V.' }}</h4>
+              <p class="mb-0 text-muted">{{ configuracionFactura?.coFa_DireccionEmpresa || 'Tegucigalpa, Honduras' }}</p>
+            </div>
+          </div>
+          <div class="text-muted">
+            <p class="mb-1"><strong>RTN:</strong> {{ configuracionFactura?.coFa_RTN || '08019999999999' }}</p>
+            <p class="mb-1"><strong>Tel:</strong> {{ configuracionFactura?.coFa_Telefono1 || '+504 2234-5678' }}</p>
+            <p class="mb-0"><strong>Email:</strong> {{ configuracionFactura?.coFa_Correo || 'facturacion@sidcop.com' }}</p>
+          </div>
+        </div>
+        <div class="col-sm-6 text-sm-end">
+          <h2 class="text-primary mb-3">FACTURA</h2>
+          <div class="mb-2">
+            <strong>No. Factura:</strong> {{ numeroFactura }}
+          </div>
+          <div class="mb-2">
+            <strong>Fecha:</strong> {{ fechaFactura | date:'dd/MM/yyyy' }}
+          </div>
+          <div class="mb-2">
+            <strong>Pedido No.:</strong> {{ PedidoDetalle?.pedi_Id || 'N/A' }}
+          </div>
+        </div>
+      </div>
 
+      <!-- Información del cliente -->
+      <div class="row mb-4">
+        <div class="col-sm-6">
+          <h6 class="text-primary mb-2">FACTURAR A:</h6>
+          <div class="text-muted">
+            <p class="mb-1"><strong>{{ PedidoDetalle?.clie_NombreNegocio || 'N/A' }}</strong></p>
+            <p class="mb-1">Cliente ID: {{ PedidoDetalle?.clie_Id || 'N/A' }}</p>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <h6 class="text-primary mb-2">VENDEDOR:</h6>
+          <div class="text-muted">
+            <p class="mb-1">{{ PedidoDetalle?.vend_Nombres }} {{ PedidoDetalle?.vend_Apellidos }}</p>
+            <p class="mb-1">Fecha Entrega: {{ formatearFecha(PedidoDetalle?.pedi_FechaEntrega ?? null) }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de productos -->
+      <div class="table-responsive mb-4">
+        <table class="table table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th class="text-center" style="width: 50px;">#</th>
+              <th>Descripción</th>
+              <th class="text-center" style="width: 100px;">Cantidad</th>
+              <th class="text-end" style="width: 120px;">Precio Unit.</th>
+              <th class="text-end" style="width: 120px;">Importe</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let producto of productos; let i = index">
+              <td class="text-center">{{ i + 1 }}</td>
+              <td>{{ producto.descripcion }}</td>
+              <td class="text-center">{{ producto.cantidad }}</td>
+              <td class="text-end">{{ producto.precio | currency : "L. " }}</td>
+              <td class="text-end">{{ (producto.precio * producto.cantidad) | currency : "L. " }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totales de la factura -->
+      <div class="row">
+        <div class="col-sm-6">
+          <div class="mb-3">
+            <h6 class="text-primary">TÉRMINOS Y CONDICIONES:</h6>
+            <p class="text-muted small mb-0">
+              • El pago debe realizarse dentro de los 30 días posteriores a la fecha de facturación.<br>
+              • Los productos entregados están sujetos a las condiciones acordadas.<br>
+              • Para cualquier consulta, contactar al departamento de facturación.
+            </p>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="table-responsive">
+            <table class="table table-borderless table-sm">
+              <tbody>
+                <tr>
+                  <td class="text-end"><strong>Subtotal:</strong></td>
+                  <td class="text-end" style="width: 120px;">{{ subtotal | currency : "L. " }}</td>
+                </tr>
+                <tr *ngIf="descuento > 0">
+                  <td class="text-end"><strong>Descuento ({{ porcentajeDescuento }}%):</strong></td>
+                  <td class="text-end text-danger">-{{ descuento | currency : "L. " }}</td>
+                </tr>
+                <tr>
+                  <td class="text-end"><strong>ISV ({{ porcentajeImpuesto }}%):</strong></td>
+                  <td class="text-end">{{ impuesto | currency : "L. " }}</td>
+                </tr>
+                <tr class="table-active">
+                  <td class="text-end"><strong class="fs-5">TOTAL:</strong></td>
+                  <td class="text-end"><strong class="fs-5">{{ total | currency : "L. " }}</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pie de factura -->
+      <div class="text-center mt-4 pt-3 border-top">
+        <p class="text-muted small mb-0">
+          Gracias por su preferencia. Esta factura fue generada electrónicamente.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Tabla de auditoría -->
 <div class="audit-table-container">
