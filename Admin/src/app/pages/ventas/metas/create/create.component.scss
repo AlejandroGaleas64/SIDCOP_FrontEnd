@@ -1,0 +1,114 @@
+
+.stepper-nav {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.stepper-tab {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px 8px 0 0;
+  background: #f5f7fa;
+  color: #3b5de7;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+  position: relative;
+}
+.stepper-tab.active {
+  background: #3b5de7;
+  color: #fff;
+  z-index: 2;
+}
+.stepper-tab.completed {
+  background: #e6f0ff;
+  color: #3b5de7;
+}
+.stepper-tab.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+.stepper-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e6f0ff;
+  color: #3b5de7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+  font-size: 1.2rem;
+}
+.stepper-tab.active .stepper-circle {
+  background: #fff;
+  color: #3b5de7;
+  border: 2px solid #fff;
+}
+.stepper-label {
+  font-size: 1rem;
+}
+.stepper-line {
+  flex: 1;
+  height: 3px;
+  background: #e6f0ff;
+  margin: 0 0.5rem;
+  border-radius: 2px;
+}
+
+//
+.custom-checkbox-blue {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.custom-checkbox-blue input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.custom-checkbox-blue .checkmark {
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border: 2px solid #3b5de7;
+  border-radius: 4px;
+  display: inline-block;
+  margin-right: 0.5rem;
+  position: relative;
+  transition: background 0.2s, border 0.2s;
+}
+.custom-checkbox-blue input[type="checkbox"]:checked + label .checkmark,
+.custom-checkbox-blue input[type="checkbox"]:checked ~ .checkmark {
+  background: #3b5de7;
+  border-color: #3b5de7;
+}
+.custom-checkbox-blue .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+.custom-checkbox-blue input[type="checkbox"]:checked + label .checkmark:after,
+.custom-checkbox-blue input[type="checkbox"]:checked ~ .checkmark:after {
+  display: block;
+}
+.custom-checkbox-blue .checkmark:after {
+  left: 6px;
+  top: 2px;
+  width: 6px;
+  height: 12px;
+  border: solid #fff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+  content: "";
+  position: absolute;
+}
+.custom-checkbox-blue label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-bottom: 0;
+  user-select: none;
+}

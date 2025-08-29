@@ -5,11 +5,12 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { Meta } from 'src/app/Modelos/ventas/MetaModel';
+import { CurrencyMaskModule } from "ng2-currency-mask";
 
 @Component({
   selector: 'app-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, CurrencyMaskModule],
   templateUrl: './create.component.html',
   styleUrl: './create.component.scss'
 })
@@ -57,6 +58,7 @@ export class CreateComponent implements OnInit {
   // Vendedor selection
   vendedoresSeleccionados: number[] = [];
   selectAllVendedores = false;
+  filtroVendedor: string = '';
 
   // Tipo options
   tiposMeta = [
@@ -192,6 +194,13 @@ toggleVendedor(vend_Id: number, event: Event) {
     return xml;
   }
 
+  get vendedoresFiltrados() {
+  if (!this.filtroVendedor?.trim()) return this.vendedores;
+  const filtro = this.filtroVendedor.trim().toLowerCase();
+  return this.vendedores.filter(v =>
+    (`${v.vend_Nombres} ${v.vend_Apellidos}`.toLowerCase().includes(filtro))
+  );
+}
   
 
   // Save

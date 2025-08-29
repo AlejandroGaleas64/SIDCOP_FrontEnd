@@ -20,75 +20,128 @@
     </div>
   </div>
 
-  <!-- Stepper -->
-  <ul class="nav nav-tabs mb-3" role="tablist">
+  <!-- Stepper (Tabs) -->
+  <!-- <ul class="nav nav-tabs nav-tabs-custom mb-3" role="tablist">
     <li class="nav-item" role="presentation">
       <button class="nav-link" [class.active]="activeStep === 1" (click)="activeStep = 1" type="button" role="tab">
-        Información General
+        <span class="d-flex align-items-center">
+          <i class="ri-information-line me-2"></i> Información General
+        </span>
       </button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" [class.active]="activeStep === 2" (click)="activeStep = 2" type="button" role="tab">
-        Vendedores
+      <button class="nav-link" [class.active]="activeStep === 2" [disabled]="!validarPasoActual()" (click)="activeStep = 2" type="button" role="tab">
+        <span class="d-flex align-items-center">
+          <i class="ri-user-settings-line me-2"></i> Vendedores
+        </span>
       </button>
     </li>
-  </ul>
+  </ul> -->
+  <div class="stepper-nav mb-4">
+  <div class="stepper-tab"
+       [ngClass]="{'active': activeStep === 1, 'completed': activeStep > 1}">
+    <div class="stepper-circle">
+      <ng-container *ngIf="activeStep > 1; else infoIcon">
+        <i class="ri-check-line"></i>
+      </ng-container>
+      <ng-template #infoIcon>
+        <i class="ri-information-line"></i>
+      </ng-template>
+    </div>
+    <span class="stepper-label">Información General</span>
+  </div>
+  <div class="stepper-line"></div>
+  <div class="stepper-tab"
+       [ngClass]="{'active': activeStep === 2, 'completed': false, 'disabled': !validarPasoActual()}"
+       (click)="validarPasoActual() && (activeStep = 2)">
+    <div class="stepper-circle">
+      <i class="ri-user-settings-line"></i>
+    </div>
+    <span class="stepper-label">Vendedores</span>
+  </div>
+</div>
 
   <!-- Paso 1: Información General -->
   <div *ngIf="activeStep === 1">
     <div class="row">
-      <div class="col-md-6 mb-3">
+      <div class="col-md-6 mb-3 position-relative">
         <label class="form-label">Tipo <span class="text-danger">*</span></label>
-        <select class="form-select" [(ngModel)]="meta.meta_Tipo" required [class.is-invalid]="!meta.meta_Tipo && mostrarErrores">
-          <option value="" disabled selected>Seleccione un tipo</option>
-          <option *ngFor="let tipo of tiposMeta" [value]="tipo.value">{{ tipo.label }}</option>
-        </select>
+        <div class="input-group">
+          <span class="input-group-text"><i class="ri-list-settings-line"></i></span>
+          <select class="form-select" [(ngModel)]="meta.meta_Tipo" required [class.is-invalid]="!meta.meta_Tipo && mostrarErrores">
+            <option value="" disabled selected>Seleccione un tipo</option>
+            <option *ngFor="let tipo of tiposMeta" [value]="tipo.value">{{ tipo.label }}</option>
+          </select>
+        </div>
         <div class="text-danger mt-1" *ngIf="!meta.meta_Tipo && mostrarErrores">
           <small>El campo Tipo es requerido</small>
         </div>
       </div>
-      <div class="col-md-6 mb-3">
+      <div class="col-md-6 mb-3 position-relative">
         <label class="form-label">Descripción <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" [(ngModel)]="meta.meta_Descripcion" required [class.is-invalid]="!meta.meta_Descripcion && mostrarErrores" placeholder="Ingrese la descripción de la meta">
+        <div class="input-group">
+          <span class="input-group-text"><i class="ri-file-list-2-line"></i></span>
+          <input type="text" class="form-control" [(ngModel)]="meta.meta_Descripcion" required [class.is-invalid]="!meta.meta_Descripcion && mostrarErrores" placeholder="Ingrese la descripción de la meta">
+        </div>
         <div class="text-danger mt-1" *ngIf="!meta.meta_Descripcion && mostrarErrores">
           <small>El campo Descripción es requerido</small>
         </div>
       </div>
-      <div class="col-md-6 mb-3">
+      <div class="col-md-6 mb-3 position-relative">
         <label class="form-label">Fecha Inicio <span class="text-danger">*</span></label>
-        <input type="date" class="form-control" [(ngModel)]="meta.meta_FechaInicio" required [class.is-invalid]="!meta.meta_FechaInicio && mostrarErrores">
+        <div class="input-group">
+          <span class="input-group-text"><i class="ri-calendar-line"></i></span>
+          <input type="date" class="form-control" [(ngModel)]="meta.meta_FechaInicio" required [class.is-invalid]="!meta.meta_FechaInicio && mostrarErrores">
+        </div>
         <div class="text-danger mt-1" *ngIf="!meta.meta_FechaInicio && mostrarErrores">
           <small>El campo Fecha Inicio es requerido</small>
         </div>
       </div>
-      <div class="col-md-6 mb-3">
+      <div class="col-md-6 mb-3 position-relative">
         <label class="form-label">Fecha Fin <span class="text-danger">*</span></label>
-        <input type="date" class="form-control" [(ngModel)]="meta.meta_FechaFin" required [class.is-invalid]="!meta.meta_FechaFin && mostrarErrores">
+        <div class="input-group">
+          <span class="input-group-text"><i class="ri-calendar-check-line"></i></span>
+          <input type="date" class="form-control" [(ngModel)]="meta.meta_FechaFin" required [class.is-invalid]="!meta.meta_FechaFin && mostrarErrores">
+        </div>
         <div class="text-danger mt-1" *ngIf="!meta.meta_FechaFin && mostrarErrores">
           <small>El campo Fecha Fin es requerido</small>
         </div>
       </div>
-      <div class="col-md-6 mb-3">
+      <div class="col-md-6 mb-3 position-relative">
         <label class="form-label">Ingresos</label>
-        <input type="number" class="form-control" [(ngModel)]="meta.meta_Ingresos" min="0" placeholder="Ingresos meta">
+        <div class="input-group">
+          <span class="input-group-text"><i class="ri-money-dollar-circle-line"></i></span>
+          <input type="text" class="form-control" currencyMask
+            [options]="{ prefix: 'L ', thousands: ',', decimal: '.', precision: 2 }"
+            [(ngModel)]="meta.meta_Ingresos" placeholder="Ingresos meta">
+        </div>
       </div>
-      <div class="col-md-6 mb-3">
+      <div class="col-md-6 mb-3 position-relative">
         <label class="form-label">Unidades</label>
-        <input type="number" class="form-control" [(ngModel)]="meta.meta_Unidades" min="0" placeholder="Unidades meta">
+        <div class="input-group">
+          <span class="input-group-text"><i class="ri-hashtag"></i></span>
+          <input type="number" class="form-control" [(ngModel)]="meta.meta_Unidades" min="0" placeholder="Unidades meta">
+        </div>
       </div>
-      <div class="col-md-6 mb-3">
+      <div class="col-md-6 mb-3 position-relative">
         <label class="form-label">Categoría</label>
-        <select class="form-select" [(ngModel)]="meta.cate_Id">
-          <option value="0" disabled selected>Seleccione una categoría</option>
-          <option *ngFor="let cate of categorias" [value]="cate.cate_Id">{{ cate.cate_Descripcion }}</option>
-        </select>
+        <div class="input-group">
+          <span class="input-group-text"><i class="ri-price-tag-3-line"></i></span>
+          <select class="form-select" [(ngModel)]="meta.cate_Id">
+            <option value="0" disabled selected>Seleccione una categoría</option>
+            <option *ngFor="let cate of categorias" [value]="cate.cate_Id">{{ cate.cate_Descripcion }}</option>
+          </select>
+        </div>
       </div>
-      <div class="col-md-6 mb-3">
+      <div class="col-md-6 mb-3 position-relative">
         <label class="form-label">Producto</label>
-        <select class="form-select" [(ngModel)]="meta.prod_Id">
-          <option value="0" disabled selected>Seleccione un producto</option>
-          <option *ngFor="let prod of productos" [value]="prod.prod_Id">{{ prod.prod_Descripcion }}</option>
-        </select>
+        <div class="input-group">
+          <span class="input-group-text"><i class="ri-shopping-bag-3-line"></i></span>
+          <select class="form-select" [(ngModel)]="meta.prod_Id">
+            <option value="0" disabled selected>Seleccione un producto</option>
+            <option *ngFor="let prod of productos" [value]="prod.prod_Id">{{ prod.prod_Descripcion }}</option>
+          </select>
+        </div>
       </div>
     </div>
     <div class="d-flex justify-content-end gap-2 mt-3">
@@ -105,42 +158,86 @@
 
   <!-- Paso 2: Vendedores -->
   <div *ngIf="activeStep === 2">
-    <div class="mb-3">
+    <!-- <div class="mb-3">
       <label class="form-label">Vendedores <span class="text-danger">*</span></label>
+      
+      <div class="input-group mb-2">
+        <span class="input-group-text"><i class="ri-search-line"></i></span>
+        <input type="text" class="form-control" [(ngModel)]="filtroVendedor" placeholder="Buscar vendedor...">
+      </div>
       <div class="form-check mb-2">
         <input type="checkbox" class="form-check-input" id="selectAllVendedores" [checked]="selectAllVendedores" (change)="toggleSelectAllVendedores($event)">
         <label class="form-check-label" for="selectAllVendedores">Seleccionar todos</label>
       </div>
-      <!-- <div class="row">
-        <div class="col-md-4 mb-2" *ngFor="let vendedor of vendedores">
-          <div class="form-check">
-            <input type="checkbox" class="form-check-input"
+      <div class="row">
+        <ng-container *ngIf="vendedoresFiltrados.length > 0; else noVendedores">
+          <div class="col-md-4 mb-2" *ngFor="let vendedor of vendedoresFiltrados">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input"
+                [id]="'vendedor-' + vendedor.vend_Id"
+                [checked]="isVendedorSeleccionado(vendedor.vend_Id)"
+                (change)="toggleVendedor(vendedor.vend_Id, $event)">
+              <label class="form-check-label" [for]="'vendedor-' + vendedor.vend_Id">
+                {{ vendedor.vend_Nombres }} {{ vendedor.vend_Apellidos }}
+              </label>
+            </div>
+          </div>
+        </ng-container>
+        <ng-template #noVendedores>
+          <div class="col-12">
+            <div class="alert alert-warning py-2 mb-0 d-flex align-items-center">
+              <i class="ri-user-search-line me-2"></i>
+              No se encontraron vendedores con ese criterio.
+            </div>
+          </div>
+        </ng-template>
+      </div>
+      <div class="text-danger mt-1" *ngIf="vendedoresSeleccionados.length === 0 && mostrarErrores">
+        <small>Debe seleccionar al menos un vendedor</small>
+      </div>
+    </div> -->
+    <div class="mb-3">
+    <label class="form-label">Vendedores <span class="text-danger">*</span></label>
+    <!-- Filtro de vendedores -->
+    <div class="input-group mb-2">
+      <span class="input-group-text"><i class="ri-search-line"></i></span>
+      <input type="text" class="form-control" [(ngModel)]="filtroVendedor" placeholder="Buscar vendedor...">
+    </div>
+    <div class="custom-checkbox-blue mb-2">
+      <input type="checkbox" id="selectAllVendedores" [checked]="selectAllVendedores" (change)="toggleSelectAllVendedores($event)">
+      <label for="selectAllVendedores">
+        <span class="checkmark"></span>
+        Seleccionar todos
+      </label>
+    </div>
+    <div class="row">
+      <ng-container *ngIf="vendedoresFiltrados.length > 0; else noVendedores">
+        <div class="col-md-4 mb-2" *ngFor="let vendedor of vendedoresFiltrados">
+          <div class="custom-checkbox-blue">
+            <input type="checkbox"
               [id]="'vendedor-' + vendedor.vend_Id"
-              [checked]="vendedoresSeleccionados.includes(vendedor.vend_Id)"
-              (change)="toggleVendedor(vendedor.vend_Id, $event.target.checked )">
-            <label class="form-check-label" [for]="'vendedor-' + vendedor.vend_Id">
+              [checked]="isVendedorSeleccionado(vendedor.vend_Id)"
+              (change)="toggleVendedor(vendedor.vend_Id, $event)">
+            <label [for]="'vendedor-' + vendedor.vend_Id">
+              <span class="checkmark"></span>
               {{ vendedor.vend_Nombres }} {{ vendedor.vend_Apellidos }}
             </label>
           </div>
         </div>
-      </div> -->
-      <div class="row">
-  <div class="col-md-4 mb-2" *ngFor="let vendedor of vendedores">
-    <div class="form-check">
-      <input type="checkbox" class="form-check-input"
-        [id]="'vendedor-' + vendedor.vend_Id"
-        [checked]="isVendedorSeleccionado(vendedor.vend_Id)"
-        (change)="toggleVendedor(vendedor.vend_Id, $event)">
-      <label class="form-check-label" [for]="'vendedor-' + vendedor.vend_Id">
-        {{ vendedor.vend_Nombres }} {{ vendedor.vend_Apellidos }}
-      </label>
+      </ng-container>
+      <ng-template #noVendedores>
+        <div class="col-12">
+          <div class="alert alert-warning py-2 mb-0 d-flex align-items-center">
+            <i class="ri-user-search-line me-2"></i>
+            No se encontraron vendedores con ese criterio.
+          </div>
+        </div>
+      </ng-template>
+    </div>
+    <div class="text-danger mt-1" *ngIf="vendedoresSeleccionados.length === 0 && mostrarErrores">
+      <small>Debe seleccionar al menos un vendedor</small>
     </div>
   </div>
-</div>
-      <div class="text-danger mt-1" *ngIf="vendedoresSeleccionados.length === 0 && mostrarErrores">
-        <small>Debe seleccionar al menos un vendedor</small>
-      </div>
-    </div>
     <div class="d-flex justify-content-between gap-2 mt-3">
       <button type="button" class="btn btn-primary gold" (click)="cancelar()">
         <span class="btn-text">Cancelar</span>
