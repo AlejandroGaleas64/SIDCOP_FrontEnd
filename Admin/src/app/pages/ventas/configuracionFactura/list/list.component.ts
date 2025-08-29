@@ -15,6 +15,7 @@ import { EditConfigFacturaComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
 import { trigger, state, style, transition, animate } from '@angular/animations';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 // Importar el servicio de exportación optimizado
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
@@ -85,7 +86,8 @@ export class ListComponent implements OnInit {
       { key: 'RTN', header: 'RTN', width: 25, align: 'left' as const },
       { key: 'Telefono', header: 'Teléfono', width: 20, align: 'left' as const },
       { key: 'Correo', header: 'Correo', width: 35, align: 'left' as const },
-      { key: 'Direccion', header: 'Dirección', width: 50, align: 'left' as const }
+      { key: 'Direccion', header: 'Dirección', width: 45, align: 'left' as const },
+      { key: 'Días de Devolución', header: 'Días de Devolución', width: 20, align: 'left' as const }
     ] as ExportColumn[],
     
     // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
@@ -95,7 +97,8 @@ export class ListComponent implements OnInit {
       'RTN': this.limpiarTexto(configuracion?.coFa_RTN),
       'Telefono': this.limpiarTexto(configuracion?.coFa_Telefono1),
       'Correo': this.limpiarTexto(configuracion?.coFa_Correo),
-      'Direccion': this.limpiarTexto(configuracion?.coFa_DireccionEmpresa)
+      'Direccion': this.limpiarTexto(configuracion?.coFa_DireccionEmpresa),
+      'Días de Devolución': this.limpiarTexto(configuracion?.coFa_DiasDevolucion)
       // Agregar más campos aquí según necesites:
       // 'CAI': this.limpiarTexto(configuracion?.coFa_CAI),
       // 'RangoInicial': configuracion?.coFa_RangoInicial?.toString() || '',
@@ -143,7 +146,8 @@ export class ListComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     public floatingMenuService: FloatingMenuService,
-    private exportService: ExportService
+    private exportService: ExportService,
+    private imageUploadService: ImageUploadService
   ) {
     this.cargardatos(true);
   }
@@ -151,7 +155,7 @@ export class ListComponent implements OnInit {
   ngOnInit(): void {
     this.breadCrumbItems = [
       { label: 'Ventas' },
-      { label: 'ConfiguracionFactura', active: true }
+      { label: 'Configuración de la Empresa', active: true }
     ];
     this.cargarAccionesUsuario();
   }
@@ -306,8 +310,6 @@ export class ListComponent implements OnInit {
     if (!texto) return '';
     
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }
@@ -478,6 +480,13 @@ export class ListComponent implements OnInit {
   onImgError(event: Event): void {
     const target = event.target as HTMLImageElement;
     target.src = 'assets/images/users/32/user-dummy-img.jpg';
+  }
+
+  /**
+   * Obtiene la URL completa para mostrar la imagen
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
   }
 
   cerrarAlerta(): void {

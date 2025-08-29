@@ -87,7 +87,8 @@
             </div>
         </div>
 
-        <div class="row mb-4" *ngIf="sucursalSeleccionada">
+        <!-- Sección de filtros y botones -->
+        <div class="row mb-4" *ngIf="sucursalSeleccionada && !mostrarVisorPDF">
             <div class="col-12 col-md-6 mb-3 mb-md-0">
                 <div class="d-flex align-items-center">
                     <i class="ri-search-line"
@@ -99,6 +100,12 @@
             </div>
             <div class="col-12 col-md-6">
                 <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-primary" (click)="cargarHistorialYGenerarPDF()" [disabled]="cargandoPdf">
+                        <span class="btn-text">{{ cargandoPdf ? 'Cargando...' : 'Historial' }}</span>
+                        <span class="btn-icon">
+                            <i class="{{ cargandoPdf ? 'ri-loader-2-line spinner' : 'ri-history-line' }}"></i>
+                        </span>
+                    </button>
                     <button type="button" class="btn btn-primary" (click)="abrirModalClave('actualizar')">
                         <span class="btn-text">Actualizar</span>
                         <span class="btn-icon">
@@ -115,7 +122,55 @@
             </div>
         </div>
 
-        <div class="row" *ngIf="sucursalSeleccionada">
+        <!-- Visor de PDF del Historial -->
+        <div class="row" *ngIf="mostrarVisorPDF">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center"
+                        style="background-color: #141a2f; border-bottom: 3px solid #d6b68a;">
+                        <div class="text-white fw-bold">
+                            <i class="ri-file-pdf-line me-2" style="color: #d6b68a;"></i>
+                            Historial de Inventario - {{ sucursalSeleccionada?.sucu_Descripcion }}
+                        </div>
+                        <div class="d-flex gap-2">
+                           
+                    <button type="button" class="btn btn-primary" (click)="descargarPDF()">
+                        <span class="btn-text">Descargar</span>
+                        <span class="btn-icon">
+                            <i class="ri-download-line me-1"></i>
+                        </span>
+                    </button>
+
+
+                
+                        <button type="button" class="btn btn-primary gold" (click)="cerrarVisorPDF()">
+                            <span class="btn-text">Cerrar</span>
+                            <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+                        </button>
+                      
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div style="height: 70vh; min-height: 500px;">
+                            <iframe *ngIf="pdfUrl" 
+                                [src]="pdfUrl" 
+                                style="width: 100%; height: 100%; border: none;"
+                                frameborder="0">
+                            </iframe>
+                            <div *ngIf="!pdfUrl && cargandoPdf" class="d-flex justify-content-center align-items-center h-100">
+                                <div class="text-center">
+                                    <i class="ri-loader-2-line spinner fs-1 text-primary mb-3"></i>
+                                    <p class="text-muted">Generando PDF...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de inventario (se oculta cuando se muestra el PDF) -->
+        <div class="row" *ngIf="sucursalSeleccionada && !mostrarVisorPDF">
             <div class="col-12">
                 <div *ngIf="inventarioSucursal.length === 0" class="text-center py-5">
                     <i class="ri-inbox-line display-4 text-muted"></i>
@@ -180,6 +235,7 @@
     </div>
 </div>
 
+<!-- Los modales permanecen igual -->
 <div class="modal fade" [class.show]="mostrarModal"
     [style.display]="mostrarModal ? 'block' : 'none'" tabindex="-1" role="dialog"
     *ngIf="mostrarModal">

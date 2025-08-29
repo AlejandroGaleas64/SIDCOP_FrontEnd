@@ -220,6 +220,9 @@ export class CreateComponent implements OnInit {
         console.log('Respuesta facturas completa:', res);
         const todasFacturas = res?.data || res || []; // Intentar ambas estructuras
 
+        // Obtener la fecha actual en formato YYYY-MM-DD
+        const fechaActual = new Date().toISOString().split('T')[0];
+
         // Obtener los IDs de las direcciones
         const direccionesIds = this.direcciones.map(d => d.diCl_Id);
         console.log('IDs de direcciones:', direccionesIds);
@@ -235,19 +238,26 @@ export class CreateComponent implements OnInit {
         this.facturasFiltradas = todasFacturas.filter((factura: any) => {
           // Intentar diferentes nombres de campo que podrían contener el ID de dirección
           const direccionId = factura.dicl_Id || factura.diCl_Id || factura.direccion_Id || factura.cliente_direccion_Id;
-          const coincide = direccionesIds.includes(direccionId);
+          const coincideDireccion = direccionesIds.includes(direccionId);
           
-          if (coincide) {
-            console.log(`Factura ${factura.fact_Numero || factura.numero} coincide con dirección ${direccionId}`);
+          // Convertir fact_FechaEmision a formato YYYY-MM-DD para comparar
+          const fechaEmision = new Date(factura.fact_FechaEmision).toISOString().split('T')[0];
+          const coincideFecha = fechaEmision === fechaActual;
+          
+          // Validar que la factura no esté anulada
+          const noAnulada = factura.fact_Anulado === false;
+          
+          if (coincideDireccion && coincideFecha && noAnulada) {
+            console.log(`Factura ${factura.fact_Numero || factura.numero} coincide con dirección ${direccionId}, fecha actual y no está anulada`);
           }
           
-          return coincide;
+          return coincideDireccion && coincideFecha && noAnulada;
         });
 
         console.log('Facturas filtradas final:', this.facturasFiltradas);
         
         if (this.facturasFiltradas.length === 0) {
-          console.warn('No se encontraron facturas que coincidan con las direcciones del cliente');
+          console.warn('No se encontraron facturas que coincidan con las direcciones del cliente, la fecha actual y que no estén anuladas');
           console.log('Verificar si el nombre del campo de dirección en las facturas es correcto');
         }
       },
@@ -261,11 +271,10 @@ export class CreateComponent implements OnInit {
   }
 
   cargarFacturarPorCliente(vendedorId: number) {
-    if (!vendedorId) { 
+    if (!vendedorId) {
       this.facturasFiltradas = [];
       return;
     }
-
     this.cargando = true;
     this.http.get<any>(`${environment.apiBaseUrl}/Facturas/ListarPorVendedor/${vendedorId}`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -273,24 +282,30 @@ export class CreateComponent implements OnInit {
       next: (res) => {
         console.log('Respuesta completa:', res);
         const todasFacturas = res?.data || [];
-
+        
+        // Obtener la fecha actual en formato YYYY-MM-DD
+        const fechaActual = new Date().toISOString().split('T')[0];
+        
         // Solo filtrar si ya tenemos direcciones cargadas
         if (this.direcciones && this.direcciones.length > 0) {
           const direccionesIds = this.direcciones.map(d => d.diCl_Id);
-          this.facturasFiltradas = todasFacturas.filter((f: any) => 
-            direccionesIds.includes(f.dicl_Id)
-          );
+          this.facturasFiltradas = todasFacturas.filter((f: any) => {
+            // Convertir fact_FechaEmision a formato YYYY-MM-DD para comparar
+            const fechaEmision = new Date(f.fact_FechaEmision).toISOString().split('T')[0];
+            // Validar que la factura no esté anulada
+            const noAnulada = f.fact_Anulado === false;
+            return direccionesIds.includes(f.dicl_Id) && fechaEmision === fechaActual && noAnulada;
+          });
         } else {
           // Si no hay direcciones, no mostrar facturas
           this.facturasFiltradas = [];
         }
-
         console.log('Facturas filtradas:', this.facturasFiltradas);
       },
-      error: (err) => { 
+      error: (err) => {
         console.error('Error cargando facturas:', err);
-        this.mostrarMensaje('Error al cargar la lista de facturas', 'error'); 
-        this.facturasFiltradas = []; 
+        this.mostrarMensaje('Error al cargar la lista de facturas', 'error');
+        this.facturasFiltradas = [];
       },
       complete: () => this.cargando = false
     });
@@ -613,7 +628,7 @@ export class CreateComponent implements OnInit {
     console.log('- Fin XML:', '</DevolucionDetalle>');
 
     const now = new Date().toISOString();
-    const fechaDevolucion = this.devolucion.devo_Fecha ? new Date(this.devolucion.devo_Fecha).toISOString() : now;
+    const fechaDevolucion = now;
     
     // Obtener el ID del usuario actual
     const usuarioId = getUserId() || 1; // Usar 1 como fallback si no se puede obtener
@@ -726,13 +741,13 @@ export class CreateComponent implements OnInit {
       this.mostrarMensaje('Faltan datos de cliente o vendedor para crear la factura', 'error');
       return;
     }
-
+    
     // Filtrar solo productos con cantidadVendida > 0 (productos restantes)
     const productosRestantes = this.productos
-      .filter(p => (p.cantidadVendida || 0) > 0)
+      .filter(p => p.cantidadVendida < p.cantidadOriginal)
       .map(p => ({
         prod_Id: p.prod_Id,
-        faDe_Cantidad: p.cantidadVendida || 0
+        faDe_Cantidad: p.cantidadOriginal - p.cantidadVendida
       }));
 
     if (productosRestantes.length === 0) {
@@ -746,7 +761,7 @@ export class CreateComponent implements OnInit {
     // Construir el body para la nueva factura
     const body = {
       fact_Numero: nuevoNumero,
-      fact_TipoDeDocumento: this.facturaOriginal.fact_TipoDeDocumento || 'FACTURA',
+      fact_TipoDeDocumento: this.facturaOriginal.fact_TipoDeDocumento || '01',
       regC_Id: this.facturaOriginal.regC_Id || 21,
       diCl_Id: this.facturaOriginal.diCl_Id || this.direcciones[0]?.diCl_Id || 0,
       vend_Id: this.vendedorSeleccionado.vend_Id,

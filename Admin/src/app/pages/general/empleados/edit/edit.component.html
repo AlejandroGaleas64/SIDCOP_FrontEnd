@@ -280,13 +280,14 @@
                                   @if (file.dataURL) {
                                   <img class="img-fluid rounded d-block" [src]="file.dataURL" alt="Dropzone-Image" />
                                   }@else {
-                                  <img class="img-fluid rounded d-block" [src]="file" alt="Dropzone-Image" />
+                                  <img class="img-fluid rounded d-block" [src]="getImageDisplayUrl(file)" alt="Dropzone-Image" />
                                   }
                               </div>
                           </div>
                           <div class="flex-grow-1">
                               <div class="pt-1">
                                   @if (file.name) {<h5 class="fs-md mb-1">{{ file.name }}</h5>}
+                                  @else {<h5 class="fs-md mb-1">Imagen actual</h5>}
                                   @if (file.size) {<p class="fs-sm text-muted mb-0">{{ file.size }}</p>}
                               </div>
                           </div>

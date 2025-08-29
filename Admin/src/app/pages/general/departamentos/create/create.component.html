@@ -34,11 +34,12 @@
           <label for="depa_Codigo" class="form-label">Código</label>
           <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           <div class="d-flex align-items-center">
-            <i class="ri-user-4-line" [ngStyle]="{
-              border: !(departamento.depa_Codigo && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-              backgroundColor: !(departamento.depa_Codigo && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-            </i>
+    <i class="ri-user-4-line" [ngStyle]="{
+      border: (!departamento.depa_Codigo && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+      backgroundColor: (!departamento.depa_Codigo && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+      padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', 
+      borderBottomLeftRadius: '8px'}">
+    </i>
             <input 
               type="text" 
               class="form-control" 
@@ -46,7 +47,8 @@
               id="departamentoCodigo"
               [(ngModel)]="departamento.depa_Codigo"
               placeholder="Ingrese el codigo del departamento"
-              required>
+              required
+              mask="00">
             <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!departamento.depa_Codigo.trim() && mostrarErrores">
@@ -62,8 +64,8 @@
           <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           <div class="d-flex align-items-center">
             <i class="ri-newspaper-line" [ngStyle]="{
-              border: !(departamento.depa_Descripcion && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-              backgroundColor: !(departamento.depa_Descripcion && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              border: (!departamento.depa_Descripcion && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (!departamento.depa_Descripcion && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
               padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
             </i>
             <input 
