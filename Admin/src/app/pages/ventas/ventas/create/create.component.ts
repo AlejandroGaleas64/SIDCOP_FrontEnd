@@ -1,12 +1,14 @@
-import { Component, Output, EventEmitter, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit, EventEmitter, Output } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { VentaInsertar, VentaDetalle } from 'src/app/Modelos/ventas/Facturas.model';
-import { environment } from 'src/environments/environment';
-import { obtenerUsuarioId } from 'src/app/core/utils/user-utils';
-import { forkJoin } from 'rxjs';
+import { Router } from '@angular/router';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { FormsModule } from '@angular/forms';
+import { VentaInsertar, VentaDetalle } from 'src/app/Modelos/ventas/Facturas.model';
+import { CommonModule } from '@angular/common';
+import { environment } from 'src/environments/environment.prod';
+import { forkJoin } from 'rxjs';
+import { obtenerUsuarioId, esAdministrador, obtenerPersonaId, obtenerSucursalId, obtenerRegCId } from 'src/app/core/utils/user-utils';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-create',
@@ -16,6 +18,10 @@ import { NgSelectModule } from '@ng-select/ng-select';
   styleUrls: ['./create.component.scss'],
 })
 export class CreateComponent implements OnInit {
+
+  
+  // Control de visibilidad según rol
+  esAdmin: boolean = false;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<any>();
 
@@ -52,6 +58,7 @@ export class CreateComponent implements OnInit {
   // Inventario por sucursal
   inventarioSucursal: any[] = [];
   cargandoInventario = false;
+  sucursalSeleccionada: number = 0;
   sucursalSeleccionadaAnterior: number = 0;
 
   // Búsqueda y paginación
@@ -65,8 +72,33 @@ export class CreateComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.cargarDatosIniciales();
+    // Verificar si el usuario es administrador
+    this.esAdmin = esAdministrador();
     this.usuarioId = obtenerUsuarioId();
+    
+    // Si no es administrador, asignar automáticamente la sucursal y el vendedor
+    if (!this.esAdmin) {
+      // Asignar la sucursal del usuario automáticamente
+      const sucursalId = obtenerSucursalId();
+      if (sucursalId > 0) {
+        this.venta.regC_Id = sucursalId;
+      }
+      
+      // Asignar el ID de persona como vendedor
+      const personaId = obtenerPersonaId();
+      if (personaId > 0) {
+        this.venta.vend_Id = personaId;
+      }
+      
+      // Asignar el registro CAI del usuario
+      const regCId = obtenerRegCId();
+      if (regCId > 0) {
+        this.venta.regC_Id_Vendedor = regCId;
+        console.log('regC_Id_Vendedor asignado:', regCId);
+      }
+    }
+    
+    this.cargarDatosIniciales();
   }
 
 private inicializar(): void {
@@ -97,6 +129,24 @@ private inicializar(): void {
 }
 
   private cargarDatosIniciales(): void {
+    // Si no es administrador, asignar automáticamente sucursal y vendedor
+    if (!this.esAdmin) {
+      // Asignar ID de sucursal
+      const sucursalId = obtenerSucursalId();
+      this.sucursalSeleccionada = sucursalId;
+      
+      // Asignar ID de registro CAI
+      this.venta.regC_Id = obtenerRegCId();
+      
+      // Asignar ID de vendedor
+      this.venta.vend_Id = obtenerPersonaId();
+      
+      // Cargar vendedores filtrados por la sucursal asignada
+      if (sucursalId) {
+        this.cargarVendedoresPorSucursal(sucursalId);
+      }
+    }
+    
     this.cargando = true;
     const headers = { 'x-api-key': environment.apiKey };
 
@@ -131,6 +181,41 @@ private inicializar(): void {
 
     // Cargar productos
     this.listarProductos();
+  }
+  
+  /**
+   * Carga los vendedores filtrados por sucursal
+   * @param sucursalId ID de la sucursal para filtrar vendedores
+   */
+  private cargarVendedoresPorSucursal(sucursalId: number): void {
+    if (!sucursalId) return;
+    
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'X-Api-Key': environment.apiKey,
+      'accept': '*/*'
+    });
+    
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/PorSucursal/${sucursalId}`, { headers })
+      .subscribe({
+        next: (response) => {
+          if (response && Array.isArray(response)) {
+            // Si el usuario no es administrador, asignar automáticamente su ID como vendedor
+            if (!this.esAdmin && this.usuarioId) {
+              const vendedorUsuario = response.find(v => v.vend_Id === this.usuarioId);
+              if (vendedorUsuario) {
+                this.venta.vend_Id = vendedorUsuario.vend_Id;
+              } else if (response.length > 0) {
+                // Si no se encuentra el usuario como vendedor, usar el primer vendedor disponible
+                this.venta.vend_Id = response[0].vend_Id;
+              }
+            }
+          }
+        },
+        error: (error) => {
+          console.error('Error al cargar vendedores por sucursal:', error);
+        }
+      });
   }
 
   listarProductos(): void {
@@ -197,24 +282,15 @@ private inicializar(): void {
    * Filtra los vendedores por la sucursal seleccionada
    */
   getVendedoresPorSucursal(): any[] {
-    if (!this.venta.regC_Id || this.venta.regC_Id === 0) {
+    if (!this.sucursalSeleccionada || this.sucursalSeleccionada === 0) {
       return [];
     }
-    
-    // Si no hay vendedores cargados, retornar array vacío
-    if (!this.vendedores || this.vendedores.length === 0) {
-      return [];
-    }
-    
-    const sucursalId = Number(this.venta.regC_Id);
     
     // Filtrar vendedores por sucursal
-    const vendedoresFiltrados = this.vendedores.filter(vendedor => {
+    return this.vendedores.filter(vendedor => {
       // Según la estructura proporcionada, el campo es 'sucu_Id'
-      return Number(vendedor.sucu_Id) === sucursalId;
+      return Number(vendedor.sucu_Id) === Number(this.sucursalSeleccionada);
     });
-    
-    return vendedoresFiltrados;
   }
   
   /**
@@ -276,13 +352,13 @@ private inicializar(): void {
     }
     
     // Limpiar cantidades si cambió la sucursal
-    if (this.sucursalSeleccionadaAnterior !== this.venta.regC_Id) {
+    if (this.sucursalSeleccionadaAnterior !== this.sucursalSeleccionada) {
       this.limpiarCantidadesSeleccionadas();
-      this.sucursalSeleccionadaAnterior = this.venta.regC_Id;
+      this.sucursalSeleccionadaAnterior = this.sucursalSeleccionada;
     }
 
     // Cargar inventario de la nueva sucursal
-    if (this.venta.regC_Id && this.venta.regC_Id > 0) {
+    if (this.sucursalSeleccionada && this.sucursalSeleccionada > 0) {
       this.cargarInventarioSucursal();
     } else {
       this.limpiarInventario();
@@ -301,7 +377,7 @@ private inicializar(): void {
 
     const headers = { 'x-api-key': environment.apiKey };
     this.http
-      .get<any[]>(`${environment.apiBaseUrl}/InventarioSucursales/Buscar/${this.venta.regC_Id}`, { headers })
+      .get<any[]>(`${environment.apiBaseUrl}/InventarioSucursales/Buscar/${this.sucursalSeleccionada}`, { headers })
       .subscribe({
         next: (inventario) => {
           this.inventarioSucursal = inventario;
@@ -366,7 +442,7 @@ private inicializar(): void {
     if (index < 0 || index >= productosPaginados.length) return;
     const producto = productosPaginados[index];
 
-    if (!this.venta.regC_Id || this.venta.regC_Id === 0) {
+    if (!this.sucursalSeleccionada || this.sucursalSeleccionada === 0) {
       this.mostrarWarning('Debe seleccionar una sucursal primero');
       return;
     }
@@ -404,7 +480,7 @@ private inicializar(): void {
     cantidad = Math.max(0, Math.min(999, cantidad));
 
     if (cantidad > 0) {
-      if (!this.venta.regC_Id || this.venta.regC_Id === 0) {
+      if (!this.sucursalSeleccionada || this.sucursalSeleccionada === 0) {
         this.mostrarWarning('Debe seleccionar una sucursal primero');
         producto.cantidad = 0;
         return;
@@ -523,7 +599,7 @@ private inicializar(): void {
   private validarDatosBasicos(): boolean {
     const errores = [];
 
-    if (!this.venta.regC_Id || this.venta.regC_Id == 0) errores.push('Sucursal');
+    if (!this.sucursalSeleccionada || this.sucursalSeleccionada == 0) errores.push('Sucursal');
     if (!this.clienteSeleccionado || this.clienteSeleccionado == 0) errores.push('Cliente');
     if (!this.venta.direccionId || this.venta.direccionId == 0) errores.push('Dirección del cliente');
     if (!this.venta.vend_Id || this.venta.vend_Id == 0) errores.push('Vendedor');
@@ -543,7 +619,7 @@ private inicializar(): void {
 
   // ========== RESUMEN ==========
   getNombreSucursal(): string {
-    const sucursal = this.sucursales.find((s) => s.sucu_Id == this.venta.regC_Id);
+    const sucursal = this.sucursales.find((s) => s.sucu_Id == this.sucursalSeleccionada);
     return sucursal?.sucu_Descripcion || 'No seleccionada';
   }
   
@@ -699,7 +775,7 @@ private inicializar(): void {
   
   validarFormularioCompleto(): boolean {
     const errores = [];
-    if (!this.venta.regC_Id || this.venta.regC_Id == 0) errores.push('Sucursal');
+    if (!this.sucursalSeleccionada || this.sucursalSeleccionada == 0) errores.push('Sucursal');
     if (!this.clienteSeleccionado || this.clienteSeleccionado == 0) errores.push('Cliente');
     if (!this.venta.direccionId || this.venta.direccionId == 0) errores.push('Dirección del cliente');
     if (!this.venta.fact_TipoVenta) errores.push('Tipo de venta');
@@ -738,7 +814,7 @@ private inicializar(): void {
     cantidad = Math.max(0, Math.min(999, cantidad));
     
     if (cantidad > 0) {
-      if (!this.venta.regC_Id || this.venta.regC_Id === 0) {
+      if (!this.sucursalSeleccionada || this.sucursalSeleccionada === 0) {
         this.mostrarWarning('Debe seleccionar una sucursal primero');
         producto.cantidad = 0;
         return;
@@ -820,24 +896,21 @@ private crearVenta(): void {
   const datosEnviar = {
     fact_Numero: '',
     fact_TipoDeDocumento: '01',
-    regC_Id: this.venta.regC_Id_Vendedor,
-    regC_Id_Vendedor: this.venta.regC_Id_Vendedor, // ID de registro CAI del vendedor
+    regC_Id: Number(this.venta.regC_Id), // ID del registro CAI
+    sucu_Id: Number(this.sucursalSeleccionada), // ID de la sucursal
     diCl_Id: this.venta.diCl_Id,
     direccionId: this.venta.direccionId, // ID de la dirección del cliente (NO el ID del cliente)
-    vend_Id: this.venta.vend_Id,
+    vend_Id: Number(this.venta.vend_Id),
     fact_TipoVenta: this.venta.fact_TipoVenta,
     fact_FechaEmision: this.venta.fact_FechaEmision.toISOString(),
     fact_Latitud: 14.123456,
     fact_Longitud: -87.123456,
-    fact_Referencia: 'Venta desde app web',
+    fact_Referencia: this.venta.fact_Referencia || 'Venta desde app web',
     fact_AutorizadoPor: 'SISTEMA',
     usua_Creacion: this.usuarioId || 1,
     detallesFacturaInput: detalles
   };
   
-  // Verificamos que regC_Id_Vendedor tenga un valor
-
-
   // Verificamos que diCl_Id tenga un valor válido
   if (!datosEnviar.diCl_Id || datosEnviar.diCl_Id === 0) {
     this.mostrarError('Error: No se ha seleccionado una dirección de cliente válida');
@@ -845,10 +918,18 @@ private crearVenta(): void {
     return;
   }
   
-  // Verificamos que regC_Id_Vendedor tenga un valor válido
-  if (!datosEnviar.regC_Id_Vendedor) {
-    // Si no se encuentra el regC_Id_Vendedor, usamos el regC_Id de la sucursal como alternativa
-    datosEnviar.regC_Id_Vendedor = datosEnviar.regC_Id;
+  // Verificamos que regC_Id (registro CAI) tenga un valor válido
+  if (!datosEnviar.regC_Id || datosEnviar.regC_Id === 0) {
+    this.mostrarError('Error: No se ha seleccionado un registro CAI válido');
+    this.guardando = false;
+    return;
+  }
+
+  // Verificamos que sucu_Id (sucursal) tenga un valor válido
+  if (!datosEnviar.sucu_Id || datosEnviar.sucu_Id === 0) {
+    this.mostrarError('Error: No se ha seleccionado una sucursal válida');
+    this.guardando = false;
+    return;
   }
 
   console.log(datosEnviar);
@@ -960,22 +1041,7 @@ private crearVenta(): void {
     return data.fact_Id || data.Fact_Id || data.id || 0;
   }
 
-  /**
-   * Genera un número de factura aleatorio con formato XXXXXXXX (8 dígitos)
-   * Utiliza el prefijo del rango inicial autorizado y genera los dígitos restantes
-   */
-  private generarNumeroFactura(): string {
-    // Prefijo base (puedes ajustarlo según tus necesidades)
-    const prefijo = 'FACT-010';
-    
-    // Generar 5 dígitos aleatorios para completar el número
-    const min = 10000;
-    const max = 99999;
-    const numeroAleatorio = Math.floor(Math.random() * (max - min + 1)) + min;
-    
-    // Combinar prefijo con número aleatorio
-    return prefijo + numeroAleatorio.toString();
-  }
+
 
   private obtenerHeaders(): any {
     return {

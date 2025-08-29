@@ -92,8 +92,8 @@
       >
         <!-- Formulario de datos básicos -->
         <div class="row mb-4">
-          <!-- Dropdown de Sucursal -->
-          <div class="col-md-6">
+          <!-- Dropdown de Sucursal (Solo para administradores) -->
+          <div class="col-md-6" *ngIf="esAdmin">
             <label class="form-label"
               >Sucursal<span class="text-danger">*</span></label
             >
@@ -122,9 +122,9 @@
                   name="sucursal"
                   class="form-select"
                   [class.is-invalid]="
-                    (!venta.regC_Id || venta.regC_Id == 0) && mostrarErrores
+                    (!sucursalSeleccionada || sucursalSeleccionada == 0) && mostrarErrores
                   "
-                  [(ngModel)]="venta.regC_Id"
+                  [(ngModel)]="sucursalSeleccionada"
                   (change)="onSucursalChange()"
                   required
                 >
@@ -152,9 +152,18 @@
             </div>
             <div
               class="text-danger mt-1"
-              *ngIf="(!venta.regC_Id || venta.regC_Id == 0) && mostrarErrores"
+              *ngIf="(!sucursalSeleccionada || sucursalSeleccionada == 0) && mostrarErrores"
             >
               <small>La sucursal es requerida</small>
+            </div>
+          </div>
+          
+          <!-- Sucursal (Solo texto para no administradores) -->
+          <div class="col-md-6" *ngIf="!esAdmin">
+            <label class="form-label">Sucursal</label>
+            <div class="form-control bg-light">
+              <i class="ri-store-2-line me-2"></i>
+              {{ getNombreSucursal() }}
             </div>
           </div>
 
@@ -331,8 +340,11 @@
           </div>
           
           <!-- Selector de Vendedor -->
-          <div class="col-md-6">
-            <label class="form-label">Vendedor<span class="text-danger">*</span></label>
+          <!-- Dropdown de Vendedor (Solo para administradores) -->
+          <div class="col-md-6" *ngIf="esAdmin">
+            <label class="form-label"
+              >Vendedor<span class="text-danger">*</span></label
+            >
             <div class="mb-3">
               <div class="d-flex align-items-center">
                 <i
@@ -361,8 +373,6 @@
                     (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
                   "
                   [(ngModel)]="venta.vend_Id"
-                  (change)="onVendedorChange()"
-                  [disabled]="!venta.regC_Id || venta.regC_Id === 0 || getVendedoresPorSucursal().length === 0"
                   required
                 >
                   <option value="0" disabled selected>
@@ -383,6 +393,24 @@
               *ngIf="(!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores"
             >
               <small>El vendedor es requerido</small>
+            </div>
+          </div>
+          
+          <!-- Vendedor (Solo texto para no administradores) -->
+          <div class="col-md-6" *ngIf="!esAdmin">
+            <label class="form-label">Vendedor</label>
+            <div class="form-control bg-light">
+              <i class="ri-user-star-line me-2"></i>
+              {{ getNombreVendedor() }}
+            </div>
+          </div>
+          
+          <!-- Sucursal (Solo texto para no administradores) -->
+          <div class="col-md-6" *ngIf="!esAdmin && sucursales && sucursales.length > 0">
+            <label class="form-label">Sucursal</label>
+            <div class="form-control bg-light">
+              <i class="ri-building-line me-2"></i>
+              {{ getNombreSucursal() }}
             </div>
           </div>
           
