@@ -144,11 +144,13 @@ export class ListComponent implements OnInit {
   }
 
   PEEliminar: Migracion | null = null;
-  migrar(puntodeemision: Migracion): void {
-    console.log('Abriendo formulario de edición para:', puntodeemision);
-    console.log('Datos específicos:', {
 
-    });
+
+migrar(puntodeemision: Migracion): void {
+    console.log('Abriendo formulario de edición para:', puntodeemision);
+    console.log('Datos específicos:', {});
+
+    this.mostrarOverlayCarga = true;
 
     this.http.post(`${environment.apiBaseUrl}/Migracion/Migrar/${puntodeemision.coMi_Tabla}`, {}, {
       headers: { 
@@ -157,72 +159,36 @@ export class ListComponent implements OnInit {
       }
     }).subscribe({
       next: (response: any) => {
-        console.log('Respuesta del servidor:', response);
-        setTimeout(() => {
-        // Verificar el código de estado en la respuesta
-        if (response.success && response.data) {
-          if (response.data.code_Status === 1) {
-            // Éxito: eliminado correctamente
-            console.log('Punto de Emision exitosamente');
-          
-            //this.mensajeExito = `Punto de Emision "${this.PEEliminar!.puEm_Descripcion}" ${accion} exitosamente`;
-            this.mostrarAlertaExito = true;
-            
-            // Ocultar la alerta después de 3 segundos
-            setTimeout(() => {
-              this.mostrarAlertaExito = false;
-              this.mensajeExito = '';
-            }, 3000);
-            
+        console.log('Respuesta al migrar:', response);
 
-            this.cargardatos(false);
-            this.cancelarEliminar();
-          } else if (response.data.code_Status === -1) {
-            //result: está siendo utilizado
-            console.log('Punto de emisión está siendo utilizado');
-            this.mostrarAlertaError = true;
-            this.mensajeError = response.data.message_Status || 'No se puede eliminar: el punto de emisión está siendo utilizado.';
-            
-            setTimeout(() => {
-              this.mostrarAlertaError = false;
-              this.mensajeError = '';
-            }, 5000);
-            
-            // Cerrar el modal de confirmación
-            this.cancelarEliminar();
-          } else if (response.data.code_Status === 0) {
-            // Error general
-            console.log('Error general al eliminar');
-            this.mostrarAlertaError = true;
-            this.mensajeError = response.data.message_Status || 'Error al eliminar el punto de emisión.';
-            
-            setTimeout(() => {
-              this.mostrarAlertaError = false;
-              this.mensajeError = '';
-            }, 5000);
-            
-            // Cerrar el modal de confirmación
-            this.cancelarEliminar();
-          }
+        // Mostrar la carga y manejar la respuesta directamente
+        this.mostrarOverlayCarga = false;
+
+        if (response.success) {
+          this.mostrarAlertaExito = true;
+          this.mensajeExito = `Migración de ${puntodeemision.coMi_Tabla} completada exitosamente.`;
+          
+          // Cerrar alerta después de 3 segundos
+          setTimeout(() => this.cerrarAlerta(), 3000);
+          this.cargardatos(true);
         } else {
-          // Respuesta inesperada
-          console.log('Respuesta inesperada del servidor');
           this.mostrarAlertaError = true;
-          this.mensajeError = response.message || 'Error inesperado al eliminar el punto de emision.';
-          
-          setTimeout(() => {
-            this.mostrarAlertaError = false;
-            this.mensajeError = '';
-          }, 5000);
-          
-          // Cerrar el modal de confirmación
-          this.cancelarEliminar();
-        }
-         }, 1000);
-      },
-    });
+          this.mensajeError = response.message || `Error inesperado al migrar "${puntodeemision.coMi_Tabla}".`;
 
-  }
+          // Cerrar alerta después de 5 segundos
+          setTimeout(() => this.cerrarAlerta(), 5000);
+        }
+      },
+      error: (error) => {
+        console.error('Error al migrar:', error);
+        this.mostrarOverlayCarga = false;
+        this.mostrarAlertaError = true;
+        this.mensajeError = `Error de conexión al intentar migrar "${puntodeemision.coMi_Tabla}".`;
+        setTimeout(() => this.cerrarAlerta(), 5000);
+      }
+    });
+}
+
 
   activeActionRow: number | null = null;
   showEdit = true;
@@ -513,6 +479,47 @@ export class ListComponent implements OnInit {
   }
 
 
+migrarGeneral(): void {
+  this.mostrarOverlayCarga = true;
+
+  this.http.post(`${environment.apiBaseUrl}/Migracion/Migrar/General`, {}, {
+    headers: {
+      'X-Api-Key': environment.apiKey,
+      'accept': '*/*'
+    }
+  }).subscribe({
+    next: (response: any) => {
+      console.log('Respuesta al migrar General:', response);
+
+      setTimeout(() => {
+        this.mostrarOverlayCarga = false;
+
+        if (response.success) {
+         
+            this.mostrarAlertaExito = true;
+            this.mensajeExito = 'Migración General completada exitosamente.';
+
+            setTimeout(() => this.cerrarAlerta(), 3000);
+            this.cargardatos(false);
+
+        
+        } else {
+          this.mostrarAlertaError = true;
+          this.mensajeError = response.message || 'Error inesperado al migrar "General".';
+
+          setTimeout(() => this.cerrarAlerta(), 5000);
+        }
+      }, 1000);
+    },
+    error: (error) => {
+      console.error('Error al migrar "General":', error);
+      this.mostrarOverlayCarga = false;
+      this.mostrarAlertaError = true;
+      this.mensajeError = 'Error de conexión al intentar migrar "General".';
+      setTimeout(() => this.cerrarAlerta(), 5000);
+    }
+  });
+}
 
 
   private cargardatos(state: boolean): void {
@@ -527,9 +534,13 @@ export class ListComponent implements OnInit {
       // const datosFiltrados = tienePermisoListar
       //   ? data
       //   : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
-
+      console.log('Datos recibidos del servidor:', data);
+        const datosTransformados = data.map(item => ({
+      ...item,
+      coMi_Tabla: item.coMi_Tabla === 'Bodega' ? 'Bodegas' : item.coMi_Tabla
+    }));
       setTimeout(() => {
-        this.table.setData(data);
+        this.table.setData(datosTransformados);
         this.mostrarOverlayCarga = false;
       }, 500);
     });
