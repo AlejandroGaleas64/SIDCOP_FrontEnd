@@ -16,6 +16,22 @@
         aria-label="Close"
       ></button>
     </div>
+    
+    <!-- Alerta de éxito -->
+    <div
+      *ngIf="mostrarAlertaExito"
+      class="alert alert-success alert-border-left alert-dismissible fade show floating-alert"
+      role="alert"
+    >
+      <i class="ri-check-line me-3 align-middle fs-lg"></i>
+      <strong>¡Éxito!</strong> {{ mensajeExito }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="cerrarAlertaExito()"
+        aria-label="Close"
+      ></button>
+    </div>
   </div>
 
   <!-- Botón de regresar -->
@@ -28,13 +44,40 @@
 
   <!-- Contenido de detalles -->
   <div *ngIf="!cargando && PedidoDetalle" class="details-content">
-    <div class="d-flex justify-content-end mb-3">
-       <button
-    type="button"
-    class="btn text-white"
-    style="background-color: #141a2f; border-color: #141a2f;"
-    (click)="imprimirPedido()"
-  >
+    <div class="d-flex justify-content-end mb-3 gap-2">
+      <!-- Botón Vista Previa PDF -->
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        (click)="generarVistaPrevia()"
+        [disabled]="!PedidoDetalle"
+      >
+        <span class="btn-text">Vista Previa PDF</span>
+        <span class="btn-icon"><i class="ri-file-pdf-line"></i></span>
+      </button>
+      
+      <!-- Botón Imprimir ZPL -->
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="abrirConfiguracionImpresion()"
+        [disabled]="!PedidoDetalle || imprimiendo"
+      >
+        <span class="btn-text" *ngIf="!imprimiendo">Imprimir ZPL</span>
+        <span class="btn-text" *ngIf="imprimiendo">Procesando...</span>
+        <span class="btn-icon">
+          <i class="ri-printer-line" *ngIf="!imprimiendo"></i>
+          <span class="spinner-border spinner-border-sm" *ngIf="imprimiendo" role="status"></span>
+        </span>
+      </button>
+      
+      <!-- Botón Imprimir Pedido Original -->
+      <button
+        type="button"
+        class="btn text-white"
+        style="background-color: #141a2f; border-color: #141a2f;"
+        (click)="imprimirPedido()"
+      >
         <span class="btn-text">Imprimir Pedido</span>
         <span class="btn-icon"><i class="ri-printer-line"></i></span>
       </button>
@@ -208,6 +251,248 @@
     <p>No hay productos en este pedido.</p>
   </ng-template>
 </div>
+
+<!-- Modal de Configuración de Impresión ZPL -->
+<div class="modal fade modal-print-config" 
+     [class.show]="mostrarConfiguracionImpresion" 
+     [style.display]="mostrarConfiguracionImpresion ? 'block' : 'none'"
+     id="modalConfiguracionImpresion" 
+     tabindex="-1" 
+     aria-labelledby="modalConfiguracionImpresionLabel" 
+     [attr.aria-hidden]="!mostrarConfiguracionImpresion"
+     (click)="onBackdropClick($event)"
+     *ngIf="mostrarConfiguracionImpresion">
+
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="modalConfiguracionImpresionLabel">
+          <i class="ri-printer-line me-2"></i>
+          Configuración de Impresión ZPL - Pedidos
+        </h5>
+        <button type="button" 
+                class="btn-close btn-close-white" 
+                (click)="cerrarConfiguracionImpresion()" 
+                aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Sección de Método de Impresión -->
+        <div class="config-section">
+          <div class="config-title">
+            <i class="ri-settings-3-line"></i>
+            Impresión Directa con Zebra Browser Print Wrapper
+          </div>
+          
+          <!-- Controles Zebra Wrapper -->
+          <div class="zebra-wrapper-controls">
+            <!-- Estado de conexión -->
+            <div class="connection-status mb-3">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="status-info">
+                  <span class="badge" 
+                        [class.bg-success]="browserPrintDisponible"
+                        [class.bg-danger]="!browserPrintDisponible">
+                    <i class="ri-circle-fill me-1"></i>
+                    {{ browserPrintDisponible ? 'Zebra Wrapper Conectado' : 'Sin Impresoras Zebra' }}
+                  </span>
+                </div>
+                
+                <button type="button" 
+                        class="btn btn-sm btn-outline-primary"
+                        (click)="refrescarDispositivos()"
+                        [disabled]="verificandoConexion">
+                  <i class="ri-refresh-line me-1" 
+                    [class.spin]="verificandoConexion"></i>
+                  <span *ngIf="!verificandoConexion">Actualizar</span>
+                  <span *ngIf="verificandoConexion">Buscando...</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Lista de impresoras disponibles -->
+            <div class="printer-selection mb-3" *ngIf="browserPrintDisponible && dispositivosDisponibles.length > 0">
+              <label class="form-label">Impresoras Zebra Disponibles:</label>
+              <div class="printer-list">
+                <div class="printer-item" 
+                    *ngFor="let dispositivo of dispositivosDisponibles"
+                    [class.selected]="dispositivoSeleccionado?.uid === dispositivo.uid"
+                    (click)="seleccionarDispositivo(dispositivo)">
+                  <div class="printer-info">
+                    <div class="printer-name">
+                      <i class="ri-printer-line me-2"></i>
+                      {{ dispositivo.name }}
+                    </div>
+                    <div class="printer-details text-muted small">
+                      {{ dispositivo.connection }} - {{ dispositivo.deviceType }}
+                    </div>
+                  </div>
+                  <div class="printer-actions" *ngIf="dispositivoSeleccionado?.uid === dispositivo.uid">
+                    <i class="ri-check-circle-fill text-success"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Información de impresora seleccionada -->
+            <div class="selected-printer mb-3" *ngIf="dispositivoSeleccionado">
+              <div class="alert alert-info d-flex align-items-center">
+                <i class="ri-printer-line me-2"></i>
+                <div class="flex-grow-1">
+                  <strong>Impresora seleccionada:</strong> {{ informacionImpresora }}
+                </div>
+              </div>
+              
+              <!-- Estado de la impresora -->
+              <div class="alert mb-3" 
+                   [class.alert-success]="estadoImpresora.isReadyToPrint"
+                   [class.alert-warning]="!estadoImpresora.isReadyToPrint && estadoImpresora.errors">
+                <div class="d-flex align-items-center">
+                  <i class="ri-information-line me-2"></i>
+                  <div class="flex-grow-1">
+                    <strong>Estado:</strong> {{ estadoImpresoraTexto }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botones de control -->
+            <div class="printer-controls d-flex gap-2">
+              <button type="button" 
+                      class="btn btn-sm btn-outline-success"
+                      (click)="probarImpresora()"
+                      [disabled]="!dispositivoSeleccionado || verificandoConexion">
+                <i class="ri-check-line me-1"></i>
+                <span *ngIf="!verificandoConexion">Probar Impresora</span>
+                <span *ngIf="verificandoConexion">Probando...</span>
+              </button>
+            </div>
+
+            <!-- Mensaje de ayuda si no hay impresoras -->
+            <div class="alert alert-warning" *ngIf="!browserPrintDisponible">
+              <i class="ri-warning-line me-2"></i>
+              <strong>No se encontraron impresoras Zebra</strong>
+              <p class="mb-1 mt-2">Para usar impresión directa:</p>
+              <ol class="mb-0">
+                <li>Asegúrese de tener <strong>Zebra Browser Print</strong> instalado y ejecutándose</li>
+                <li>Conecte su impresora Zebra y verifique que esté encendida</li>
+                <li>Verifique que los drivers estén instalados correctamente</li>
+                <li>Haga clic en "Actualizar" arriba</li>
+              </ol>
+            </div>
+
+            <!-- Mensaje si hay Browser Print pero no impresoras -->
+            <div class="alert alert-info" *ngIf="!verificandoConexion && dispositivosDisponibles.length === 0">
+              <i class="ri-information-line me-2"></i>
+              <strong>Browser Print activo pero sin impresoras</strong>
+              <p class="mb-0 mt-2">
+                Zebra Browser Print está funcionando pero no se encontraron impresoras. 
+                Verifique que su impresora Zebra esté conectada, encendida y correctamente instalada.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Información adicional -->
+        <div class="alert alert-info d-flex align-items-start" role="alert">
+          <i class="ri-information-line me-2 fs-5"></i>
+          <div>
+            <strong>Información:</strong>
+            <ul class="mb-0 mt-2">
+              <li><strong>Zebra Browser Print Wrapper:</strong> Método recomendado para impresoras Zebra</li>
+              <li><strong>Compatibilidad:</strong> Funciona con Chrome, Edge, Firefox y Safari</li>
+              <li><strong>Formato:</strong> Genera etiquetas ZPL optimizadas para pedidos</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" 
+                class="btn btn-secondary" 
+                (click)="cerrarConfiguracionImpresion()">
+          <i class="ri-close-line me-1"></i>
+          Cancelar
+        </button>
+        
+        <button type="button" 
+                class="btn btn-primary d-flex align-items-center" 
+                (click)="imprimirPedidoZPL()"
+                [disabled]="imprimiendo || !dispositivoSeleccionado">
+          <span *ngIf="!imprimiendo">
+            <i class="ri-printer-line me-2"></i>
+            Imprimir Pedido ZPL
+          </span>
+          <span *ngIf="imprimiendo">
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            Imprimiendo...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Estilos para el modal de impresión -->
+<style>
+.modal-print-config .printer-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+}
+
+.modal-print-config .printer-item {
+  padding: 0.75rem;
+  border-bottom: 1px solid #dee2e6;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-print-config .printer-item:hover {
+  background-color: #f8f9fa;
+}
+
+.modal-print-config .printer-item.selected {
+  background-color: #e3f2fd;
+  border-color: #2196f3;
+}
+
+.modal-print-config .printer-item:last-child {
+  border-bottom: none;
+}
+
+.modal-print-config .config-title {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #495057;
+}
+
+.modal-print-config .config-section {
+  margin-bottom: 1.5rem;
+}
+
+.modal-print-config .spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.floating-alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1060;
+  min-width: 300px;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+</style>
 
 <!-- Tabla de auditoría -->
 <!-- <div class="audit-table-container">
