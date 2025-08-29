@@ -36,11 +36,13 @@ export class CreateComponent implements OnInit {
   vendedores: any[] = [];
 
   // Form state
-  meta: Meta = {
+  meta : any = {
     meta_Id: 0,
     meta_Descripcion: '',
-    meta_FechaInicio: new Date(),
-    meta_FechaFin: new Date(),
+    // meta_FechaInicio: new Date(),
+    // meta_FechaFin: new Date(),
+    meta_FechaInicio: new Date().toISOString().substring(0, 10),
+    meta_FechaFin: new Date().toISOString().substring(0, 10),
     meta_Tipo: '',
     meta_Ingresos: 0,
     meta_Unidades: 0,
@@ -188,7 +190,7 @@ toggleVendedor(vend_Id: number, event: Event) {
     if (!this.vendedoresSeleccionados.length) return '';
     let xml = '<root>';
     this.vendedoresSeleccionados.forEach(id => {
-      xml += `<item><vend_Id>${id}</vend_Id></item>`;
+      xml += `<item><vend_id>${id}</vend_id></item>`;
     });
     xml += '</root>';
     return xml;
@@ -226,8 +228,11 @@ toggleVendedor(vend_Id: number, event: Event) {
       usua_Modificacion: 0,
       meta_FechaModificacion: new Date(),
       vendedoresXml: this.generateVendedoresXml(),
-      vendedoresJson: '' // You can fill this if needed
+      vendedoresJson: '' 
     };
+
+
+    console.log('Payload to be sent:', payload);
 
     this.http.post<any>(`${environment.apiBaseUrl}/Metas/InsertarCompleto`, payload, {
       headers: {

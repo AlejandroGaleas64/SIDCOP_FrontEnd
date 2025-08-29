@@ -35,16 +35,16 @@
       </li>
     </ul> -->
     <ul class="nav nav-tabs mb-3 d-flex justify-content-center" role="tablist" style="width: 100%;">
-        <li class="nav-item flex-fill text-center" role="presentation">
-            <button class="nav-link w-100" [class.active]="activeStep === 1" (click)="activeStep = 1" type="button" role="tab">
-            Información de Meta
-            </button>
-        </li>
-        <li class="nav-item flex-fill text-center" role="presentation">
-            <button class="nav-link w-100" [class.active]="activeStep === 2" [disabled]="!validarPasoActual()" (click)="activeStep = 2" type="button" role="tab">
-            Vendedores Asignados
-            </button>
-        </li>
+      <li class="nav-item flex-fill text-center" role="presentation">
+        <button class="nav-link w-100" [class.active]="activeStep === 1" (click)="activeStep = 1" type="button" role="tab">
+          Información de Meta
+        </button>
+      </li>
+      <li class="nav-item flex-fill text-center" role="presentation">
+        <button class="nav-link w-100" [class.active]="activeStep === 2" [disabled]="!validarPasoActual()" (click)="activeStep = 2" type="button" role="tab">
+          Vendedores Asignados
+        </button>
+      </li>
     </ul>
 
     <!-- Paso 1: Información General -->
@@ -109,7 +109,8 @@
             <input type="date" class="form-control"
               [(ngModel)]="meta.meta_FechaInicio"
               [class.is-invalid]="!meta.meta_FechaInicio && mostrarErrores"
-              required>
+              required
+              [value]="meta.meta_FechaInicio">
             <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!meta.meta_FechaInicio && mostrarErrores">
@@ -130,7 +131,8 @@
             <input type="date" class="form-control"
               [(ngModel)]="meta.meta_FechaFin"
               [class.is-invalid]="!meta.meta_FechaFin && mostrarErrores"
-              required>
+              required
+              [value]="meta.meta_FechaFin">
             <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!meta.meta_FechaFin && mostrarErrores">
@@ -153,6 +155,9 @@
               [(ngModel)]="meta.meta_Ingresos"
               placeholder="Ingresos meta">
           </div>
+          <div class="text-danger mt-1" *ngIf="mostrarErrores && (!meta.meta_Ingresos || meta.meta_Ingresos <= 0)">
+            <small>El campo Ingresos es requerido</small>
+          </div>
         </div>
 
         <div class="col-md-6 mb-3">
@@ -169,6 +174,9 @@
               [(ngModel)]="meta.meta_Unidades"
               min="0"
               placeholder="Unidades meta">
+          </div>
+          <div class="text-danger mt-1" *ngIf="mostrarErrores && (!meta.meta_Unidades || meta.meta_Unidades <= 0)">
+            <small>El campo Unidades es requerido</small>
           </div>
         </div>
 
@@ -188,6 +196,9 @@
               <option *ngFor="let cate of categorias" [value]="cate.cate_Id">{{ cate.cate_Descripcion }}</option>
             </select>
           </div>
+          <div class="text-danger mt-1" *ngIf="mostrarErrores && (!meta.cate_Id || meta.cate_Id == 0)">
+            <small>El campo Categoría es requerido</small>
+          </div>
         </div>
 
         <div class="col-md-6 mb-3">
@@ -205,6 +216,9 @@
               <option value="0" disabled selected>Seleccione un producto</option>
               <option *ngFor="let prod of productos" [value]="prod.prod_Id">{{ prod.prod_Descripcion }}</option>
             </select>
+          </div>
+          <div class="text-danger mt-1" *ngIf="mostrarErrores && (!meta.prod_Id || meta.prod_Id == 0)">
+            <small>El campo Producto es requerido</small>
           </div>
         </div>
       </div>
