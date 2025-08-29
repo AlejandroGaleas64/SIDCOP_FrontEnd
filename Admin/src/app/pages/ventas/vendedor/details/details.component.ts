@@ -1,6 +1,7 @@
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Vendedor } from 'src/app/Modelos/ventas/Vendedor.Model';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   selector: 'app-details',
@@ -18,6 +19,8 @@ export class DetailsComponent implements OnChanges {
 
   mostrarAlertaError = false;
   mensajeError = '';
+
+  constructor(private imageUploadService: ImageUploadService) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['vendedorData'] && changes['vendedorData'].currentValue) {
@@ -50,6 +53,10 @@ export class DetailsComponent implements OnChanges {
   cerrarAlerta(): void {
     this.mostrarAlertaError = false;
     this.mensajeError = '';
+  }
+
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
   }
 
   formatearFecha(fecha: string | Date | null): string {

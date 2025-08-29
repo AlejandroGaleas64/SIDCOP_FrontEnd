@@ -44,6 +44,7 @@ export class DetailsComponent implements OnChanges {
     this.cargarColonias();
     this.cargarMunicipios();
     this.cargarDepartamentos();
+    this.cargarUltimaVisita();
   }
 
   // Simulación de carga
@@ -69,7 +70,7 @@ export class DetailsComponent implements OnChanges {
 
   cerrar(): void {
     this.onClose.emit();
-    this.puntosVista=[];
+    this.puntosVista = [];
   }
 
   cerrarAlerta(): void {
@@ -166,15 +167,31 @@ export class DetailsComponent implements OnChanges {
   vendedores: any[] = [];
 
   obtenerVendedoresPorCliente(vend_Id: number): void {
-  this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/MostrarVendedor/${vend_Id}`)
-  
-    .subscribe({
-      next: (data) => {
-        this.vendedores = data;
-      },
-      error: (err) => {
-        this.mostrarAlertaError = true;
-        this.mensajeError = 'Error al cargar los vendedores.';
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/MostrarVendedor/${vend_Id}`)
+
+      .subscribe({
+        next: (data) => {
+          this.vendedores = data;
+        },
+        error: (err) => {
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error al cargar los vendedores.';
+        }
+      });
+  }
+
+  ultimaVisita: string | null = null;
+  cargarUltimaVisita() {
+    if (!this.clienteDetalle?.clie_Id) return;
+    this.http.get<any[]>(`${environment.apiBaseUrl}/ClientesVisitaHistorial/${this.clienteDetalle.clie_Id}`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe((visitas: any[]) => {
+      if (visitas && visitas.length) {
+        // Ordena por fecha descendente y toma la primera
+        visitas.sort((a, b) => new Date(b.ClVi_Fecha).getTime() - new Date(a.ClVi_Fecha).getTime());
+        this.ultimaVisita = visitas[0].ClVi_Fecha;
+      } else {
+        this.ultimaVisita = null;
       }
     });
   }

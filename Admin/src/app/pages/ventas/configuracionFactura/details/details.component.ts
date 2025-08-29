@@ -1,6 +1,7 @@
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfiguracionFactura } from 'src/app/Modelos/ventas/ConfiguracionFactura.Model';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   selector: 'app-details',
@@ -18,6 +19,8 @@ export class DetailsComponent implements OnChanges {
 
   mostrarAlertaError = false;
   mensajeError = '';
+
+  constructor(private imageUploadService: ImageUploadService) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['configuracionFacturaData'] && changes['configuracionFacturaData'].currentValue) {
@@ -50,6 +53,13 @@ export class DetailsComponent implements OnChanges {
   cerrarAlerta(): void {
     this.mostrarAlertaError = false;
     this.mensajeError = '';
+  }
+
+  /**
+   * Obtiene la URL completa para mostrar la imagen
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
   }
 
   formatearFecha(fecha: string | Date | null): string {

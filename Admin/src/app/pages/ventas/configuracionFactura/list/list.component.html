@@ -271,7 +271,7 @@
                   <td>{{data.coFa_Telefono2 || 'N/A'}}</td>
                   <td>
                        <img
-                        [src]="data.coFa_Logo" (error)="onImgError($event)" alt="Logo"
+                        [src]="getImageDisplayUrl(data.coFa_Logo)" (error)="onImgError($event)" alt="Logo"
                         class="avatar-img rounded-circle"
                         style="width: 64px; height: 64px; object-fit: cover; display: block;"/>
                   </td>
