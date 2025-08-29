@@ -6,6 +6,7 @@ import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   selector: 'app-create',
@@ -52,7 +53,7 @@ export class CreateComponent {
   // Catálogos
   colonia: any[] = [];
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {
     this.listarColonias();
   }
 
@@ -129,31 +130,31 @@ export class CreateComponent {
     }
   }
 
-  onImagenSeleccionada(event: any) {
-    // Obtenemos el archivo seleccionado desde el input tipo file
+  async onImagenSeleccionada(event: any) {
     const file = event.target.files[0];
 
     if (file) {
-      // para enviar la imagen a Cloudinary
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'configuracion_empresa');
-      //Subidas usuarios Carpeta identificadora en Cloudinary
-      //dbt7mxrwk es el nombre de la cuenta de Cloudinary
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-
-      fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        this.configFactura.coFa_Logo = data.secure_url;
-      })
-      .catch(error => {
-        console.error('Error al subir la imagen a Cloudinary:', error);
-      });
+      try {
+        // Subir imagen al backend usando ImageUploadService
+        const imagePath = await this.imageUploadService.uploadImageAsync(file);
+        this.configFactura.coFa_Logo = imagePath;
+      } catch (error) {
+        console.error('Error al subir la imagen:', error);
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error al subir la imagen. Por favor, inténtelo de nuevo.';
+        setTimeout(() => {
+          this.mostrarAlertaError = false;
+          this.mensajeError = '';
+        }, 5000);
+      }
     }
+  }
+
+  /**
+   * Obtiene la URL completa para mostrar la imagen
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
   }
 
   cerrarAlerta(): void {

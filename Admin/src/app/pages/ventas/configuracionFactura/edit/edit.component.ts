@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -6,7 +6,7 @@ import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
-import { ViewChild, ElementRef } from '@angular/core';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 import Cropper from 'cropperjs';
 
 @Component({
@@ -27,12 +27,6 @@ export class EditConfigFacturaComponent implements OnChanges {
   @Input() configFacturaData: any | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<any>();
-  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
-  @ViewChild('imageCropper', { static: false }) imageElement!: ElementRef;
-
-  cropper!: Cropper;
-  croppedImage: string | null = null;
-  showCropper = false;
 
   configFactura: any = {
     coFa_Id: 0,
@@ -59,6 +53,12 @@ export class EditConfigFacturaComponent implements OnChanges {
 
   logoSeleccionado = false;
 
+  // Cropper functionality
+  @ViewChild('imageCropper', { static: false }) imageCropper!: ElementRef;
+  showCropper = false;
+  cropper: any;
+  selectedFile: File | null = null;
+
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mostrarAlertaError = false;
@@ -69,7 +69,7 @@ export class EditConfigFacturaComponent implements OnChanges {
   mensajeError = '';
   mensajeWarning = '';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private imageUploadService: ImageUploadService) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['configFacturaData']?.currentValue) {
@@ -131,93 +131,100 @@ export class EditConfigFacturaComponent implements OnChanges {
     }
   }
 
-  abrirModalCropper() {
-    this.fileInput.nativeElement.value = '';
-    this.fileInput.nativeElement.click();
-  }
-
-  cerrarModalCropper() {
-    this.showCropper = false;
-    if (this.cropper) this.cropper.destroy();
-  }
-
   onFileChange(event: any) {
     const file = event.target.files[0];
     if (file) {
+      this.selectedFile = file;
       const reader = new FileReader();
       reader.onload = (e: any) => {
+        this.imageCropper.nativeElement.src = e.target.result;
         this.showCropper = true;
+        
         setTimeout(() => {
-          const image = this.imageElement.nativeElement as HTMLImageElement;
-          image.src = e.target.result;
-          image.onload = () => {
-            if (this.cropper) this.cropper.destroy();
-            this.cropper = new Cropper(image, {
-              aspectRatio: 1,
-              viewMode: 1,
-              autoCropArea: 1,
-              minCropBoxWidth: 120,
-              minCropBoxHeight: 120,
-              background: false,
-              guides: true,
-              movable: true,
-              zoomable: true,
-              scalable: false,
-              cropBoxResizable: true,
-              dragMode: 'move',
-            });
-          };
-        }, 0);
+          if (this.cropper) {
+            this.cropper.destroy();
+          }
+          this.cropper = new Cropper(this.imageCropper.nativeElement, {
+            aspectRatio: 1,
+            viewMode: 1,
+            autoCropArea: 0.8,
+            responsive: true,
+            background: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+          });
+        }, 100);
       };
       reader.readAsDataURL(file);
     }
   }
 
-  cropAndUpload() {
-    if (!this.cropper) return;
-    const canvas = this.cropper.getCroppedCanvas({
-      width: 120,
-      height: 120,
-      imageSmoothingQuality: 'high'
-    });
-    this.croppedImage = canvas.toDataURL('image/png');
+  cerrarModalCropper() {
     this.showCropper = false;
-    if (this.cropper) this.cropper.destroy();
-    this.uploadToCloudinary(this.croppedImage);
-  }
-
-  uploadToCloudinary(base64: string) {
-    const file = this.dataURLtoFile(base64, 'logo.png');
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'configuracion_empresa');
-    const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-
-    fetch(url, {
-      method: 'POST',
-      body: formData
-    })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Imagen subida a Cloudinary:', data);
-        this.configFactura.coFa_Logo = data.secure_url;
-      })
-      .catch(error => {
-        console.error('Error al subir la imagen a Cloudinary:', error);
-      });
-  }
-
-  dataURLtoFile(dataurl: string, filename: string) {
-    const arr = dataurl.split(',');
-    const match = arr[0].match(/:(.*?);/);
-    const mime = match ? match[1] : '';
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
+    if (this.cropper) {
+      this.cropper.destroy();
+      this.cropper = null;
     }
-    return new File([u8arr], filename, { type: mime });
+    this.selectedFile = null;
+  }
+
+  async cropAndUpload() {
+    if (this.cropper && this.selectedFile) {
+      try {
+        // Obtener la imagen recortada como blob
+        const canvas = this.cropper.getCroppedCanvas({
+          width: 300,
+          height: 300,
+          imageSmoothingEnabled: true,
+          imageSmoothingQuality: 'high'
+        });
+
+        canvas.toBlob(async (blob: Blob | null) => {
+          if (blob) {
+            // Crear un nuevo archivo con la imagen recortada
+            const croppedFile = new File([blob], this.selectedFile!.name, {
+              type: this.selectedFile!.type,
+              lastModified: Date.now()
+            });
+
+            try {
+              // Subir imagen al backend usando ImageUploadService
+              const imagePath = await this.imageUploadService.uploadImageAsync(croppedFile);
+              this.configFactura.coFa_Logo = imagePath;
+              this.logoSeleccionado = true;
+              this.cerrarModalCropper();
+            } catch (error) {
+              console.error('Error al subir la imagen:', error);
+              this.mostrarAlertaError = true;
+              this.mensajeError = 'Error al subir la imagen. Por favor, inténtelo de nuevo.';
+              setTimeout(() => {
+                this.mostrarAlertaError = false;
+                this.mensajeError = '';
+              }, 5000);
+            }
+          }
+        }, this.selectedFile.type, 0.9);
+      } catch (error) {
+        console.error('Error al procesar la imagen:', error);
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error al procesar la imagen. Por favor, inténtelo de nuevo.';
+        setTimeout(() => {
+          this.mostrarAlertaError = false;
+          this.mensajeError = '';
+        }, 5000);
+      }
+    }
+  }
+
+  /**
+   * Obtiene la URL completa para mostrar la imagen
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
   }
 
   validarEdicion(): void {
