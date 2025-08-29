@@ -357,7 +357,7 @@
                   style=" margin-right: 10px; font-size: 20px; font-weight: 200; color: #878c9c; margin-bottom: 0.3em;"></i>
                 <h5 class="text-muted">Seleccionar imagen</h5>
               </div>
-              <img *ngIf="cliente.clie_ImagenDelNegocio" [src]="cliente.clie_ImagenDelNegocio" alt="Previsualización"
+              <img [src]="getImageToDisplay()" alt="Previsualización"
                 style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;" />
             </div>
             <div class="text-danger mt-1" *ngIf="!cliente.clie_ImagenDelNegocio.trim() && mostrarErrores">
@@ -1174,12 +1174,8 @@
             <i class="ri-arrow-right-line text-primary"></i>
             <div class="text-center">
               <small class="text-muted d-block">Nuevo</small>
-              <img *ngIf="cliente.clie_ImagenDelNegocio" [src]="cliente.clie_ImagenDelNegocio" alt="Imagen nueva"
+              <img [src]="getImageToDisplay()" alt="Imagen nueva"
                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6;">
-              <div *ngIf="!cliente.clie_ImagenDelNegocio"
-                style="width: 60px; height: 60px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                <i class="ri-image-line text-muted"></i>
-              </div>
             </div>
           </div>
         </div>
