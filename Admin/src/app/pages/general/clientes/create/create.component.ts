@@ -29,7 +29,7 @@ export class CreateComponent {
   mapaSelectorComponent!: MapaSelectorComponent;
 
   entrando = true;
-  activeTab = 3;
+  activeTab = 2;
 
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -791,9 +791,9 @@ export class CreateComponent {
       this.mostrarErrores = false;
       const colonia = this.TodasColonias.find(c => c.colo_Id == this.direccionPorCliente.colo_Id);
       this.direccionPorCliente.muni_Descripcion = colonia ? colonia.colo_Descripcion : '';
-      this.direccionPorCliente.muni_Descripcion += ' ';
+      this.direccionPorCliente.muni_Descripcion += ', ';
       this.direccionPorCliente.muni_Descripcion += colonia ? colonia.muni_Descripcion : '';
-      this.direccionPorCliente.muni_Descripcion += ' ';
+      this.direccionPorCliente.muni_Descripcion += ', ';
       this.direccionPorCliente.muni_Descripcion += colonia ? colonia.depa_Descripcion : '';
 
       if (this.direccionEditandoIndex !== null) {
@@ -958,5 +958,8 @@ export class CreateComponent {
       this.mapaSelectorComponent.buscarDireccion(query);
     }
   }
+
+  //Llenar autompaticamente colonias al seleccionar un punto en el mapa
+  
 }
 

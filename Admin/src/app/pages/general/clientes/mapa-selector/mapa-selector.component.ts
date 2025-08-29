@@ -54,18 +54,18 @@ export class MapaSelectorComponent implements AfterViewInit, OnChanges {
 
     //Cargar marcador en el mapa en el editar
     if (this.coordenadasIniciales && this.map) {
-    const position = new google.maps.LatLng(this.coordenadasIniciales.lat, this.coordenadasIniciales.lng);
-    this.map.setCenter(position);
-    this.map.setZoom(16); // O el zoom que prefieras
-    if (this.marker) {
-      this.marker.setPosition(position);
-    } else {
-      this.marker = new google.maps.Marker({
-        position,
-        map: this.map,
-      });
+      const position = new google.maps.LatLng(this.coordenadasIniciales.lat, this.coordenadasIniciales.lng);
+      this.map.setCenter(position);
+      this.map.setZoom(16); // O el zoom que prefieras
+      if (this.marker) {
+        this.marker.setPosition(position);
+      } else {
+        this.marker = new google.maps.Marker({
+          position,
+          map: this.map,
+        });
+      }
     }
-  }
   }
 
   ngAfterViewInit() {
@@ -184,24 +184,27 @@ export class MapaSelectorComponent implements AfterViewInit, OnChanges {
 
   //Buscador en el mapa
   public buscarDireccion(query: string) {
-  if (!query || !this.map) return;
-  const geocoder = new google.maps.Geocoder();
-  geocoder.geocode({ 
-    address: query,
-    region: 'HN', // Solo Honduras
-    componentRestrictions: { country: 'HN' } // Solo Honduras
-  }, (results: google.maps.GeocoderResult[] | null, status: google.maps.GeocoderStatus) => {
-    if (status === 'OK' && results && results[0]) {
-      const location = results[0].geometry.location;
-      // Si hay viewport, ajusta el mapa automáticamente
-      if (results[0].geometry.viewport) {
-        this.map.fitBounds(results[0].geometry.viewport);
-      } else {
-        this.map.setCenter(location);
-        this.map.setZoom(14); // Zoom razonable si no hay viewport
+    if (!query || !this.map) return;
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({
+      address: query,
+      region: 'HN', // Solo Honduras
+      componentRestrictions: { country: 'HN' } // Solo Honduras
+    }, (results: google.maps.GeocoderResult[] | null, status: google.maps.GeocoderStatus) => {
+      if (status === 'OK' && results && results[0]) {
+        const location = results[0].geometry.location;
+        // Si hay viewport, ajusta el mapa automáticamente
+        if (results[0].geometry.viewport) {
+          this.map.fitBounds(results[0].geometry.viewport);
+        } else {
+          this.map.setCenter(location);
+          this.map.setZoom(14); // Zoom razonable si no hay viewport
+        }
       }
-    }
-    // Opcional: puedes manejar el caso de no encontrar resultados aquí
-  });
-}
+      // Opcional: puedes manejar el caso de no encontrar resultados aquí
+    });
+  }
+
+  //Llenar autompaticamente colonias al seleccionar un punto en el mapa
+  
 }
