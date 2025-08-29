@@ -1,0 +1,159 @@
+<div class="d-flex flex-column" style="height: 100%; min-height: 250px;">
+  <h5 class="card-title mb-4">Crear Nueva Meta</h5>
+
+  <!-- Alertas flotantes -->
+  <div class="alert-container">
+    <div *ngIf="mostrarAlertaExito" class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+      <strong>¡Éxito!</strong> {{ mensajeExito }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+    <div *ngIf="mostrarAlertaWarning" class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+      <strong>¡Atención!</strong> {{ mensajeWarning }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+    <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+      <strong>¡Error!</strong> {{ mensajeError }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <!-- Stepper -->
+  <ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" [class.active]="activeStep === 1" (click)="activeStep = 1" type="button" role="tab">
+        Información General
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" [class.active]="activeStep === 2" (click)="activeStep = 2" type="button" role="tab">
+        Vendedores
+      </button>
+    </li>
+  </ul>
+
+  <!-- Paso 1: Información General -->
+  <div *ngIf="activeStep === 1">
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Tipo <span class="text-danger">*</span></label>
+        <select class="form-select" [(ngModel)]="meta.meta_Tipo" required [class.is-invalid]="!meta.meta_Tipo && mostrarErrores">
+          <option value="" disabled selected>Seleccione un tipo</option>
+          <option *ngFor="let tipo of tiposMeta" [value]="tipo.value">{{ tipo.label }}</option>
+        </select>
+        <div class="text-danger mt-1" *ngIf="!meta.meta_Tipo && mostrarErrores">
+          <small>El campo Tipo es requerido</small>
+        </div>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Descripción <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" [(ngModel)]="meta.meta_Descripcion" required [class.is-invalid]="!meta.meta_Descripcion && mostrarErrores" placeholder="Ingrese la descripción de la meta">
+        <div class="text-danger mt-1" *ngIf="!meta.meta_Descripcion && mostrarErrores">
+          <small>El campo Descripción es requerido</small>
+        </div>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Fecha Inicio <span class="text-danger">*</span></label>
+        <input type="date" class="form-control" [(ngModel)]="meta.meta_FechaInicio" required [class.is-invalid]="!meta.meta_FechaInicio && mostrarErrores">
+        <div class="text-danger mt-1" *ngIf="!meta.meta_FechaInicio && mostrarErrores">
+          <small>El campo Fecha Inicio es requerido</small>
+        </div>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Fecha Fin <span class="text-danger">*</span></label>
+        <input type="date" class="form-control" [(ngModel)]="meta.meta_FechaFin" required [class.is-invalid]="!meta.meta_FechaFin && mostrarErrores">
+        <div class="text-danger mt-1" *ngIf="!meta.meta_FechaFin && mostrarErrores">
+          <small>El campo Fecha Fin es requerido</small>
+        </div>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Ingresos</label>
+        <input type="number" class="form-control" [(ngModel)]="meta.meta_Ingresos" min="0" placeholder="Ingresos meta">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Unidades</label>
+        <input type="number" class="form-control" [(ngModel)]="meta.meta_Unidades" min="0" placeholder="Unidades meta">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Categoría</label>
+        <select class="form-select" [(ngModel)]="meta.cate_Id">
+          <option value="0" disabled selected>Seleccione una categoría</option>
+          <option *ngFor="let cate of categorias" [value]="cate.cate_Id">{{ cate.cate_Descripcion }}</option>
+        </select>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Producto</label>
+        <select class="form-select" [(ngModel)]="meta.prod_Id">
+          <option value="0" disabled selected>Seleccione un producto</option>
+          <option *ngFor="let prod of productos" [value]="prod.prod_Id">{{ prod.prod_Descripcion }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="d-flex justify-content-end gap-2 mt-3">
+      <button type="button" class="btn btn-primary gold" (click)="cancelar()">
+        <span class="btn-text">Cancelar</span>
+        <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+      </button>
+      <button type="button" class="btn btn-primary" (click)="irAlSiguientePaso()">
+        <span class="btn-text">Siguiente</span>
+        <span class="btn-icon"><i class="ri-arrow-right-line"></i></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Paso 2: Vendedores -->
+  <div *ngIf="activeStep === 2">
+    <div class="mb-3">
+      <label class="form-label">Vendedores <span class="text-danger">*</span></label>
+      <div class="form-check mb-2">
+        <input type="checkbox" class="form-check-input" id="selectAllVendedores" [checked]="selectAllVendedores" (change)="toggleSelectAllVendedores($event)">
+        <label class="form-check-label" for="selectAllVendedores">Seleccionar todos</label>
+      </div>
+      <!-- <div class="row">
+        <div class="col-md-4 mb-2" *ngFor="let vendedor of vendedores">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input"
+              [id]="'vendedor-' + vendedor.vend_Id"
+              [checked]="vendedoresSeleccionados.includes(vendedor.vend_Id)"
+              (change)="toggleVendedor(vendedor.vend_Id, $event.target.checked )">
+            <label class="form-check-label" [for]="'vendedor-' + vendedor.vend_Id">
+              {{ vendedor.vend_Nombres }} {{ vendedor.vend_Apellidos }}
+            </label>
+          </div>
+        </div>
+      </div> -->
+      <div class="row">
+  <div class="col-md-4 mb-2" *ngFor="let vendedor of vendedores">
+    <div class="form-check">
+      <input type="checkbox" class="form-check-input"
+        [id]="'vendedor-' + vendedor.vend_Id"
+        [checked]="isVendedorSeleccionado(vendedor.vend_Id)"
+        (change)="toggleVendedor(vendedor.vend_Id, $event)">
+      <label class="form-check-label" [for]="'vendedor-' + vendedor.vend_Id">
+        {{ vendedor.vend_Nombres }} {{ vendedor.vend_Apellidos }}
+      </label>
+    </div>
+  </div>
+</div>
+      <div class="text-danger mt-1" *ngIf="vendedoresSeleccionados.length === 0 && mostrarErrores">
+        <small>Debe seleccionar al menos un vendedor</small>
+      </div>
+    </div>
+    <div class="d-flex justify-content-between gap-2 mt-3">
+      <button type="button" class="btn btn-primary gold" (click)="cancelar()">
+        <span class="btn-text">Cancelar</span>
+        <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+      </button>
+      <button type="button" class="btn btn-primary" (click)="irAlPasoAnterior()">
+        <span class="btn-text">Anterior</span>
+        <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
+      </button>
+      <button type="button" class="btn btn-primary" (click)="guardar()">
+        <span class="btn-text">Guardar</span>
+        <span class="btn-icon"><i class="ri-save-line"></i></span>
+      </button>
+    </div>
+  </div>
+</div>
