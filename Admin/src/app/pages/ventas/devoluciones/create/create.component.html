@@ -27,7 +27,7 @@
   <div class="flex-grow-1">
     <div class="row">
       <div class="col-12 col-md-6 mb-3">
-        <label for="vendedor" class="form-label">Vendedor <span class="text-danger">*</span></label>
+        <label for="vendedor" class="form-label">Vendedor<span class="text-danger">*</span></label>
         <div class="d-flex align-items-center">
           <i class="ri-user-2-line" [ngStyle]="{
                 border: (mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
@@ -58,7 +58,7 @@
 
       <!-- Selector de Cliente -->
       <div class="col-12 col-md-6 mb-3">
-        <label class="form-label">Cliente <span class="text-danger">*</span></label>
+        <label class="form-label">Cliente<span class="text-danger">*</span></label>
         <div class="d-flex align-items-center">
           <i class="ri-user-line" [ngStyle]="{
               border: (mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
@@ -91,7 +91,7 @@
 
       <!-- Selector de Factura -->
       <div class="col-12 col-md-6 mb-3">
-        <label class="form-label">Factura <span class="text-danger">*</span></label>
+        <label class="form-label">Factura<span class="text-danger">*</span></label>
         <div class="d-flex align-items-center">
           <i class="ri-file-list-3-line" [ngStyle]="{
             border: (mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
@@ -108,27 +108,6 @@
         </div>
         <div class="text-danger mt-1" *ngIf="mostrarErrores">
           <small>El campo Factura es requerido</small>
-        </div>
-      </div>
-
-      <!-- Fecha de devolucion -->
-      <div class="col-12 col-md-6 mb-3">
-        <label for="devo_Fecha" class="form-label">Fecha de devolucion <span class="text-danger">*</span></label>
-        <div class="d-flex align-items-center">
-          <i class="ri-calendar-line" [ngStyle]="{
-            border: (!devolucion.devo_Fecha && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-            backgroundColor: (!devolucion.devo_Fecha && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-            padding: '0.525rem 0.525rem',
-            borderTopLeftRadius: '8px',
-            borderBottomLeftRadius: '8px'
-          }"></i>
-          <input type="date" id="devo_Fecha" class="form-control"
-            [class.is-invalid]="!devolucion.devo_Fecha && mostrarErrores" [(ngModel)]="devolucion.devo_Fecha"
-            [max]="maxDate" [attr.min]="minDate" placeholder="Seleccione una fecha" required
-            style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;" />
-        </div>
-        <div class="text-danger mt-1" *ngIf="!devolucion.devo_Fecha && mostrarErrores">
-          <small>El campo Fecha es requerido</small>
         </div>
       </div>
 

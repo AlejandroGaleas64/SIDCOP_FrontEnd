@@ -1,6 +1,6 @@
 <div class="d-flex flex-column" style="height: 100%; min-height: 250px;">
   <!-- Título del componente -->
-  <h5 class="card-title mb-4">Editar Unidad De Peso</h5>
+  <h5 class="card-title mb-4">Crear Nuevo Unidad De Peso</h5>
   
   <!-- Contenedor de alertas flotantes -->
   <div class="alert-container">
@@ -73,7 +73,7 @@
               [(ngModel)]="UnidadDePeso.unPe_Abreviatura"
               (input)="onAbreviaturaInput($event)"
               maxlength="2"
-          
+           
               placeholder="Ingrese la abreviatura de la unidad de medida"
               required />
             <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>

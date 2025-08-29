@@ -114,20 +114,16 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="clienteRTN" class="form-label">RTN</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
             <div class="d-flex align-items-center">
               <i class="ri-newspaper-line"
                 [ngStyle]="{
-                border: (!cliente.clie_RTN.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.clie_RTN.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
-              <input type="text" class="form-control" [class.is-invalid]="!cliente.clie_RTN.trim() && mostrarErrores"
+              <input type="text" class="form-control"
                 id="clienteRTN" [(ngModel)]="cliente.clie_RTN" placeholder="Ingrese el RTN del cliente"
-                mask="00000000000000" required />
-            </div>
-            <div class="text-danger mt-1" *ngIf="!cliente.clie_RTN.trim() && mostrarErrores">
-              <small>El campo RTN es requerido</small>
+                mask="00000000000000" />
             </div>
           </div>
         </div>
@@ -260,17 +256,15 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="clienteFechaNacimiento" class="form-label">Fecha de Nacimiento</label>
-            <span class="text-danger">*</span>
             <div class="d-flex align-items-center">
               <i class="ri-calendar-todo-line"
                 [ngStyle]="{
-                border: (!cliente.clie_FechaNacimiento && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.clie_FechaNacimiento && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
               <input type="date" id="clienteFechaNacimiento" class="form-control"
-                [class.is-invalid]="!cliente.clie_FechaNacimiento && mostrarErrores"
-                [(ngModel)]="cliente.clie_FechaNacimiento"/>
+                [(ngModel)]="cliente.clie_FechaNacimiento" />
             </div>
           </div>
         </div>
@@ -313,8 +307,7 @@
                 placeholder="Ingrese el correo del cliente (opcional)"
                 [class.is-invalid]="cliente.clie_Correo && !revisarCorreoValido(cliente.clie_Correo)" />
             </div>
-            <div class="text-danger mt-1"
-              *ngIf="cliente.clie_Correo && !revisarCorreoValido(cliente.clie_Correo)">
+            <div class="text-danger mt-1" *ngIf="cliente.clie_Correo && !revisarCorreoValido(cliente.clie_Correo)">
               <small> Ingrese un correo válido. </small>
             </div>
           </div>
@@ -452,20 +445,19 @@
         </div>
 
         <div *ngFor="let direccion of direccionesPorCliente; let i = index" class="ubicacion-card">
-          <div class="card-actions">
-            <button class="icon-button delete" (click)="eliminarDireccion(i)"><i class="bx bxs-trash"></i></button>
-          </div>
-
           <div class="card-content">
             <div class="info">
               <h2 class="direccion-nombre">{{ direccion.diCl_Observaciones }}</h2>
-              <p class="detalle"><i class="bx bx-current-location"></i> Lat: {{ direccion.diCl_Latitud }}, Lng:
+              <p class="detalle"><i class="bx bx-current-location"></i> Latitud: {{ direccion.diCl_Latitud }}, Longitud:
                 {{direccion.diCl_Longitud }}</p>
               <p class="detalle"><i class="bx bx-map"></i>Dirección Exacta: {{ direccion.muni_Descripcion }}</p>
             </div>
-
-            <div class="ver-ubicacion">
-              <button class="btn btn-primary" (click)="editarDireccion(i)">
+            <div class="d-flex justify-content-between align-items-center mt-2" style="gap: 12px;">
+              <button type="button" class="btn btn-primary gold" style="height: 100%;" (click)="eliminarDireccion(i)">
+                <span class="btn-text">Eliminar</span>
+                <span class="btn-icon"><i class="ri-delete-bin-line"></i></span>
+              </button>
+              <button class="btn btn-primary btn-sm" (click)="editarDireccion(i)">
                 <span class="btn-text">Ver</span>
                 <span class="btn-icon"><i class="ri-road-map-line"></i></span>
               </button>
@@ -503,6 +495,11 @@
     <!--    Datos Politicos o Del Credito      -->
     <!--=======================================-->
     <div *ngIf="activeTab === 3">
+      <div class="alert alert-info d-flex align-items-center mt-3"
+        style="font-family: 'Inter', sans-serif; border-radius: 10px; background: #eaf4fb; color: #1a355e; font-weight: 500; box-shadow: 0 2px 8px #0001;">
+        <i class="ri-information-line me-2" style="font-size: 1.5rem; color: #1976d2;"></i>
+        Si solicitas un crédito, debes crear al menos un aval.
+      </div>
       <div class="row mx-lg-4">
         <!-- Limite de Crédito-->
         <div class="col-md-6">
@@ -813,6 +810,7 @@
               </div>
             </div>
           </div>
+          
           <!-- Dirección Exacta -->
           <div class="col-md-6">
             <div class="mb-3">
@@ -945,12 +943,19 @@
   tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
     <div class="modal-content">
-      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
-        <h3 class="text-muted">Seleccionar una ubicación</h3>
-        <i class="ri-close-line custom-modal-close" (click)="cerrarMapa()"></i>
+      <div class="modal-header custom-modal-header d-flex justify-content-center align-items-center"
+        style="position: relative;">
+        <h3 class="text-muted text-center">Seleccionar una ubicación</h3>
       </div>
       <hr class="custom-modal-divider" />
       <div class="modal-body custom-modal-body">
+        <div class="mb-3 position-relative" style="max-width: 400px; margin: 0 auto;">
+          <i class="ri-search-line"
+            style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #b6b6b6; font-size: 1.2rem;"></i>
+          <input type="text" class="form-control"
+            style="padding-left: 2.2rem; border-radius: 12px; background: #f7f7fa; box-shadow: 0 2px 8px #0001;"
+            placeholder="Buscar dirección..." (input)="buscarDireccion(getInputValue($event))">
+        </div>
         <app-mapa-selector (coordenadasSeleccionadas)="onCoordenadasSeleccionadas($event)"
           [mostrar]="mostrarMapa"></app-mapa-selector>
 
@@ -958,7 +963,7 @@
           <div class="col-md-6">
             <div class="mb-3">
               <label for="clienteDireccionExacta" class="form-label">Latitud</label>
-              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <span class="text-danger">*</span>
               <div class="d-flex align-items-center">
                 <i class="ri-pushpin-2-line"
                   [ngStyle]="{
@@ -980,7 +985,7 @@
           <div class="col-md-6">
             <div class="mb-3">
               <label for="clienteDireccionExacta" class="form-label">Longitud</label>
-              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <span class="text-danger">*</span>
               <div class="d-flex align-items-center">
                 <i class="ri-pushpin-2-line"
                   [ngStyle]="{
@@ -1003,7 +1008,7 @@
           <div class="col-md-6">
             <div class="mb-3">
               <label for="clienteDescripcionDeDireccion" class="form-label">Descripción</label>
-              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <span class="text-danger">*</span>
               <div class="d-flex align-items-center">
                 <i class="ri-attachment-line"
                   [ngStyle]="{
@@ -1024,31 +1029,29 @@
 
           <!-- Colonia -->
           <div class="col-md-6">
-            <label class="form-label">Colonia<span class="text-danger">*</span></label>
             <div class="mb-3">
+              <label for="colo_Id" class="form-label">Colonia</label>
+              <span class="text-danger">*</span>
               <div class="d-flex align-items-center">
-                <i class="ri-route-line"
+                <i class="ri-community-line"
                   [ngStyle]="{
-                border: (!direccionPorCliente.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!direccionPorCliente.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                  border: (!direccionPorCliente.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!direccionPorCliente.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
-                <ng-select class="w-100" [items]="TodasColonias" bindLabel="colo_Descripcion" bindValue="colo_Id"
-                  [(ngModel)]="direccionPorCliente.colo_Id" [searchable]="true" [clearable]="false"
-                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores"
-                  placeholder="Seleccione una colonia" required [searchFn]="searchColonias"
-                  (ngModelChange)="onColoniaSeleccionada($event)">
-                  <ng-template ng-label-tmp let-item="item">
-                    {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
-                  </ng-template>
-                  <ng-template ng-option-tmp let-item="item">
-                    {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
-                  </ng-template>
-                </ng-select>
-                <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+                <select id="colo_Id" name="colo_Id" class="form-select" [(ngModel)]="direccionPorCliente.colo_Id"
+                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores" required>
+                  <option value="0" disabled>Seleccione una colonia</option>
+                  <option *ngFor="let colonia of TodasColonias" [value]="colonia.colo_Id">
+                    {{ colonia.colo_Descripcion }}, {{ colonia.muni_Descripcion }}, {{ colonia.depa_Descripcion }}
+                  </option>
+                </select>
+                <div *ngIf="cargandoColonias" class="form-text text-muted">
+                  Cargando Colonias...
+                </div>
               </div>
               <div class="text-danger mt-1" *ngIf="!direccionPorCliente.colo_Id && mostrarErrores">
-                <small>El campo Colonia es requerido</small>
+                <small>El campo Colonias es requerido</small>
               </div>
             </div>
           </div>
@@ -1058,7 +1061,7 @@
           <div class="col-md-6">
             <div class="mb-3">
               <label for="clienteDireccionExacta" class="form-label">Dirección Exacta</label>
-              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <span class="text-danger">*</span>
               <div class="d-flex align-items-center">
                 <i class="ri-direction-line"
                   [ngStyle]="{
@@ -1076,7 +1079,17 @@
               </div>
             </div>
           </div>
-          <button class="btn btn-primary" (click)="agregarDireccion()">Guardar</button>
+          <div class="col-md-12 d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-primary gold" style="height: 100%; transform: rotate(180deg);"
+              (click)="cancelar()">
+              <span class="btn-text" style="transform: rotate(180deg);">Cerrar</span>
+              <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+            </button>
+            <button type="button" class="btn btn-primary" (click)="agregarDireccion()">
+              <span class="btn-text">Guardar</span>
+              <span class="btn-icon"><i class="ri-save-line"></i></span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

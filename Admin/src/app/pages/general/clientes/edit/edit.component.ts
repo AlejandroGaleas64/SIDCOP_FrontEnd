@@ -80,6 +80,8 @@ export class EditComponent implements OnChanges {
   direccionesEliminadas: number[] = [];
   avalesEliminados: number[] = [];
 
+  @Input() coordenadasIniciales?: { lat: number, lng: number };
+  
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['clienteData']?.currentValue) {
       this.cliente = { ...changes['clienteData'].currentValue };
@@ -103,6 +105,7 @@ export class EditComponent implements OnChanges {
       if (!formatoCodigo.test(this.cliente.clie_Codigo)) {
         this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
       }
+
       this.cargarDireccionesExistentes();
       this.cargarAvalesExistentes();
     }
@@ -200,7 +203,6 @@ export class EditComponent implements OnChanges {
       if (
         // this.cliente.clie_Codigo.trim() &&
         this.cliente.clie_Nacionalidad.trim() &&
-        this.cliente.clie_RTN.trim() &&
         this.cliente.clie_Nombres.trim() &&
         this.cliente.clie_Apellidos.trim() &&
         this.cliente.esCv_Id &&
@@ -348,11 +350,9 @@ export class EditComponent implements OnChanges {
       if (
         // this.cliente.clie_Codigo.trim() &&
         this.cliente.clie_Nacionalidad.trim() &&
-        this.cliente.clie_RTN.trim() &&
         this.cliente.clie_Nombres.trim() &&
         this.cliente.clie_Apellidos.trim() &&
         this.cliente.esCv_Id &&
-        this.cliente.clie_FechaNacimiento &&
         this.cliente.tiVi_Id &&
         this.cliente.clie_Telefono.trim()
       ) {
@@ -1478,10 +1478,7 @@ export class EditComponent implements OnChanges {
   private validarCampos(): boolean {
     const errores: string[] = [];
 
-    // Validar campos básicos requeridos
-    if (!this.cliente.clie_RTN.trim()) {
-      errores.push('RTN');
-    }
+    // Validar campos básicos requerido
 
     if (!this.cliente.clie_Nombres.trim()) {
       errores.push('Nombres');
@@ -1525,5 +1522,16 @@ export class EditComponent implements OnChanges {
   confirmarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
     this.guardarCliente();
+  }
+
+  //Buscador de direcciones en el mapa
+  getInputValue(event: Event): string {
+    return (event.target as HTMLInputElement)?.value || '';
+  }
+
+  buscarDireccion(query: string) {
+    if (this.mapaSelectorComponent) {
+      this.mapaSelectorComponent.buscarDireccion(query);
+    }
   }
 }

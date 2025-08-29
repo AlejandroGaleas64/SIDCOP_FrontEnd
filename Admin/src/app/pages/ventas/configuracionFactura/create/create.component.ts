@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -6,6 +6,8 @@ import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
+import Cropper from 'cropperjs';
 
 @Component({
   selector: 'app-create',
@@ -24,6 +26,7 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 export class CreateComponent {
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<any>();
+  @ViewChild('imageCropper', { static: false }) imageCropper!: ElementRef<HTMLImageElement>;
 
   // Estados de alerta
   mostrarErrores = false;
@@ -33,6 +36,12 @@ export class CreateComponent {
   mensajeError = '';
   mostrarAlertaWarning = false;
   mensajeWarning = '';
+
+  // Cropper properties
+  showCropper = false;
+  cropper: Cropper | null = null;
+  selectedFile: File | null = null;
+  logoSeleccionado = false;
 
   // Modelo
   configFactura = {
@@ -44,13 +53,15 @@ export class CreateComponent {
     coFa_Telefono1: '',
     coFa_Telefono2: '',
     coFa_Logo: '',
+    coFa_DiasDevolucion: 0,
+    coFa_RutaMigracion: '',
     colo_Id: 0
   };
 
   // Catálogos
   colonia: any[] = [];
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {
     this.listarColonias();
   }
 
@@ -127,31 +138,86 @@ export class CreateComponent {
     }
   }
 
-  onImagenSeleccionada(event: any) {
-    // Obtenemos el archivo seleccionado desde el input tipo file
+  onFileChange(event: any) {
     const file = event.target.files[0];
-
     if (file) {
-      // para enviar la imagen a Cloudinary
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'configuracion_empresa');
-      //Subidas usuarios Carpeta identificadora en Cloudinary
-      //dbt7mxrwk es el nombre de la cuenta de Cloudinary
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-
-      fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        this.configFactura.coFa_Logo = data.secure_url;
-      })
-      .catch(error => {
-        console.error('Error al subir la imagen a Cloudinary:', error);
-      });
+      this.selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imageCropper.nativeElement.src = e.target.result;
+        this.showCropper = true;
+        setTimeout(() => {
+          if (this.cropper) {
+            this.cropper.destroy();
+          }
+          this.cropper = new Cropper(this.imageCropper.nativeElement, {
+            aspectRatio: 1,
+            viewMode: 1,
+            autoCropArea: 0.8,
+            responsive: true,
+            background: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+          });
+        }, 100);
+      };
+      reader.readAsDataURL(file);
     }
+  }
+
+  cerrarModalCropper() {
+    this.showCropper = false;
+    if (this.cropper) {
+      this.cropper.destroy();
+      this.cropper = null;
+    }
+    this.selectedFile = null;
+  }
+
+  async cropAndUpload() {
+    if (this.cropper && this.selectedFile) {
+      try {
+        const canvas = this.cropper.getCroppedCanvas({
+          width: 300,
+          height: 300,
+          imageSmoothingEnabled: true,
+          imageSmoothingQuality: 'high'
+        });
+        
+        canvas.toBlob(async (blob: Blob | null) => {
+          if (blob) {
+            const croppedFile = new File([blob], this.selectedFile!.name, {
+              type: this.selectedFile!.type,
+              lastModified: Date.now()
+            });
+            
+            const imagePath = await this.imageUploadService.uploadImageAsync(croppedFile);
+            this.configFactura.coFa_Logo = imagePath;
+            this.logoSeleccionado = true;
+            this.cerrarModalCropper();
+          }
+        }, this.selectedFile.type, 0.9);
+      } catch (error) {
+        console.error('Error al procesar la imagen:', error);
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error al procesar la imagen. Por favor, inténtelo de nuevo.';
+        setTimeout(() => {
+          this.mostrarAlertaError = false;
+          this.mensajeError = '';
+        }, 5000);
+      }
+    }
+  }
+
+  /**
+   * Obtiene la URL completa para mostrar la imagen
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
   }
 
   cerrarAlerta(): void {
@@ -202,6 +268,14 @@ export class CreateComponent {
 
     if (!this.configFactura.coFa_Logo) {
       errores.push('Logo');
+    }
+
+    if (!this.configFactura.coFa_DiasDevolucion) {
+      errores.push('Días de Devolución');
+    }
+
+    if (!this.configFactura.coFa_RutaMigracion.trim()) {
+      errores.push('Ruta de Migración');
     }
 
     if (this.configFactura.colo_Id === 0) {

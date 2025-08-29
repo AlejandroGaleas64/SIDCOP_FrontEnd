@@ -91,7 +91,6 @@ export class ListComponent {
     title: 'Listado de Clientes',                    // Título del reporte
     filename: 'Clientes',                           // Nombre base del archivo
     department: 'General',                         // Departamento
-    additionalInfo: 'Sistema de Gestión',         // Información adicional
 
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
@@ -101,7 +100,7 @@ export class ListComponent {
       { key: 'Nombres', header: 'Nombres', width: 50, align: 'left' as const },
       { key: 'Apellidos', header: 'Apellidos', width: 50, align: 'left' as const },
       { key: 'Nombre del Negocio', header: 'Nombre del Negocio', width: 50, align: 'left' as const },
-      { key: 'Telefono', header: 'Telefono', width: 30, align: 'left' as const }
+      { key: 'Telefono', header: 'Teléfono', width: 30, align: 'left' as const }
     ] as ExportColumn[],
 
     // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
@@ -113,8 +112,6 @@ export class ListComponent {
       'Apellidos': this.limpiarTexto(cliente?.clie_Apellidos),
       'Nombre del Negocio': this.limpiarTexto(cliente?.clie_NombreNegocio),
       'Telefono': this.limpiarTexto(cliente?.clie_Telefono)
-      // Agregar más campos aquí según necesites:
-      // 'Campo': this.limpiarTexto(modelo?.campo),
     })
   };
 
@@ -203,6 +200,7 @@ export class ListComponent {
       status: ['', [Validators.required]],
       img: ['']
     });
+
     this.cargarAccionesUsuario();
     this.cargarDatos(true);
     this.contador();
@@ -292,8 +290,7 @@ export class ListComponent {
       data: this.obtenerDatosExport(),
       columns: this.exportConfig.columns,
       metadata: {
-        department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
+        department: this.exportConfig.department
       }
     };
   }
@@ -303,7 +300,7 @@ export class ListComponent {
    */
   private obtenerDatosExport(): any[] {
     try {
-      const datos = this.clientes; // Use the array for cards
+      const datos = this.clientesFiltrados;
 
       if (!Array.isArray(datos) || datos.length === 0) {
         throw new Error('No hay datos disponibles para exportar');
@@ -359,8 +356,6 @@ export class ListComponent {
     if (!texto) return '';
 
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }
@@ -617,7 +612,7 @@ export class ListComponent {
     this.clienteDetalle = null;
   }
 
-  activar(cliente: Cliente):void{
+  activar(cliente: Cliente): void {
     this.clienteSeleccionado = cliente;
     this.mostrarModalActivacion = true;
   }
@@ -707,4 +702,6 @@ export class ListComponent {
   esClienteActivo(cliente: any): boolean {
     return cliente.clie_Estado === 1 || cliente.clie_Estado === true;
   }
+
+ 
 }
