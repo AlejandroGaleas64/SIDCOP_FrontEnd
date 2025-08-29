@@ -39,15 +39,13 @@ export class CreateComponent implements OnInit {
   meta : any = {
     meta_Id: 0,
     meta_Descripcion: '',
-    // meta_FechaInicio: new Date(),
-    // meta_FechaFin: new Date(),
     meta_FechaInicio: new Date().toISOString().substring(0, 10),
     meta_FechaFin: new Date().toISOString().substring(0, 10),
     meta_Tipo: '',
     meta_Ingresos: 0,
     meta_Unidades: 0,
-    prod_Id: 0,
-    cate_Id: 0,
+    prod_Id: null,
+    cate_Id: null,
     meta_Estado: true,
     usua_Creacion: environment.usua_Id || getUserId(),
     meta_FechaCreacion: new Date(),
@@ -62,16 +60,16 @@ export class CreateComponent implements OnInit {
   selectAllVendedores = false;
   filtroVendedor: string = '';
 
-  // Tipo options
+  // Tipo options (updated)
   tiposMeta = [
     { value: 'IT', label: 'Ingresos Totales' },
-    { value: 'TP', label: 'Total Productos Cantidad' },
+    { value: 'TP', label: 'Total Productos (Cantidad)' },
     { value: 'CN', label: 'Clientes Nuevos' },
-    { value: 'PE', label: 'Producto Específico Cantidad' },
+    { value: 'PE', label: 'Producto Específico (Cantidad)' },
     { value: 'IP', label: 'Ingresos de Producto Específico' },
-    { value: 'PC', label: 'Productos de Categoría' },
-    { value: 'CM', label: 'Cantidades Manuales' },
-    { value: 'IM', label: 'Ingresos Manuales' }
+    { value: 'PC', label: 'Productos de Categoría (Ingresos)' },
+    { value: 'CM', label: 'Cantidades Administradas Manualmente' },
+    { value: 'IM', label: 'Ingresos Administradas Manualmente' }
   ];
 
   constructor(private http: HttpClient) {}
@@ -132,15 +130,61 @@ export class CreateComponent implements OnInit {
     }
   }
 
-  // Validation
+  // --- ADDED: Reset fields on tipo change ---
+  onTipoChange() {
+    const tipo = this.meta.meta_Tipo;
+
+    // Reset all conditional fields
+    this.meta.meta_Ingresos = 0;
+    this.meta.meta_Unidades = 0;
+    this.meta.prod_Id = null;
+    this.meta.cate_Id = null;
+
+    // Set only the needed fields for each tipo
+    // (No need to set values here, just reset unused fields)
+    // If you want to set defaults for some tipos, do it here
+  }
+
+  // --- CHANGED: Validation logic per tipo ---
   validarPasoActual(): boolean {
     if (this.activeStep === 1) {
-      return !!this.meta.meta_Descripcion?.trim() &&
-        !!this.meta.meta_Tipo &&
-        !!this.meta.meta_FechaInicio &&
-        !!this.meta.meta_FechaFin &&
-        (this.meta.meta_Ingresos > 0 || this.meta.meta_Unidades > 0) &&
-        (this.meta.prod_Id! > 0 || this.meta.cate_Id! > 0);
+      const tipo = this.meta.meta_Tipo;
+      if (!this.meta.meta_Descripcion?.trim() || !tipo || !this.meta.meta_FechaInicio || !this.meta.meta_FechaFin) {
+        return false;
+      }
+      // IT — Ingresos Totales
+      if (tipo === 'IT') {
+        return this.meta.meta_Ingresos > 0;
+      }
+      // TP — Total Productos (Cantidad)
+      if (tipo === 'TP') {
+        return this.meta.meta_Unidades > 0;
+      }
+      // CN — Clientes Nuevos
+      if (tipo === 'CN') {
+        return this.meta.meta_Unidades > 0;
+      }
+      // PE — Producto Específico (Cantidad)
+      if (tipo === 'PE') {
+        return this.meta.meta_Unidades > 0 && !!this.meta.prod_Id;
+      }
+      // IP — Ingresos de Producto Específico
+      if (tipo === 'IP') {
+        return this.meta.meta_Ingresos > 0 && !!this.meta.prod_Id;
+      }
+      // PC — Productos de Categoría (Ingresos)
+      if (tipo === 'PC') {
+        return this.meta.meta_Ingresos > 0 && !!this.meta.cate_Id;
+      }
+      // CM — Cantidades Manuales
+      if (tipo === 'CM') {
+        return this.meta.meta_Unidades > 0;
+      }
+      // IM — Ingresos Manuales
+      if (tipo === 'IM') {
+        return this.meta.meta_Ingresos > 0;
+      }
+      return false;
     }
     if (this.activeStep === 2) {
       return this.vendedoresSeleccionados.length > 0;
@@ -149,31 +193,20 @@ export class CreateComponent implements OnInit {
   }
 
   isVendedorSeleccionado(vend_Id: number): boolean {
-  return this.vendedoresSeleccionados.includes(vend_Id);
-}
-
-toggleVendedor(vend_Id: number, event: Event) {
-  const checked = (event.target as HTMLInputElement).checked;
-  if (checked) {
-    if (!this.vendedoresSeleccionados.includes(vend_Id)) {
-      this.vendedoresSeleccionados.push(vend_Id);
-    }
-  } else {
-    this.vendedoresSeleccionados = this.vendedoresSeleccionados.filter(id => id !== vend_Id);
+    return this.vendedoresSeleccionados.includes(vend_Id);
   }
-  this.selectAllVendedores = this.vendedoresSeleccionados.length === this.vendedores.length;
-}
-  // Vendedor selection logic
-  // toggleVendedor(vend_Id: number, checked: boolean) {
-  //   if (checked) {
-  //     if (!this.vendedoresSeleccionados.includes(vend_Id)) {
-  //       this.vendedoresSeleccionados.push(vend_Id);
-  //     }
-  //   } else {
-  //     this.vendedoresSeleccionados = this.vendedoresSeleccionados.filter(id => id !== vend_Id);
-  //   }
-  //   this.selectAllVendedores = this.vendedoresSeleccionados.length === this.vendedores.length;
-  // }
+
+  toggleVendedor(vend_Id: number, event: Event) {
+    const checked = (event.target as HTMLInputElement).checked;
+    if (checked) {
+      if (!this.vendedoresSeleccionados.includes(vend_Id)) {
+        this.vendedoresSeleccionados.push(vend_Id);
+      }
+    } else {
+      this.vendedoresSeleccionados = this.vendedoresSeleccionados.filter(id => id !== vend_Id);
+    }
+    this.selectAllVendedores = this.vendedoresSeleccionados.length === this.vendedores.length;
+  }
 
   toggleSelectAllVendedores(event: any) {
     const checked = event.target.checked;
@@ -197,15 +230,14 @@ toggleVendedor(vend_Id: number, event: Event) {
   }
 
   get vendedoresFiltrados() {
-  if (!this.filtroVendedor?.trim()) return this.vendedores;
-  const filtro = this.filtroVendedor.trim().toLowerCase();
-  return this.vendedores.filter(v =>
-    (`${v.vend_Nombres} ${v.vend_Apellidos}`.toLowerCase().includes(filtro))
-  );
-}
-  
+    if (!this.filtroVendedor?.trim()) return this.vendedores;
+    const filtro = this.filtroVendedor.trim().toLowerCase();
+    return this.vendedores.filter(v =>
+      (`${v.vend_Nombres} ${v.vend_Apellidos}`.toLowerCase().includes(filtro))
+    );
+  }
 
-  // Save
+  // --- CHANGED: Ensure unused fields are null before saving ---
   guardar(): void {
     this.mostrarErrores = true;
     if (!this.validarPasoActual()) {
@@ -216,6 +248,54 @@ toggleVendedor(vend_Id: number, event: Event) {
         this.mensajeWarning = '';
       }, 4000);
       return;
+    }
+
+    // Ensure unused fields are null for FK
+    const tipo = this.meta.meta_Tipo;
+    // IT — Ingresos Totales
+    if (tipo === 'IT') {
+      this.meta.meta_Unidades = 0;
+      this.meta.prod_Id = null;
+      this.meta.cate_Id = null;
+    }
+    // TP — Total Productos (Cantidad)
+    if (tipo === 'TP') {
+      this.meta.meta_Ingresos = 0;
+      this.meta.prod_Id = null;
+      this.meta.cate_Id = null;
+    }
+    // CN — Clientes Nuevos
+    if (tipo === 'CN') {
+      this.meta.meta_Ingresos = 0;
+      this.meta.prod_Id = null;
+      this.meta.cate_Id = null;
+    }
+    // PE — Producto Específico (Cantidad)
+    if (tipo === 'PE') {
+      this.meta.meta_Ingresos = 0;
+      this.meta.cate_Id = null;
+    }
+    // IP — Ingresos de Producto Específico
+    if (tipo === 'IP') {
+      this.meta.meta_Unidades = 0;
+      this.meta.cate_Id = null;
+    }
+    // PC — Productos de Categoría (Ingresos)
+    if (tipo === 'PC') {
+      this.meta.meta_Unidades = 0;
+      this.meta.prod_Id = null;
+    }
+    // CM — Cantidades Manuales
+    if (tipo === 'CM') {
+      this.meta.meta_Ingresos = 0;
+      this.meta.prod_Id = null;
+      this.meta.cate_Id = null;
+    }
+    // IM — Ingresos Manuales
+    if (tipo === 'IM') {
+      this.meta.meta_Unidades = 0;
+      this.meta.prod_Id = null;
+      this.meta.cate_Id = null;
     }
 
     // Prepare payload
@@ -230,7 +310,6 @@ toggleVendedor(vend_Id: number, event: Event) {
       vendedoresXml: this.generateVendedoresXml(),
       vendedoresJson: '' 
     };
-
 
     console.log('Payload to be sent:', payload);
 
@@ -281,13 +360,13 @@ toggleVendedor(vend_Id: number, event: Event) {
     this.meta = {
       meta_Id: 0,
       meta_Descripcion: '',
-      meta_FechaInicio: new Date(),
-      meta_FechaFin: new Date(),
+      meta_FechaInicio: new Date().toISOString().substring(0, 10),
+      meta_FechaFin: new Date().toISOString().substring(0, 10),
       meta_Tipo: '',
       meta_Ingresos: 0,
       meta_Unidades: 0,
-      prod_Id: 0,
-      cate_Id: 0,
+      prod_Id: null,
+      cate_Id: null,
       meta_Estado: true,
       usua_Creacion: environment.usua_Id || getUserId(),
       meta_FechaCreacion: new Date(),
