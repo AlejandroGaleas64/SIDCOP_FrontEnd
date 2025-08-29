@@ -68,6 +68,27 @@ getNombre(item: any): string {
   return '';
 }
 
+  // Opciones dinámicas para currencyMask
+  opcionesMontoFijo: any = {
+    prefix: 'L. ',
+    suffix: '',
+    thousands: ',',
+    decimal: '.',
+    precision: 2,
+    allowNegative: false,
+    align: 'right'
+  };
+
+  opcionesPorcentaje: any = {
+    prefix: '',
+    suffix: ' %',
+    thousands: ',',
+    decimal: '.',
+    precision: 2,
+    allowNegative: false,
+    align: 'right'
+  };
+
 mostrarSeccion(seccion: string) {
   this.seccionVisible = seccion;
   this.filtro = '';
@@ -89,6 +110,9 @@ mostrarSeccion(seccion: string) {
       this.descuento.desc_Aplicar = 'M';
       break;
   }
+  // Revalidar clientes y recalcular/clamp de escalas al cambiar el ámbito de aplicación
+  this.validarClientesSeleccionadosAlLlegarATab();
+  this.reclampEscalasSegunMax();
 }
 
 getItemsFiltrados() {
@@ -105,6 +129,9 @@ alternarSeleccion(id: number) {
     this.seleccionados.push(id);
   }
   this.descuentoDetalle.idReferencias = [...this.seleccionados]; // actualizar modelo
+  // Al cambiar referencias, revalidar clientes y ajustar escalas si aplica monto fijo
+  this.validarClientesSeleccionadosAlLlegarATab();
+  this.reclampEscalasSegunMax();
 }
 
 todosSeleccionados(): boolean {
@@ -120,6 +147,9 @@ seleccionarTodos(event: any) {
     this.seleccionados = [];
   }
   this.descuentoDetalle.idReferencias = [...this.seleccionados];
+  // Revalidar clientes y ajustar escalas según el nuevo máximo
+  this.validarClientesSeleccionadosAlLlegarATab();
+  this.reclampEscalasSegunMax();
 }
 
 hoy: string;
@@ -271,6 +301,38 @@ hoy: string;
       collapsed: true // Inicialmente todos los canales están expandidos
     }));
   });
+}
+
+// Helpers: obtener nombres legibles para IDs
+private getNombreClientePorId(id: number): string {
+  for (const grupo of this.clientesAgrupados || []) {
+    const c = (grupo.clientes || []).find((x: any) => Number(x.clie_Id) === Number(id));
+    if (c) return c.clie_NombreNegocio || c.clie_NombreComercial || c.clie_NombreCompleto || String(id);
+  }
+  return String(id);
+}
+
+private getNombreReferenciaPorId(id: number, aplicar: string): string {
+  switch (aplicar) {
+    case 'P': {
+      const p = (this.productos || []).find((x: any) => Number(x.prod_Id) === Number(id));
+      return p?.prod_DescripcionCorta || p?.prod_Descripcion || String(id);
+    }
+    case 'C': {
+      const c = (this.categorias || []).find((x: any) => Number(x.cate_Id) === Number(id));
+      return c?.cate_Descripcion || String(id);
+    }
+    case 'S': {
+      const s = (this.subcategorias || []).find((x: any) => Number(x.subc_Id) === Number(id));
+      return s?.subc_Descripcion || String(id);
+    }
+    case 'M': {
+      const m = (this.marcas || []).find((x: any) => Number(x.marc_Id) === Number(id));
+      return m?.marc_Descripcion || String(id);
+    }
+    default:
+      return String(id);
+  }
 }
 
 listarDescuentos(): void {
@@ -554,6 +616,32 @@ get valorMaximoNumerico(): number {
   return this.getPrecioMinimoSeleccionados();
 }
 
+// Normaliza escalas a números y elimina propiedades extra para comparaciones/validaciones
+private normalizarEscalas(escalas: any[]): { deEs_InicioEscala: number; deEs_FinEscala: number; deEs_Valor: number }[] {
+  if (!Array.isArray(escalas)) return [];
+  return escalas.map((e: any) => ({
+    deEs_InicioEscala: Number(e?.deEs_InicioEscala) || 0,
+    deEs_FinEscala: Number(e?.deEs_FinEscala) || 0,
+    deEs_Valor: Number(e?.deEs_Valor) || 0,
+  }));
+}
+
+// Reajusta valores de escalas según el máximo actual (porcentaje 100 o precio mínimo)
+private reclampEscalasSegunMax(): void {
+  const max = this.valorMaximoNumerico;
+  if (!Array.isArray(this.escalas)) return;
+  this.escalas = this.escalas.map(e => {
+    const copia = { ...e };
+    copia.deEs_InicioEscala = Number(copia.deEs_InicioEscala) || 0;
+    copia.deEs_FinEscala = Number(copia.deEs_FinEscala) || 0;
+    copia.deEs_Valor = Number(copia.deEs_Valor) || 0;
+    if (isFinite(max) && copia.deEs_Valor > max) {
+      copia.deEs_Valor = max;
+    }
+    return copia;
+  });
+}
+
 get fechaInicioFormato(): string {
   return new Date(this.descuento.desc_FechaInicio).toISOString().split('T')[0];
 }
@@ -603,13 +691,19 @@ tieneAyudante: boolean = false;
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
 
-
-
-
-
-
-
- 
+// Snapshot para detectar diferencias del descuento
+private originalDescuentoSnapshot: {
+  desc_Descripcion: string;
+  desc_Tipo: boolean;
+  desc_Aplicar: string;
+  desc_FechaInicio: string; // ISO solo fecha
+  desc_FechaFin: string; // ISO solo fecha
+  desc_Observaciones: string;
+  desc_TipoFactura: string;
+  clientesIds: number[];
+  referenciasIds: number[];
+  escalas: { deEs_InicioEscala: number; deEs_FinEscala: number; deEs_Valor: number }[];
+} | null = null;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['descuentoData'] && changes['descuentoData'].currentValue) {
@@ -624,7 +718,7 @@ tieneAyudante: boolean = false;
       // Si solo necesitas los IDs
       const clientesIds = clientesLista.map((c: any) => c.id);
       const referenciasIds = referenciasLista.map((r: any) => r.id);
-      this.escalas = escalasLista;
+      this.escalas = this.normalizarEscalas(escalasLista);
       this.clientesSeleccionados = clientesIds;
       this.seleccionados = referenciasIds;
       this.formaPago = this.descuento.desc_TipoFactura
@@ -677,13 +771,69 @@ tieneAyudante: boolean = false;
       if (!Array.isArray(this.productos) || this.productos.length === 0) {
         this.listarPorductos();
       }
-  
-    
+      // Guardar snapshot original del descuento para comparación
+      this.originalDescuentoSnapshot = {
+        desc_Descripcion: (this.descuento.desc_Descripcion || '').trim(),
+        desc_Tipo: !!this.descuento.desc_Tipo,
+        desc_Aplicar: (this.descuento.desc_Aplicar || '').trim(),
+        desc_FechaInicio: new Date(this.descuento.desc_FechaInicio).toISOString().split('T')[0],
+        desc_FechaFin: new Date(this.descuento.desc_FechaFin).toISOString().split('T')[0],
+        desc_Observaciones: (this.descuento.desc_Observaciones || '').trim(),
+        desc_TipoFactura: (this.descuento.desc_TipoFactura || '').trim(),
+        clientesIds: [...clientesIds].sort((a,b)=>a-b),
+        referenciasIds: [...referenciasIds].sort((a,b)=>a-b),
+        escalas: this.normalizarEscalas(this.escalas),
+      };
+      // Ajustar escalas según el máximo vigente (en caso de que el JSON traiga valores fuera de rango)
+      this.reclampEscalasSegunMax();
 
     }
   }
 
 
+
+  // Compara el estado actual del descuento contra el snapshot original
+  private hayDiferenciasDescuento(): boolean {
+    if (!this.originalDescuentoSnapshot) return true;
+    const snap = this.originalDescuentoSnapshot;
+
+    const iso = (d: Date | string) => new Date(d).toISOString().split('T')[0];
+    const arrEq = (a: number[], b: number[]) => {
+      const aa = [...(a || [])].map(Number).filter(n => !isNaN(n)).sort((x,y)=>x-y);
+      const bb = [...(b || [])].map(Number).filter(n => !isNaN(n)).sort((x,y)=>x-y);
+      return JSON.stringify(aa) === JSON.stringify(bb);
+    };
+    const escEq = (
+      a: { deEs_InicioEscala: number; deEs_FinEscala: number; deEs_Valor: number }[],
+      b: { deEs_InicioEscala: number; deEs_FinEscala: number; deEs_Valor: number }[],
+    ) => JSON.stringify(this.normalizarEscalas(a)) === JSON.stringify(this.normalizarEscalas(b));
+
+    const actual = {
+      desc_Descripcion: (this.descuento.desc_Descripcion || '').trim(),
+      desc_Tipo: !!this.descuento.desc_Tipo,
+      desc_Aplicar: (this.descuento.desc_Aplicar || '').trim(),
+      desc_FechaInicio: iso(this.descuento.desc_FechaInicio),
+      desc_FechaFin: iso(this.descuento.desc_FechaFin),
+      desc_Observaciones: (this.descuento.desc_Observaciones || '').trim(),
+      desc_TipoFactura: (this.formaPago || this.descuento.desc_TipoFactura || '').trim(),
+      clientesIds: this.clientesSeleccionados,
+      referenciasIds: this.seleccionados,
+      escalas: this.escalas,
+    };
+
+    if (actual.desc_Descripcion !== snap.desc_Descripcion) return true;
+    if (actual.desc_Tipo !== snap.desc_Tipo) return true;
+    if (actual.desc_Aplicar !== snap.desc_Aplicar) return true;
+    if (actual.desc_FechaInicio !== snap.desc_FechaInicio) return true;
+    if (actual.desc_FechaFin !== snap.desc_FechaFin) return true;
+    if (actual.desc_Observaciones !== snap.desc_Observaciones) return true;
+    if ((actual.desc_TipoFactura || '') !== (snap.desc_TipoFactura || '')) return true;
+    if (!arrEq(actual.clientesIds as any, snap.clientesIds as any)) return true;
+    if (!arrEq(actual.referenciasIds as any, snap.referenciasIds as any)) return true;
+    if (!escEq(actual.escalas as any, snap.escalas as any)) return true;
+
+    return false;
+  }
 
   cancelar(): void {
     this.cerrarAlerta();
@@ -774,22 +924,93 @@ tieneAyudante: boolean = false;
     setTimeout(() => this.cerrarAlerta(), 4000);
     return;
   }
-  // Detectar cambios en los campos principales
-  const cambios =
-    this.descuento.desc_Descripcion.trim() !== (this.descuentoData?.desc_Descripcion?.trim() ?? '') ||
-  this.descuento.desc_Tipo !== (this.descuentoData?.desc_Tipo) ||
-  this.descuento.desc_Aplicar.trim() !== (this.descuentoData?.desc_Aplicar?.trim() ?? '') ||
-  this.descuento.desc_FechaInicio !== (this.descuentoData?.desc_FechaInicio) ||
-  this.descuento.desc_FechaFin !== (this.descuentoData?.desc_FechaFin) ||
-  this.descuento.desc_Observaciones.trim() !== (this.descuentoData?.desc_Observaciones?.trim() ?? '') 
-
-  if (cambios) {
+  // Detectar cambios considerando todos los campos relevantes, clientes, referencias y escalas
+  if (this.hayDiferenciasDescuento()) {
     this.mostrarConfirmacionEditar = true;
   } else {
     this.mostrarAlertaWarning = true;
     this.mensajeWarning = 'No se han detectado cambios.';
     setTimeout(() => this.cerrarAlerta(), 4000);
   }
+  }
+
+  // Genera una lista de cambios legible para la UI de confirmación (similar a promociones)
+  obtenerListaCambios(): { label: string; anterior: string; nuevo: string }[] {
+    if (!this.originalDescuentoSnapshot) return [];
+
+    const cambios: { label: string; anterior: string; nuevo: string }[] = [];
+    const snap = this.originalDescuentoSnapshot;
+
+    const iso = (d: Date | string) => new Date(d).toISOString().split('T')[0];
+    const join = (arr: any[]) => (arr || []).join(', ');
+    const normIds = (arr: number[]) => [...(arr || [])].map(Number).filter(n => !isNaN(n)).sort((a,b)=>a-b);
+    const equalArr = (a: number[], b: number[]) => JSON.stringify(normIds(a)) === JSON.stringify(normIds(b));
+    const escToStr = (es: any[]) => {
+      const esNorm = this.normalizarEscalas(es || []);
+      const unidad = this.descuento.desc_Tipo ? '' : '%'; // true: monto fijo (sin símbolo), false: porcentaje
+      return esNorm
+        .map(e => {
+          const v = Number(e.deEs_Valor) || 0;
+          const valorStr = this.descuento.desc_Tipo ? v.toFixed(2) : v.toFixed(2) + unidad;
+          return `Desde ${e.deEs_InicioEscala} hasta ${e.deEs_FinEscala}: ${valorStr}`;
+        })
+        .join(' | ');
+    };
+
+    const actual = {
+      desc_Descripcion: (this.descuento.desc_Descripcion || '').trim(),
+      desc_Tipo: !!this.descuento.desc_Tipo,
+      desc_Aplicar: (this.descuento.desc_Aplicar || '').trim(),
+      desc_FechaInicio: iso(this.descuento.desc_FechaInicio),
+      desc_FechaFin: iso(this.descuento.desc_FechaFin),
+      desc_Observaciones: (this.descuento.desc_Observaciones || '').trim(),
+      desc_TipoFactura: (this.formaPago || this.descuento.desc_TipoFactura || '').trim(),
+      clientesIds: this.clientesSeleccionados,
+      referenciasIds: this.seleccionados,
+      escalas: this.escalas,
+    };
+
+    if (actual.desc_Descripcion !== snap.desc_Descripcion) {
+      cambios.push({ label: 'Descripción', anterior: snap.desc_Descripcion || '—', nuevo: actual.desc_Descripcion || '—' });
+    }
+    if (actual.desc_Tipo !== snap.desc_Tipo) {
+      cambios.push({ label: 'Tipo de descuento', anterior: snap.desc_Tipo ? 'Monto fijo' : 'Porcentaje', nuevo: actual.desc_Tipo ? 'Monto fijo' : 'Porcentaje' });
+    }
+    if (actual.desc_Aplicar !== snap.desc_Aplicar) {
+      const mapA = (v: string) => ({ P:'Productos', C:'Categorias', S:'Subcategorias', M:'Marcas' } as any)[v] || v || '—';
+      cambios.push({ label: 'Aplicar a', anterior: mapA(snap.desc_Aplicar), nuevo: mapA(actual.desc_Aplicar) });
+    }
+    if (actual.desc_FechaInicio !== snap.desc_FechaInicio) {
+      cambios.push({ label: 'Fecha inicio', anterior: snap.desc_FechaInicio || '—', nuevo: actual.desc_FechaInicio || '—' });
+    }
+    if (actual.desc_FechaFin !== snap.desc_FechaFin) {
+      cambios.push({ label: 'Fecha fin', anterior: snap.desc_FechaFin || '—', nuevo: actual.desc_FechaFin || '—' });
+    }
+    if (actual.desc_Observaciones !== snap.desc_Observaciones) {
+      cambios.push({ label: 'Observaciones', anterior: snap.desc_Observaciones || '—', nuevo: actual.desc_Observaciones || '—' });
+    }
+    if ((actual.desc_TipoFactura || '') !== (snap.desc_TipoFactura || '')) {
+      const mapTP = (v: string) => ({ CO: 'Contado', CR: 'Crédito', AM: 'Ambos' } as any)[v] || '—';
+      cambios.push({ label: 'Tipo de factura', anterior: mapTP(snap.desc_TipoFactura), nuevo: mapTP(actual.desc_TipoFactura) });
+    }
+    if (!equalArr(actual.clientesIds as any, snap.clientesIds as any)) {
+      const anterior = normIds(snap.clientesIds).map(id => this.getNombreClientePorId(id)).join(', ') || 'Sin clientes';
+      const nuevo = normIds(actual.clientesIds as any).map((id: number) => this.getNombreClientePorId(id)).join(', ') || 'Sin clientes';
+      cambios.push({ label: 'Clientes', anterior, nuevo });
+    }
+    if (!equalArr(actual.referenciasIds as any, snap.referenciasIds as any)) {
+      const aplicar = actual.desc_Aplicar;
+      const anterior = normIds(snap.referenciasIds).map(id => this.getNombreReferenciaPorId(id, aplicar)).join(', ') || 'Sin referencias';
+      const nuevo = normIds(actual.referenciasIds as any).map((id: number) => this.getNombreReferenciaPorId(id, aplicar)).join(', ') || 'Sin referencias';
+      // Etiqueta dinámica según el tipo de aplicación
+      const etiqueta = ({ P: 'Productos', C: 'Categorías', S: 'Subcategorías', M: 'Marcas' } as any)[aplicar] || 'Referencias';
+      cambios.push({ label: etiqueta, anterior, nuevo });
+    }
+    if (escToStr(actual.escalas as any) !== escToStr(snap.escalas as any)) {
+      cambios.push({ label: 'Escalas', anterior: escToStr(snap.escalas), nuevo: escToStr(actual.escalas as any) });
+    }
+
+    return cambios;
   }
 
   cancelarEdicion(): void {
@@ -1088,5 +1309,7 @@ getNombrePaso(paso: number): string {
     default: return 'Paso ' + paso;
   }
 }
+
+  // (Eliminados métodos de comparación de productos no utilizados en este componente)
 
 }

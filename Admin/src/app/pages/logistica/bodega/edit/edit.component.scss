@@ -1,1 +1,18 @@
 
+/* Asegurar que el modal de confirmación quede por encima de cualquier overlay global */
+.custom-modal {
+    position: fixed; /* anclar a viewport, como Bootstrap */
+    inset: 0;       /* top/right/bottom/left: 0 */
+    z-index: 3001 !important; // superior a .overlay-carga (2000)
+  }
+  
+  .custom-modal .modal-dialog,
+  .custom-modal .modal-content {
+    position: relative;
+    z-index: inherit;
+  }
+  
+  /* Backdrop del modal ligeramente por debajo del modal */
+  :host ::ng-deep .modal-backdrop {
+    z-index: 3000 !important;
+  }

@@ -27,7 +27,8 @@
         "PROVEEDORES": "Proveedores",
          "EMPLEADOS": "Empleados",
          "VISITASCLIENTES": "Visitas Clientes",
-         "ESTADOSVISITA": "Estado de Visita"
+         "ESTADOSVISITA": "Estado de Visita",
+         "UNIDADESDEPESO": "Unidades de Peso"
       }
     },
     "INVENTARIO": {
@@ -52,7 +53,9 @@
         "PUNTOSEMISION": "Puntos Emision",
         "CUENTASPORCOBRAR": "Cuentas por Cobrar",
         "LISTASPRECIOS": "Listas de Precios",
-        "PEDIDOS": "Pedidos"
+        "PEDIDOS": "Pedidos",
+        "DEVOLUCIONES": "Devoluciones",
+        "VENTA": "Ventas"
       }
     },
     "LOGISTICA": {
@@ -87,7 +90,8 @@
         "CRM": "CRM",
         "ECOMMERCE": "Comercio electrónico",
         "LEARNING": "Aprendiendo",
-        "REALESTATE": "Bienes raíces"
+        "REALESTATE": "Bienes raíces",
+        "DASHBOARD": "Dashboard"
       }
     }
   }

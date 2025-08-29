@@ -6,11 +6,12 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PdfReportService, ReportConfig, TableData } from 'src/app/reporteGlobal';
+import { BreadcrumbsComponent } from 'src/app/shared/breadcrumbs/breadcrumbs.component';
 
 @Component({
   selector: 'app-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BreadcrumbsComponent],
   templateUrl: './list.component.html',
   styleUrl: './list.component.scss'
 })
@@ -392,11 +393,10 @@ private calcularRowSpanCanal(indiceActual: number, clientes: any[]): number {
   async generarPDF() {
     // CONFIGURACIÓN DEL REPORTE
     const config: ReportConfig = {
-      titulo: 'REPORTE DE clientes',
+      titulo: 'REPORTE DE CLIENTES SEGÚN CANAL',
       orientacion: 'landscape',
       mostrarResumen: true,
       textoResumen: `Total de clientes: ${this.clientes.length}`,
-      filtros: this.construirFiltros()
     };
 
     const filasConRowSpan = this.generarFilasConRowSpan();

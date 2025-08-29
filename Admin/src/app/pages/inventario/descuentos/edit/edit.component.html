@@ -519,19 +519,23 @@
                   </div>
                   <div class="mb-3">
                 <div class="d-flex align-items-center">
-                  <i class="ri-coin-fill" [ngStyle]="{
+                  <i *ngIf="descuento.desc_Tipo === true" class="ri-coin-fill" [ngStyle]="{
+                    border: (!escala.deEs_Valor) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                    backgroundColor: (!escala.deEs_Valor) ? '#fff5f6' : '#f2f3f9',
+                    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                  </i>
+                  <i *ngIf="descuento.desc_Tipo === false" class="ri-percent-line" [ngStyle]="{
                     border: (!escala.deEs_Valor) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
                     backgroundColor: (!escala.deEs_Valor) ? '#fff5f6' : '#f2f3f9',
                     padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                   </i>
                    <input type="text" class="form-control"
-                      currencyMask [options]="{ prefix: 'L. ', thousands: ',', decimal: '.', precision: 2 }"
+                      currencyMask [options]="descuento.desc_Tipo ? opcionesMontoFijo : opcionesPorcentaje"
                        [(ngModel)]="escala.deEs_Valor" name="valor{{i}}" 
                        required 
                        (ngModelChange)="limitarValor($event, escala)"
                        [class.is-invalid]="validado == false || i > 0 && escala.deEs_Valor <= escalas[i - 1].deEs_Valor" 
                        [max]="999"  />
-                  
                 </div>
                 
               </div>
@@ -592,7 +596,7 @@
             <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
           </button>
           <button type="button" 
-          (click)="guardar()" 
+          (click)="validarEdicion()" 
           class="btn btn-primary  
           right ms-auto nexttab
             nexttab" data-nexttab="steparrow-description-info-tab" 
@@ -609,6 +613,9 @@
   
 
 
+
+
+
 <!-- Modal de confirmación para editar -->
 <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }" [style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-dialog-centered" role="document">
@@ -619,20 +626,44 @@
       </div>
       <hr class="custom-modal-divider">
       <div class="modal-body custom-modal-body">
-        <div class="text-center">
+        <div class="text-center mb-3">
           <p class="mt-2 custom-modal-text">
-            <i class="ri-edit-line me-2 custom-modal-alert-icon" (click)="cancelarEdicion()"></i>
-            ¿Estás seguro que deseas editar la bodega <strong>"{{ descuentoOriginal }}"</strong> por <strong>"{{ descuento.desc_Descripcion }} "</strong>?
+            <i class="ri-edit-line me-2 custom-modal-alert-icon"></i>
+            ¿Estás seguro que deseas guardar los siguientes cambios en la configuración?
           </p>
         </div>
-      </div>
-      <div class="modal-footer custom-modal-footer">
-        <button type="button" class="btn btn-primary  btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
+        
+        <!-- Lista de cambios detectados -->
+        <div class="changes-list" style="max-height: 300px; overflow-y: auto;">
+          <div *ngFor="let cambio of obtenerListaCambios()" class="change-item mb-3 p-3" 
+               style="border: 1px solid #e9ecef; border-radius: 8px; background-color: #f8f9fa;">
+            <div class="d-flex align-items-center mb-2">
+              <i class="ri-arrow-right-circle-line me-2 text-primary"></i>
+              <strong class="text-primary">{{ cambio.label }}</strong>
+            </div>
+            <div class="row">
+              <div class="col-6">
+                <small class="text-muted d-block">Original :</small>
+                <div class="p-2" style="background-color: #fff2f2; border-left: 3px solid #dc3545; border-radius: 4px;">
+                  <span class="text-dark">{{ cambio.anterior }}</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <small class="text-muted d-block">Nuevo:</small>
+                <div class="p-2" style="background-color: #f0fff4; border-left: 3px solid #28a745; border-radius: 4px;">
+                  <span class="text-dark">{{ cambio.nuevo }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer custom-modal-footer">
+        <button type="button" class="btn btn-primary btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
           <span class="btn-text">No</span>
           <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
         </button>
-        <button type="button" class="btn btn-primary  btn-minw-5 btn-sm" (click)="confirmarEdicion()">
-          <span class="btn-text">Si</span>
+        <button type="button" class="btn btn-primary btn-minw-5 btn-sm" (click)="confirmarEdicion()">
+          <span class="btn-text">Sí</span>
           <span class="btn-icon"><i class="ri-save-line"></i></span>
         </button>
       </div>

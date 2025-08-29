@@ -217,8 +217,8 @@
                           <td>{{data.desc_Tipo == true? 'Monto Fijo' : 'Porcentaje'}}</td>
                           <td>{{data.desc_Aplicar == 'M'? 'Marcas' : data.desc_Aplicar == 'C'? 'Categorias' : data.desc_Aplicar == 'S'? 'Subcategoria' : 'Productos' }}</td>
                           <td>{{data.desc_TipoFactura == 'CR'? 'Credito' : data.desc_TipoFactura == 'CO'? 'Contado' : data.desc_TipoFactura == 'AM'? 'Ambas' : 'N/A' }}</td>
-                          <td>{{data.desc_FechaInicio}}</td>
-                          <td>{{data.desc_FechaFin}}</td>
+                          <td>{{formatearFecha(data.desc_FechaInicio)}}</td>
+                          <td>{{formatearFecha(data.desc_FechaFin)}}</td>
                           <td>{{data.desc_Observaciones}}</td>
                         
                         </tr>

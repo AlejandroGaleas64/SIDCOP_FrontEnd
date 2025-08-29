@@ -15,6 +15,7 @@ import { EditComponent as EditUsuarioComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { set } from 'lodash';
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
+
 import {
   trigger,
   state,
@@ -833,22 +834,33 @@ export class ListComponent {
     this.mostrarOverlayCarga = state;
     this.http.get<Usuario[]>(`${environment.apiBaseUrl}/Usuarios/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => {
-      setTimeout(() => {
-        this.mostrarOverlayCarga = false;
-        const tienePermisoListar = this.accionPermitida('listar');
-        const userId = getUserId();
+    }).subscribe({
+      next: (data) => {
+        setTimeout(() => {
+          this.mostrarOverlayCarga = false;
+          const tienePermisoListar = this.accionPermitida('listar');
+          const userId = getUserId();
 
-        const datosFiltrados = tienePermisoListar
-          ? data
-          : data.filter(u => u.usua_Creacion?.toString() === userId?.toString());
-        this.usuarioGrid = datosFiltrados || [];
-        this.busqueda = '';
-        this.currentPage = 1;
-        this.itemsPerPage = 12;
-        this.usuariosFiltrados = [...this.usuarioGrid];
-        this.actualizarUsuariosVisibles();
-      }, 500);
+          const datosFiltrados = tienePermisoListar
+            ? data
+            : data.filter(u => u.usua_Creacion?.toString() === userId?.toString());
+          this.usuarioGrid = datosFiltrados || [];
+          this.busqueda = '';
+          this.currentPage = 1;
+          this.itemsPerPage = 12;
+          this.usuariosFiltrados = [...this.usuarioGrid];
+          this.actualizarUsuariosVisibles();
+        }, 500);
+      },
+      error: (error) => {
+        console.error('Error al cargar usuarios:', error);
+        setTimeout(() => {
+          this.mostrarOverlayCarga = false;
+          this.usuarioGrid = [];
+          this.usuariosFiltrados = [];
+          this.actualizarUsuariosVisibles();
+        }, 500);
+      }
     });
   }
 

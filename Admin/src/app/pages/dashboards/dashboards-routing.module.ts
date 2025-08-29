@@ -13,7 +13,7 @@ const routes: Routes = [
     component: IndexComponent
   },
   {
-    path: "dashb",
+    path: "dashboard0",
     component: DashbComponent
   }
 

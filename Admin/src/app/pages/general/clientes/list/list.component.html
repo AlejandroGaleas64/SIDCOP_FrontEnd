@@ -5,7 +5,7 @@
   <img class="breadcrumbs-icon ms-2 icon-breadcrumb" src="assets/images/svg/clientes.svg" alt="icono breadcrumb" />
 </app-breadcrumbs>
 
-<div class="card">
+<div class="card" *ngIf="!cargandoDatos">
   <div class="card-body">
     <div class="row align-items-center g-2"
       *ngIf="!showCreateForm && !showEditForm && !showDetailsForm && !listadoClientesSinConfirmar">
@@ -78,29 +78,30 @@
 
     <!-- Collapse para el formulario de creación -->
     <div *ngIf="showCreateForm" [@fadeExpand]>
-        <div class="mb-2 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
-            <div class="container-fluid flex-grow-1">
-              <app-create (onCancel)="cerrarFormulario()" (onSave)="guardarCliente($event)"></app-create>
-            </div>
+      <div class="mb-2 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
+        <div class="container-fluid flex-grow-1">
+          <app-create (onCancel)="cerrarFormulario()" (onSave)="guardarCliente($event)"></app-create>
         </div>
+      </div>
     </div>
 
     <!-- Collapse para el formulario de edición -->
     <div *ngIf="showEditForm" [@fadeExpand]>
-        <div class="mb-2 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
-            <div class="container-fluid flex-grow-1">
-              <app-edit [clienteData]="clienteEditando!" (onCancel)="cerrarFormularioEdicion()"(onSave)="actualizarCliente($event)"></app-edit>
-            </div>
+      <div class="mb-2 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
+        <div class="container-fluid flex-grow-1">
+          <app-edit [clienteData]="clienteEditando!" (onCancel)="cerrarFormularioEdicion()"
+            (onSave)="actualizarCliente($event)"></app-edit>
         </div>
+      </div>
     </div>
 
     <!-- Collapse para el formulario de detalles -->
     <div *ngIf="showDetailsForm" [@fadeExpand]>
-        <div class="mb-2 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
-            <div class="container-fluid flex-grow-1">
-              <app-details [clienteData]="clienteDetalle" (onClose)="cerrarFormularioDetalles()"></app-details>
-            </div>
+      <div class="mb-2 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
+        <div class="container-fluid flex-grow-1">
+          <app-details [clienteData]="clienteDetalle" (onClose)="cerrarFormularioDetalles()"></app-details>
         </div>
+      </div>
     </div>
   </div>
 
@@ -133,11 +134,8 @@
                   <ul *ngIf="activeActionRow === cliente.clie_Id" class="dropdown-menu show"
                     style="left: -100px; z-index: 10000;">
                     <li *ngIf="showEdit">
-                      <button class="dropdown-action-btn">Editar <i class="ri-edit-line"></i></button>
-                    </li>
-                    <li *ngIf="showDelete">
-                      <button class="dropdown-action-btn" (click)="confirmarEliminar(cliente)">Eliminar <i
-                          class="ri-delete-bin-line"></i></button>
+                      <button class="dropdown-action-btn" (click)="activar(cliente)">Activar <i
+                          class="ri-edit-line"></i></button>
                     </li>
                     <li *ngIf="showDetails">
                       <button class="dropdown-action-btn" (click)="detalles(cliente)">Detalles <i
@@ -149,10 +147,16 @@
             </div>
 
             <div class="card-body pt-5 mt-2 px-3 text-center">
-              <span class="badge fw-semibold mb-1 px-3 py-1 border"
-                style="font-size: 0.8rem; background-color: #ffe7e7; color: #740b0b;">
-                <i class="ri-user-3-fill" style="font-size: 0.6rem;"></i>
-                {{ cliente.clie_Codigo }}
+              <span class="badge fw-semibold mb-1 px-3 py-2 border" style="
+                  font-size: 1rem;
+                  background-color: #ffe7e7; 
+                  color: #740b0b; 
+                  border-radius: 1.5rem; 
+                  border: 2px solid #000;
+                  text-overflow: ellipsis;
+                  overflow: hidden;
+                  width: 100%;">
+                Sin codigo definido
               </span>
 
               <h5 class="fw-bold mb-1 text-dark" style="font-size: 1.125rem;">
@@ -231,7 +235,7 @@
                       <button class="dropdown-action-btn" (click)="confirmarEliminar(cliente)">
                         {{ esClienteActivo(cliente) ? 'Desactivar' : 'Activar' }}
                         <i
-                          [ngClass]="cliente.clie_Estado == 1 || cliente.clie_Estado === true || cliente.clie_Estado == '1' || cliente.clie_Estado == 'true' ? 'ri-delete-bin-line' : 'ri-checkbox-circle-line'"></i>
+                          [ngClass]="cliente.clie_Estado == 1 || cliente.clie_Estado === true || cliente.clie_Estado == '1' || cliente.clie_Estado == 'true' ? 'ri-close-circle-line' : 'ri-checkbox-circle-line'"></i>
                       </button>
                     </li>
                     <li *ngIf="showDetails">
@@ -336,13 +340,49 @@
   </div>
 </div>
 
-<div *ngIf="mostrarOverlayCarga" class="overlay-carga">
-    <div class="typing-indicator">
-        <div class="typing-circle"></div>
-        <div class="typing-circle"></div>
-        <div class="typing-circle"></div>
-        <div class="typing-shadow"></div>
-        <div class="typing-shadow"></div>
-        <div class="typing-shadow"></div>
+<div class="modal fade" [class.show]="mostrarModalActivacion"
+  [style.display]="mostrarModalActivacion ? 'block' : 'none'" tabindex="-1" role="dialog"
+  *ngIf="mostrarModalActivacion">
+
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content shadow-lg border-0" style="border-radius: 18px; overflow: hidden;">
+      <div class="modal-header py-3" style="background:#141a2f; border: none;">
+        <div class="fw-bold text-white d-flex align-items-center" style="font-size: 1.3rem;">
+          <i class="ri-user-add-line me-2" style="font-size: 1.6rem; color: #d6b68a;"></i>
+          Activación de Cliente
+        </div>
+        <button type="button" class="btn-close btn-close-white" (click)="cerrarModalActivacion()"></button>
+      </div>
+
+      <div class="modal-body p-4" style="background: #f9fafc;">
+        <p class="text-muted mb-3" style="font-size: 1.05rem;">
+          Para proceder con la activación del cliente, es necesario validar primero que la información proporcionada sea
+          correcta.
+        </p>
+      </div>
+
+      <div class="modal-footer py-3" style="background: #fff; border-top: 1px solid #f0f0f0;">
+        <button type="button" class="btn btn-primary gold" (click)="cerrarModalActivacion()">
+          <span class="btn-text">Cancelar</span>
+          <span class="btn-icon"><i class="ri-close-line"></i></span>
+        </button>
+        <button type="button" class="btn btn-primary" (click)="confirmarEdicion()">
+          <span class="btn-text">Editar</span>
+          <span class="btn-icon"><i class="ri-check-double-line"></i></span>
+        </button>
+      </div>
+
     </div>
+  </div>
+</div>
+
+<div *ngIf="mostrarOverlayCarga" class="overlay-carga">
+  <div class="typing-indicator">
+    <div class="typing-circle"></div>
+    <div class="typing-circle"></div>
+    <div class="typing-circle"></div>
+    <div class="typing-shadow"></div>
+    <div class="typing-shadow"></div>
+    <div class="typing-shadow"></div>
+  </div>
 </div>

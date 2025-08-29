@@ -1,24 +1,17 @@
 <div class="d-flex flex-column" style="height: 100%; min-height: 250px;">
-  <!-- Título del componente -->
   <h5 class="card-title mb-4">Crear Nuevo Rol</h5>
 
-  <!-- Contenedor de alertas flotantes -->
   <div class="alert-container">
-    <!-- Alerta de éxito -->
     <div *ngIf="mostrarAlertaExito" class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
       <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
       <strong>¡Éxito!</strong> {{ mensajeExito }}
       <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
     </div>
-
-    <!-- Alerta de advertencia -->
     <div *ngIf="mostrarAlertaWarning" class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
       <i class="ri-alert-line me-3 align-middle fs-lg"></i>
       <strong>¡Atención!</strong> {{ mensajeWarning }}
       <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
     </div>
-
-    <!-- Alerta de error -->
     <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
       <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
       <strong>¡Error!</strong> {{ mensajeError }}
@@ -36,17 +29,7 @@
             backgroundColor: (!rol.role_Descripcion.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
             padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
           </i>
-          <input 
-            type="text" 
-            class="form-control" 
-            id="rolDescripcion" 
-            name="rolDescripcion" 
-            [(ngModel)]="rol.role_Descripcion" 
-            #descripcion="ngModel" 
-            [class.is-invalid]="!rol.role_Descripcion.trim() && mostrarErrores" 
-            placeholder="Ingrese la descripción del rol" 
-            required 
-          />
+          <input type="text" class="form-control" id="rolDescripcion" name="rolDescripcion" [(ngModel)]="rol.role_Descripcion" #descripcion="ngModel" [class.is-invalid]="!rol.role_Descripcion.trim() && mostrarErrores" placeholder="Ingrese la descripción del rol" required />
           <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
         </div>
         <div class="text-danger mt-1" *ngIf="!rol.role_Descripcion.trim() && mostrarErrores">
@@ -54,7 +37,6 @@
         </div>
       </div>
 
-      <!-- Botones junto al input -->
       <div class="col-md-6 d-flex align-items-center d-flex justify-content-end gap-2">
         <button type="button" class="btn btn-primary gold" (click)="cancelar()">
           <span class="btn-text">Cancelar</span>
@@ -67,33 +49,31 @@
       </div>
     </div>
 
-    <!-- TreeView de Pantallas y Acciones -->
     <label class="form-label d-flex align-items-center">
       Pantallas y Acciones <label class="text-danger">*</label>
     </label>
+
     <div class="tree-container">
       <div class="row justify-content-lg-start">
         <div class="col-sm-2">
           <button class="btn-subtle mb-3" (click)="alternarDesplegables()">
-            <i [class.ri-folder-reduce-line]="hayExpandido" 
-               [class.ri-folder-add-line]="!hayExpandido"></i>
+            <i [class.ri-folder-reduce-line]="hayExpandido" [class.ri-folder-add-line]="!hayExpandido"></i>
             {{ hayExpandido ? 'Contraer Todo' : 'Expandir Todo' }}
           </button>
         </div>
       </div>
+
       <div class="tree-item" *ngFor="let esquema of treeData">
         <div class="tree-node" (click)="toggleExpand(esquema)">
           <div class="tree-toggle" *ngIf="esquema.children?.length">
             <i class="ri-arrow-down-s-line" [ngClass]="{ 'ri-arrow-right-s-line': !esquema.expanded }"></i>
           </div>
           <label (click)="$event.stopPropagation()" style="display: flex; align-items: center; gap: 0.5rem;">
-            <input type="checkbox" 
-                   [checked]="esquema.selected" 
-                   (change)="toggleSelection(esquema); $event.stopPropagation()"
-                   [attr.data-id]="esquema.id">
+            <input type="checkbox" [checked]="esquema.selected" (change)="toggleSelection(esquema); $event.stopPropagation()" [attr.data-id]="esquema.id">
             <span>{{ esquema.name }}</span>
           </label>
         </div>
+
         <div class="tree-children" *ngIf="esquema.expanded">
           <div class="tree-item" *ngFor="let pantalla of esquema.children">
             <div class="tree-node" (click)="toggleExpand(pantalla)">
@@ -101,28 +81,25 @@
                 <i class="ri-arrow-down-s-line" [ngClass]="{ 'ri-arrow-right-s-line': !pantalla.expanded }"></i>
               </div>
               <label (click)="$event.stopPropagation()" style="display: flex; align-items: center; gap: 0.5rem;">
-                <input type="checkbox" 
-                      [checked]="pantalla.selected" 
-                      (change)="toggleSelection(pantalla); $event.stopPropagation()" 
-                      [attr.data-id]="pantalla.id">
+                <input type="checkbox" [checked]="pantalla.selected" (change)="toggleSelection(pantalla); $event.stopPropagation()" [attr.data-id]="pantalla.id">
                 <span>{{ pantalla.name }}</span>
               </label>
             </div>
-            <div class="tree-children" *ngIf="pantalla.expanded">
+
+            <div class="tree-children" *ngIf="pantalla.expanded && !pantalla.esReporte">
               <div class="tree-item" *ngFor="let accion of pantalla.children">
                 <div class="tree-node">
                   <label (click)="$event.stopPropagation()" style="display: flex; align-items: center; gap: 0.5rem;">
-                    <input type="checkbox" 
-                          [checked]="accion.selected" 
-                          (change)="toggleSelection(accion); $event.stopPropagation()" 
-                          [attr.data-id]="accion.id">
+                    <input type="checkbox" [checked]="accion.selected" (change)="toggleSelection(accion); $event.stopPropagation()" [attr.data-id]="accion.id">
                     <span>{{ accion.name }}</span>
                   </label>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
+
       </div>
     </div>
   </div>

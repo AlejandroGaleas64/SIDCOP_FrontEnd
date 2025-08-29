@@ -99,7 +99,7 @@ listarRutas(): void {
   }
 
 listarRutasDisponibles(): void {
-    this.http.get<any>(`${environment.apiBaseUrl}/Rutas/ListarDisponibles`, {
+    this.http.get<any>(`${environment.apiBaseUrl}/Rutas/Listar`, {
         headers: { 'x-api-key': environment.apiKey }
       }).subscribe((data) => {
         this.rutasDisponibles = data;
@@ -170,7 +170,34 @@ sexos: any[] = [
 
 tieneAyudante: boolean = false;
 
-  vendedorOriginal = '';
+  vendedorOriginal: Vendedor = {
+    vend_Id: 0,
+    vend_Nombres: '',
+    vend_Apellidos: '',
+    vend_Codigo: '',
+    vend_Telefono: '',
+    vend_Correo: '',
+    vend_DNI: '',
+    vend_Sexo: '',
+    vend_Tipo: '',
+    vend_DireccionExacta: '',
+    vend_Supervisor: 0,
+    vend_Ayudante: 0,
+    vend_EsExterno: false,
+    colo_Id: 0,
+    sucu_Id: 0,
+    vend_Estado: '',
+    vend_Imagen: '',
+    vend_FechaCreacion: new Date(),
+    vend_FechaModificacion: new Date(),
+    usua_Creacion: 0,
+    usua_Modificacion: 0,
+    code_Status: 0,
+    message_Status: '',
+    usuarioCreacion: '',
+    usuarioModificacion: '',
+    rutas: []
+  };
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -197,7 +224,9 @@ tieneAyudante: boolean = false;
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['vendedorData'] && changes['vendedorData'].currentValue) {
       this.vendedor = { ...changes['vendedorData'].currentValue };
-      this.vendedorOriginal = this.vendedor.vend_Codigo || '';
+      // Create a deep copy of the vendedor object for comparison
+      this.vendedorOriginal = JSON.parse(JSON.stringify(this.vendedor));
+
       this.mostrarErrores = false;
 
       // Normaliza rutas: puede venir como arreglo o como JSON string
@@ -245,6 +274,7 @@ tieneAyudante: boolean = false;
       }
       this.cerrarAlerta();
     }
+
   }
 
   cancelar(): void {
@@ -271,6 +301,7 @@ tieneAyudante: boolean = false;
     !this.vendedor.vend_Apellidos.trim() ||
     !this.vendedor.vend_Telefono.trim() ||
     !this.vendedor.vend_Correo.trim() ||
+    !this.esCorreoValido(this.vendedor.vend_Correo) ||
     !this.vendedor.vend_Sexo ||
     !this.vendedor.vend_DireccionExacta.trim() ||
     !this.vendedor.sucu_Id ||
@@ -289,21 +320,22 @@ tieneAyudante: boolean = false;
   // Detectar cambios en los campos principales
   const rutasHanCambiado = this.serializeRutas(this.rutasVendedor) !== this.rutasVendedorSnapshot;
   const cambios =
-    this.vendedor.vend_Codigo.trim() !== (this.vendedorData?.vend_Codigo?.trim() ?? '') ||
-  this.vendedor.vend_DNI.trim() !== (this.vendedorData?.vend_DNI?.trim() ?? '') ||
-  this.vendedor.vend_Nombres.trim() !== (this.vendedorData?.vend_Nombres?.trim() ?? '') ||
-  this.vendedor.vend_Apellidos.trim() !== (this.vendedorData?.vend_Apellidos?.trim() ?? '') ||
-  this.vendedor.vend_Telefono.trim() !== (this.vendedorData?.vend_Telefono?.trim() ?? '') ||
-  this.vendedor.vend_Correo.trim() !== (this.vendedorData?.vend_Correo?.trim() ?? '') ||
-  this.vendedor.vend_Sexo !== (this.vendedorData?.vend_Sexo ?? '') ||
-  this.vendedor.vend_DireccionExacta.trim() !== (this.vendedorData?.vend_DireccionExacta?.trim() ?? '') ||
-  this.vendedor.sucu_Id !== (this.vendedorData?.sucu_Id ?? 0) ||
-  this.vendedor.colo_Id !== (this.vendedorData?.colo_Id ?? 0) ||
-  this.vendedor.vend_Tipo.trim() !== (this.vendedorData?.vend_Tipo?.trim() ?? '') ||
-  this.vendedor.vend_Supervisor !== (this.vendedorData?.vend_Supervisor ?? 0) ||
-  (this.tieneAyudante && this.vendedor.vend_Ayudante !== (this.vendedorData?.vend_Ayudante ?? 0)) ||
-  this.vendedor.vend_EsExterno !== (this.vendedorData?.vend_EsExterno ?? false) ||
-  rutasHanCambiado
+    this.vendedor.vend_Codigo.trim() !== (this.vendedorOriginal?.vend_Codigo?.trim() ?? '') ||
+    this.vendedor.vend_DNI.trim() !== (this.vendedorOriginal?.vend_DNI?.trim() ?? '') ||
+    this.vendedor.vend_Nombres.trim() !== (this.vendedorOriginal?.vend_Nombres?.trim() ?? '') ||
+    this.vendedor.vend_Apellidos.trim() !== (this.vendedorOriginal?.vend_Apellidos?.trim() ?? '') ||
+    this.vendedor.vend_Telefono.trim() !== (this.vendedorOriginal?.vend_Telefono?.trim() ?? '') ||
+    this.vendedor.vend_Correo.trim() !== (this.vendedorOriginal?.vend_Correo?.trim() ?? '') ||
+    this.vendedor.vend_Sexo !== (this.vendedorOriginal?.vend_Sexo ?? '') ||
+    this.vendedor.vend_Tipo.trim() !== (this.vendedorOriginal?.vend_Tipo?.trim() ?? '') ||
+    this.vendedor.vend_DireccionExacta.trim() !== (this.vendedorOriginal?.vend_DireccionExacta?.trim() ?? '') ||
+    this.vendedor.sucu_Id !== (this.vendedorOriginal?.sucu_Id ?? 0) ||
+    this.vendedor.colo_Id !== (this.vendedorOriginal?.colo_Id ?? 0) ||
+    this.vendedor.vend_Supervisor !== (this.vendedorOriginal?.vend_Supervisor ?? 0) ||
+    (this.tieneAyudante && this.vendedor.vend_Ayudante !== (this.vendedorOriginal?.vend_Ayudante ?? 0)) ||
+    this.vendedor.vend_EsExterno !== (this.vendedorOriginal?.vend_EsExterno ?? false) ||
+    this.vendedor.vend_Imagen !== (this.vendedorOriginal?.vend_Imagen ?? '') ||
+    rutasHanCambiado
 
   if (cambios) {
     this.mostrarConfirmacionEditar = true;
@@ -547,10 +579,256 @@ onImagenSeleccionada(event: any) {
           console.error('Error al subir la imagen a Cloudinary:', error);
         });
     }
-  }
+  } 
 
   onImgError(event: Event) {
     const target = event.target as HTMLImageElement;
     target.src = 'assets/images/users/32/user-dummy-img.jpg';
+  }
+  cambiosDetectados: any = {};
+
+  obtenerListaCambios(): { label: string; anterior: string; nuevo: string }[] {
+    // Genera la lista de cambios en tiempo real (como en descuentos/promociones)
+    const cambios: { label: string; anterior: string; nuevo: string }[] = [];
+
+   
+
+    const val = (v: any) => v == null || v === '' ? '—' : String(v);
+    const trim = (s: any) => (s ?? '').toString().trim();
+    const nuevo = this.vendedor as any;
+    const original = this.vendedorOriginal as any;
+    this.cambiosDetectados = {};
+    
+    console.log('=== INICIO DETECCIÓN CAMBIOS ===');
+    console.log('Vendedor actual:', JSON.parse(JSON.stringify(nuevo)));
+    console.log('Vendedor original:', JSON.parse(JSON.stringify(original)));
+
+    // Verificar campos básicos del vendedor (solo campos de texto/valor directo)
+    // Excluimos ddl/relacionales e imagen para tratarlos aparte (sucursal, colonia, supervisor, ayudante, sexo, imagen)
+    const camposBasicos = [
+        { key: 'vend_DNI', label: 'DNI' },
+        { key: 'vend_Nombres', label: 'Nombres' },
+        { key: 'vend_Apellidos', label: 'Apellidos' },
+        { key: 'vend_Telefono', label: 'Teléfono' },
+        { key: 'vend_Correo', label: 'Correo' },
+        { key: 'vend_DireccionExacta', label: 'Dirección Exacta' },
+        { key: 'vend_Tipo', label: 'Tipo de Vendedor' },
+        { key: 'vend_EsExterno', label: 'Es Contratista' }
+    ];
+
+    console.log('=== COMPARANDO CAMPOS BÁSICOS ===');
+    camposBasicos.forEach(campo => {
+        const valorOriginal = original[campo.key];
+        const valorNuevo = nuevo[campo.key];
+        const sonDiferentes = valorOriginal !== valorNuevo;
+        
+        console.log(`Campo: ${campo.key}`, {
+            original: valorOriginal,
+            nuevo: valorNuevo,
+            sonDiferentes
+        });
+
+        if (sonDiferentes) {
+            const item = {
+                anterior: val(valorOriginal),
+                nuevo: val(valorNuevo),
+                label: campo.label
+            };
+            this.cambiosDetectados[campo.key] = item as any;
+            cambios.push(item);
+            console.log(`Cambio detectado en ${campo.key}:`, item);
+        }
+    });
+
+    console.log('Cambios detectados hasta ahora:', Object.keys(this.cambiosDetectados).length > 0 ? this.cambiosDetectados : 'Ninguno');
+
+    // Verificar tipo de vendedor (mapeado legible)
+    if (nuevo.vend_Tipo !== original.vend_Tipo) {
+        const tipos = { 'P': 'Preventista', 'V': 'Venta Directa', 'F': 'Entregador' } as const;
+        const tipoOriginal = (tipos as any)[original.vend_Tipo] || original.vend_Tipo || '—';
+        const tipoNuevo = (tipos as any)[nuevo.vend_Tipo] || nuevo.vend_Tipo || '—';
+        const item = { anterior: tipoOriginal, nuevo: tipoNuevo, label: 'Tipo de Vendedor' };
+        this.cambiosDetectados.tipo = item as any;
+        cambios.push(item);
+    }
+
+    // Verificar si es contratista
+    if (nuevo.vend_EsExterno !== original.vend_EsExterno) {
+        const item = {
+            anterior: original.vend_EsExterno ? 'Sí' : 'No',
+            nuevo: nuevo.vend_EsExterno ? 'Sí' : 'No',
+            label: 'Es Contratista'
+        };
+        this.cambiosDetectados.contratista = item as any;
+        cambios.push(item);
+    }
+
+    // Helpers para mapeos
+    const sucuNombre = (id: number) => (this.sucursales.find(s => Number(s.sucu_Id) === Number(id))?.sucu_Descripcion) || `ID: ${id}`;
+    const coloNombre = (id: number) => (this.colonia.find(c => Number(c.colo_Id) === Number(id))?.colo_Descripcion) || `ID: ${id}`;
+    const empleadoNombre = (id: number) => (
+      this.supervisores.find(e => Number(e.empl_Id) === Number(id))?.nombreCompleto ||
+      this.ayudantes.find(e => Number(e.empl_Id) === Number(id))?.nombreCompleto ||
+      `ID: ${id}`
+    );
+    const sexoNombre = (v: string) => v === 'M' ? 'Masculino' : v === 'F' ? 'Femenino' : val(v);
+
+    // Verificar sexo
+    if (nuevo.vend_Sexo !== original.vend_Sexo) {
+        const item = { anterior: sexoNombre(original.vend_Sexo), nuevo: sexoNombre(nuevo.vend_Sexo), label: 'Sexo' };
+        this.cambiosDetectados.vend_Sexo = item as any;
+        cambios.push(item);
+    }
+
+    // Verificar sucursal
+    if (nuevo.sucu_Id !== original.sucu_Id) {
+        const item = { anterior: sucuNombre(original.sucu_Id), nuevo: sucuNombre(nuevo.sucu_Id), label: 'Sucursal' };
+        this.cambiosDetectados.sucursal = item as any;
+        cambios.push(item);
+    }
+
+    // Verificar colonia
+    if (nuevo.colo_Id !== original.colo_Id) {
+        const item = { anterior: coloNombre(original.colo_Id), nuevo: coloNombre(nuevo.colo_Id), label: 'Colonia' };
+        this.cambiosDetectados.colonia = item as any;
+        cambios.push(item);
+    }
+
+    // Verificar imagen (solo para vista previa, no agregar a la lista de cambios)
+    if (nuevo.vend_Imagen !== original.vend_Imagen) {
+        this.cambiosDetectados.imagen = {
+            anterior: original.vend_Imagen ? 'Imagen actual' : 'Sin imagen',
+            nuevo: nuevo.vend_Imagen ? 'Nueva imagen' : 'Sin imagen',
+            label: 'Imagen del Vendedor'
+        } as any;
+    }
+
+    // Verificar Supervisor
+    if (nuevo.vend_Supervisor !== original.vend_Supervisor) {
+        const item = { anterior: empleadoNombre(original.vend_Supervisor), nuevo: empleadoNombre(nuevo.vend_Supervisor), label: 'Supervisor' };
+        this.cambiosDetectados.vend_Supervisor = item as any;
+        cambios.push(item);
+    }
+
+    // Verificar Ayudante si aplica
+    if (this.tieneAyudante && (nuevo.vend_Ayudante !== original.vend_Ayudante)) {
+        const item = { anterior: empleadoNombre(original.vend_Ayudante), nuevo: empleadoNombre(nuevo.vend_Ayudante), label: 'Ayudante' };
+        this.cambiosDetectados.vend_Ayudante = item as any;
+        cambios.push(item);
+    }
+
+    // Verificar rutas y días
+    // Normalizar rutas originales desde vendedorOriginal.rutas
+    const rutasOriginales = Array.isArray(original.rutas) ? original.rutas : [];
+    // Construir rutas nuevas desde this.rutasVendedor (estado actual en UI)
+    const rutasNuevas = (this.rutasVendedor || []).map(rv => ({
+        ruta_Id: rv.ruta_Id as number,
+        ruta_Descripcion: (this.rutasTodas || this.rutasDisponibles || []).find((r:any) => Number(r.ruta_Id ?? r.id) === Number(rv.ruta_Id))?.ruta_Descripcion,
+        diasSeleccionados: Array.isArray(rv.diasSeleccionados) ? rv.diasSeleccionados : (rv.veRu_Dias ? String(rv.veRu_Dias).split(',').map((x:string)=>Number(x)).filter(n=>!isNaN(n)) : [])
+    }));
+
+    // Función para formatear los días
+    const formatearDias = (dias: any[]): string => {
+        if (!dias || !dias.length) return 'Sin días';
+        const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        return dias.map(d => {
+            if (typeof d === 'object' && d !== null && 'nombre' in d) {
+                return (d as any).nombre;
+            }
+            return diasSemana[Number(d)] || d;
+        }).join(', ');
+    };
+
+    // Definir tipos para las rutas
+    interface Ruta {
+        ruta_Id: number;
+        ruta_Descripcion?: string;
+        diasSeleccionados?: any[];
+    }
+
+    // Verificar cambios en rutas
+    const rutasCambiadas: Array<{
+        accion: string;
+        ruta: string;
+        dias?: string;
+        diasAnteriores?: string;
+        diasNuevos?: string;
+    }> = [];
+    
+    // Normalizar rutas originales a estructura Ruta
+    const rutasOriginalesNorm: Ruta[] = (rutasOriginales as any[]).map((r:any) => ({
+        ruta_Id: Number(r.ruta_Id ?? r.id),
+        ruta_Descripcion: r.ruta_Descripcion,
+        diasSeleccionados: Array.isArray(r.diasSeleccionados)
+          ? r.diasSeleccionados
+          : (r.veRu_Dias || r.dias ? String(r.veRu_Dias || r.dias).split(',').map((x:string)=>Number(x)).filter((n:number)=>!isNaN(n)) : [])
+    }));
+
+    const rutasOriginalesMap = new Map<number, Ruta>(
+        rutasOriginalesNorm.map((r: Ruta) => [r.ruta_Id, r] as [number, Ruta])
+    );
+    
+    // Buscar rutas modificadas o nuevas
+    for (const rutaNueva of rutasNuevas as Ruta[]) {
+        const rutaOriginal = rutasOriginalesMap.get(rutaNueva.ruta_Id);
+        
+        if (!rutaOriginal) {
+            // Ruta nueva
+            rutasCambiadas.push({
+                accion: 'Agregada',
+                ruta: rutaNueva.ruta_Descripcion || `Ruta ${rutaNueva.ruta_Id}`,
+                dias: formatearDias(rutaNueva.diasSeleccionados || [])
+            });
+        } else {
+            // Verificar si los días cambiaron
+            const diasOriginales = Array.isArray(rutaOriginal.diasSeleccionados) 
+                ? [...rutaOriginal.diasSeleccionados].sort() 
+                : [];
+            const diasNuevos = Array.isArray(rutaNueva.diasSeleccionados) 
+                ? [...rutaNueva.diasSeleccionados].sort() 
+                : [];
+                
+            if (JSON.stringify(diasOriginales) !== JSON.stringify(diasNuevos)) {
+                rutasCambiadas.push({
+                    accion: 'Modificada',
+                    ruta: rutaNueva.ruta_Descripcion || `Ruta ${rutaNueva.ruta_Id}`,
+                    diasAnteriores: formatearDias(diasOriginales),
+                    diasNuevos: formatearDias(diasNuevos)
+                });
+            }
+        }
+    }
+
+    // Buscar rutas eliminadas
+    const rutasNuevasIds = new Set((rutasNuevas as Ruta[]).map(r => r.ruta_Id));
+    for (const rutaOriginal of rutasOriginales as Ruta[]) {
+        if (!rutasNuevasIds.has(rutaOriginal.ruta_Id)) {
+            rutasCambiadas.push({
+                accion: 'Eliminada',
+                ruta: rutaOriginal.ruta_Descripcion || `Ruta ${rutaOriginal.ruta_Id}`,
+                dias: formatearDias(rutaOriginal.diasSeleccionados || [])
+            });
+        }
+    }
+
+    // Si hay cambios en las rutas, agregarlos a los cambios detectados
+    if (rutasCambiadas.length > 0) {
+        this.cambiosDetectados.rutas = {
+            anterior: '—',
+            nuevo: `${rutasCambiadas.length} cambio(s)`,
+            label: 'Cambios en Rutas',
+            detalle: rutasCambiadas
+        } as any;
+    }
+
+    // Devolver solo la lista curada (sin incluir imagen/URL u otros internos)
+    return cambios;
+
+  }
+
+    esCorreoValido(correo: string): boolean {
+    if (!correo) return true;
+    // Debe contener "@" y terminar en ".com"
+    return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
   }
 }

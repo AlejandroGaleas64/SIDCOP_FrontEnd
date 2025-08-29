@@ -1,5 +1,12 @@
 <div class="d-flex flex-column" style="height: 100%; min-height: 250px">
-  <h5 class="card-title mb-4">Editar Cliente</h5>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="card-title mb-4">Editar Cliente</h5>
+    <div class="d-flex justify-content-end align-items-center mb-2">
+      <span class="codigo-cliente-mini" [ngClass]="{'codigo-placeholder': !cliente.clie_Codigo}">
+        {{ cliente.clie_Codigo || 'CLIE-RT-000-000000' }}
+      </span>
+    </div>
+  </div>
 
   <div class="alert-container" style="position: relative; z-index: 10000;">
     <div *ngIf="mostrarAlertaExito"
@@ -299,16 +306,15 @@
             <div class="d-flex align-items-center">
               <i class="ri-mail-unread-line"
                 [ngStyle]="{
-                border: (cliente.clie_Correo && !esCorreoValido(cliente.clie_Correo)) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (cliente.clie_Correo && !esCorreoValido(cliente.clie_Correo)) ? '#fff5f6' : '#f2f3f9',
+                border: (!cliente.clie_Correo.trim() && !revisarCorreoValido(cliente.clie_Correo)) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!cliente.clie_Correo.trim() && !revisarCorreoValido(cliente.clie_Correo)) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
               <input type="email" class="form-control" id="clienteCorreo" [(ngModel)]="cliente.clie_Correo"
                 placeholder="Ingrese el correo del cliente (opcional)"
-                [class.is-invalid]="cliente.clie_Correo && !esCorreoValido(cliente.clie_Correo)" />
+                [class.is-invalid]="cliente.clie_Correo && !revisarCorreoValido(cliente.clie_Correo)" />
             </div>
-            <div class="text-danger mt-1"
-              *ngIf="cliente.clie_Correo && !esCorreoValido(cliente.clie_Correo)">
+            <div class="text-danger mt-1" *ngIf="cliente.clie_Correo && !revisarCorreoValido(cliente.clie_Correo)">
               <small> Ingrese un correo válido. </small>
             </div>
           </div>
@@ -414,7 +420,7 @@
                 backgroundColor: (!cliente.ruta_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
-              <select id="ruta_Id" class="form-select" [(ngModel)]="cliente.ruta_Id"
+              <select id="ruta_Id" class="form-select" [(ngModel)]="cliente.ruta_Id" (change)="onRutaChange($event)"
                 [class.is-invalid]="!cliente.ruta_Id && mostrarErrores" required>
                 <option value="0" disabled>Seleccione una ruta</option>
                 <option *ngFor="let ruta of rutas" [value]="ruta.ruta_Id">
@@ -445,20 +451,19 @@
         </div>
 
         <div *ngFor="let direccion of direccionesPorCliente; let i = index" class="ubicacion-card">
-          <div class="card-actions">
-            <button class="icon-button delete" (click)="eliminarDireccion(i)"><i class="bx bxs-trash"></i></button>
-          </div>
-
           <div class="card-content">
             <div class="info">
               <h2 class="direccion-nombre">{{ direccion.diCl_Observaciones }}</h2>
-              <p class="detalle"><i class="bx bx-current-location"></i> Lat: {{ direccion.diCl_Latitud }}, Lng:
+              <p class="detalle"><i class="bx bx-current-location"></i> Latitud: {{ direccion.diCl_Latitud }}, Longitud:
                 {{direccion.diCl_Longitud }}</p>
               <p class="detalle"><i class="bx bx-map"></i>Dirección Exacta: {{ direccion.muni_Descripcion }}</p>
             </div>
-
-            <div class="ver-ubicacion">
-              <button class="btn btn-primary" (click)="editarDireccion(i)">
+            <div class="d-flex justify-content-between align-items-center mt-2" style="gap: 12px;">
+              <button type="button" class="btn btn-primary gold" style="height: 100%;" (click)="eliminarDireccion(i)">
+                <span class="btn-text">Eliminar</span>
+                <span class="btn-icon"><i class="ri-delete-bin-line"></i></span>
+              </button>
+              <button class="btn btn-primary btn-sm" (click)="editarDireccion(i)">
                 <span class="btn-text">Ver</span>
                 <span class="btn-icon"><i class="ri-road-map-line"></i></span>
               </button>
@@ -496,6 +501,11 @@
     <!--    Datos Politicos o Del Credito      -->
     <!--=======================================-->
     <div *ngIf="activeTab === 3">
+      <div class="alert alert-info d-flex align-items-center mt-3"
+        style="font-family: 'Inter', sans-serif; border-radius: 10px; background: #eaf4fb; color: #1a355e; font-weight: 500; box-shadow: 0 2px 8px #0001;">
+        <i class="ri-information-line me-2" style="font-size: 1.5rem; color: #1976d2;"></i>
+        Si solicitas un crédito, debes crear al menos un aval.
+      </div>
       <div class="row mx-lg-4">
         <!-- Limite de Crédito-->
         <div class="col-md-6">
@@ -743,9 +753,9 @@
                 borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <input type="text" class="form-control"
-                  [class.is-invalid]="!aval.aval_Telefono.trim() && mostrarErrores && tieneDatosCredito()" id="avalTelefono"
-                  [(ngModel)]="aval.aval_Telefono" placeholder="Ingrese el teléfono del aval" mask="0000-0000"
-                  [required]="tieneDatosCredito()" />
+                  [class.is-invalid]="!aval.aval_Telefono.trim() && mostrarErrores && tieneDatosCredito()"
+                  id="avalTelefono" [(ngModel)]="aval.aval_Telefono" placeholder="Ingrese el teléfono del aval"
+                  mask="0000-0000" [required]="tieneDatosCredito()" />
               </div>
               <div class="text-danger mt-1" *ngIf="!aval.aval_Telefono.trim() && mostrarErrores && tieneDatosCredito()">
                 <small>El campo Teléfono del Aval es requerido</small>
@@ -789,7 +799,7 @@
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <select id="colo_Id" name="colo_Id" class="form-select" [(ngModel)]="aval.colo_Id"
-                  [class.is-invalid]="!aval.colo_Id && mostrarErrores" [required]="tieneDatosCredito()" (change)="cargarColoniasAval()">
+                  [class.is-invalid]="!aval.colo_Id && mostrarErrores" [required]="tieneDatosCredito()">
                   <option value="0" disabled>Seleccione una Colonia</option>
                   <option *ngFor="let coloniaAval of TodasColoniasAval" [value]="coloniaAval.colo_Id">
                     {{ coloniaAval.colo_Descripcion }}, {{ coloniaAval.muni_Descripcion }}, {{
@@ -840,7 +850,7 @@
                 </i>
                 <input type="date" id="avalFechaNacimiento" class="form-control"
                   [class.is-invalid]="!aval.aval_FechaNacimiento && mostrarErrores"
-                  [value]="aval.aval_FechaNacimiento ? (aval.aval_FechaNacimiento | date:'yyyy-MM-dd') : ''" [required]="tieneDatosCredito()"  />
+                  [(ngModel)]="aval.aval_FechaNacimiento" [required]="tieneDatosCredito()" />
               </div>
               <div class="text-danger mt-1" *ngIf="!aval.aval_FechaNacimiento && mostrarErrores">
                 <small>El campo Fecha Nacimiento es requerido</small>
@@ -937,14 +947,22 @@
   tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
     <div class="modal-content">
-      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
-        <h3 class="text-muted">Seleccionar una ubicación</h3>
-        <i class="ri-close-line custom-modal-close" (click)="cerrarMapa()"></i>
+      <div class="modal-header custom-modal-header d-flex justify-content-center align-items-center"
+        style="position: relative;">
+        <h3 class="text-muted text-center">Editar ubicación</h3>
       </div>
       <hr class="custom-modal-divider" />
       <div class="modal-body custom-modal-body">
-        <app-mapa-selector (coordenadasSeleccionadas)="onCoordenadasSeleccionadas($event)"
-          [mostrar]="mostrarMapa"></app-mapa-selector>
+        <div class="mb-3 position-relative" style="max-width: 400px; margin: 0 auto;">
+          <i class="ri-search-line"
+            style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #b6b6b6; font-size: 1.2rem;"></i>
+          <input type="text" class="form-control"
+            style="padding-left: 2.2rem; border-radius: 12px; background: #f7f7fa; box-shadow: 0 2px 8px #0001;"
+            placeholder="Buscar dirección..." (input)="buscarDireccion(getInputValue($event))">
+        </div>
+        <app-mapa-selector
+          [coordenadasIniciales]="direccionPorCliente.diCl_Latitud && direccionPorCliente.diCl_Longitud ? { lat: direccionPorCliente.diCl_Latitud, lng: direccionPorCliente.diCl_Longitud } : null"
+          (coordenadasSeleccionadas)="onCoordenadasSeleccionadas($event)" [mostrar]="mostrarMapa"></app-mapa-selector>
 
         <div class="row mx-lg-4 mt-4">
           <div class="col-md-6">
@@ -1038,8 +1056,7 @@
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <select id="colo_Id" name="colo_Id" class="form-select" [(ngModel)]="direccionPorCliente.colo_Id"
-                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores" required
-                  (change)="cargarColoniasCliente()">
+                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores" required>
                   <option value="0" disabled>Seleccione una Colonia</option>
                   <option *ngFor="let colonia of TodasColonias" [value]="colonia.colo_Id">
                     {{ colonia.colo_Descripcion }}, {{ colonia.muni_Descripcion }}, {{ colonia.depa_Descripcion }}
@@ -1081,9 +1098,17 @@
               </div>
             </div>
           </div>
-          <button class="btn btn-primary" (click)="agregarDireccion()">
-            {{ direccionEditandoIndex !== null ? 'Actualizar' : 'Guardar' }}
-          </button>
+          <div class="col-md-12 d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-primary gold" style="height: 100%; transform: rotate(180deg);"
+              (click)="cancelar()">
+              <span class="btn-text" style="transform: rotate(180deg);">Cerrar</span>
+              <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+            </button>
+            <button type="button" class="btn btn-primary" (click)="agregarDireccion()">
+              <span class="btn-text">{{ direccionEditandoIndex !== null ? 'Actualizar' : 'Guardar' }}</span>
+              <span class="btn-icon"><i class="ri-save-line"></i></span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1103,7 +1128,7 @@
         <div class="text-center mb-3">
           <p class="mt-2 custom-modal-text">
             <i class="ri-edit-line me-2 custom-modal-alert-icon"></i>
-            ¿Estás seguro que deseas guardar los siguientes cambios en la configuración?
+            ¿Estás seguro que deseas guardar los siguientes cambios en el cliente?
           </p>
         </div>
 

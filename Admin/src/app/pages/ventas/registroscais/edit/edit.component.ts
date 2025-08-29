@@ -13,6 +13,8 @@ import { RegistroCAI } from 'src/app/Modelos/ventas/RegistroCAI.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { DatePipe } from '@angular/common';
+
 
 @Component({
   selector: 'app-edit',
@@ -20,6 +22,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
   imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule],
   templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss',
+   providers: [DatePipe],
 })
 export class EditComponent implements OnChanges {
   @Input() RegistroCaiData: RegistroCAI | null = null;
@@ -134,7 +137,7 @@ export class EditComponent implements OnChanges {
       );
   }
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private datePipe: DatePipe) {
     this.cargarCAI();
     this.cargarSucursales();
     this.cargarPE();
@@ -276,21 +279,22 @@ export class EditComponent implements OnChanges {
       };
     }
 
-    if (a.regC_FechaInicialEmision !== b.regC_FechaInicialEmision) {
-      this.cambiosDetectados.FechaInical = {
-        anterior: b.regC_FechaInicialEmision,
-        nuevo: a.regC_FechaInicialEmision,
-        label: 'Fecha Inicial',
-      };
-    }
+   if (a.regC_FechaInicialEmision !== b.regC_FechaInicialEmision) {
+  this.cambiosDetectados.FechaInical = {
+    anterior: this.datePipe.transform(b.regC_FechaInicialEmision, 'dd/MM/yyyy'),
+    nuevo: this.datePipe.transform(a.regC_FechaInicialEmision, 'dd/MM/yyyy'),
+    label: 'Fecha Inicial',
+  };
+}
 
-    if (a.regC_FechaFinalEmision !== b.regC_FechaFinalEmision) {
-      this.cambiosDetectados.FechaFinal = {
-        anterior: b.regC_FechaFinalEmision,
-        nuevo: a.regC_FechaFinalEmision,
-        label: 'Fecha Final',
-      };
-    }
+if (a.regC_FechaFinalEmision !== b.regC_FechaFinalEmision) {
+  this.cambiosDetectados.FechaFinal = {
+    anterior: this.datePipe.transform(b.regC_FechaFinalEmision, 'dd/MM/yyyy'),
+    nuevo: this.datePipe.transform(a.regC_FechaFinalEmision, 'dd/MM/yyyy'),
+    label: 'Fecha Final',
+  };
+}
+
 
     return Object.keys(this.cambiosDetectados).length > 0;
   }

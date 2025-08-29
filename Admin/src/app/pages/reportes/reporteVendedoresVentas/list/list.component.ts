@@ -1,4 +1,4 @@
-// reporte-productos.component.ts - VERSIÓN SIMPLIFICADA
+// reporte-vendedores-ventas.component.ts - CON FILTROS DE VENDEDOR Y SUCURSAL
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
@@ -6,60 +6,64 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PdfReportService, ReportConfig, TableData } from 'src/app/reporteGlobal';
+import { BreadcrumbsComponent } from 'src/app/shared/breadcrumbs/breadcrumbs.component';
+
 @Component({
   selector: 'app-reporte-vendedores-ventas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BreadcrumbsComponent],
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss']
 })
 export class ReporteVendedoresVentasComponent implements OnInit {
   vendedores: any[] = [];
+  sucursales: any[] = [];
+  vendedoresFiltro: any[] = [];
   pdfUrl: SafeResourceUrl | null = null;
   cargando = false;
 
   // Filtros
   fechaInicio: string | null = null;
   fechaFin: string | null = null;
+  sucu_Id: number | null = null;
+  vendedorId: number | null = null;
   
   constructor(
     private http: HttpClient, 
     private sanitizer: DomSanitizer,
-    private pdfService: PdfReportService // ¡Inyectar el servicio!
+    private pdfService: PdfReportService
   ) {}
 
   ngOnInit() {
-    // this.cargarDatosIniciales();
+    this.cargarSucursales();
+    this.cargarVendedores();
   }
 
-  // cargarDatosIniciales() {
-  //   this.cargando = true;
-    
-  //   // Cargar marcas y categorías para los filtros
-  //   this.http.get<any[]>(`${environment.apiBaseUrl}/Marcas/Listar`, {
-  //     headers: { 'x-api-key': environment.apiKey }
-  //   }).subscribe({
-  //     next: (data) => {
-  //       this.marcas = data;
-  //     },
-  //     error: (error) => {
-  //       console.error('Error al cargar marcas:', error);
-  //     }
-  //   });
+  cargarSucursales() {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Sucursales/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (data) => {
+        this.sucursales = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar sucursales:', error);
+      }
+    });
+  }
 
-  //   this.http.get<any[]>(`${environment.apiBaseUrl}/Categorias/Listar`, {
-  //     headers: { 'x-api-key': environment.apiKey }
-  //   }).subscribe({
-  //     next: (data) => {
-  //       this.categorias = data;
-  //       this.cargando = false;
-  //     },
-  //     error: (error) => {
-  //       console.error('Error al cargar categorías:', error);
-  //       this.cargando = false;
-  //     }
-  //   });
-  // }
+  cargarVendedores() {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (data) => {
+        this.vendedoresFiltro = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar vendedores:', error);
+      }
+    });
+  }
 
   generarReporte() {
     this.cargando = true;
@@ -68,12 +72,16 @@ export class ReporteVendedoresVentasComponent implements OnInit {
     const params: any = {};
     if (this.fechaInicio) params.fechaInicio = this.fechaInicio;
     if (this.fechaFin) params.fechaFin = this.fechaFin;
+    if (this.sucu_Id) params.sucu_Id = this.sucu_Id;
+    if (this.vendedorId) params.vendedorId = this.vendedorId;
 
     this.http.get<any[]>(`${environment.apiBaseUrl}/Reportes/ReporteVendedoresTotalVentas`, {
       headers: { 'x-api-key': environment.apiKey },
       params: params
     }).subscribe({
       next: (data) => {
+        console.log('Parámetros de reporte:', params);
+        console.log('Datos del reporte:', data);
         this.vendedores = data;
         this.generarPDF();
         this.cargando = false;
@@ -91,7 +99,7 @@ export class ReporteVendedoresVentasComponent implements OnInit {
       titulo: 'REPORTE DE VENTAS POR VENDEDOR',
       orientacion: 'landscape',
       mostrarResumen: true,
-      textoResumen: `Total de ventas: ${this.vendedores.reduce((total, vendedor) => total + (vendedor.ventas || 0), 0)}`
+      textoResumen: `Total de ventas: ${this.vendedores.reduce((total, vendedor) => total + (vendedor.ventas || 0), 0)}`,
     };
 
     //  DATOS DE LA TABLA
@@ -128,8 +136,36 @@ export class ReporteVendedoresVentasComponent implements OnInit {
     }
   }
 
+  private construirFiltros() {
+    const filtros: any[] = [];
+    if (this.fechaInicio) {
+      filtros.push({ label: 'Fecha Inicio', value: this.fechaInicio });
+    }
+    if (this.fechaFin) {
+      filtros.push({ label: 'Fecha Fin', value: this.fechaFin });
+    }
+    if (this.sucu_Id) {
+      const sucursal = this.sucursales.find(s => s.sucu_Id === this.sucu_Id);
+      filtros.push({ 
+        label: 'Sucursal', 
+        value: sucursal ? sucursal.sucu_Descripcion : this.sucu_Id.toString() 
+      });
+    }
+    if (this.vendedorId) {
+      const vendedor = this.vendedoresFiltro.find(v => v.vend_Id === this.vendedorId);
+      filtros.push({ 
+        label: 'Vendedor', 
+        value: vendedor ? vendedor.vend_Descripcion : this.vendedorId.toString() 
+      });
+    }
+
+    return filtros;
+  }
+
   limpiarFiltros() {
     this.fechaInicio = null;
     this.fechaFin = null;
+    this.sucu_Id = null;
+    this.vendedorId = null;
   }
 }

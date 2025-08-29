@@ -30,7 +30,7 @@
         class="btn-close"
         (click)="cerrarAlertaExito()"
         aria-label="Close"
-      ></button>
+                ></button>
     </div>
   </div>
 
@@ -74,7 +74,7 @@
             </p>
             <p>
               <strong>Forma de Pago:</strong>
-              {{ pagoSeleccionado.pago_FormaPago }}
+              {{ pagoSeleccionado.foPa_Descripcion }}
             </p>
           </div>
 
@@ -146,53 +146,275 @@
     <!-- Header con información principal -->
     <div class="details-header">
       <div class="details-title">Detalles de Cuenta por Cobrar</div>
-      <div class="details-id-row">
-        <div class="details-id">
-          <div class="details-id-label">Código</div>
-          <div class="details-id-value">
-            {{ cuentaPorCobrarDetalle.cpCo_Id || "N/A" }}
+
+    </div>
+
+    <!-- Tabla principal de datos de cuenta por cobrar -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Historial facturas</h5>
+      </div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-3 flex-wrap">
+          <!-- Buscador -->
+          <div class="search-box mb-2">
+            <input
+              type="text"
+              class="form-control search"
+              placeholder="Buscar..."
+              [(ngModel)]="tablaPrincipal.searchTerm"
+              (ngModelChange)="tablaPrincipal.setSearchTerm($event)"
+            />
+            <i class="ri-search-line search-icon"></i>
           </div>
         </div>
-        <div class="details-id">
-          <div class="details-id-label">Estado</div>
-          <div class="details-id-value">
-            <span
-              *ngIf="cuentaPorCobrarDetalle.cpCo_Anulado"
-              class="badge bg-danger"
-              >Anulada</span
-            >
-            <span
-              *ngIf="
-                !cuentaPorCobrarDetalle.cpCo_Anulado &&
-                cuentaPorCobrarDetalle.cpCo_Saldada
-              "
-              class="badge bg-success"
-              >Saldada</span
-            >
-            <span
-              *ngIf="
-                !cuentaPorCobrarDetalle.cpCo_Anulado &&
-                !cuentaPorCobrarDetalle.cpCo_Saldada &&
-                estaVencida()
-              "
-              class="badge bg-danger"
-              >Vencida</span
-            >
-            <span
-              *ngIf="
-                !cuentaPorCobrarDetalle.cpCo_Anulado &&
-                !cuentaPorCobrarDetalle.cpCo_Saldada &&
-                !estaVencida()
-              "
-              class="badge bg-warning"
-              >Pendiente</span
-            >
+
+        <div class="table-radius-container">
+          <div class="table-responsive">
+            <table class="table table-gridjs table-style">
+              <thead>
+                <tr>
+                  <th class="gridjs-th" *ngIf="accionPermitida('anular')">Acciones</th>
+                  <th class="gridjs-th" (click)="tablaPrincipal.sortBy('cpCo_Id')" style="cursor:pointer;">
+                    <span class="table-header-flex">
+                      No.
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column;">
+                        <i
+                          class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'cpCo_Id' &&
+                            tablaPrincipal.sortDirection === 'asc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                        <i
+                          class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'cpCo_Id' &&
+                            tablaPrincipal.sortDirection === 'desc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="tablaPrincipal.sortBy('fact_Id')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
+                      Factura
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i
+                          class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'fact_Id' &&
+                            tablaPrincipal.sortDirection === 'asc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                        <i
+                          class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'fact_Id' &&
+                            tablaPrincipal.sortDirection === 'desc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="tablaPrincipal.sortBy('cpCo_FechaEmision')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
+                      Fecha Emisión
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i
+                          class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'cpCo_FechaEmision' &&
+                            tablaPrincipal.sortDirection === 'asc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                        <i
+                          class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'cpCo_FechaEmision' &&
+                            tablaPrincipal.sortDirection === 'desc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="tablaPrincipal.sortBy('cpCo_FechaVencimiento')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
+                      Fecha Vencimiento
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i
+                          class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'cpCo_FechaVencimiento' &&
+                            tablaPrincipal.sortDirection === 'asc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                        <i
+                          class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'cpCo_FechaVencimiento' &&
+                            tablaPrincipal.sortDirection === 'desc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="tablaPrincipal.sortBy('monto')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
+                      Monto
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i
+                          class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'monto' &&
+                            tablaPrincipal.sortDirection === 'asc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                        <i
+                          class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'monto' &&
+                            tablaPrincipal.sortDirection === 'desc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="tablaPrincipal.sortBy('totalPendiente')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
+                      Total Pendiente
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i
+                          class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'totalPendiente' &&
+                            tablaPrincipal.sortDirection === 'asc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                        <i
+                          class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'totalPendiente' &&
+                            tablaPrincipal.sortDirection === 'desc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="tablaPrincipal.sortBy('estaVencida')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
+                      Estado
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                        <i
+                          class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'estaVencida' &&
+                            tablaPrincipal.sortDirection === 'asc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                        <i
+                          class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="
+                            tablaPrincipal.sortField === 'estaVencida' &&
+                            tablaPrincipal.sortDirection === 'desc'
+                              ? { 'color': '#D6B68A' }
+                              : { 'color': 'white' }
+                          "
+                        ></i>
+                      </span>
+                    </span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="gridjs-tr" *ngFor="let dato of (tablaPrincipal.paginated$ | async); let i = index">
+                  <td class="position-relative" *ngIf="accionPermitida('anular') && !dato.cpCo_Anulado">
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      (click)="registrarPago(dato.cpCo_Id)"
+                    >
+                      <span class="btn-text">Registrar Pago</span>
+                      <span class="btn-icon"><i class="ri-money-dollar-circle-line"></i></span>
+                    </button>
+                  </td>
+                  <td><span class="fw-semibold">{{ dato.secuencia }}</span></td>
+                  <td>{{ dato.referencia }}</td>
+                  <td>{{ formatearFecha(dato.cpCo_FechaEmision) }}</td>
+                  <td>{{ formatearFecha(dato.cpCo_FechaVencimiento) }}</td>
+                  <td>{{ formatearMoneda(dato.monto) }}</td>
+                  <td>{{ formatearMoneda(dato.totalPendiente) }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="dato.estaVencida ? 'bg-danger' : (dato.cpCo_Saldada ? 'bg-success' : 'bg-warning')">
+                      {{ dato.estaVencida ? 'Vencida' : (dato.cpCo_Saldada ? 'Saldada' : 'Pendiente') }}
+                    </span>
+                  </td>
+                </tr>
+
+                <tr *ngIf="(tablaPrincipal.paginated$ | async)?.length === 0">
+                  <td [attr.colspan]="accionPermitida('anular') ? 8 : 7" class="text-center">
+                    No hay datos disponibles
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
+        </div>
+
+        <!-- Paginación -->
+        <div class="row justify-content-md-between align-items-md-center mt-3">
+          <ng-container *ngIf="(tablaPrincipal.paginated$ | async) as paginados">
+            <div class="col-sm-12 col-md-5">
+              <div class="dataTables_info mb-2" role="status" aria-live="polite">
+                Mostrando
+                {{ (tablaPrincipal.page - 1) * tablaPrincipal.pageSizeValue + paginados.length }} de {{ tablaPrincipal.total$ | async }}
+                registros
+              </div>
+            </div>
+            <div class="col-sm-12 col-md-5">
+              <div class="text-md-right float-md-end gridjs-pagination">
+                <pagination [totalItems]="(tablaPrincipal.total$ | async) || 0" [(ngModel)]="tablaPrincipal.page" [itemsPerPage]="tablaPrincipal.pageSizeValue" (pageChanged)="tablaPrincipal.setPage($event.page)"></pagination>
+              </div>
+            </div>
+          </ng-container>
         </div>
       </div>
     </div>
 
-    <!-- Información del cliente -->
+    <!-- Información del cliente
     <div class="card mb-3">
       <div class="card-header">
         <h5 class="card-title mb-0">Información del Cliente</h5>
@@ -227,7 +449,7 @@
       </div>
     </div>
 
-    <!-- Información de la cuenta por cobrar -->
+
     <div class="card mb-3">
       <div class="card-header">
         <h5 class="card-title mb-0">Detalle de la Cuenta</h5>
@@ -281,247 +503,7 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Historial de pagos -->
-    <div class="card mb-3">
-      <div
-        class="card-header d-flex justify-content-between align-items-center"
-      >
-        <h5 class="card-title mb-0">Historial de Pagos</h5>
-        <button
-          *ngIf="
-            !cuentaPorCobrarDetalle.cpCo_Anulado &&
-            !cuentaPorCobrarDetalle.cpCo_Saldada
-          "
-          type="button"
-          class="btn btn-primary"
-          (click)="registrarPago()"
-        >
-          <span class="btn-text">Registrar Pago</span>
-          <span class="btn-icon"><i class="ri-add-line"></i></span>
-        </button>
-      </div>
-      <div class="card-body">
-        <div class="d-flex justify-content-between mb-3 flex-wrap">
-          <!-- Buscador -->
-          <div class="search-box mb-2">
-            <input type="text" class="form-control search" placeholder="Buscar..." [(ngModel)]="table.searchTerm" (ngModelChange)="table.setSearchTerm($event)">
-            <i class="ri-search-line search-icon"></i>
-          </div>
-        </div>
-        
-        <div class="table-radius-container">
-          <div class="table-responsive">
-            <table class="table table-gridjs table-style">
-              <thead>
-                <tr>
-                  <th class="gridjs-th" *ngIf="accionPermitida('anular')">Acciones</th>
-                  <th class="gridjs-th" (click)="table.sortBy('pago_Id')" style="cursor:pointer;">
-                    <span class="table-header-flex">
-                      ID
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column;">
-                       <i class="ri-arrow-up-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'pago_Id' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      <i class="ri-arrow-down-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'pago_Id' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('pago_Fecha')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Fecha
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                         <i class="ri-arrow-up-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'pago_Fecha' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      <i class="ri-arrow-down-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'pago_Fecha' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('pago_Monto')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Monto
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                         <i class="ri-arrow-up-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'pago_Monto' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      <i class="ri-arrow-down-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'pago_Monto' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('pago_FormaPago')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Forma de Pago
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                         <i class="ri-arrow-up-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'pago_FormaPago' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      <i class="ri-arrow-down-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'pago_FormaPago' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('pago_NumeroReferencia')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Referencia
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                         <i class="ri-arrow-up-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'pago_NumeroReferencia' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      <i class="ri-arrow-down-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'pago_NumeroReferencia' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('pago_Observaciones')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Observaciones
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                         <i class="ri-arrow-up-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'pago_Observaciones' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      <i class="ri-arrow-down-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'pago_Observaciones' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('pago_Anulado')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Estado
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                         <i class="ri-arrow-up-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'pago_Anulado' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      <i class="ri-arrow-down-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'pago_Anulado' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      </span>
-                    </span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr class="gridjs-tr" *ngFor="let pago of (table.paginated$ | async); let i = index">
-                  <td class="position-relative" *ngIf="accionPermitida('anular')">
-                    <div class="dropdown-action-list" *ngIf="!pago.pago_Anulado && !cuentaPorCobrarDetalle?.cpCo_Anulado">
-                      <button type="button"
-                        class="btn btn-primary"
-                        (click)="abrirModalAnulacion(pago)">
-                        <span class="btn-text">Anular</span>
-                        <span class="btn-icon"><i class="ri-delete-bin-line"></i></span>
-                      </button>
-                    </div>
-                  </td>
-                  <td><span class="fw-semibold">{{ pago.pago_Id }}</span></td>
-                  <td>{{ formatearFecha(pago.pago_Fecha) }}</td>
-                  <td>{{ formatearMoneda(pago.pago_Monto) }}</td>
-                  <td>{{ pago.pago_FormaPago }}</td>
-                  <td>{{ pago.pago_NumeroReferencia || "N/A" }}</td>
-                  <td>{{ pago.pago_Observaciones }}</td>
-                  <td>
-                    <span class="badge" [ngClass]="!pago.pago_Anulado ? 'bg-success' : 'bg-danger'">
-                      {{ !pago.pago_Anulado ? 'Activo' : 'Anulado' }}
-                    </span>
-                  </td>
-                </tr>
-                
-                <tr *ngIf="(table.paginated$ | async)?.length === 0">
-                  <td [attr.colspan]="accionPermitida('anular') ? 8 : 7" class="text-center">
-                    No hay pagos registrados
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        
-        <!-- Paginación -->
-        <div class="row justify-content-md-between align-items-md-center mt-3">
-          <ng-container *ngIf="(table.paginated$ | async) as paginados">
-            <div class="col-sm-12 col-md-5">
-              <div class="dataTables_info mb-2" role="status" aria-live="polite">
-                Mostrando
-                {{ (table.page - 1) * table.pageSizeValue + paginados.length }} de {{ table.total$ | async }}
-                registros
-              </div>
-            </div>
-            <div class="col-sm-12 col-md-5">
-              <div class="text-md-right float-md-end gridjs-pagination">
-                <pagination [totalItems]="(table.total$ | async) || 0" [(ngModel)]="table.page" [itemsPerPage]="table.pageSizeValue" (pageChanged)="table.setPage($event.page)"></pagination>
-              </div>
-            </div>
-          </ng-container>
-        </div>
-      </div>
-    </div>
-
-    <!-- Historial de auditoría -->
-    <div class="card">
-    
-      <div class="card-body">
-        <div class="audit-table-container">
-          <div class="audit-table">
-            <div class="audit-header">
-              <div class="audit-col">Acción</div>
-              <div class="audit-col">Usuario</div>
-              <div class="audit-col">Fecha</div>
-            </div>
-
-            <!-- Fila de creación -->
-            <div class="audit-row">
-              <div class="audit-col">
-                <span class="audit-action">Creador</span>
-              </div>
-              <div class="audit-col">
-                <span class="audit-user">{{
-                  cuentaPorCobrarDetalle.usuarioCreacion || "N/A"
-                }}</span>
-              </div>
-              <div class="audit-col">
-                <span class="audit-date">{{
-                  formatearFecha(cuentaPorCobrarDetalle.cpCo_FechaCreacion)
-                }}</span>
-              </div>
-            </div>
-
-            <!-- Fila de modificación -->
-            <div class="audit-row">
-              <div class="audit-col">
-                <span class="audit-action">Modificación</span>
-              </div>
-              <div class="audit-col">
-                <span class="audit-user">{{
-                  cuentaPorCobrarDetalle.usuarioModificacion || "N/A"
-                }}</span>
-              </div>
-              <div class="audit-col">
-                <span class="audit-date">{{
-                  formatearFecha(cuentaPorCobrarDetalle.cpCo_FechaModificacion ?? null)
-                }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+    </div> -->
 
   <!-- Indicador de carga -->
   <div *ngIf="cargando" class="loading-indicator">
@@ -543,19 +525,3 @@
     </div>
   </div>
 </div>
-
-<!-- Menú flotante de acciones -->
-<ul
-  *ngIf="floatingMenuService.show"
-  class="dropdown-menu show"  
-  [ngStyle]="{
-    position: 'absolute',
-    top: floatingMenuService.top + 'px',
-    left: floatingMenuService.left + 'px',
-  }">
-  <li *ngIf="accionPermitida('anular') && !floatingMenuService.data?.pago_Anulado && !cuentaPorCobrarDetalle?.cpCo_Anulado">
-    <button type="button" class="dropdown-action-btn" (click)="abrirModalAnulacion(floatingMenuService.data); floatingMenuService.close()">
-      Anular <i class="ri-delete-bin-line"></i>
-    </button>
-  </li>
-</ul>

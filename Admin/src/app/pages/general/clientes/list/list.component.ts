@@ -91,7 +91,6 @@ export class ListComponent {
     title: 'Listado de Clientes',                    // Título del reporte
     filename: 'Clientes',                           // Nombre base del archivo
     department: 'General',                         // Departamento
-    additionalInfo: 'Sistema de Gestión',         // Información adicional
 
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
@@ -101,7 +100,7 @@ export class ListComponent {
       { key: 'Nombres', header: 'Nombres', width: 50, align: 'left' as const },
       { key: 'Apellidos', header: 'Apellidos', width: 50, align: 'left' as const },
       { key: 'Nombre del Negocio', header: 'Nombre del Negocio', width: 50, align: 'left' as const },
-      { key: 'Telefono', header: 'Telefono', width: 30, align: 'left' as const }
+      { key: 'Telefono', header: 'Teléfono', width: 30, align: 'left' as const }
     ] as ExportColumn[],
 
     // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
@@ -113,8 +112,6 @@ export class ListComponent {
       'Apellidos': this.limpiarTexto(cliente?.clie_Apellidos),
       'Nombre del Negocio': this.limpiarTexto(cliente?.clie_NombreNegocio),
       'Telefono': this.limpiarTexto(cliente?.clie_Telefono)
-      // Agregar más campos aquí según necesites:
-      // 'Campo': this.limpiarTexto(modelo?.campo),
     })
   };
 
@@ -133,6 +130,7 @@ export class ListComponent {
   isLoading = true;
 
   // Propiedades para alertas
+  cargandoDatos = false;
   mostrarAlertaExito = false;
   mostrarOverlayCarga = false;
   mensajeExito = '';
@@ -140,10 +138,12 @@ export class ListComponent {
   mensajeError = '';
   mostrarAlertaWarning = false;
   mensajeWarning = '';
+  mostrarModalActivacion = false;
 
 
   clienteDetalle: Cliente | null = null;
   clienteEditando: Cliente | null = null;
+  clienteSeleccionado: Cliente | null = null;
 
   // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
@@ -289,8 +289,7 @@ export class ListComponent {
       data: this.obtenerDatosExport(),
       columns: this.exportConfig.columns,
       metadata: {
-        department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
+        department: this.exportConfig.department
       }
     };
   }
@@ -300,7 +299,7 @@ export class ListComponent {
    */
   private obtenerDatosExport(): any[] {
     try {
-      const datos = this.clientes; // Use the array for cards
+      const datos = this.clientesFiltrados; 
 
       if (!Array.isArray(datos) || datos.length === 0) {
         throw new Error('No hay datos disponibles para exportar');
@@ -356,8 +355,6 @@ export class ListComponent {
     if (!texto) return '';
 
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }
@@ -441,6 +438,7 @@ export class ListComponent {
     this.showEditForm = true;
     this.showCreateForm = false;
     this.showDetailsForm = false;
+    this.listadoClientesSinConfirmar = false;
     this.activeActionRow = null;
   }
 
@@ -461,7 +459,7 @@ export class ListComponent {
       this.clientesFiltrados = this.clienteGrid.filter((cliente: any) =>
         (cliente.clie_Codigo || '').toLowerCase().includes(termino) ||
         (cliente.clie_Nombres || '').toLowerCase().includes(termino) ||
-        (cliente.cana_Descripcion || '').toLowerCase().includes(termino)
+        (cliente.clie_NombreNegocio || '').toLowerCase().includes(termino)
       );
     }
     this.currentPage = 1;
@@ -480,6 +478,13 @@ export class ListComponent {
   }
 
   private cargarDatos(state: boolean): void {
+    this.cargandoDatos = true;
+    this.clienteGrid = [];
+    this.clientes = [];
+    this.showCreateForm = false;
+    this.showEditForm = false;
+    this.showDetailsForm = false;
+    this.listadoClientesSinConfirmar = false;
     this.mostrarOverlayCarga = state;
     this.http.get<Cliente[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -498,7 +503,7 @@ export class ListComponent {
         this.currentPage = 1;
         this.itemsPerPage = 10;
         this.clientesFiltrados = [...this.clienteGrid];
-
+        this.cargandoDatos = false;
         this.actualizarClientesVisibles();
       }, 500);
     });
@@ -515,12 +520,12 @@ export class ListComponent {
 
   abrirListado() {
     this.listadoClientesSinConfirmar = true;
-    this.cargarDatosSinConfirmar(false);
+    this.cargarDatosSinConfirmar(true);
   }
 
   cerrarListado() {
     this.listadoClientesSinConfirmar = false;
-    this.cargarDatos(false);
+    this.cargarDatos(true);
   }
 
   notificacionesSinConfirmar: number = 0;
@@ -534,16 +539,32 @@ export class ListComponent {
 
 
   private cargarDatosSinConfirmar(state: boolean): void {
+    this.cargandoDatos = true;
     this.clienteGrid = [];
     this.clientes = [];
+    this.showCreateForm = false;
+    this.showEditForm = false;
+    this.showDetailsForm = false;
+    this.listadoClientesSinConfirmar = true;
     this.mostrarOverlayCarga = state;
     this.http.get<Cliente[]>(`${environment.apiBaseUrl}/Cliente/ListarSinConfirmacion`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
       setTimeout(() => {
         this.mostrarOverlayCarga = false;
-        this.clienteGrid = data || [];
-        this.clientes = this.clienteGrid.slice(0, 10);
+        this.cargandoDatos = false;
+        const tienePermisoListar = this.accionPermitida('listar');
+        const userId = getUserId();
+
+        const datosFiltrados = tienePermisoListar
+          ? data
+          : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
+
+        this.clienteGrid = datosFiltrados || [];
+        this.busqueda = '';
+        this.currentPage = 1;
+        this.itemsPerPage = 10;
+        this.clientesFiltrados = [...this.clienteGrid];
         this.filtradorClientes();
       }, 500);
     });
@@ -579,13 +600,32 @@ export class ListComponent {
   }
 
   cerrarFormularioEdicion(): void {
+    this.cargarDatos(true);
     this.showEditForm = false;
     this.clienteEditando = null;
   }
 
   cerrarFormularioDetalles(): void {
+    this.cargarDatos(true);
     this.showDetailsForm = false;
     this.clienteDetalle = null;
+  }
+
+  activar(cliente: Cliente):void{
+    this.clienteSeleccionado = cliente;
+    this.mostrarModalActivacion = true;
+  }
+
+  confirmarEdicion(): void {
+    if (this.clienteSeleccionado) {
+      this.editar(this.clienteSeleccionado);
+      this.cerrarModalActivacion();
+    }
+  }
+
+  cerrarModalActivacion(): void {
+    this.mostrarModalActivacion = false;
+    this.clienteSeleccionado = null;
   }
 
   guardarCliente(cliente: Cliente): void {

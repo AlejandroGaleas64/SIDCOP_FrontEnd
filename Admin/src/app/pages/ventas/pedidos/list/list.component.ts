@@ -566,8 +566,6 @@ constructor(public table: ReactiveTableService<Pedido>,
   }
 
 
-  
-
     private cargardatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
 

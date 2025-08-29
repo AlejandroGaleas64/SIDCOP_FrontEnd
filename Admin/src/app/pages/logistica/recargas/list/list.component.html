@@ -12,14 +12,11 @@
   <div class="col-lg-12">
     <div class="card">
       <div class="card-body">
-        <!-- Barra de herramientas superior -->
         <div class="d-flex justify-content-between mb-3 flex-wrap" *ngIf="!showEditForm && !showDetailsForm">
-          <!-- Botón Nuevo (si aplica en el futuro) -->
-          <!-- <button *ngIf="accionPermitida('crear')" type="button" class="btn btn-primary me-2 mb-2" (click)="crear()">
-            <span class="btn-text">Nuevo</span>
-            <span class="btn-icon"><i class="ri-add-line"></i></span>
-          </button> -->
-          
+        
+
+          <div></div>
+
           <div class="d-flex align-items-center gap-2 flex-wrap">
             <!-- Botones de exportación -->
             <div class="export-buttons d-flex gap-1 mb-2">
@@ -244,15 +241,10 @@
               <app-edit-recarga 
                 [recargaData]="recargaSeleccionada" 
                 (onCancel)="cerrarFormularioEdicion()"  
-                (onSave)="actualizarRecarga($event)"
-                  *ngIf="recargaSeleccionada; else noRecargaTemplate">
+                (onSave)="actualizarRecarga($event)">
               </app-edit-recarga>
-              <ng-template #noRecargaTemplate>
-          <div class="alert alert-info">
-            No se ha seleccionado ninguna recarga para editar.
-          </div>
-        </ng-template>
-            </div>-
+              
+            </div>
           </div>
         </div>
 
@@ -265,24 +257,12 @@
         <h5 class="card-title mb-0">
           Detalles de Recarga
         </h5>
-        <button type="button" 
-                class="btn-close" 
-                (click)="cerrarDetalles()"
-                aria-label="Cerrar detalles">
-        </button>
       </div>
       <div class="card-body">
         <app-details
-          [recargaData]="recargaSeleccionada"
-          (onClose)="cerrarDetalles()"
-          *ngIf="recargaSeleccionada; else noRecargaDetailsTemplate">
-        </app-details>
-
-        <ng-template #noRecargaDetailsTemplate>
-          <div class="alert alert-info">
-            No se ha seleccionado ninguna recarga para ver detalles.
-          </div>
-        </ng-template>
+          [recargaData]="recargaSeleccionada" 
+          (onClose)="cerrarDetalles()">
+         </app-details>
       </div>
     </div>
   </div>
@@ -343,7 +323,7 @@
   }">
   <li *ngIf="accionPermitida('editar')">
     <button type="button" class="dropdown-action-btn" (click)="editar(floatingMenuService.data); floatingMenuService.close()">
-      Editar <i class="ri-edit-line"></i>
+      Confirmar  <i class="ri-edit-line"></i>
     </button>
   </li>
   <li *ngIf="accionPermitida('detalle')">

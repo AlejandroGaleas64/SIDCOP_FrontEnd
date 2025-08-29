@@ -1,200 +1,907 @@
 <app-breadcrumbs
   [title]="'Cuentas por Cobrar'"
-  [breadcrumbItems]="[
-    { label: 'Ventas' },
-    { label: 'Cuentas por Cobrar', active: true }
-  ]"
+  [breadcrumbItems]="breadCrumbItems"
 >
-<img class="icon-breadcrumb" style="width: 10vh; height: 10vh;" src="assets/images/svg/cxc.svg" alt="cuentas por cobrar icon" />
+  <img
+    class="icon-breadcrumb"
+    style="width: 10vh; height: 10vh"
+    src="assets/images/svg/cxc.svg"
+    alt="cuentas por cobrar icon"
+  />
 </app-breadcrumbs>
 
 <div class="row">
   <div class="col-lg-12">
     <div class="card">
       <div class="card-body">
-        <div class="d-flex justify-content-between mb-3 flex-wrap">
-          <!-- Botones de acción según permisos -->
-          <div class="search-box mb-2">
-            <div class="d-flex align-items-center">
-              <i class="ri-search-line" [ngStyle]="{
-                border: '1px solid #e9ecf5',
-                backgroundColor: '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
-              <input type="text" class="form-control" placeholder="Buscar..." [(ngModel)]="table.searchTerm" (ngModelChange)="table.setSearchTerm($event)">
-            </div>
-          </div>
-        </div>
-        
-        <div class="table-radius-container">
-          <div class="table-responsive">
-            <table class="table table-gridjs table-style">
-              <thead>
-                <tr>
-                  <th class="gridjs-th" *ngIf="accionPermitida('editar') || accionPermitida('eliminar') || accionPermitida('detalle')">Acciones</th>
-                  <!-- Columnas de la tabla -->
-                  <th class="gridjs-th" (click)="table.sortBy('secuencia')" style="cursor:pointer;">
-                    <span class="table-header-flex">
-                      No.
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column;">
-                       <i class="ri-arrow-up-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'secuencia' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      <i class="ri-arrow-down-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'secuencia' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('clie_Nombres')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Cliente
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                         <i class="ri-arrow-up-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'clie_Nombres' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      <i class="ri-arrow-down-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'clie_Nombres' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('clie_NombreNegocio')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Negocio
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                         <i class="ri-arrow-up-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'clie_NombreNegocio' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      <i class="ri-arrow-down-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'clie_NombreNegocio' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('cpCo_FechaEmision')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Fecha Emisión
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                         <i class="ri-arrow-up-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'cpCo_FechaEmision' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      <i class="ri-arrow-down-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'cpCo_FechaEmision' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('cpCo_FechaVencimiento')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Fecha Vencimiento
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                         <i class="ri-arrow-up-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'cpCo_FechaVencimiento' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      <i class="ri-arrow-down-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'cpCo_FechaVencimiento' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('cpCo_Valor')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Valor
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                         <i class="ri-arrow-up-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'cpCo_Valor' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      <i class="ri-arrow-down-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'cpCo_Valor' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('cpCo_Saldo')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Saldo
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                         <i class="ri-arrow-up-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'cpCo_Saldo' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      <i class="ri-arrow-down-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'cpCo_Saldo' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('cpCo_Estado')" style="cursor:pointer;">
-                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
-                      Estado
-                      <!-- iconos para ordenar -->
-                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
-                         <i class="ri-arrow-up-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'cpCo_Estado' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      <i class="ri-arrow-down-s-line icon-sort"
-                        [ngStyle]="table.sortField === 'cpCo_Estado' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
-                      </i>
-                      </span>
-                    </span>
-                  </th>
-                </tr>
-                <tr class="gridjs-th" *ngFor="let data of table.paginated$ | async; let i = index">
-                  <td class="position-relative" *ngIf="accionPermitida('editar') || accionPermitida('eliminar') || accionPermitida('detalle')">
-                    <div class="dropdown-action-list">
-                      <button type="button"
-                        class="dropdown-toggle"
-                        [attr.aria-expanded]="false"
-                        (click)="floatingMenuService.open($event, data)">
-                        <span>Acciones</span>
-                        <i class="ri-settings-3-line"></i>
-                      </button>
+        <div class="flex-grow-1">
+          <!-- Aquí empiezan las pestañas -->
+          <ul class="nav nav-tabs mb-3" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                [class.active]="activeTab === 1"
+                (click)="navegar(1)"
+                type="button"
+                role="tab"
+              >
+                Clientes
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                [class.active]="activeTab === 2"
+                (click)="navegar(2)"
+                type="button"
+                role="tab"
+              >
+                Antigüedad
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content">
+            <!-- TAB CUENTAS POR COBRAR -->
+            <div *ngIf="activeTab === 1">
+              <div class="d-flex justify-content-between mb-3 flex-wrap">
+                <!-- Botones de acción -->
+                <div class="mb-2 d-flex gap-2">
+                  <!-- Botón de agregar si tiene permisos -->
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    routerLink="/ventas/cuentasporcobrar/add"
+                    *ngIf="accionPermitida('agregar')"
+                  >
+                    <i class="ri-add-line me-1"></i> Agregar
+                  </button>
+                  
+                  <!-- Botones de exportación -->
+                  <div class="export-buttons d-flex gap-1 mb-2">
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportar('excel')" [disabled]="exportando" title="Exportar a Excel">
+                      <span class="btn-text">Excel</span>
+                      <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
+                      <span *ngIf="exportando && tipoExportacion === 'excel'">Exportando...</span>
+                    </button>
+                    
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportar('pdf')" [disabled]="exportando" title="Exportar a PDF">
+                      <span class="btn-text">PDF</span>
+                      <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
+                      <span *ngIf="exportando && tipoExportacion === 'pdf'">Exportando...</span>
+                    </button>
+                    
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportar('csv')" [disabled]="exportando" title="Exportar a CSV">
+                      <span class="btn-text">CSV</span>
+                      <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
+                      <span *ngIf="exportando && tipoExportacion === 'csv'">Exportando...</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Búsqueda -->
+                <div class="search-box mb-2">
+                  <div class="d-flex align-items-center">
+                    <i
+                      class="ri-search-line"
+                      [ngStyle]="{
+                        border: '1px solid #e9ecf5',
+                        backgroundColor: '#f2f3f9',
+                        padding: '0.525rem 0.525rem',
+                        position: 'relative',
+                        left: '7px',
+                        borderTopLeftRadius: '8px',
+                        borderBottomLeftRadius: '8px'
+                      }"
+                    >
+                    </i>
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="Buscar cliente..."
+                      [(ngModel)]="table.searchTerm"
+                      (ngModelChange)="table.setSearchTerm($event)"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="table-radius-container">
+                <div class="table-responsive">
+                  <!-- TABLA COMPLETA -->
+                  <table class="table table-gridjs table-style">
+                    <thead>
+                      <tr>
+                        <!-- Corregido: cambió de 'detalle' a un permiso más genérico -->
+                        <th
+                          class="gridjs-th"
+                          *ngIf="
+                            accionPermitida('consultar') ||
+                            accionPermitida('editar') ||
+                            accionPermitida('eliminar') ||
+                            accionPermitida('pagar')
+                          "
+                        >
+                          Acciones
+                        </th>
+
+                        <th
+                          class="gridjs-th"
+                          (click)="table.sortBy('secuencia')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex">
+                            No.
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'secuencia' &&
+                                  table.sortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'secuencia' &&
+                                  table.sortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+
+                        <th
+                          class="gridjs-th"
+                          (click)="table.sortBy('cliente')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex">
+                            Cliente
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'cliente' &&
+                                  table.sortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'cliente' &&
+                                  table.sortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+
+                        <th
+                          class="gridjs-th"
+                          (click)="table.sortBy('clie_NombreNegocio')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex">
+                            Negocio
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'clie_NombreNegocio' &&
+                                  table.sortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'clie_NombreNegocio' &&
+                                  table.sortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+
+                        <th
+                          class="gridjs-th"
+                          (click)="table.sortBy('clie_Telefono')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex">
+                            Teléfono
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'clie_Telefono' &&
+                                  table.sortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'clie_Telefono' &&
+                                  table.sortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+
+                        <th
+                          class="gridjs-th"
+                          (click)="table.sortBy('facturasPendientes')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex">
+                            Facturas Pendientes
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'facturasPendientes' &&
+                                  table.sortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'facturasPendientes' &&
+                                  table.sortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+
+                        <th
+                          class="gridjs-th"
+                          (click)="table.sortBy('totalFacturado')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex">
+                            Total Facturado
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'totalFacturado' &&
+                                  table.sortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'totalFacturado' &&
+                                  table.sortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+
+                        <th
+                          class="gridjs-th"
+                          (click)="table.sortBy('totalPendiente')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex">
+                            Total Pendiente
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'totalPendiente' &&
+                                  table.sortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'totalPendiente' &&
+                                  table.sortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+
+                        <th
+                          class="gridjs-th"
+                          (click)="table.sortBy('totalVencido')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex">
+                            Total Vencido
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'totalVencido' &&
+                                  table.sortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'totalVencido' &&
+                                  table.sortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+
+                        <th
+                          class="gridjs-th"
+                          (click)="table.sortBy('ultimoPago')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex">
+                            Último Pago
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'ultimoPago' &&
+                                  table.sortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  table.sortField === 'ultimoPago' &&
+                                  table.sortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <!-- Mensaje cuando no hay datos -->
+                      <tr *ngIf="(table.data$ | async)?.length === 0">
+                        <td [attr.colspan]="10" class="text-center">
+                          No hay cuentas por cobrar disponibles
+                        </td>
+                      </tr>
+
+                      <!-- Filas de datos -->
+                      <tr *ngFor="let data of table.paginated$ | async">
+                        <!-- Corregida la condición para mostrar acciones -->
+                        <td
+                          *ngIf="accionPermitida('detalle')"
+                        >
+                          <button
+                            type="button"
+                            class="btn btn-primary"
+                            (click)="irADetalles(data.clie_Id)"
+                          >
+                            <span class="btn-text">Detalles</span>
+                            <span class="btn-icon"><i class="ri-eye-line"></i></span>
+                          </button>
+                        </td>
+                        <td>{{ data.secuencia }}</td>
+                        <td>{{ data.cliente }}</td>
+                        <td>{{ data.clie_NombreNegocio }}</td>
+                        <td>{{ data.clie_Telefono }}</td>
+                        <td class="text-end">{{ data.facturasPendientes }}</td>
+                        <td class="text-end">
+                          {{
+                            data.totalFacturado
+                              | currency : "LPS" : "symbol" : "1.2-2"
+                          }}
+                        </td>
+                        <td class="text-end">
+                          {{
+                            data.totalPendiente
+                              | currency : "LPS" : "symbol" : "1.2-2"
+                          }}
+                        </td>
+                        <td class="text-end">
+                          <span
+                            [ngClass]="
+                              data.totalVencido > 0 ? 'text-danger fw-bold' : ''
+                            "
+                          >
+                            {{
+                              data.totalVencido
+                                | currency : "LPS" : "symbol" : "1.2-2"
+                            }}
+                          </span>
+                        </td>
+                        <td>
+                          {{ data.ultimoPago | date : "dd/MM/yyyy HH:mm" }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Paginación corregida -->
+              <div class="row justify-content-md-between align-items-md-center">
+                <ng-container *ngIf="table.paginated$ | async as paginados">
+                  <div class="col-sm-12 col-md-5">
+                    <div class="text-md-right float-md-end gridjs-pagination">
+                      <pagination
+                        [totalItems]="(table.total$ | async) || 0"
+                        [ngModel]="table.page"
+                        [itemsPerPage]="table.pageSizeValue"
+                        (pageChanged)="table.setPage($event.page)"
+                      >
+                      </pagination>
                     </div>
-                  </td>
-                  <td><span class="fw-semibold">{{data.secuencia}}</span></td>
-                  <td>{{data.clie_Nombres}} {{data.clie_Apellidos}}</td>
-                  <td>{{data.clie_NombreNegocio}}</td>
-                  <td>{{data.cpCo_FechaEmision | date:'dd/MM/yyyy'}}</td>
-                  <td>{{data.cpCo_FechaVencimiento | date:'dd/MM/yyyy'}}</td>
-                  <td>{{data.cpCo_Valor | currency:'USD':'symbol':'1.2-2'}}</td>
-                  <td>{{data.cpCo_Saldo | currency:'USD':'symbol':'1.2-2'}}</td>
-                  <td>
-                    <span class="badge" [ngClass]="data.cpCo_Estado ? 'bg-success' : 'bg-danger'">
-                      {{data.cpCo_Estado ? 'Activo' : 'Inactivo'}}
-                    </span>
-                  </td>
-                </tr>
-              </thead>
-            </table>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+
+            <!-- TAB RESUMEN ANTIGÜEDAD -->
+            <div *ngIf="activeTab === 2">
+              <div class="d-flex justify-content-between mb-3 flex-wrap">
+                <!-- Botones de exportación para la tabla de Antigüedad -->
+                <div class="mb-2">
+                  <div class="export-buttons d-flex gap-1 mb-2">
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarResumen('excel')" [disabled]="exportandoResumen" title="Exportar a Excel">
+                      <span class="btn-text">Excel</span>
+                      <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
+                      <span *ngIf="exportandoResumen && tipoExportacionResumen === 'excel'">Exportando...</span>
+                    </button>
+                    
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarResumen('pdf')" [disabled]="exportandoResumen" title="Exportar a PDF">
+                      <span class="btn-text">PDF</span>
+                      <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
+                      <span *ngIf="exportandoResumen && tipoExportacionResumen === 'pdf'">Exportando...</span>
+                    </button>
+                    
+                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarResumen('csv')" [disabled]="exportandoResumen" title="Exportar a CSV">
+                      <span class="btn-text">CSV</span>
+                      <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
+                      <span *ngIf="exportandoResumen && tipoExportacionResumen === 'csv'">Exportando...</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="search-box mb-2">
+                  <div class="d-flex align-items-center">
+                    <i
+                      class="ri-search-line"
+                      [ngStyle]="{
+                        border: '1px solid #e9ecf5',
+                        backgroundColor: '#f2f3f9',
+                        padding: '0.525rem 0.525rem',
+                        position: 'relative',
+                        left: '7px',
+                        borderTopLeftRadius: '8px',
+                        borderBottomLeftRadius: '8px'
+                      }"
+                    >
+                    </i>
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="Buscar cliente..."
+                      [(ngModel)]="resumenSearchTerm"
+                      (ngModelChange)="filtrarResumenAntiguedad()"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="table-radius-container">
+                <div class="table-responsive">
+                  <table class="table table-gridjs table-style">
+                    <thead>
+                      <tr>
+                        <!-- Columna de acciones para el resumen de antigüedad -->
+                        <th
+                          class="gridjs-th"
+                          *ngIf="
+                            accionPermitida('detalle')
+                          "
+                        >
+                          Acciones
+                        </th>
+                        <th
+                          class="gridjs-th"
+                          (click)="sortResumenBy('secuencia')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex">
+                            No.
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'secuencia' &&
+                                  resumenSortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'secuencia' &&
+                                  resumenSortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+                        <th
+                          class="gridjs-th"
+                          (click)="sortResumenBy('cliente')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex">
+                            Cliente
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'cliente' &&
+                                  resumenSortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'cliente' &&
+                                  resumenSortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+                        <th
+                          class="gridjs-th"
+                          (click)="sortResumenBy('clie_NombreNegocio')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex">
+                            Negocio
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'clie_NombreNegocio' &&
+                                  resumenSortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'clie_NombreNegocio' &&
+                                  resumenSortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+                        <th
+                          class="gridjs-th"
+                          (click)="sortResumenBy('actual')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex text-end">
+                            Actual
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'actual' &&
+                                  resumenSortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'actual' &&
+                                  resumenSortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+                        <th
+                          class="gridjs-th"
+                          (click)="sortResumenBy('_1_30')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex text-end">
+                            1-30
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === '_1_30' &&
+                                  resumenSortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === '_1_30' &&
+                                  resumenSortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+                        <th
+                          class="gridjs-th"
+                          (click)="sortResumenBy('_31_60')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex text-end">
+                            31-60
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === '_31_60' &&
+                                  resumenSortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === '_31_60' &&
+                                  resumenSortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+                        <th
+                          class="gridjs-th"
+                          (click)="sortResumenBy('_61_90')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex text-end">
+                            61-90
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === '_61_90' &&
+                                  resumenSortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === '_61_90' &&
+                                  resumenSortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+                        <th
+                          class="gridjs-th"
+                          (click)="sortResumenBy('mayor90')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex text-end">
+                            Mayor 90
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'mayor90' &&
+                                  resumenSortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'mayor90' &&
+                                  resumenSortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+                        <th
+                          class="gridjs-th"
+                          (click)="sortResumenBy('total')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex text-end">
+                            Total
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'total' &&
+                                  resumenSortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'total' &&
+                                  resumenSortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <tr *ngFor="let item of resumenAntiguedadFiltrado">
+                        <!-- Celda de acciones para el resumen de antigüedad -->
+                        <td
+                          *ngIf="accionPermitida('detalle')"
+                        >
+                          <button
+                            type="button"
+                            class="btn btn-primary"
+                            (click)="irADetalles(item.clie_Id)"
+                          >
+                            <span class="btn-text">Detalles</span>
+                            <span class="btn-icon"><i class="ri-eye-line"></i></span>
+                          </button>
+                        </td>
+                        <td>{{ item.secuencia }}</td>
+                        <td>{{ item.cliente }}</td>
+                        <td>{{ item.clie_NombreNegocio }}</td>
+                        <td class="text-end">
+                          {{
+                            item.actual | currency : "LPS" : "symbol" : "1.2-2"
+                          }}
+                        </td>
+                        <td class="text-end">
+                          {{
+                            item._1_30 | currency : "LPS" : "symbol" : "1.2-2"
+                          }}
+                        </td>
+                        <td class="text-end">
+                          {{
+                            item._31_60 | currency : "LPS" : "symbol" : "1.2-2"
+                          }}
+                        </td>
+                        <td class="text-end">
+                          {{
+                            item._61_90 | currency : "LPS" : "symbol" : "1.2-2"
+                          }}
+                        </td>
+                        <td class="text-end">
+                          <span
+                            [ngClass]="
+                              item.mayor90 > 0 ? 'text-danger fw-bold' : ''
+                            "
+                          >
+                            {{
+                              item.mayor90
+                                | currency : "LPS" : "symbol" : "1.2-2"
+                            }}
+                          </span>
+                        </td>
+                        <td class="text-end fw-bold">
+                          {{
+                            item.total | currency : "LPS" : "symbol" : "1.2-2"
+                          }}
+                        </td>
+                      </tr>
+                      <tr *ngIf="!resumenAntiguedadFiltrado.length">
+                        <td colspan="7" class="text-center">
+                          <span *ngIf="mostrarOverlayCarga"
+                            >Cargando resumen de antigüedad...</span
+                          >
+                          <span *ngIf="!mostrarOverlayCarga"
+                            >No hay datos de resumen de antigüedad
+                            disponibles</span
+                          >
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="row justify-content-md-between align-items-md-center">
+                <div class="col-sm-12 col-md-5">
+                  <div
+                    class="dataTables_info mb-2"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    Mostrando {{ resumenAntiguedadFiltrado.length }} de
+                    {{ resumenAntiguedad.length }} registros
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="row justify-content-md-between align-items-md-center">
-          <ng-container *ngIf="(table.paginated$ | async) as paginados">
-            <div class="col-sm-12 col-md-5">
-              <div class="dataTables_info mb-2" role="status" aria-live="polite">
-                Mostrando
-                {{ (table.page - 1) * table.pageSizeValue + paginados.length }} de {{ table.total$ | async }}
-                registros
-              </div>
-            </div>
-            <div class="col-sm-12 col-md-5">
-              <div class="text-md-right float-md-end gridjs-pagination">
-                <pagination [totalItems]="(table.total$ | async) || 0" [ngModel]="table.page" [itemsPerPage]="table.pageSizeValue" (pageChanged)="table.setPage($event.page)"></pagination>
-              </div>
-            </div>
-          </ng-container>
+          <!-- end tab-content -->
         </div>
       </div>
+      <!-- end card-body -->
     </div>
+    <!-- end card -->
   </div>
+  <!-- end col-lg-12 -->
 </div>
+<!-- end row -->
 
 <!-- Overlay de carga -->
 <div *ngIf="mostrarOverlayCarga" class="overlay-carga">
@@ -210,82 +917,109 @@
 
 <!-- Contenedor de alertas flotantes -->
 <div class="alert-container">
-  <div *ngIf="mostrarAlertaExito" class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+  <div
+    *ngIf="mostrarAlertaExito"
+    class="alert alert-success alert-border-left alert-dismissible fade show floating-alert"
+    role="alert"
+  >
     <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
     <strong>¡Éxito!</strong> {{ mensajeExito }}
-    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="cerrarAlerta()"
+      aria-label="Close"
+    ></button>
   </div>
 
-  <div *ngIf="mostrarAlertaWarning" class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+  <div
+    *ngIf="mostrarAlertaWarning"
+    class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert"
+    role="alert"
+  >
     <i class="ri-alert-line me-3 align-middle fs-lg"></i>
     <strong>¡Atención!</strong> {{ mensajeWarning }}
-    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="cerrarAlerta()"
+      aria-label="Close"
+    ></button>
   </div>
 
-  <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+  <div
+    *ngIf="mostrarAlertaError"
+    class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert"
+    role="alert"
+  >
     <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
     <strong>¡Error!</strong> {{ mensajeError }}
-    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="cerrarAlerta()"
+      aria-label="Close"
+    ></button>
   </div>
 </div>
 
 <!-- Modal de confirmación para eliminar -->
-<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEliminar }" [style.display]="mostrarConfirmacionEliminar ? 'block' : 'none'" tabindex="-1" role="dialog">
+<div
+  class="modal fade custom-modal"
+  [ngClass]="{ show: mostrarConfirmacionEliminar }"
+  [style.display]="mostrarConfirmacionEliminar ? 'block' : 'none'"
+  tabindex="-1"
+  role="dialog"
+>
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
-      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
+      <div
+        class="modal-header custom-modal-header d-flex justify-content-between align-items-center"
+      >
         <span>Confirmación</span>
-        <i class="ri-close-line custom-modal-close" (click)="cancelarEliminar()"></i>
+        <i
+          class="ri-close-line custom-modal-close"
+          (click)="cancelarEliminar()"
+        ></i>
       </div>
-      <hr class="custom-modal-divider">
+      <hr class="custom-modal-divider" />
       <div class="modal-body custom-modal-body">
-        <div class="text-center"> 
+        <div class="text-center">
           <p class="mt-2 custom-modal-text">
-            <i class="ri-alert-line me-2 custom-modal-alert-icon" (click)="cancelarEliminar()"></i>¿Está seguro(a) que desea eliminar esta cuenta por cobrar?
+            <i class="ri-alert-line me-2 custom-modal-alert-icon"></i>
+            ¿Está seguro(a) que desea eliminar esta cuenta por cobrar de
+            <strong>{{ cuentaPorCobrarAEliminar?.cliente }}</strong
+            >?
           </p>
         </div>
       </div>
       <div class="modal-footer custom-modal-footer">
-        <button type="button" class="btn btn-primary gray btn-sm btn-minw-5" (click)="cancelarEliminar()"><span class="btn-text">No</span><span class="btn-icon"><i class="ri-close-circle-line"></i></span></button>
-        <button type="button" class="btn btn-primary red btn-sm btn-minw-5" (click)="eliminar()">
+        <button
+          type="button"
+          class="btn btn-primary gray btn-sm btn-minw-5"
+          (click)="cancelarEliminar()"
+        >
+          <span class="btn-text">No</span>
+          <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary red btn-sm btn-minw-5"
+          (click)="eliminar()"
+        >
           <span class="btn-text">Si</span>
           <span class="btn-icon"><i class="ri-delete-bin-line"></i></span>
         </button>
-      </div> 
+      </div>
     </div>
   </div>
 </div>
 
 <!-- Overlay para el modal -->
-<div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEliminar }" *ngIf="mostrarConfirmacionEliminar"></div>
+<div
+  class="modal-backdrop fade"
+  [ngClass]="{ show: mostrarConfirmacionEliminar }"
+  *ngIf="mostrarConfirmacionEliminar"
+></div>
 
-<!-- Menú flotante de acciones -->
-<ul
-  *ngIf="floatingMenuService.show"
-  class="dropdown-menu show"  
-  [ngStyle]="{
-    position: 'absolute',
-    top: floatingMenuService.top + 'px',
-    left: floatingMenuService.left + 'px',
-  }">
-  <li *ngIf="accionPermitida('editar')">
-    <button type="button" class="dropdown-action-btn" (click)="irAEditar(floatingMenuService.data.cpCo_Id)">
-      Editar <i class="ri-edit-line"></i>
-    </button>
-  </li>
-  <li *ngIf="accionPermitida('eliminar')">
-    <button type="button" class="dropdown-action-btn" (click)="confirmarEliminar(floatingMenuService.data); floatingMenuService.close()">
-      Eliminar <i class="ri-delete-bin-line"></i>
-    </button>
-  </li>
-  <li *ngIf="accionPermitida('detalle')">
-    <button type="button" class="dropdown-action-btn" (click)="irADetalles(floatingMenuService.data.cpCo_Id)">
-      Detalles <i class="ri-error-warning-fill"></i>
-    </button>
-  </li>
-  <li *ngIf="accionPermitida('pagar')">
-    <button type="button" class="dropdown-action-btn" (click)="irARegistrarPago(floatingMenuService.data.cpCo_Id)">
-      Registrar Pago <i class="ri-money-dollar-circle-line"></i>
-    </button>
-  </li>
-</ul>
+<!-- El menú flotante ha sido reemplazado por botones directos -->

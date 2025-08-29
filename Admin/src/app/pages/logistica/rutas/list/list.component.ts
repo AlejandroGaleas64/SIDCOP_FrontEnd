@@ -73,10 +73,9 @@ export class ListComponent implements OnInit {
   // 🔧 PERSONALIZA AQUÍ TU CONFIGURACIÓN DE EXPORTACIÓN 🔧
   private readonly exportConfig = {
     // Configuración básica
-    title: 'Listado de Modelos',                    // Título del reporte
+    title: 'Listado de Rutas',                    // Título del reporte
     filename: 'Rutas',                           // Nombre base del archivo
     department: 'Logistica',                         // Departamento
-    additionalInfo: 'Sistema de Gestión',         // Información adicional
     
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
@@ -91,7 +90,7 @@ export class ListComponent implements OnInit {
       'No': ruta?.secuencia || (index + 1),
       'Código': this.limpiarTexto(ruta?.ruta_Codigo),
       'Descripción': this.limpiarTexto(ruta?.ruta_Descripcion),
-      'Observaciones': this.limpiarTexto(ruta?.ruta_Observaciones)
+      'Observaciones': this.limpiarTexto(ruta?.ruta_Observaciones) || 'N/A' 
       // Agregar más campos aquí según necesites:
       // 'Campo': this.limpiarTexto(modelo?.campo),
     })
@@ -208,7 +207,6 @@ export class ListComponent implements OnInit {
       columns: this.exportConfig.columns,
       metadata: {
         department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
       }
     };
   }

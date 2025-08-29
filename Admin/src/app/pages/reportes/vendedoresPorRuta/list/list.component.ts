@@ -5,6 +5,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PdfReportService, ReportConfig, TableData } from 'src/app/reporteGlobal';
+import { BreadcrumbsComponent } from 'src/app/shared/breadcrumbs/breadcrumbs.component';
 
 // reporte-vendedores.component.ts - VERSIÓN CON CELDAS COMBINADAS
 interface FilaTabla {
@@ -16,7 +17,7 @@ interface FilaTabla {
 @Component({
   selector: 'app-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BreadcrumbsComponent],
   templateUrl: './list.component.html',
   styleUrl: './list.component.scss'
 })

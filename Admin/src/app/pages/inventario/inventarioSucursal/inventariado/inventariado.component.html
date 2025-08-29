@@ -1,8 +1,7 @@
 <div class="d-flex flex-column" style="height: 100%; min-height: 500px;">
-    <h5 class="card-title mb-4">
-        <i class="ri-store-3-line me-2"></i>
+    <h2 class="card-title mb-4 text-muted">
         Gestión de Inventario por Sucursal
-    </h5>
+    </h2>
     <div class="alert-container">
         <div *ngIf="mostrarAlertaExito"
             class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
@@ -88,7 +87,8 @@
             </div>
         </div>
 
-        <div class="row mb-4" *ngIf="sucursalSeleccionada">
+        <!-- Sección de filtros y botones -->
+        <div class="row mb-4" *ngIf="sucursalSeleccionada && !mostrarVisorPDF">
             <div class="col-12 col-md-6 mb-3 mb-md-0">
                 <div class="d-flex align-items-center">
                     <i class="ri-search-line"
@@ -100,6 +100,12 @@
             </div>
             <div class="col-12 col-md-6">
                 <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-primary" (click)="cargarHistorialYGenerarPDF()" [disabled]="cargandoPdf">
+                        <span class="btn-text">{{ cargandoPdf ? 'Cargando...' : 'Historial' }}</span>
+                        <span class="btn-icon">
+                            <i class="{{ cargandoPdf ? 'ri-loader-2-line spinner' : 'ri-history-line' }}"></i>
+                        </span>
+                    </button>
                     <button type="button" class="btn btn-primary" (click)="abrirModalClave('actualizar')">
                         <span class="btn-text">Actualizar</span>
                         <span class="btn-icon">
@@ -116,7 +122,55 @@
             </div>
         </div>
 
-        <div class="row" *ngIf="sucursalSeleccionada">
+        <!-- Visor de PDF del Historial -->
+        <div class="row" *ngIf="mostrarVisorPDF">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center"
+                        style="background-color: #141a2f; border-bottom: 3px solid #d6b68a;">
+                        <div class="text-white fw-bold">
+                            <i class="ri-file-pdf-line me-2" style="color: #d6b68a;"></i>
+                            Historial de Inventario - {{ sucursalSeleccionada?.sucu_Descripcion }}
+                        </div>
+                        <div class="d-flex gap-2">
+                           
+                    <button type="button" class="btn btn-primary" (click)="descargarPDF()">
+                        <span class="btn-text">Descargar</span>
+                        <span class="btn-icon">
+                            <i class="ri-download-line me-1"></i>
+                        </span>
+                    </button>
+
+
+                
+                        <button type="button" class="btn btn-primary gold" (click)="cerrarVisorPDF()">
+                            <span class="btn-text">Cerrar</span>
+                            <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+                        </button>
+                      
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div style="height: 70vh; min-height: 500px;">
+                            <iframe *ngIf="pdfUrl" 
+                                [src]="pdfUrl" 
+                                style="width: 100%; height: 100%; border: none;"
+                                frameborder="0">
+                            </iframe>
+                            <div *ngIf="!pdfUrl && cargandoPdf" class="d-flex justify-content-center align-items-center h-100">
+                                <div class="text-center">
+                                    <i class="ri-loader-2-line spinner fs-1 text-primary mb-3"></i>
+                                    <p class="text-muted">Generando PDF...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de inventario (se oculta cuando se muestra el PDF) -->
+        <div class="row" *ngIf="sucursalSeleccionada && !mostrarVisorPDF">
             <div class="col-12">
                 <div *ngIf="inventarioSucursal.length === 0" class="text-center py-5">
                     <i class="ri-inbox-line display-4 text-muted"></i>
@@ -181,38 +235,51 @@
     </div>
 </div>
 
-<div class="modal fade" [class.show]="mostrarModal" [style.display]="mostrarModal ? 'block' : 'none'" tabindex="-1"
-    role="dialog" *ngIf="mostrarModal">
+<!-- Los modales permanecen igual -->
+<div class="modal fade" [class.show]="mostrarModal"
+    [style.display]="mostrarModal ? 'block' : 'none'" tabindex="-1" role="dialog"
+    *ngIf="mostrarModal">
     <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="ri-lock-line me-2"></i>
+        <div class="modal-content shadow-lg border-0" style="border-radius: 18px; overflow: hidden;">
+            <div class="modal-header py-3" style="background:#141a2f; border: none;">
+                <div class="fw-bold text-white d-flex align-items-center" style="font-size: 1.3rem;">
+                    <i class="ri-lock-line me-2" style="font-size: 1.6rem; color: #d6b68a;"></i>
                     Verificación de Seguridad
-                </h5>
-                <button type="button" class="btn-close" (click)="cerrarModal()"></button>
+                </div>
+                <button type="button" class="btn-close btn-close-white" (click)="cerrarModal()"></button>
             </div>
-            <div class="modal-body">
-                <p class="text-muted mb-3">
-                    Para continuar con la acción de <strong>{{ accionPendiente }}</strong>,
+
+            <div class="modal-body p-4" style="background: #f9fafc;">
+                <p class="text-muted mb-3" style="font-size: 1.05rem;">
+                    Para continuar con la acción de 
+                    <strong style="color: #141a2f;">{{ accionPendiente }}</strong>, 
                     por favor ingrese su contraseña de autorización.
                 </p>
-                <div class="d-flex align-items-center">
+
+                <div class="d-flex align-items-center shadow-sm" 
+                    style="border-radius: 8px; overflow: hidden; background: white; border: 1px solid #e0e0e0;">
                     <i class="ri-key-line"
-                        style="border: 1px solid #e9ecf5; background-color: #f2f3f9; padding: 0.525rem 0.525rem; position: relative; left: 7px; border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
+                        style="background-color: #f2f3f9; padding: 0.6rem; color: #141a2f; font-size: 1.2rem;">
                     </i>
-                    <input type="password" class="form-control" placeholder="Ingrese su contraseña"
-                        [(ngModel)]="claveIngresada" (keyup.enter)="validarClave()" autofocus />
+                    <input type="password" 
+                        class="form-control border-0 shadow-none" 
+                        placeholder="Ingrese su contraseña"
+                        [(ngModel)]="claveIngresada" 
+                        (keyup.enter)="validarClave()" autofocus
+                        style="padding: 0.6rem; font-size: 1rem;">
+                </div>
+                <div class="text-danger" *ngIf="mensajeErrorClave">
+                    <small>El campo Contraseña es Incorrecta</small>
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer py-3" style="background: #fff; border-top: 1px solid #f0f0f0;">
                 <button type="button" class="btn btn-primary gold" (click)="cerrarModal()">
                     <span class="btn-text">Cancelar</span>
                     <span class="btn-icon"><i class="ri-close-line"></i></span>
                 </button>
                 <button type="button" class="btn btn-primary" (click)="validarClave()">
                     <span class="btn-text">Confirmar</span>
-                    <span class="btn-icon"><i class="ri-check-line"></i></span>
+                    <span class="btn-icon"><i class="ri-check-double-line"></i></span>
                 </button>
             </div>
         </div>
@@ -224,7 +291,7 @@
     *ngIf="mostrarModalConfirmacion">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content shadow-lg border-0" style="border-radius: 18px; overflow: hidden;">
-            <div class="modal-header py-3" style="background: linear-gradient(90deg, #141a2f, #1f2d47); border: none;">
+            <div class="modal-header py-3" style="background:#141a2f; border: none;">
                 <div class="fw-bold text-white d-flex align-items-center" style="font-size: 1.4rem;">
                     <i class="ri-inventory-2-line me-2" style="font-size: 1.6rem; color: #d6b68a;"></i>
                     Confirmar Actualización de Inventario

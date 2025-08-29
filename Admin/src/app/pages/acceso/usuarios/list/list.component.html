@@ -46,8 +46,7 @@
         <div *ngIf="showCreateForm" [@fadeExpand]>
             <div class="mb-2 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
                 <div class="container-fluid flex-grow-1">
-                    <app-create-usuario (onCancel)="cerrarFormulario()"
-                        (onSave)="guardarUsuario($event)"></app-create-usuario>
+                    <app-create-usuario (onCancel)="cerrarFormulario()" (onSave)="guardarUsuario($event)"></app-create-usuario>
                 </div>
             </div>
         </div>
@@ -236,53 +235,52 @@
 
         <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEliminar }"
             [style.display]="mostrarConfirmacionEliminar ? 'block' : 'none'" tabindex="-1" role="dialog">
+
             <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="text-center mt-3 mb-3">
-                        @if (usuarioEliminar?.usua_Estado) {
-                        <i class="ri-user-unfollow-fill" style="font-size: 3rem; color: #AF1D1D;"></i>
-                        }
-                        @else {
-                        <i class="ri-user-follow-fill" style="font-size: 3rem; color: #7DE477;"></i>
-                        }
-                    </div>
-                    <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
-                        <i class=""></i>
-                        <h4>Confirmación</h4>
-                        <i class="ri-close-line custom-modal-close" (click)="cancelarEliminar()"></i>
-                    </div>
-                    <div class="modal-body custom-modal-body">
+                <div class="modal-content shadow-lg border-0" style="border-radius: 18px; overflow: hidden;">
+                    <div class="modal-header py-3" style="background:#141a2f; border: none;">
+                      <div class="fw-bold text-white d-flex align-items-center" style="font-size: 1.3rem;">
                         @if(usuarioEliminar?.usua_Estado){
-                        <div class="text-center">
-                            <p class="mt-2 custom-modal-text">
+                            <i class="ri-user-unfollow-line me-2" style="font-size: 1.6rem; color: #d6b68a;"></i>
+                            Desactivar
+                        }
+                        @else{
+                            <i class="ri-user-add-line me-2" style="font-size: 1.6rem; color: #d6b68a;"></i>
+                            Activar
+                        }
+                      </div>
+                      <button type="button" class="btn-close btn-close-white" (click)="cancelarEliminar()"></button>
+                    </div>
+
+                    <div class="modal-body p-4" style="background: #f9fafc;">
+                        @if(usuarioEliminar?.usua_Estado){                        
+                            <p class="text-muted mb-3" style="font-size: 1.05rem;">
                                 ¿Estás seguro(a) que deseas desactivar el usuario: <strong>{{
                                     usuarioEliminar?.usua_Usuario }}</strong>?
                             </p>
-                        </div>
                         }
                         @else if(!usuarioEliminar?.usua_Estado){
-                        <div class="text-center">
-                            <p class="mt-2 custom-modal-text">
+                            <p class="text-muted mb-3" style="font-size: 1.05rem;">
                                 ¿Estás seguro(a) que deseas activar el usuario: <strong>{{ usuarioEliminar?.usua_Usuario
                                     }}</strong>?
                             </p>
-                        </div>
                         }
                     </div>
-                    <div class="modal-footer custom-modal-footer">
-                        <button type="button" class="btn btn-primary btn-sm btn-minw-5"
-                            (click)="cancelarEliminar()"><span class="btn-text">No</span><span class="btn-icon"><i
+
+                    <div class="modal-footer py-3" style="background: #fff; border-top: 1px solid #f0f0f0;">
+                        <button type="button" class="btn btn-primary gold"
+                            (click)="cancelarEliminar()"><span class="btn-text">Cancelar</span><span class="btn-icon"><i
                                     class="ri-close-circle-line"></i></span></button>
                         @if(usuarioEliminar?.usua_Estado){
-                        <button type="button" class="btn btn-primary green btn-sm btn-minw-5" (click)="eliminar()">
-                            <span class="btn-text">Si</span>
-                            <span class="btn-icon"><i class="ri-check-line"></i></span>
+                        <button type="button" class="btn btn-primary" (click)="eliminar()">
+                            <span class="btn-text">Confirmar</span>
+                            <span class="btn-icon"><i class="ri-check-double-line"></i></span>
                         </button>
                         }
                         @else if (!usuarioEliminar?.usua_Estado) {
-                        <button type="button" class="btn btn-primary green btn-sm btn-minw-5" (click)="eliminar()">
-                            <span class="btn-text">Si</span>
-                            <span class="btn-icon"><i class="ri-check-line"></i></span>
+                        <button type="button" class="btn btn-primary" (click)="eliminar()">
+                            <span class="btn-text">Confirmar</span>
+                            <span class="btn-icon"><i class="ri-check-double-line"></i></span>
                         </button>
                         }
                     </div>

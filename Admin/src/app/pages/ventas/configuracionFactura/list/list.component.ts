@@ -76,7 +76,7 @@ export class ListComponent implements OnInit {
     title: 'Listado de Configuraciones de Factura',     // Título del reporte
     filename: 'ConfiguracionesFactura',                  // Nombre base del archivo
     department: 'Ventas',                                // Departamento
-    additionalInfo: 'Sistema de Gestión de Ventas',     // Información adicional
+   // Información adicional
     
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
@@ -85,7 +85,8 @@ export class ListComponent implements OnInit {
       { key: 'RTN', header: 'RTN', width: 25, align: 'left' as const },
       { key: 'Telefono', header: 'Teléfono', width: 20, align: 'left' as const },
       { key: 'Correo', header: 'Correo', width: 35, align: 'left' as const },
-      { key: 'Direccion', header: 'Dirección', width: 50, align: 'left' as const }
+      { key: 'Direccion', header: 'Dirección', width: 45, align: 'left' as const },
+      { key: 'Días de Devolución', header: 'Días de Devolución', width: 20, align: 'left' as const }
     ] as ExportColumn[],
     
     // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
@@ -95,7 +96,8 @@ export class ListComponent implements OnInit {
       'RTN': this.limpiarTexto(configuracion?.coFa_RTN),
       'Telefono': this.limpiarTexto(configuracion?.coFa_Telefono1),
       'Correo': this.limpiarTexto(configuracion?.coFa_Correo),
-      'Direccion': this.limpiarTexto(configuracion?.coFa_DireccionEmpresa)
+      'Direccion': this.limpiarTexto(configuracion?.coFa_DireccionEmpresa),
+      'Días de Devolución': this.limpiarTexto(configuracion?.coFa_DiasDevolucion)
       // Agregar más campos aquí según necesites:
       // 'CAI': this.limpiarTexto(configuracion?.coFa_CAI),
       // 'RangoInicial': configuracion?.coFa_RangoInicial?.toString() || '',
@@ -151,7 +153,7 @@ export class ListComponent implements OnInit {
   ngOnInit(): void {
     this.breadCrumbItems = [
       { label: 'Ventas' },
-      { label: 'ConfiguracionFactura', active: true }
+      { label: 'Configuración de la Empresa', active: true }
     ];
     this.cargarAccionesUsuario();
   }
@@ -240,7 +242,6 @@ export class ListComponent implements OnInit {
       columns: this.exportConfig.columns,
       metadata: {
         department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
       }
     };
   }
@@ -307,8 +308,6 @@ export class ListComponent implements OnInit {
     if (!texto) return '';
     
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }

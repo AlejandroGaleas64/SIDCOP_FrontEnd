@@ -9,13 +9,14 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { MapaSelectorComponent } from '../mapa-selector/mapa-selector.component';
 import { Aval } from 'src/app/Modelos/general/Aval.Model';
 import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente.Model';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { getUserId } from 'src/app/core/utils/user-utils';
 
 
 @Component({
   selector: 'app-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, NgxMaskDirective, MapaSelectorComponent],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgxMaskDirective, MapaSelectorComponent, NgSelectModule],
   templateUrl: './create.component.html',
   styleUrl: './create.component.scss',
   providers: [provideNgxMask()]
@@ -28,7 +29,7 @@ export class CreateComponent {
   mapaSelectorComponent!: MapaSelectorComponent;
 
   entrando = true;
-  activeTab = 1;
+  activeTab = 3;
 
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -82,10 +83,16 @@ export class CreateComponent {
     }
   }
 
-  esCorreoValido(correo: string): boolean {
+  // esCorreoValido(correo: string): boolean {
+  //   if (!correo) return true;
+  //   // Debe contener "@" y terminar en ".com"
+  //   return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
+  // }
+
+  revisarCorreoValido(correo: string): boolean {
     if (!correo) return true;
-    // Solo acepta gmail.com y hotmail.com, y debe tener @ y .com
-    return /^[\w\.-]+@(gmail|hotmail|outlook)\.com$/.test(correo.trim());
+    // Debe contener "@" y terminar en ".com"
+    return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
   }
 
   //Declarado para validar la direccion
@@ -135,7 +142,7 @@ export class CreateComponent {
         this.cliente.clie_ImagenDelNegocio.trim() &&
         this.cliente.ruta_Id &&
         this.cliente.cana_Id &&
-        this.validarDireccion
+        this.direccionesPorCliente.length > 0
       ) {
         this.mostrarErrores = false;
         this.activeTab = 3;
@@ -233,10 +240,9 @@ export class CreateComponent {
   tabuladores(no: number) {
     if (no == 1) {
       this.mostrarErrores = true
-      if (this.cliente.clie_Nacionalidad.trim() &&
-        this.cliente.clie_RTN.trim() && this.cliente.clie_Nombres.trim() &&
+      if (this.cliente.clie_Nacionalidad.trim() && this.cliente.clie_Nombres.trim() &&
         this.cliente.clie_Apellidos.trim() && this.cliente.esCv_Id &&
-        this.cliente.clie_FechaNacimiento && this.cliente.tiVi_Id &&
+        this.cliente.tiVi_Id &&
         this.cliente.clie_Telefono.trim()) {
         this.mostrarErrores = false;
         this.activeTab = 2;
@@ -258,12 +264,12 @@ export class CreateComponent {
         this.cliente.clie_ImagenDelNegocio.trim() &&
         this.cliente.ruta_Id &&
         this.cliente.cana_Id &&
-        this.validarDireccion
+        this.direccionesPorCliente.length > 0
       ) {
         this.mostrarErrores = false;
         this.activeTab = 3;
       } else {
-        this.validarDireccion = true;
+        this.validarDireccion = this.direccionesPorCliente.length === 0;
         this.mostrarAlertaWarning = true;
         this.mensajeWarning = 'Por favor, complete todos los campos obligatorios del negocio.';
         setTimeout(() => {
@@ -448,6 +454,29 @@ export class CreateComponent {
     return colonia?.colo_Descripcion || 'Colonia no encontrada';
   }
 
+  //Para buscar colonias en DDL
+  searchColonias = (term: string, item: any) => {
+    term = term.toLowerCase();
+    return (
+      item.colo_Descripcion?.toLowerCase().includes(term) ||
+      item.muni_Descripcion?.toLowerCase().includes(term) ||
+      item.depa_Descripcion?.toLowerCase().includes(term)
+    );
+  };
+
+  direccionExactaInicial: string = '';
+
+  onColoniaSeleccionada(colo_Id: number) {
+    const coloniaSeleccionada = this.colonias.find((c: any) => c.colo_Id === colo_Id);
+    if (coloniaSeleccionada) {
+      this.direccionExactaInicial = coloniaSeleccionada.colo_Descripcion;
+      this.direccionPorCliente.diCl_DireccionExacta = coloniaSeleccionada.colo_Descripcion;
+    } else {
+      this.direccionExactaInicial = '';
+      this.direccionPorCliente.diCl_DireccionExacta = '';
+    }
+  }
+
   cliente: Cliente = {
     clie_Id: 0,
     clie_Codigo: '',
@@ -622,10 +651,10 @@ export class CreateComponent {
         .then(response => response.json())
         .then(data => {
           this.cliente.clie_ImagenDelNegocio = data.secure_url;
-          console.log(this.cliente.clie_ImagenDelNegocio)
+          //console.log(this.cliente.clie_ImagenDelNegocio)
         })
         .catch(error => {
-          console.error('Error al subir la imagen a Cloudinary:', error);
+          //console.error('Error al subir la imagen a Cloudinary:', error);
         });
     }
   }
@@ -633,24 +662,23 @@ export class CreateComponent {
   generarCodigoClientePorRuta(ruta_Id: number): void {
     const ruta = this.rutas.find(r => r.ruta_Id === +ruta_Id);
     const codigoRuta = ruta?.ruta_Codigo
-      ? ruta.ruta_Codigo.padStart(3, '0')
+      ? ruta.ruta_Codigo.replace(/^RT-/, '')
       : ruta_Id.toString().padStart(3, '0');
-
     this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(clientes => {
       const clientesRuta = clientes.filter(c => c.ruta_Id === +ruta_Id);
       let maxCorrelativo = 0;
+
       clientesRuta.forEach(c => {
-        const match = c.clie_Codigo?.match(/CLIE-RT\d{3}-(\d{9})/);
+        const match = c.clie_Codigo?.match(/CLIE-RT-\d{3}-(\d{6})/);
         if (match) {
           const num = parseInt(match[1], 10);
           if (num > maxCorrelativo) maxCorrelativo = num;
         }
       });
-
-      const siguiente = (maxCorrelativo + 1).toString().padStart(9, '0');
-      this.cliente.clie_Codigo = `CLIE-RT${codigoRuta}-${siguiente}`;
+      const siguiente = (maxCorrelativo + 1).toString().padStart(6, '0');
+      this.cliente.clie_Codigo = `CLIE-RT-${codigoRuta}-${siguiente}`;
     });
   }
 
@@ -920,5 +948,15 @@ export class CreateComponent {
     }
   }
 
+  //Buscador de direcciones en el mapa
+  getInputValue(event: Event): string {
+    return (event.target as HTMLInputElement)?.value || '';
+  }
+
+  buscarDireccion(query: string) {
+    if (this.mapaSelectorComponent) {
+      this.mapaSelectorComponent.buscarDireccion(query);
+    }
+  }
 }
 

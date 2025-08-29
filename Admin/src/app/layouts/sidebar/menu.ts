@@ -17,6 +17,12 @@ export const MENU: MenuItem[] = [
         link: '/',
         parentId: 2,
       },
+      {
+        id: 5,
+        label: 'MENUITEMS.DASHBOARD.LIST.DASHBOARD',
+        link: '/dashboard0',
+        parentId: 2,
+      },
     ],
   },
   {
@@ -57,7 +63,9 @@ export const MENU: MenuItem[] = [
       { id: 19, label: 'MENUITEMS.GENERAL.LIST.PROVEEDORES',      link: '/general/proveedores',       parentId: 2, icon: 'ri-group-line' },
       { id: 20, label: 'MENUITEMS.GENERAL.LIST.SUCURSALES',       link: '/general/sucursales',        parentId: 2, icon: 'ri-group-line' },
       { id: 71, label: 'MENUITEMS.GENERAL.LIST.VISITASCLIENTES',  link: '/general/visitas-clientes',  parentId: 2, icon: 'ri-group-line' },
-      { id: 78, label: 'MENUITEMS.GENERAL.LIST.ESTADOSVISITA',    link: '/general/estadosvisita',     parentId: 2, icon: 'ri-group-line' }
+      { id: 78, label: 'MENUITEMS.GENERAL.LIST.ESTADOSVISITA',    link: '/general/estadosvisita',     parentId: 2, icon: 'ri-group-line' },
+      { id: 81, label: 'MENUITEMS.GENERAL.LIST.UNIDADESDEPESO',   link: '/general/unidadesDePeso',    parentId: 2, icon: 'ri-group-line' }
+
     ],
   },
   {
@@ -84,22 +92,25 @@ export const MENU: MenuItem[] = [
       { id: 31, label: 'MENUITEMS.LOGISTICA.LIST.TRASLADOS',link: '/logistica/traslados',parentId: 4, icon: 'ri-truck-line' }
     ],
   },
-  {
-    id: 5,
-    label: 'MENUITEMS.VENTAS.TEXT',
-    icon: 'ri-shopping-cart-2-line',
-    subItems: [
-      { id: 32, label: 'MENUITEMS.VENTAS.LIST.CAIS',               link: '/ventas/CAIs',                   parentId: 5, icon: 'ri-group-line' },
-      { id: 33, label: 'MENUITEMS.VENTAS.LIST.CONFIGURACIONFACTURA',link: '/ventas/configuracion-factura', parentId: 5, icon: 'ri-group-line' },
-      { id: 43, label: 'MENUITEMS.VENTAS.LIST.CUENTASPORCOBRAR',   link: '/ventas/cuentasporcobrar',       parentId: 5, icon: 'ri-money-dollar-circle-line' },
-      { id: 37, label: 'MENUITEMS.VENTAS.LIST.IMPUESTOS',          link: '/ventas/impuestos',              parentId: 5, icon: 'ri-group-line' },
-      { id: 59, label: 'MENUITEMS.VENTAS.LIST.LISTASPRECIOS',      link: '/ventas/listasprecios',          parentId: 5, icon: 'ri-group-line' },
-      { id: 38, label: 'MENUITEMS.VENTAS.LIST.PEDIDOS',            link: '/ventas/pedidos',                parentId: 5, icon: 'ri-group-line' },
-      { id: 40, label: 'MENUITEMS.VENTAS.LIST.PUNTOSEMISION',      link: '/ventas/puntosemision',          parentId: 5, icon: 'ri-group-line' },
-      { id: 41, label: 'MENUITEMS.VENTAS.LIST.REGISTROCAIS',       link: '/ventas/registroscais',          parentId: 5, icon: 'ri-group-line' },
-      { id: 42, label: 'MENUITEMS.VENTAS.LIST.VENDEDORES',         link: '/ventas/Vendedores',             parentId: 5, icon: 'ri-group-line' }
-    ],
-  },
+{
+  id: 5,
+  label: 'MENUITEMS.VENTAS.TEXT',
+  icon: 'ri-shopping-cart-2-line',
+  subItems: [
+    { id: 32, label: 'MENUITEMS.VENTAS.LIST.CAIS', link: '/ventas/CAIs', parentId: 5, icon: 'ri-group-line' },
+    { id: 33, label: 'MENUITEMS.VENTAS.LIST.CONFIGURACIONFACTURA', link: '/ventas/configuracion-factura', parentId: 5, icon: 'ri-group-line' },
+    { id: 43, label: 'MENUITEMS.VENTAS.LIST.CUENTASPORCOBRAR', link: '/ventas/cuentasporcobrar', parentId: 5, icon: 'ri-money-dollar-circle-line' },
+    { id: 35, label: 'MENUITEMS.VENTAS.LIST.DEVOLUCIONES', link: '/ventas/devoluciones', parentId: 5, icon: 'ri-group-line'},
+    { id: 37, label: 'MENUITEMS.VENTAS.LIST.IMPUESTOS', link: '/ventas/impuestos', parentId: 5, icon: 'ri-group-line' },
+    { id: 59, label: 'MENUITEMS.VENTAS.LIST.LISTASPRECIOS', link: '/ventas/listasprecios', parentId: 5, icon: 'ri-group-line' },
+    { id: 38, label: 'MENUITEMS.VENTAS.LIST.PEDIDOS', link: '/ventas/pedidos', parentId: 5, icon: 'ri-group-line' },
+    { id: 40, label: 'MENUITEMS.VENTAS.LIST.PUNTOSEMISION', link: '/ventas/puntosemision', parentId: 5, icon: 'ri-group-line' },
+    { id: 41, label: 'MENUITEMS.VENTAS.LIST.REGISTROCAIS', link: '/ventas/registroscais', parentId: 5, icon: 'ri-group-line' },
+    { id: 42, label: 'MENUITEMS.VENTAS.LIST.VENDEDORES', link: '/ventas/Vendedores', parentId: 5, icon: 'ri-group-line' },
+    { id: 57, label: 'MENUITEMS.VENTAS.LIST.VENTA', link: '/ventas/ventas', parentId: 5, icon: 'ri-group-line' }
+  ],
+},
+
   {
     id: 7,
     label: 'MENUITEMS.REPORTES.TEXT',

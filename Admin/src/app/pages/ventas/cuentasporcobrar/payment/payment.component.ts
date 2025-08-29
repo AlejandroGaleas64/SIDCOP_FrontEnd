@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CuentaPorCobrar } from 'src/app/Modelos/ventas/CuentasPorCobrar.Model';
-import { PagoCuentaPorCobrar, FormaPago } from 'src/app/Modelos/ventas/PagoCuentaPorCobrar.Model';
+import { PagoCuentaPorCobrar } from 'src/app/Modelos/ventas/PagoCuentaPorCobrar.Model';
+import { FormaPago } from 'src/app/Modelos/ventas/FormaPago.Model';
 import { CuentasPorCobrarService } from 'src/app/servicios/ventas/cuentas-por-cobrar.service';
 import { BreadcrumbsComponent } from 'src/app/shared/breadcrumbs/breadcrumbs.component';
 import { Subscription } from 'rxjs';
@@ -22,7 +23,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   cuentaId: number = 0;
   cuentaPorCobrar: CuentaPorCobrar | null = null;
   pagoForm: FormGroup;
-  formasPago = Object.values(FormaPago);
+  formasPago: FormaPago[] = [];
   
   cargando: boolean = false;
   enviando: boolean = false;
@@ -43,9 +44,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
     this.pagoForm = this.fb.group({
       cpCo_Id: [0, Validators.required],
       pago_Monto: [0, [Validators.required, Validators.min(0.01)]],
-      pago_FormaPago: ['EFECTIVO', Validators.required],
+      foPa_Id: [0, Validators.required],
       pago_NumeroReferencia: [''],
-      pago_Observaciones: ['Pago parcial de factura', Validators.maxLength(500)],
+      pago_Observaciones: ['', Validators.maxLength(500)],
     });
   }
 
@@ -57,6 +58,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
       { label: 'Registrar Pago', active: true }
     ];
     
+    // Cargar formas de pago
+    this.cargarFormasPago();
+    
     const routeSub = this.route.params.subscribe(params => {
       if (params['id']) {
         this.cuentaId = +params['id'];
@@ -67,6 +71,30 @@ export class PaymentComponent implements OnInit, OnDestroy {
     });
     
     this.subscripciones.push(routeSub);
+  }
+  
+  private cargarFormasPago(): void {
+    const formasPagoSub = this.cuentasPorCobrarService.obtenerFormasPago().subscribe({
+      next: (respuesta: any) => {
+        if (respuesta && Array.isArray(respuesta)) {
+          this.formasPago = respuesta.map(item => new FormaPago(item));
+          
+          // Seleccionar la primera forma de pago por defecto si existe
+          if (this.formasPago.length > 0) {
+            this.pagoForm.patchValue({
+              foPa_Id: this.formasPago[0].foPa_Id
+            });
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Error al cargar formas de pago:', error);
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error al cargar las formas de pago. Por favor intente nuevamente.';
+      }
+    });
+    
+    this.subscripciones.push(formasPagoSub);
   }
 
   ngOnDestroy(): void {
@@ -141,9 +169,17 @@ export class PaymentComponent implements OnInit, OnDestroy {
     this.mostrarAlertaError = false;
     this.mostrarAlertaExito = false;
 
+    // Obtener la forma de pago seleccionada
+    const formaPagoSeleccionada = this.formasPago.find(f => f.foPa_Id === this.pagoForm.value.foPa_Id);
+    
     // Crear el objeto de pago
     const nuevoPago: PagoCuentaPorCobrar = new PagoCuentaPorCobrar({
-      ...this.pagoForm.value,
+      cpCo_Id: this.pagoForm.value.cpCo_Id,
+      pago_Monto: this.pagoForm.value.pago_Monto,
+      foPa_Id: this.pagoForm.value.foPa_Id,
+      foPa_Descripcion: formaPagoSeleccionada?.foPa_Descripcion,
+      pago_NumeroReferencia: this.pagoForm.value.pago_NumeroReferencia,
+      pago_Observaciones: this.pagoForm.value.pago_Observaciones,
       pago_Fecha: new Date(),
       usua_Creacion: 1, // Esto vendría del servicio de autenticación
     });
@@ -156,7 +192,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
           
           // Redireccionar después de un tiempo
           setTimeout(() => {
-            this.router.navigate(['/ventas/cuentasporcobrar/details', this.cuentaId]);
+            this.router.navigate(['/ventas/cuentasporcobrar/list']);
           }, 2000);
         } else {
           this.mostrarAlertaError = true;
@@ -175,7 +211,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   }
 
   cancelar(): void {
-    this.router.navigate(['/ventas/cuentasporcobrar/details', this.cuentaId]);
+    this.router.navigate(['/ventas/cuentasporcobrar/list']);
   }
 
   cerrarAlertaError(): void {
