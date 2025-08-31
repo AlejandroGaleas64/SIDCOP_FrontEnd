@@ -26,12 +26,10 @@
         Información del Negocio </span>
       <div class="col-5">
         <div class="card-image-customer customer-photo-card-modern">
-          <ng-container *ngIf="clienteDetalle?.clie_ImagenDelNegocio;">
-            <div class="customer-img-container">
-              <img [src]="clienteDetalle.clie_ImagenDelNegocio" alt="Imagen del negocio" class="customer-img-modern"
-                (load)="imgLoaded = true" [class.loaded]="imgLoaded" />
-            </div>
-          </ng-container>
+          <div class="customer-img-container">
+            <img [src]="getImageToDisplay()" alt="Imagen del negocio" class="customer-img-modern"
+              (load)="imgLoaded = true" [class.loaded]="imgLoaded" />
+          </div>
           <ng-template #noImage>
             <div class="customer-img-container">
               <div class="customer-img-placeholder d-flex flex-column justify-content-center align-items-center h-100">

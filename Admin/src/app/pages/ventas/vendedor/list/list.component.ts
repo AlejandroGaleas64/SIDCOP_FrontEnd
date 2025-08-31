@@ -14,6 +14,7 @@ import { CreateComponent } from '../create/create.component';
 import { EditComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 import {
   trigger,
   state,
@@ -380,7 +381,7 @@ export class ListComponent implements OnInit {
   mostrarConfirmacionEliminar = false;
   vendedorEliminar: Vendedor | null = null;
 
-  constructor(public table: ReactiveTableService<Vendedor>, private http: HttpClient, private router: Router, private route: ActivatedRoute, public floatingMenuService: FloatingMenuService, private exportService: ExportService) {
+  constructor(public table: ReactiveTableService<Vendedor>, private http: HttpClient, private router: Router, private route: ActivatedRoute, public floatingMenuService: FloatingMenuService, private exportService: ExportService, private imageUploadService: ImageUploadService) {
     this.cargardatos(true);
 
   }
@@ -401,11 +402,13 @@ export class ListComponent implements OnInit {
   // (navigateToEdit y navigateToDetails eliminados, lógica movida a editar y detalles)
 
 
-  // Obtener URL de avatar si existiera en el modelo; de lo contrario, null para usar iniciales
+  // Obtener URL de avatar usando el servicio de imágenes del backend
   getAvatarUrl(v: Vendedor): string | null {
-    const anyV = v as any;
-    const url = anyV?.vend_Imagen || anyV?.vend_FotoUrl || anyV?.fotoUrl || null;
-    return typeof url === 'string' && url.trim().length > 0 ? url : null;
+    const imagePath = v?.vend_Imagen;
+    if (!imagePath || typeof imagePath !== 'string' || imagePath.trim().length === 0) {
+      return null;
+    }
+    return this.imageUploadService.getImageUrl(imagePath);
   }
 
   // Derivar iniciales a partir de nombres y apellidos

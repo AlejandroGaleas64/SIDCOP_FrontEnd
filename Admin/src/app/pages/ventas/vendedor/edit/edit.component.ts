@@ -7,6 +7,7 @@ import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   selector: 'app-edit',
@@ -207,7 +208,9 @@ tieneAyudante: boolean = false;
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
 
-  constructor(private http: HttpClient) {
+  uploadedFiles: string[] = [];
+
+  constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {
     this.listarSucursales();
     this.listarEmpleados();
     this.listarColonias();
@@ -272,6 +275,12 @@ tieneAyudante: boolean = false;
       {
           this.tieneAyudante = true;
       }
+      
+      // Configurar imagen existente para preview
+      if (this.vendedor.vend_Imagen) {
+        this.uploadedFiles = [this.vendedor.vend_Imagen];
+      }
+      
       this.cerrarAlerta();
     }
 
@@ -553,32 +562,26 @@ esDiaYaSeleccionado(diaId: number, indiceActual: number): boolean {
       .map(x => `${x.ruta_Id}|${x.dias.join(',')}`);
     return norm.join(';');
   }
-onImagenSeleccionada(event: any) {
-    // Obtenemos el archivo seleccionado desde el input tipo file
+async onImagenSeleccionada(event: any) {
     const file = event.target.files[0];
-
+    
     if (file) {
-      // para enviar la imagen a Cloudinary
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'empleados');
-      //Subidas usuarios Carpeta identificadora en Cloudinary
-      //dwiprwtmo es el nombre de la cuenta de Cloudinary
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-
-
-      fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-        .then(response => response.json())
-        .then(data => {
-          this.vendedor.vend_Imagen = data.secure_url;
-        })
-        .catch(error => {
-          console.error('Error al subir la imagen a Cloudinary:', error);
-        });
+      try {
+        // Subir imagen al backend
+        const imagePath = await this.imageUploadService.uploadImageAsync(file);
+        this.vendedor.vend_Imagen = imagePath;
+        this.uploadedFiles = [imagePath];
+      } catch (error) {
+        console.error('Error al subir la imagen:', error);
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error al subir la imagen. Por favor, intente nuevamente.';
+        setTimeout(() => this.cerrarAlerta(), 5000);
+      }
     }
+  }
+
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
   } 
 
   onImgError(event: Event) {
