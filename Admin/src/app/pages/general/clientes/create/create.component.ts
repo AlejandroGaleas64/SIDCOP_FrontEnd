@@ -11,6 +11,7 @@ import { Aval } from 'src/app/Modelos/general/Aval.Model';
 import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente.Model';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { getUserId } from 'src/app/core/utils/user-utils';
+import iziToast from 'izitoast';
 
 
 @Component({
@@ -29,7 +30,7 @@ export class CreateComponent {
   mapaSelectorComponent!: MapaSelectorComponent;
 
   entrando = true;
-  activeTab = 2;
+  activeTab = 1;
 
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -82,12 +83,6 @@ export class CreateComponent {
       });
     }
   }
-
-  // esCorreoValido(correo: string): boolean {
-  //   if (!correo) return true;
-  //   // Debe contener "@" y terminar en ".com"
-  //   return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
-  // }
 
   revisarCorreoValido(correo: string): boolean {
     if (!correo) return true;
@@ -744,6 +739,7 @@ export class CreateComponent {
             setTimeout(() => {
               this.mostrarAlertaError = false;
               this.mensajeError = '';
+              this.cancelar();
             }, 3000);
             return;
           }
@@ -751,9 +747,10 @@ export class CreateComponent {
             this.idDelCliente = response.data.data;
             this.guardarDireccionesPorCliente(this.idDelCliente);
             this.guardarAvales(this.idDelCliente);
+            this.mensajeExito = `Cliente "${this.cliente.clie_Nombres + ' ' + this.cliente.clie_Apellidos}" guardado exitosamente`;
+            this.mostrarAlertaExito = true;
             this.mostrarErrores = false;
             this.onSave.emit(this.cliente);
-            this.cancelar();
           }
         },
         error: (error) => {
@@ -907,33 +904,35 @@ export class CreateComponent {
   }
 
   guardarAvales(clie_Id: number): void {
-    for (const aval of this.avales) {
-      const avalGuardar = {
-        ...aval,
-        clie_Id: clie_Id,
-        usua_Creacion: getUserId(),
-        aval_FechaCreacion: new Date(),
-        usua_Modificacion: getUserId(),
-        aval_FechaModificacion: new Date()
-      };
-      this.http.post<any>(`${environment.apiBaseUrl}/Aval/Insertar`, avalGuardar, {
-        headers: {
-          'X-Api-Key': environment.apiKey,
-          'Content-Type': 'application/json',
-          'accept': '*/*'
-        }
-      }).subscribe({
-        next: (response) => {
-        },
-        error: (error) => {
-          this.mostrarAlertaError = true;
-          this.mensajeError = 'Error al guardar el aval. Por favor, intente nuevamente.';
-          setTimeout(() => {
-            this.mostrarAlertaError = false;
-            this.mensajeError = '';
-          }, 3000);
-        }
-      });
+    // Solo guardar si el cliente tiene crédito y hay avales válidos
+    if (this.tieneDatosCredito() && this.avales.length > 0 && this.avales.every(aval => this.esAvalValido(aval))) {
+      for (const aval of this.avales) {
+        const avalGuardar = {
+          ...aval,
+          clie_Id: clie_Id,
+          usua_Creacion: getUserId(),
+          aval_FechaCreacion: new Date(),
+          usua_Modificacion: getUserId(),
+          aval_FechaModificacion: new Date()
+        };
+        this.http.post<any>(`${environment.apiBaseUrl}/Aval/Insertar`, avalGuardar, {
+          headers: {
+            'X-Api-Key': environment.apiKey,
+            'Content-Type': 'application/json',
+            'accept': '*/*'
+          }
+        }).subscribe({
+          next: (response) => { },
+          error: (error) => {
+            this.mostrarAlertaError = true;
+            this.mensajeError = 'Error al guardar el aval. Por favor, intente nuevamente.';
+            setTimeout(() => {
+              this.mostrarAlertaError = false;
+              this.mensajeError = '';
+            }, 3000);
+          }
+        });
+      }
     }
   }
 
@@ -960,6 +959,6 @@ export class CreateComponent {
   }
 
   //Llenar autompaticamente colonias al seleccionar un punto en el mapa
-  
+
 }
 

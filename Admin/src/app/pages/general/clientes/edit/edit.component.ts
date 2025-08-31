@@ -11,6 +11,7 @@ import { Aval } from 'src/app/Modelos/general/Aval.Model';
 import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente.Model';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { Router } from '@angular/router';
+import iziToast from 'izitoast';
 
 @Component({
   selector: 'app-edit',
@@ -871,6 +872,20 @@ export class EditComponent implements OnChanges {
         )
         .subscribe({
           next: (response) => {
+            if (response.data.code_Status === 1) 
+          {
+            this.actualizarDireccionesYAvales();
+            this.mensajeExito = `Cliente "${this.cliente.clie_Nombres + ' ' + this.cliente.clie_Apellidos}" actualizado exitosamente`;
+            this.mostrarAlertaExito = true;
+            this.mostrarErrores = false;
+            
+            // Ocultar la alerta después de 3 segundos
+            setTimeout(() => {
+              this.mostrarAlertaExito = false;
+              this.onSave.emit(this.cliente);
+              this.cancelar();
+            }, 3000);
+          }
             if (response.data?.code_Status === -1) {
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status;
@@ -881,8 +896,17 @@ export class EditComponent implements OnChanges {
               }, 3000);
               return;
             }
-            this.actualizarDireccionesYAvales();
-            this.onSave.emit(this.cliente);
+            // this.actualizarDireccionesYAvales();
+
+            // this.mensajeExito = `Cliente "${this.cliente.clie_Nombres + ' ' + this.cliente.clie_Apellidos}" actualizado exitosamente`;
+            // this.mostrarAlertaExito = true;
+            // this.mostrarErrores = false;
+            // this.onSave.emit(this.cliente);
+
+            // setTimeout(() => {
+            //   this.mostrarAlertaExito = false;
+            //   this.mensajeExito = '';
+            // }, 4000);
           },
           error: (error) => {
             this.mostrarAlertaError = true;
