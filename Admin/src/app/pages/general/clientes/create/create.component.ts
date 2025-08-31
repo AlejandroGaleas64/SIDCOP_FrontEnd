@@ -30,7 +30,7 @@ export class CreateComponent {
   mapaSelectorComponent!: MapaSelectorComponent;
 
   entrando = true;
-  activeTab = 1;
+  activeTab = 2;
 
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -959,6 +959,15 @@ export class CreateComponent {
   }
 
   //Llenar autompaticamente colonias al seleccionar un punto en el mapa
+  coordenadasMapa: { lat: number; lng: number } | null = null;
 
+  actualizarCoordenadasManual() {
+    if (this.direccionPorCliente.diCl_Latitud && this.direccionPorCliente.diCl_Longitud) {
+      this.coordenadasMapa = {
+        lat: Number(this.direccionPorCliente.diCl_Latitud),
+        lng: Number(this.direccionPorCliente.diCl_Longitud)
+      };
+    }
+  }
 }
 

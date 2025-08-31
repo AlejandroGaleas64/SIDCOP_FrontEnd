@@ -121,9 +121,8 @@
                 backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
-              <input type="text" class="form-control"
-                id="clienteRTN" [(ngModel)]="cliente.clie_RTN" placeholder="Ingrese el RTN del cliente"
-                mask="00000000000000" />
+              <input type="text" class="form-control" id="clienteRTN" [(ngModel)]="cliente.clie_RTN"
+                placeholder="Ingrese el RTN del cliente" mask="00000000000000" />
             </div>
           </div>
         </div>
@@ -810,7 +809,7 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Dirección Exacta -->
           <div class="col-md-6">
             <div class="mb-3">
@@ -974,7 +973,7 @@
                 <input type="text" class="form-control" id="clienteDireccionExacta"
                   [(ngModel)]="direccionPorCliente.diCl_Latitud"
                   [class.is-invalid]="!direccionPorCliente.diCl_Latitud && mostrarErrores" placeholder="Latitud"
-                  required />
+                  (ngModelChange)="actualizarCoordenadasManual()" required />
               </div>
               <div class="text-danger" *ngIf="!direccionPorCliente.diCl_Latitud && mostrarErrores">
                 <small>El campo Latitud es requerida</small>
@@ -996,7 +995,7 @@
                 <input type="text" class="form-control" id="clienteDireccionExacta"
                   [(ngModel)]="direccionPorCliente.diCl_Longitud"
                   [class.is-invalid]="!direccionPorCliente.diCl_Longitud && mostrarErrores" placeholder="Longitud"
-                  required />
+                  (ngModelChange)="actualizarCoordenadasManual()" required />
               </div>
               <div class="text-danger" *ngIf="!direccionPorCliente.diCl_Longitud && mostrarErrores">
                 <small>El Longitud es requerida</small>
@@ -1036,16 +1035,20 @@
                 <i class="ri-community-line"
                   [ngStyle]="{
                   border: (!direccionPorCliente.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                  backgroundColor: (!direccionPorCliente.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                backgroundColor: (!direccionPorCliente.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.425rem 0.700rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
-                <select id="colo_Id" name="colo_Id" class="form-select" [(ngModel)]="direccionPorCliente.colo_Id"
-                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores" required>
-                  <option value="0" disabled>Seleccione una colonia</option>
-                  <option *ngFor="let colonia of TodasColonias" [value]="colonia.colo_Id">
-                    {{ colonia.colo_Descripcion }}, {{ colonia.muni_Descripcion }}, {{ colonia.depa_Descripcion }}
-                  </option>
-                </select>
+                <ng-select [items]="TodasColonias" bindLabel="coloniaCompleta" bindValue="colo_Id"
+                  [(ngModel)]="direccionPorCliente.colo_Id"
+                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores" placeholder="Buscar colonia..."
+                  [searchable]="true" [searchFn]="searchColonias" [clearable]="false" style="width: 100%;" required>
+                  <ng-template ng-label-tmp let-item="item">
+                    Seleccione una colonia
+                  </ng-template>
+                  <ng-template ng-option-tmp let-item="item">
+                    {{ item.colo_Descripcion }}, {{ item.muni_Descripcion }}, {{ item.depa_Descripcion }}
+                  </ng-template>
+                </ng-select>
                 <div *ngIf="cargandoColonias" class="form-text text-muted">
                   Cargando Colonias...
                 </div>

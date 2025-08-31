@@ -205,6 +205,5 @@ export class MapaSelectorComponent implements AfterViewInit, OnChanges {
     });
   }
 
-  //Llenar autompaticamente colonias al seleccionar un punto en el mapa
   
 }
