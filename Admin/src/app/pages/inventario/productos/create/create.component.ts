@@ -7,6 +7,7 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 import { Producto } from 'src/app/Modelos/inventario/Producto.Model';
 import { Categoria } from 'src/app/Modelos/inventario/CategoriaModel';
 import { useAnimation } from '@angular/animations';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   selector: 'app-create',
@@ -88,6 +89,15 @@ export class CreateComponent {
   precioFormatoValido: boolean = true;
   precioValido: boolean = true;
 
+  constructor(
+    private http: HttpClient,
+    private imageUploadService: ImageUploadService
+  ) {
+    this.cargarMarcas();
+    this.cargarProveedores();
+    this.cargarImpuestos();
+  }
+
   ngOnInit() {
     this.producto.prod_EsPromo = this.producto.prod_EsPromo || 'N';
     this.producto.prod_PagaImpuesto = this.producto.prod_PagaImpuesto || 'N';
@@ -125,12 +135,6 @@ export class CreateComponent {
     }
     console.log('Filtrando subcategorías para categoría:', categoriaId);
     this.filtrarSubcategoriasPorCategoria(categoriaId);
-  }
-
-  constructor(private http: HttpClient) {
-    this.cargarMarcas();
-    this.cargarProveedores();
-    this.cargarImpuestos();
   }
 
   cargarMarcas() {
@@ -280,102 +284,91 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
-      guardar(): void {
-        console.log('guardar() llamado');
-        this.mostrarErrores = true;
-        if (this.producto.prod_Codigo.trim() && this.producto.prod_CodigoBarra && this.producto.prod_Descripcion.trim() && this.producto.prod_DescripcionCorta.trim() && this.producto.marc_Id && this.producto.prov_Id && this.producto.subc_Id
-          && (this.producto.prod_PrecioUnitario != null && this.producto.prod_PrecioUnitario >= 0) && (this.producto.prod_CostoTotal != null && this.producto.prod_CostoTotal >= 0) && this.producto.prod_PrecioUnitario >= this.producto.prod_CostoTotal)
-        {
-          this.mostrarAlertaWarning = false;
-          this.mostrarAlertaError = false;
-          const productoGuardar = {
-            prod_Id: 0,
-            secuencia: 0,
-            prod_Codigo: this.producto.prod_Codigo.trim(),
-            prod_CodigoBarra: this.producto.prod_CodigoBarra,
-            prod_Descripcion: this.producto.prod_Descripcion.trim(),
-            prod_DescripcionCorta: this.producto.prod_DescripcionCorta.trim(),
-            prod_Imagen: this.producto.prod_Imagen,
-            cate_Id: 0,
-            cate_Descripcion: '',
-            subc_Id: Number(this.producto.subc_Id),
-            marc_Id: Number(this.producto.marc_Id),
-            prov_Id: Number(this.producto.prov_Id),
-            impu_Id: this.producto.prod_PagaImpuesto ? Number(this.producto.impu_Id) : 0,
-            prod_PrecioUnitario: Number(this.producto.prod_PrecioUnitario),
-            prod_CostoTotal: Number(this.producto.prod_CostoTotal),
-            prod_PagaImpuesto: this.producto.prod_PagaImpuesto ? 'S' : 'N',
-            prod_EsPromo: 'N',
-            prod_Impulsado: this.producto.prod_Impulsado,
-            prod_Estado: true,
-            usua_Creacion: environment.usua_Id,
-            usua_Modificacion: 0,
-            marc_Descripcion: '',
-            prov_NombreEmpresa: '',
-            subc_Descripcion: '',
-            impu_Descripcion: '',
-            usuarioCreacion: '',
-            usuarioModificacion: '',
-          };
-          console.log(productoGuardar);
-          if (this.producto.prod_PagaImpuesto) {
-            productoGuardar.impu_Id = Number(this.producto.impu_Id);
-          }
-          console.log('Datos a enviar:', productoGuardar);
-          this.http.post<any>(`${environment.apiBaseUrl}/Productos/Insertar`, productoGuardar, {
-            headers: { 
-              'X-Api-Key': environment.apiKey,
-              'Content-Type': 'application/json',
-              'accept': '*/*'
-            }
-          }).subscribe({
-            next: (response) => {
-              console.log('Respuesta del servidor:', response);
+  guardar(): void {
+    console.log('guardar() llamado');
+    this.mostrarErrores = true;
+    if (this.producto.prod_Codigo.trim() && this.producto.prod_CodigoBarra && this.producto.prod_Descripcion.trim() && this.producto.prod_DescripcionCorta.trim() && this.producto.marc_Id && this.producto.prov_Id && this.producto.subc_Id
+      && (this.producto.prod_PrecioUnitario != null && this.producto.prod_PrecioUnitario >= 0) && (this.producto.prod_CostoTotal != null && this.producto.prod_CostoTotal >= 0) && this.producto.prod_PrecioUnitario >= this.producto.prod_CostoTotal)
+    {
+      this.mostrarAlertaWarning = false;
+      this.mostrarAlertaError = false;
+      const productoGuardar = {
+        prod_Id: 0,
+        secuencia: 0,
+        prod_Codigo: this.producto.prod_Codigo.trim(),
+        prod_CodigoBarra: this.producto.prod_CodigoBarra,
+        prod_Descripcion: this.producto.prod_Descripcion.trim(),
+        prod_DescripcionCorta: this.producto.prod_DescripcionCorta.trim(),
+        prod_Imagen: this.producto.prod_Imagen,
+        cate_Id: 0,
+        cate_Descripcion: '',
+        subc_Id: Number(this.producto.subc_Id),
+        marc_Id: Number(this.producto.marc_Id),
+        prov_Id: Number(this.producto.prov_Id),
+        impu_Id: this.producto.prod_PagaImpuesto ? Number(this.producto.impu_Id) : 0,
+        prod_PrecioUnitario: Number(this.producto.prod_PrecioUnitario),
+        prod_CostoTotal: Number(this.producto.prod_CostoTotal),
+        prod_PagaImpuesto: this.producto.prod_PagaImpuesto ? 'S' : 'N',
+        prod_EsPromo: 'N',
+        prod_Impulsado: this.producto.prod_Impulsado,
+        prod_Estado: true,
+        usua_Creacion: environment.usua_Id,
+        usua_Modificacion: 0,
+        marc_Descripcion: '',
+        prov_NombreEmpresa: '',
+        subc_Descripcion: '',
+        impu_Descripcion: '',
+        usuarioCreacion: '',
+        usuarioModificacion: '',
+      };
+      console.log(productoGuardar);
+      if (this.producto.prod_PagaImpuesto) {
+        productoGuardar.impu_Id = Number(this.producto.impu_Id);
+      }
+      console.log('Datos a enviar:', productoGuardar);
+      this.http.post<any>(`${environment.apiBaseUrl}/Productos/Insertar`, productoGuardar, {
+        headers: { 
+          'X-Api-Key': environment.apiKey,
+          'Content-Type': 'application/json',
+          'accept': '*/*'
+        }
+      }).subscribe({
+        next: (response) => {
+          console.log('Respuesta del servidor:', response);
 
-              this.mostrarAlertaExito = true;
-              this.mensajeExito = `Producto creado exitosamente.`;
-              setTimeout(() => {
-                this.mostrarAlertaExito = false;
-                this.cancelar();
-                this.onSave.emit(response);
-              }, 1000);
-            },
-            error: (error) => {
-              console.error('Error HTTP detectado:', error);
-              console.error('Error completo:', error);
-              if (error.status === 400) {
-                console.error('400 Bad Request:', error.error); // posible detalle del error
-              }
-              this.mostrarAlertaError = true;
-              this.mensajeError = 'Error al guardar el producto. Por favor, revise los datos e intente nuevamente.';
-              this.mostrarAlertaExito = false;
-              setTimeout(() => {
-                this.mostrarAlertaError = false;
-                this.mensajeError = '';
-              }, 5000);
-            }
-            // error: (error) => {
-            //   console.error('Error completo:', error); // ⬅️ Esto es clave
-            //   console.error('Detalle del error:', error.error);
-            //   this.mostrarAlertaError = true;
-            //   this.mensajeError = 'Error al guardar el producto. Por favor, intente nuevamente.';
-            //   this.mostrarAlertaExito = false;
-            //   setTimeout(() => {
-            //     this.mostrarAlertaError = false;
-            //     this.mensajeError = '';
-            //   }, 5000);
-            // }
-          });
-        } else {
-          this.mostrarAlertaWarning = true;
-          this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
-          this.mostrarAlertaError = false;
+          this.mostrarAlertaExito = true;
+          this.mensajeExito = `Producto creado exitosamente.`;
+          setTimeout(() => {
+            this.mostrarAlertaExito = false;
+            this.cancelar();
+            this.onSave.emit(response);
+          }, 1000);
+        },
+        error: (error) => {
+          console.error('Error HTTP detectado:', error);
+          console.error('Error completo:', error);
+          if (error.status === 400) {
+            console.error('400 Bad Request:', error.error); // posible detalle del error
+          }
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error al guardar el producto. Por favor, revise los datos e intente nuevamente.';
           this.mostrarAlertaExito = false;
           setTimeout(() => {
-            this.mostrarAlertaWarning = false;
-            this.mensajeWarning = '';
-          }, 4000);
+            this.mostrarAlertaError = false;
+            this.mensajeError = '';
+          }, 5000);
         }
+      });
+    } else {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
+      this.mostrarAlertaError = false;
+      this.mostrarAlertaExito = false;
+      setTimeout(() => {
+        this.mostrarAlertaWarning = false;
+        this.mensajeWarning = '';
+      }, 4000);
+    }
   }
 
   onImagenSeleccionada(event: any) {
@@ -383,26 +376,32 @@ export class CreateComponent {
     const file = event.target.files[0];
 
     if (file) {
-      // para enviar la imagen a Cloudinary
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'subidas_usuarios');
-      //Subidas usuarios Carpeta identificadora en Cloudinary
-      //dwiprwtmo es el nombre de la cuenta de Cloudinary
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-   
-      fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        this.producto.prod_Imagen = data.secure_url;
-        console.log(data);
-      })
-      .catch(error => {
-        console.error('Error al subir la imagen a Cloudinary:', error);
-      });
+      // Crear una URL temporal para mostrar la imagen inmediatamente
+      const tempImageUrl = URL.createObjectURL(file);
+      this.producto.prod_Imagen = tempImageUrl;
+      
+      // Mostrar indicador de carga si es necesario
+      this.mostrarOverlayCarga = true;
+      
+      // Usar el servicio de carga de imágenes
+      this.imageUploadService.uploadImageAsync(file)
+        .then(imagePath => {
+          // Construir la URL completa para mostrar la imagen
+          const baseUrl = environment.apiBaseUrl.replace('/api', '');
+          this.producto.prod_Imagen = `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
+          console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
+          this.mostrarOverlayCarga = false;
+        })
+        .catch(error => {
+          console.error('Error al subir la imagen:', error);
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error al subir la imagen. Por favor, intente nuevamente.';
+          this.mostrarOverlayCarga = false;
+          setTimeout(() => {
+            this.mostrarAlertaError = false;
+            this.mensajeError = '';
+          }, 3000);
+        });
     }
   }
 }
