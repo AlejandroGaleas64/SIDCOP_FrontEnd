@@ -118,11 +118,11 @@
             <div class="d-flex align-items-center">
               <i class="ri-newspaper-line"
                 [ngStyle]="{
-                border: (!cliente.clie_RTN.trim()) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.clie_RTN.trim()) ? '#fff5f6' : '#f2f3f9',
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
-              <input type="text" class="form-control" [class.is-invalid]="!cliente.clie_RTN.trim()"
+              <input type="text" class="form-control" 
                 id="clienteRTN" [(ngModel)]="cliente.clie_RTN" placeholder="Ingrese el RTN del cliente"
                 mask="00000000000000"/>
             </div>
@@ -1051,13 +1051,18 @@
                   backgroundColor: (!direccionPorCliente.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
-                <select id="colo_Id" name="colo_Id" class="form-select" [(ngModel)]="direccionPorCliente.colo_Id"
-                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores" required>
-                  <option value="0" disabled>Seleccione una colonia</option>
-                  <option *ngFor="let colonia of TodasColonias" [value]="colonia.colo_Id">
-                    {{ colonia.colo_Descripcion }}, {{ colonia.muni_Descripcion }}, {{ colonia.depa_Descripcion }}
-                  </option>
-                </select>
+                <ng-select class="w-100" [items]="TodasColonias" bindLabel="colo_Descripcion" bindValue="colo_Id"
+                  [(ngModel)]="direccionPorCliente.colo_Id" [searchable]="true" [clearable]="false"
+                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores"
+                  placeholder="Seleccione una colonia" required [searchFn]="searchColonias"
+                  (ngModelChange)="onColoniaSeleccionada($event)">
+                  <ng-template ng-label-tmp let-item="item">
+                    {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
+                  </ng-template>
+                  <ng-template ng-option-tmp let-item="item">
+                    {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
+                  </ng-template>
+                </ng-select>
                 <div *ngIf="cargandoColonias" class="form-text text-muted">
                   Cargando Colonias...
                 </div>
