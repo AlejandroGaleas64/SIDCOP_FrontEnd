@@ -45,7 +45,6 @@ export class DetailsComponent implements OnChanges {
     this.cargarColonias();
     this.cargarMunicipios();
     this.cargarDepartamentos();
-    this.cargarUltimaVisita();
   }
 
   // Simulación de carga
@@ -60,6 +59,7 @@ export class DetailsComponent implements OnChanges {
 
         this.cargarDirecciones();
         this.cargarAvales();
+        this.cargarUltimaVisita();
       } catch (error) {
         console.error('Error al cargar detalles del cliente:', error);
         this.mostrarAlertaError = true;
@@ -202,15 +202,22 @@ export class DetailsComponent implements OnChanges {
   }
 
   ultimaVisita: string | null = null;
+
   cargarUltimaVisita() {
-    if (!this.clienteDetalle?.clie_Id) return;
-    this.http.get<any[]>(`${environment.apiBaseUrl}/ClientesVisitaHistorial/${this.clienteDetalle.clie_Id}`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe((visitas: any[]) => {
-      if (visitas && visitas.length) {
-        // Ordena por fecha descendente y toma la primera
-        visitas.sort((a, b) => new Date(b.ClVi_Fecha).getTime() - new Date(a.ClVi_Fecha).getTime());
-        this.ultimaVisita = visitas[0].ClVi_Fecha;
+    if (!this.clienteDetalle || !this.clienteDetalle.clie_Id) {
+      this.ultimaVisita = null;
+      return;
+    }
+    this.http.get<any[]>(
+      `${environment.apiBaseUrl}/ClientesVisitaHistorial/ListarVisitasPorCliente`,
+      {
+        headers: { 'x-api-key': environment.apiKey },
+        params: { clie_Id: this.clienteDetalle.clie_Id }
+      }
+    ).subscribe(visitas => {
+      console.log('Visitas recibidas:', visitas);
+      if (visitas && visitas.length > 0) {
+        this.ultimaVisita = visitas[0].clVi_Fecha; // Ajusta el campo si es necesario
       } else {
         this.ultimaVisita = null;
       }

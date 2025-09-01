@@ -12,6 +12,7 @@ import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { Router } from '@angular/router';
 import { ImageUploadService } from 'src/app/core/services/image-upload.service';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @Component({
   selector: 'app-edit',
@@ -22,6 +23,7 @@ import { ImageUploadService } from 'src/app/core/services/image-upload.service';
     HttpClientModule,
     NgxMaskDirective,
     MapaSelectorComponent,
+    NgSelectModule
   ],
   templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss',
@@ -909,6 +911,19 @@ export class EditComponent implements OnChanges {
         )
         .subscribe({
           next: (response) => {
+            if (response.data.code_Status === 1) {
+              this.actualizarDireccionesYAvales();
+              this.mensajeExito = `Cliente "${this.cliente.clie_Nombres + ' ' + this.cliente.clie_Apellidos}" actualizado exitosamente`;
+              this.mostrarAlertaExito = true;
+              this.mostrarErrores = false;
+
+              // Ocultar la alerta después de 3 segundos
+              setTimeout(() => {
+                this.mostrarAlertaExito = false;
+                this.onSave.emit(this.cliente);
+                this.cancelar();
+              }, 3000);
+            }
             if (response.data?.code_Status === -1) {
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status;
@@ -919,8 +934,17 @@ export class EditComponent implements OnChanges {
               }, 3000);
               return;
             }
-            this.actualizarDireccionesYAvales();
-            this.onSave.emit(this.cliente);
+            // this.actualizarDireccionesYAvales();
+
+            // this.mensajeExito = `Cliente "${this.cliente.clie_Nombres + ' ' + this.cliente.clie_Apellidos}" actualizado exitosamente`;
+            // this.mostrarAlertaExito = true;
+            // this.mostrarErrores = false;
+            // this.onSave.emit(this.cliente);
+
+            // setTimeout(() => {
+            //   this.mostrarAlertaExito = false;
+            //   this.mensajeExito = '';
+            // }, 4000);
           },
           error: (error) => {
             this.mostrarAlertaError = true;
@@ -1492,6 +1516,30 @@ export class EditComponent implements OnChanges {
         label: 'Observaciones'
       };
     }
+
+    if (e.aval_Nombres !== f.aval_Nombres) {
+      this.cambiosDetectados.nombreAval = {
+        anterior: f.aval_Nombres,
+        nuevo: e.aval_Nombres,
+        label: 'Nombre del Aval'
+      };
+    }
+
+    if (e.aval_Nombres !== f.aval_Nombres) {
+      this.cambiosDetectados.nombreAval = {
+        anterior: f.aval_Nombres,
+        nuevo: e.aval_Nombres,
+        label: 'Nombre del Aval'
+      };
+    }
+
+    if (e.aval_DNI !== f.aval_DNI) {
+      this.cambiosDetectados.dniAval = {
+        anterior: f.aval_DNI,
+        nuevo: e.aval_DNI,
+        label: 'Apellido del Aval'
+      };
+    }
     return Object.keys(this.cambiosDetectados).length > 0;
   }
 
@@ -1543,6 +1591,11 @@ export class EditComponent implements OnChanges {
     }
 
 
+    if (this.tieneDatosCredito()) {
+      if (this.avales.length === 0 || !this.avales.every(a => this.esAvalValido(a))) {
+        errores.push('Aval');
+      }
+    }
     if (errores.length > 0) {
       this.mensajeWarning = `Por favor corrija los siguientes campos: ${errores.join(', ')}`;
       this.mostrarAlertaWarning = true;
@@ -1570,6 +1623,45 @@ export class EditComponent implements OnChanges {
   buscarDireccion(query: string) {
     if (this.mapaSelectorComponent) {
       this.mapaSelectorComponent.buscarDireccion(query);
+    }
+  }
+
+    //Para buscar colonias en DDL
+  searchColonias = (term: string, item: any) => {
+    term = term.toLowerCase();
+    return (
+      item.colo_Descripcion?.toLowerCase().includes(term) ||
+      item.muni_Descripcion?.toLowerCase().includes(term) ||
+      item.depa_Descripcion?.toLowerCase().includes(term)
+    );
+  };
+
+  direccionExactaInicial: string = '';
+  colonias: any[] = [];
+  onColoniaSeleccionada(colo_Id: number) {
+    const coloniaSeleccionada = this.colonias.find((c: any) => c.colo_Id === colo_Id);
+    if (coloniaSeleccionada) {
+      this.direccionExactaInicial = coloniaSeleccionada.colo_Descripcion;
+      this.direccionPorCliente.diCl_DireccionExacta = coloniaSeleccionada.colo_Descripcion;
+    } else {
+      this.direccionExactaInicial = '';
+      this.direccionPorCliente.diCl_DireccionExacta = '';
+    }
+  }
+
+  //Llenar automáticamente colonias al seleccionar un punto en el mapa
+  coordenadasMapa: { lat: number; lng: number } | null = null;
+
+  actualizarCoordenadasManual() {
+    if (this.direccionPorCliente.diCl_Latitud && this.direccionPorCliente.diCl_Longitud) {
+      this.coordenadasMapa = {
+        lat: Number(this.direccionPorCliente.diCl_Latitud),
+        lng: Number(this.direccionPorCliente.diCl_Longitud)
+      };
+
+      if (this.mapaSelectorComponent) {
+        this.mapaSelectorComponent.setMarker(this.coordenadasMapa.lat, this.coordenadasMapa.lng);
+      }
     }
   }
 }

@@ -51,11 +51,15 @@
         </div>
       </div>
 
-      <div class="alert alert-info d-flex align-items-center mt-3"
-        style="font-family: 'Inter', sans-serif; border-radius: 10px; background: #eaf4fb; color: #1a355e; font-weight: 500; box-shadow: 0 2px 8px #0001;">
-        <i class="ri-calendar-check-line me-2" style="font-size: 1.5rem; color: #1976d2;"></i>
-        Última visita realizada: <span style="margin-left: 4px;">{{ ultimaVisita }}</span>
-      </div>
+      <!-- Solo asegúrate de tener esto en tu details.component.html -->
+<div class="alert alert-info d-flex align-items-center mt-3"
+  style="font-family: 'Inter', sans-serif; border-radius: 10px; background: #eaf4fb; color: #1a355e; font-weight: 500; box-shadow: 0 2px 8px #0001;">
+  <i class="ri-calendar-check-line me-2" style="font-size: 1.5rem; color: #1976d2;"></i>
+  Última visita realizada:
+  <span style="margin-left: 4px;">
+    {{ ultimaVisita ? (ultimaVisita | date:'dd/MM/yyyy') : 'Sin visitas registradas' }}
+  </span>
+</div>
 
 
       <!-- Card derecha: Detalles del cliente -->

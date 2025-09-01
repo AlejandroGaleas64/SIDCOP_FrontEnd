@@ -5,7 +5,12 @@
   <img class="breadcrumbs-icon ms-2 icon-breadcrumb" src="assets/images/svg/clientes.svg" alt="icono breadcrumb" />
 </app-breadcrumbs>
 
+
 <div class="card" *ngIf="!cargandoDatos">
+  <!-- ALERTA DE ÉXITO -->
+  <!-- <div *ngIf="mostrarAlertaExito" class="alert alert-success mt-2 mb-0" style="font-weight: 500;">
+    {{ mensajeExito }}
+  </div> -->
   <div class="card-body">
     <div class="row align-items-center g-2"
       *ngIf="!showCreateForm && !showEditForm && !showDetailsForm && !listadoClientesSinConfirmar">
@@ -138,7 +143,7 @@
         <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4 mx-auto">
           <div class="card card-empleado position-relative h-100">
             <div class="card-header p-0 position-relative header-bg"
-              [ngStyle]="{ 'background-image': 'url(' + (cliente.clie_ImagenDelNegocio || 'assets/images/imagenes/full-logo.png') + ')' }">
+              [ngStyle]="{ 'background-image': cliente.clie_ImagenDelNegocio }">
               <div class="header-overlay"></div>
 
               <div style="position: absolute; top: 10px; left: 18px; z-index:1;">
@@ -280,7 +285,7 @@
 
             <div class="card-body pt-5 mt-2 px-3 text-center">
               <span class="badge fw-semibold mb-1 px-3 py-2 border" style="
-                  font-size: 1rem;
+                  font-size: 0.93rem;
                   background-color: #d6b58d; 
                   color: #141a2f; 
                   border-radius: 1.5rem; 
@@ -331,6 +336,14 @@
       </div>
     </div>
 
+    <div class="alert-container">
+      <div *ngIf="mostrarAlertaExito"
+        class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+        <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+        <strong>¡Éxito!</strong> {{ mensajeExito }}
+        <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+      </div>
+    </div>
     <!-- Modal de confirmación para eliminar -->
     <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEliminar }"
       [style.display]="mostrarConfirmacionEliminar ? 'block' : 'none'" tabindex="-1" role="dialog">
