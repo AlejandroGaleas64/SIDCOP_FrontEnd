@@ -264,33 +264,6 @@
                 </div>
               </div>
             </div>
-
-            <!-- Costo Total -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="prod_CostoTotal" class="form-label">Costo Total<span class="text-danger">*</span></label>
-                <div class="d-flex align-items-center">
-                  <span [ngStyle]="{
-                    border: (!producto.prod_CostoTotal && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                    backgroundColor: (!producto.prod_CostoTotal && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">L.</span>
-                  <input
-                    type="number"
-                    class="form-control"
-                    id="prod_CostoTotal"
-                    [(ngModel)]="producto.prod_CostoTotal"
-                    [class.is-invalid]="producto.prod_CostoTotal <= 0 && mostrarErrores"
-                    placeholder="Ingrese el costo total"
-                    min="0.01"
-                    step="0.01"
-                    required
-                  />
-                </div>
-                <div class="text-danger mt-1" *ngIf="producto.prod_CostoTotal <= 0 && mostrarErrores">
-                  <small>El campo Costo Total es requerido y debe ser mayor a 0</small>
-                </div>
-              </div>
-            </div>
             
             <!-- Paga Impuesto -->
             <div class="col-md-6">

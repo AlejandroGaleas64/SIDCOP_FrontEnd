@@ -56,12 +56,13 @@ export class EditComponent implements OnChanges {
     prod_Imagen: 'assets/images/users/32/agotado.png',
     cate_Id: 0,
     cate_Descripcion: '',
+    prod_Peso: 0,
+    unPe_Id: 0,
     subc_Id: 0,
     marc_Id: 0,
     prov_Id: 0,
     impu_Id: 0,
     prod_PrecioUnitario: 0,
-    prod_CostoTotal: 0,
     prod_PagaImpuesto: "",
     prod_EsPromo: "",
     prod_Impulsado: false,
@@ -74,7 +75,9 @@ export class EditComponent implements OnChanges {
     prov_NombreEmpresa: '',
     subc_Descripcion: '',
     impu_Descripcion: '',
-    promDesc: '',
+    impulsacion: '',
+    unPe_Descripcion: '',
+    unPe_Abreviatura: '',
     secuencia: 0,
     code_Status: 0,
     message_Status: '',
@@ -417,14 +420,6 @@ export class EditComponent implements OnChanges {
       };
     }
 
-    if (a.prod_CostoTotal !== b.prod_CostoTotal) {
-      this.cambiosDetectados.costoTotal = {
-        anterior: b.prod_CostoTotal,
-        nuevo: a.prod_CostoTotal,
-        label: 'Costo Total'
-      };
-    }
-
     if (a.impu_Id !== b.impu_Id) {
       this.cambiosDetectados.impuesto = {
         anterior: b.impu_Descripcion,
@@ -463,21 +458,8 @@ export class EditComponent implements OnChanges {
       this.producto.marc_Id &&
       this.producto.prov_Id &&
       this.producto.prod_PrecioUnitario != null &&
-      this.producto.prod_CostoTotal != null &&
-      this.producto.prod_PrecioUnitario >= 0 &&
-      this.producto.prod_CostoTotal >= 0 &&
-      this.producto.prod_PrecioUnitario >= this.producto.prod_CostoTotal
+      this.producto.prod_PrecioUnitario >= 0
     ) {
-      // const hayCambios = 
-      //   this.producto.prod_Imagen !== this.productoData?.prod_Imagen ||
-      //   this.producto.prod_Codigo.trim() !== this.productoData?.prod_Codigo?.trim() ||
-      //   this.producto.prod_Descripcion.trim() !== this.productoData?.prod_Descripcion?.trim() ||
-      //   this.producto.prod_DescripcionCorta.trim() !== this.productoData?.prod_DescripcionCorta?.trim() ||
-      //   this.producto.subc_Id !== this.productoData?.subc_Id ||
-      //   this.producto.marc_Id !== this.productoData?.marc_Id ||
-      //   this.producto.prov_Id !== this.productoData?.prov_Id ||
-      //   this.producto.prod_PrecioUnitario !== this.productoData?.prod_PrecioUnitario ||
-      //   this.producto.prod_CostoTotal !== this.productoData?.prod_CostoTotal
       if (this.hayDiferencias()) {
         this.mostrarConfirmacionEditar = true;
       } else {
@@ -512,10 +494,7 @@ export class EditComponent implements OnChanges {
       this.producto.marc_Id &&
       this.producto.prov_Id &&
       this.producto.prod_PrecioUnitario != null &&
-      this.producto.prod_CostoTotal != null &&
-      this.producto.prod_PrecioUnitario >= 0 &&
-      this.producto.prod_CostoTotal >= 0 &&
-      this.producto.prod_PrecioUnitario >= this.producto.prod_CostoTotal
+      this.producto.prod_PrecioUnitario >= 0
     ) {
       const productoActualizar = {
         ...this.producto,
