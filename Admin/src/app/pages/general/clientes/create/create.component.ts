@@ -11,6 +11,7 @@ import { Aval } from 'src/app/Modelos/general/Aval.Model';
 import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente.Model';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { getUserId } from 'src/app/core/utils/user-utils';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 
 @Component({
@@ -51,6 +52,7 @@ export class CreateComponent {
   TodasColonias: any[] = [];
   TodasColoniasAval: any[] = [];
   colonias: any[] = [];
+  imgLoaded: boolean = false;
 
   //Variables para el mapa
   latitudSeleccionada: number | null = null;
@@ -82,12 +84,6 @@ export class CreateComponent {
       });
     }
   }
-
-  // esCorreoValido(correo: string): boolean {
-  //   if (!correo) return true;
-  //   // Debe contener "@" y terminar en ".com"
-  //   return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
-  // }
 
   revisarCorreoValido(correo: string): boolean {
     if (!correo) return true;
@@ -381,7 +377,11 @@ export class CreateComponent {
     }
   }
 
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {
+  constructor(
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef,
+    private imageUploadService: ImageUploadService
+  ) {
     this.cargarPaises();
     this.cargarTiposDeVivienda();
     this.cargarEstadosCiviles();
@@ -441,6 +441,7 @@ export class CreateComponent {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Colonia/ListarMunicipiosyDepartamentos`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => this.TodasColoniasAval = data);
+
   }
 
   cargarColonias() {
@@ -463,6 +464,19 @@ export class CreateComponent {
       item.depa_Descripcion?.toLowerCase().includes(term)
     );
   };
+
+  busquedaColonia: string = '';
+  coloniasFiltradas: any[] = [];
+  filtrarColonias() {
+    const term = this.busquedaColonia.trim().toLowerCase();
+    if (!term) {
+      this.coloniasFiltradas = this.TodasColonias;
+    } else {
+      this.coloniasFiltradas = this.TodasColonias.filter(colonia =>
+        this.searchColonias(term, colonia)
+      );
+    }
+  }
 
   direccionExactaInicial: string = '';
 
@@ -634,28 +648,76 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
+  // Variables para manejo de imágenes
+  uploadedFiles: string[] = [];
+  isUploading = false;
+  imagePreview: string = '';
+
   onImagenSeleccionada(event: any) {
     const file = event.target.files[0];
 
     if (file) {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'subidas_usuarios');
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
+      // Crear vista previa inmediata
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imagePreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
 
-
-      fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-        .then(response => response.json())
-        .then(data => {
-          this.cliente.clie_ImagenDelNegocio = data.secure_url;
-          //console.log(this.cliente.clie_ImagenDelNegocio)
+      this.isUploading = true;
+      this.imageUploadService.uploadImageAsync(file)
+        .then(imagePath => {
+          this.cliente.clie_ImagenDelNegocio = imagePath;
+          this.uploadedFiles = [imagePath];
+          this.isUploading = false;
+          // Limpiar preview ya que ahora tenemos la imagen del servidor
+          this.imagePreview = '';
         })
         .catch(error => {
-          //console.error('Error al subir la imagen a Cloudinary:', error);
+          console.error('Error al subir la imagen:', error);
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error al subir la imagen. Por favor, intente nuevamente.';
+          this.isUploading = false;
+          // Mantener preview en caso de error
+          setTimeout(() => {
+            this.mostrarAlertaError = false;
+            this.mensajeError = '';
+          }, 3000);
         });
+    }
+  }
+
+  /**
+   * Construye la URL completa para mostrar la imagen
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
+  }
+
+  /**
+   * Obtiene la imagen a mostrar (la subida o la por defecto)
+   */
+  getImageToDisplay(): string {
+    // Si hay una vista previa temporal, mostrarla
+    if (this.imagePreview) {
+      return this.imagePreview;
+    }
+    // Si hay imagen guardada en el servidor, mostrarla
+    if (this.cliente.clie_ImagenDelNegocio && this.cliente.clie_ImagenDelNegocio.trim()) {
+      return this.getImageDisplayUrl(this.cliente.clie_ImagenDelNegocio);
+    }
+    // Mostrar imagen por defecto
+    return 'assets/images/users/32/user-svg.svg';
+  }
+
+  /**
+   * Elimina una imagen de la lista
+   */
+  removeImage(index: number): void {
+    this.uploadedFiles.splice(index, 1);
+    if (this.uploadedFiles.length === 0) {
+      this.cliente.clie_ImagenDelNegocio = '';
+      this.imagePreview = '';
     }
   }
 
@@ -744,6 +806,7 @@ export class CreateComponent {
             setTimeout(() => {
               this.mostrarAlertaError = false;
               this.mensajeError = '';
+              this.cancelar();
             }, 3000);
             return;
           }
@@ -751,9 +814,10 @@ export class CreateComponent {
             this.idDelCliente = response.data.data;
             this.guardarDireccionesPorCliente(this.idDelCliente);
             this.guardarAvales(this.idDelCliente);
+            this.mensajeExito = `Cliente "${this.cliente.clie_Nombres + ' ' + this.cliente.clie_Apellidos}" guardado exitosamente`;
+            this.mostrarAlertaExito = true;
             this.mostrarErrores = false;
             this.onSave.emit(this.cliente);
-            this.cancelar();
           }
         },
         error: (error) => {
@@ -801,9 +865,11 @@ export class CreateComponent {
         this.direccionEditandoIndex = null;
       } else {
         this.direccionesPorCliente.push({ ...this.direccionPorCliente });
+        this.limpiarDireccionModal();
       }
-      this.limpiarDireccionModal();
+      // this.limpiarDireccionModal();
       this.cerrarMapa();
+      this.validarDireccion = false;
     }
     else {
       this.mostrarErrores = true;
@@ -907,33 +973,35 @@ export class CreateComponent {
   }
 
   guardarAvales(clie_Id: number): void {
-    for (const aval of this.avales) {
-      const avalGuardar = {
-        ...aval,
-        clie_Id: clie_Id,
-        usua_Creacion: getUserId(),
-        aval_FechaCreacion: new Date(),
-        usua_Modificacion: getUserId(),
-        aval_FechaModificacion: new Date()
-      };
-      this.http.post<any>(`${environment.apiBaseUrl}/Aval/Insertar`, avalGuardar, {
-        headers: {
-          'X-Api-Key': environment.apiKey,
-          'Content-Type': 'application/json',
-          'accept': '*/*'
-        }
-      }).subscribe({
-        next: (response) => {
-        },
-        error: (error) => {
-          this.mostrarAlertaError = true;
-          this.mensajeError = 'Error al guardar el aval. Por favor, intente nuevamente.';
-          setTimeout(() => {
-            this.mostrarAlertaError = false;
-            this.mensajeError = '';
-          }, 3000);
-        }
-      });
+    // Solo guardar si el cliente tiene crédito y hay avales válidos
+    if (this.tieneDatosCredito() && this.avales.length > 0 && this.avales.every(aval => this.esAvalValido(aval))) {
+      for (const aval of this.avales) {
+        const avalGuardar = {
+          ...aval,
+          clie_Id: clie_Id,
+          usua_Creacion: getUserId(),
+          aval_FechaCreacion: new Date(),
+          usua_Modificacion: getUserId(),
+          aval_FechaModificacion: new Date()
+        };
+        this.http.post<any>(`${environment.apiBaseUrl}/Aval/Insertar`, avalGuardar, {
+          headers: {
+            'X-Api-Key': environment.apiKey,
+            'Content-Type': 'application/json',
+            'accept': '*/*'
+          }
+        }).subscribe({
+          next: (response) => { },
+          error: (error) => {
+            this.mostrarAlertaError = true;
+            this.mensajeError = 'Error al guardar el aval. Por favor, intente nuevamente.';
+            setTimeout(() => {
+              this.mostrarAlertaError = false;
+              this.mensajeError = '';
+            }, 3000);
+          }
+        });
+      }
     }
   }
 
@@ -960,6 +1028,19 @@ export class CreateComponent {
   }
 
   //Llenar autompaticamente colonias al seleccionar un punto en el mapa
-  
+  coordenadasMapa: { lat: number; lng: number } | null = null;
+
+  actualizarCoordenadasManual() {
+    if (this.direccionPorCliente.diCl_Latitud && this.direccionPorCliente.diCl_Longitud) {
+      this.coordenadasMapa = {
+        lat: Number(this.direccionPorCliente.diCl_Latitud),
+        lng: Number(this.direccionPorCliente.diCl_Longitud)
+      };
+
+      if (this.mapaSelectorComponent) {
+        this.mapaSelectorComponent.setMarker(this.coordenadasMapa.lat, this.coordenadasMapa.lng);
+      }
+    }
+  }
 }
 

@@ -8,6 +8,7 @@ import { DropzoneModule, DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
 import { Router } from '@angular/router';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { lastValueFrom } from 'rxjs';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   selector: 'app-create',
@@ -36,6 +37,7 @@ export class CreateComponent implements OnInit {
   };
 
   cargando = false;
+  cargandoImagen = false;
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -58,7 +60,7 @@ export class CreateComponent implements OnInit {
     acceptedFiles: 'image/*',
   };
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router, private imageUploadService: ImageUploadService) {}
 
   ngOnInit() {
     this.cargarVendedores();
@@ -162,19 +164,18 @@ export class CreateComponent implements OnInit {
           this.mostrarMensaje(`El archivo ${file.name} no es una imagen válida`, 'error');
           return;
         }
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-          const fileData = {
-            name: file.name,
-            size: this.formatFileSize(file.size),
-            type: file.type,
-            dataURL: e.target.result,
-            file: file,
-            id: Date.now() + Math.random().toString(36).substr(2, 9)
-          };
-          this.uploadedFiles = [...this.uploadedFiles, fileData];
+        // Crear una URL temporal para mostrar la imagen inmediatamente
+        const tempImageUrl = URL.createObjectURL(file);
+        
+        const fileData = {
+          name: file.name,
+          size: this.formatFileSize(file.size),
+          type: file.type,
+          dataURL: tempImageUrl, // Usar URL temporal para mostrar la imagen inmediatamente
+          file: file,
+          id: Date.now() + Math.random().toString(36).substr(2, 9)
         };
-        reader.readAsDataURL(file);
+        this.uploadedFiles = [...this.uploadedFiles, fileData];
       });
     } catch (error) {
       this.mostrarMensaje('Error al procesar los archivos', 'error');
@@ -321,20 +322,23 @@ export class CreateComponent implements OnInit {
                 });
               };
 
-              // Subir a Cloudinary si es archivo
+              // Subir imagen usando ImageUploadService si es archivo
               if (file.file) {
-                const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-                const formData = new FormData();
-                formData.append('file', file.file);
-                formData.append('upload_preset', 'empleados');
-
-                fetch(url, { method: 'POST', body: formData })
-                  .then(res => res.json())
-                  .then(data => {
-                    if (data.secure_url) subirImagen(data.secure_url);
-                    else this.mostrarMensaje('No se pudo subir la imagen', 'error');
+                this.cargandoImagen = true;
+                this.imageUploadService.uploadImageAsync(file.file)
+                  .then(imagePath => {
+                    this.cargandoImagen = false;
+                    // Construir la URL completa para mostrar la imagen
+                    const baseUrl = environment.apiBaseUrl.replace('/api', '');
+                    const fullImagePath = `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
+                    if (imagePath) subirImagen(fullImagePath);
+                    else this.mostrarMensaje('No se pudo obtener la ruta de la imagen', 'error');
                   })
-                  .catch(() => this.mostrarMensaje('Error al subir la imagen', 'error'));
+                  .catch(error => {
+                    this.cargandoImagen = false;
+                    console.error('Error al subir la imagen:', error);
+                    this.mostrarMensaje('Error al subir la imagen al servidor', 'error');
+                  });
               } else if (file.dataURL) {
                 subirImagen(file.dataURL);
               } else {
@@ -358,15 +362,16 @@ export class CreateComponent implements OnInit {
     });
   }
 
-  async uploadImageToCloudinary(file: File): Promise<string> {
-    const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'empleados');
-    const response = await fetch(url, { method: 'POST', body: formData });
-    const data = await response.json();
-    if (!data.secure_url) throw new Error('No se pudo obtener la URL de la imagen');
-    return data.secure_url;
+  async uploadImage(file: File): Promise<string> {
+    try {
+      const imagePath = await this.imageUploadService.uploadImageAsync(file);
+      // Construir la URL completa para mostrar la imagen
+      const baseUrl = environment.apiBaseUrl.replace('/api', '');
+      return `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
+    } catch (error) {
+      console.error('Error al subir la imagen:', error);
+      throw new Error('No se pudo subir la imagen');
+    }
   }
 
   // private async crearVisita(): Promise<any> {

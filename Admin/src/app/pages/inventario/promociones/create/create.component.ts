@@ -7,6 +7,7 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 import { Categoria } from 'src/app/Modelos/inventario/CategoriaModel';
 import { useAnimation } from '@angular/animations';
 import { Promocion } from 'src/app/Modelos/inventario/PromocionModel';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   selector: 'app-create',
@@ -36,12 +37,12 @@ export class CreateComponent {
   promociones: any[] = [];
   proveedores: any[] = [];
   impuestos: any[] = [];
-    filtro: string = '';
+  filtro: string = '';
   seleccionados: number[] = [];
   clientesAgrupados: { canal: string, clientes: any[], filtro: string, collapsed: boolean }[] = [];
-clientesSeleccionados: number[] = [];
-activeTab: number = 1;
-change(event: any) {
+  clientesSeleccionados: number[] = [];
+  activeTab: number = 1;
+  change(event: any) {
   }
   categoria: Categoria = {
     cate_Id: 0,
@@ -95,6 +96,16 @@ change(event: any) {
   precioFormatoValido: boolean = true;
   precioValido: boolean = true;
 
+  constructor(
+    private http: HttpClient,
+    private imageUploadService: ImageUploadService
+  ) {
+    this.cargarPromos();
+    this.cargarImpuestos();
+    this.listarClientes();
+    this.listarProductos();
+  }
+
   ngOnInit() {
     this.producto.prod_EsPromo = this.producto.prod_EsPromo || 'N';
     this.producto.prod_PagaImpuesto = this.producto.prod_PagaImpuesto || 'N';
@@ -132,13 +143,6 @@ change(event: any) {
     }
     console.log('Filtrando subcategorías para categoría:', categoriaId);
     this.filtrarSubcategoriasPorCategoria(categoriaId);
-  }
-
-  constructor(private http: HttpClient) {
-    this.cargarPromos();
-    this.cargarImpuestos();
-    this.listarClientes();
-    this.listarProductos();
   }
 
   listarClientes(): void {
@@ -420,26 +424,32 @@ change(event: any) {
     const file = event.target.files[0];
 
     if (file) {
-      // para enviar la imagen a Cloudinary
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'subidas_usuarios');
-      //Subidas usuarios Carpeta identificadora en Cloudinary
-      //dwiprwtmo es el nombre de la cuenta de Cloudinary
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-   
-      fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        this.producto.prod_Imagen = data.secure_url;
-        console.log(data);
-      })
-      .catch(error => {
-        console.error('Error al subir la imagen a Cloudinary:', error);
-      });
+      // Mostrar indicador de carga
+      this.mostrarOverlayCarga = true;
+      
+      // Crear una URL temporal para mostrar la imagen inmediatamente
+      const tempImageUrl = URL.createObjectURL(file);
+      this.producto.prod_Imagen = tempImageUrl;
+      
+      // Usar el servicio de carga de imágenes
+      this.imageUploadService.uploadImageAsync(file)
+        .then(imagePath => {
+          // Construir la URL completa para mostrar la imagen
+          const baseUrl = environment.apiBaseUrl.replace('/api', '');
+          this.producto.prod_Imagen = `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
+          this.mostrarOverlayCarga = false;
+          console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
+        })
+        .catch(error => {
+          console.error('Error al subir la imagen:', error);
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error al subir la imagen. Por favor, intente nuevamente.';
+          this.mostrarOverlayCarga = false;
+          setTimeout(() => {
+            this.mostrarAlertaError = false;
+            this.mensajeError = '';
+          }, 3000);
+        });
     }
   }
 
