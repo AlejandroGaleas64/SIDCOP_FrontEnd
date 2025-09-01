@@ -17,6 +17,13 @@ const routes: Routes = [
     canActivate: [PermisoGuard],
     data: { pantallaId: 62 } // ID 6: Roles
   },
+  {
+    path: 'migraciones',
+    loadChildren: () =>
+      import('./migraciones/migraciones.module').then(m => m.MigracionesModule),
+    canActivate: [PermisoGuard],
+    data: { pantallaId: 62 } // ID 6: Roles
+  },
 ];
 
 @NgModule({
