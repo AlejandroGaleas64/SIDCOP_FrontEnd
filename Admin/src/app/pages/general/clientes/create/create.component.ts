@@ -52,6 +52,7 @@ export class CreateComponent {
   TodasColonias: any[] = [];
   TodasColoniasAval: any[] = [];
   colonias: any[] = [];
+  imgLoaded: boolean = false;
 
   //Variables para el mapa
   latitudSeleccionada: number | null = null;
@@ -83,12 +84,6 @@ export class CreateComponent {
       });
     }
   }
-
-  // esCorreoValido(correo: string): boolean {
-  //   if (!correo) return true;
-  //   // Debe contener "@" y terminar en ".com"
-  //   return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
-  // }
 
   revisarCorreoValido(correo: string): boolean {
     if (!correo) return true;
@@ -383,7 +378,7 @@ export class CreateComponent {
   }
 
   constructor(
-    private http: HttpClient, 
+    private http: HttpClient,
     private cdr: ChangeDetectorRef,
     private imageUploadService: ImageUploadService
   ) {
@@ -446,6 +441,7 @@ export class CreateComponent {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Colonia/ListarMunicipiosyDepartamentos`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => this.TodasColoniasAval = data);
+
   }
 
   cargarColonias() {
@@ -468,6 +464,19 @@ export class CreateComponent {
       item.depa_Descripcion?.toLowerCase().includes(term)
     );
   };
+
+  busquedaColonia: string = '';
+  coloniasFiltradas: any[] = [];
+  filtrarColonias() {
+    const term = this.busquedaColonia.trim().toLowerCase();
+    if (!term) {
+      this.coloniasFiltradas = this.TodasColonias;
+    } else {
+      this.coloniasFiltradas = this.TodasColonias.filter(colonia =>
+        this.searchColonias(term, colonia)
+      );
+    }
+  }
 
   direccionExactaInicial: string = '';
 
@@ -797,6 +806,7 @@ export class CreateComponent {
             setTimeout(() => {
               this.mostrarAlertaError = false;
               this.mensajeError = '';
+              this.cancelar();
             }, 3000);
             return;
           }
@@ -804,9 +814,10 @@ export class CreateComponent {
             this.idDelCliente = response.data.data;
             this.guardarDireccionesPorCliente(this.idDelCliente);
             this.guardarAvales(this.idDelCliente);
+            this.mensajeExito = `Cliente "${this.cliente.clie_Nombres + ' ' + this.cliente.clie_Apellidos}" guardado exitosamente`;
+            this.mostrarAlertaExito = true;
             this.mostrarErrores = false;
             this.onSave.emit(this.cliente);
-            this.cancelar();
           }
         },
         error: (error) => {
@@ -854,9 +865,11 @@ export class CreateComponent {
         this.direccionEditandoIndex = null;
       } else {
         this.direccionesPorCliente.push({ ...this.direccionPorCliente });
+        this.limpiarDireccionModal();
       }
-      this.limpiarDireccionModal();
+      // this.limpiarDireccionModal();
       this.cerrarMapa();
+      this.validarDireccion = false;
     }
     else {
       this.mostrarErrores = true;
@@ -960,33 +973,35 @@ export class CreateComponent {
   }
 
   guardarAvales(clie_Id: number): void {
-    for (const aval of this.avales) {
-      const avalGuardar = {
-        ...aval,
-        clie_Id: clie_Id,
-        usua_Creacion: getUserId(),
-        aval_FechaCreacion: new Date(),
-        usua_Modificacion: getUserId(),
-        aval_FechaModificacion: new Date()
-      };
-      this.http.post<any>(`${environment.apiBaseUrl}/Aval/Insertar`, avalGuardar, {
-        headers: {
-          'X-Api-Key': environment.apiKey,
-          'Content-Type': 'application/json',
-          'accept': '*/*'
-        }
-      }).subscribe({
-        next: (response) => {
-        },
-        error: (error) => {
-          this.mostrarAlertaError = true;
-          this.mensajeError = 'Error al guardar el aval. Por favor, intente nuevamente.';
-          setTimeout(() => {
-            this.mostrarAlertaError = false;
-            this.mensajeError = '';
-          }, 3000);
-        }
-      });
+    // Solo guardar si el cliente tiene crédito y hay avales válidos
+    if (this.tieneDatosCredito() && this.avales.length > 0 && this.avales.every(aval => this.esAvalValido(aval))) {
+      for (const aval of this.avales) {
+        const avalGuardar = {
+          ...aval,
+          clie_Id: clie_Id,
+          usua_Creacion: getUserId(),
+          aval_FechaCreacion: new Date(),
+          usua_Modificacion: getUserId(),
+          aval_FechaModificacion: new Date()
+        };
+        this.http.post<any>(`${environment.apiBaseUrl}/Aval/Insertar`, avalGuardar, {
+          headers: {
+            'X-Api-Key': environment.apiKey,
+            'Content-Type': 'application/json',
+            'accept': '*/*'
+          }
+        }).subscribe({
+          next: (response) => { },
+          error: (error) => {
+            this.mostrarAlertaError = true;
+            this.mensajeError = 'Error al guardar el aval. Por favor, intente nuevamente.';
+            setTimeout(() => {
+              this.mostrarAlertaError = false;
+              this.mensajeError = '';
+            }, 3000);
+          }
+        });
+      }
     }
   }
 
@@ -1013,6 +1028,19 @@ export class CreateComponent {
   }
 
   //Llenar autompaticamente colonias al seleccionar un punto en el mapa
-  
+  coordenadasMapa: { lat: number; lng: number } | null = null;
+
+  actualizarCoordenadasManual() {
+    if (this.direccionPorCliente.diCl_Latitud && this.direccionPorCliente.diCl_Longitud) {
+      this.coordenadasMapa = {
+        lat: Number(this.direccionPorCliente.diCl_Latitud),
+        lng: Number(this.direccionPorCliente.diCl_Longitud)
+      };
+
+      if (this.mapaSelectorComponent) {
+        this.mapaSelectorComponent.setMarker(this.coordenadasMapa.lat, this.coordenadasMapa.lng);
+      }
+    }
+  }
 }
 
