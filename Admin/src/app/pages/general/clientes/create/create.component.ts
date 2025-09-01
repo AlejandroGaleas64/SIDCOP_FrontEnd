@@ -52,6 +52,7 @@ export class CreateComponent {
   TodasColonias: any[] = [];
   TodasColoniasAval: any[] = [];
   colonias: any[] = [];
+  imgLoaded: boolean = false;
 
   //Variables para el mapa
   latitudSeleccionada: number | null = null;
@@ -377,7 +378,7 @@ export class CreateComponent {
   }
 
   constructor(
-    private http: HttpClient, 
+    private http: HttpClient,
     private cdr: ChangeDetectorRef,
     private imageUploadService: ImageUploadService
   ) {
@@ -440,6 +441,7 @@ export class CreateComponent {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Colonia/ListarMunicipiosyDepartamentos`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => this.TodasColoniasAval = data);
+
   }
 
   cargarColonias() {
@@ -462,6 +464,19 @@ export class CreateComponent {
       item.depa_Descripcion?.toLowerCase().includes(term)
     );
   };
+
+  busquedaColonia: string = '';
+  coloniasFiltradas: any[] = [];
+  filtrarColonias() {
+    const term = this.busquedaColonia.trim().toLowerCase();
+    if (!term) {
+      this.coloniasFiltradas = this.TodasColonias;
+    } else {
+      this.coloniasFiltradas = this.TodasColonias.filter(colonia =>
+        this.searchColonias(term, colonia)
+      );
+    }
+  }
 
   direccionExactaInicial: string = '';
 
@@ -642,21 +657,34 @@ export class CreateComponent {
     const file = event.target.files[0];
 
     if (file) {
-      // Crear vista previa inmediata
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.imagePreview = e.target.result;
-      };
-      reader.readAsDataURL(file);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'subidas_usuarios');
+      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
 
-      this.isUploading = true;
-      this.imageUploadService.uploadImageAsync(file)
-        .then(imagePath => {
-          this.cliente.clie_ImagenDelNegocio = imagePath;
-          this.uploadedFiles = [imagePath];
-          this.isUploading = false;
-          // Limpiar preview ya que ahora tenemos la imagen del servidor
-          this.imagePreview = '';
+
+      fetch(url, {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(data => {
+          this.cliente.clie_ImagenDelNegocio = data.secure_url;
+          // Crear vista previa inmediata
+          // const reader = new FileReader();
+          // reader.onload = (e: any) => {
+          //   this.imagePreview = e.target.result;
+          // };
+          // reader.readAsDataURL(file);
+
+          // this.isUploading = true;
+          // this.imageUploadService.uploadImageAsync(file)
+          //   .then(imagePath => {
+          //     this.cliente.clie_ImagenDelNegocio = imagePath;
+          //     this.uploadedFiles = [imagePath];
+          //     this.isUploading = false;
+          //     // Limpiar preview ya que ahora tenemos la imagen del servidor
+          //     this.imagePreview = '';
         })
         .catch(error => {
           console.error('Error al subir la imagen:', error);
@@ -850,9 +878,11 @@ export class CreateComponent {
         this.direccionEditandoIndex = null;
       } else {
         this.direccionesPorCliente.push({ ...this.direccionPorCliente });
+        this.limpiarDireccionModal();
       }
-      this.limpiarDireccionModal();
+      // this.limpiarDireccionModal();
       this.cerrarMapa();
+      this.validarDireccion = false;
     }
     else {
       this.mostrarErrores = true;
@@ -1019,6 +1049,10 @@ export class CreateComponent {
         lat: Number(this.direccionPorCliente.diCl_Latitud),
         lng: Number(this.direccionPorCliente.diCl_Longitud)
       };
+
+      if (this.mapaSelectorComponent) {
+        this.mapaSelectorComponent.setMarker(this.coordenadasMapa.lat, this.coordenadasMapa.lng);
+      }
     }
   }
 }

@@ -205,5 +205,23 @@ export class MapaSelectorComponent implements AfterViewInit, OnChanges {
     });
   }
 
+  setMarker(lat: number, lng: number) {
+  if (this.map) {
+    const position = new google.maps.LatLng(lat, lng);
+    this.map.setCenter(position);
+    this.map.setZoom(16); // Puedes ajustar el zoom si lo deseas
+
+    if (this.marker) {
+      this.marker.setPosition(position);
+    } else {
+      const iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png';
+      this.marker = new google.maps.Marker({
+        position,
+        map: this.map,
+        icon: iconUrl,
+      });
+    }
+  }
+}
   
 }
