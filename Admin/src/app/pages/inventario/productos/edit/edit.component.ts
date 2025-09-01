@@ -27,6 +27,7 @@ export class EditComponent implements OnChanges {
   categoriaSeleccionada: number = 0;
   marcas: any[] = [];
   proveedores: any[] = [];
+  Pesos: any[] = [];
   impuestos: any[] = [];
   subcategoriaOriginalDescripcion: string = '';
   categoriaOriginalId: number = 0;
@@ -97,6 +98,7 @@ export class EditComponent implements OnChanges {
   constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {
     this.cargarMarcas();
     this.cargarProveedores();
+    this.cargarPesos();
     this.cargarImpuestos();
   }
 
@@ -111,6 +113,9 @@ export class EditComponent implements OnChanges {
       this.producto.marc_Descripcion = marcaActual ? marcaActual.marc_Descripcion : '';
       const proveedorActual = this.proveedores.find(p => p.prov_Id === this.producto.prov_Id);
       this.producto.prov_NombreEmpresa = proveedorActual ? proveedorActual.prov_NombreEmpresa : '';
+      const pesoActual = this.Pesos.find(p => p.unPe_Id === this.producto.unPe_Id);
+      this.producto.unPe_Descripcion = pesoActual ? pesoActual.unPe_Descripcion : '';
+      this.producto.unPe_Abreviatura = pesoActual ? pesoActual.unPe_Abreviatura : '';
       this.productoOriginal = { ...this.productoData };
       this.subcategoriaOriginalDescripcion = this.productoData?.subc_Descripcion ?? '';
       this.categoriaOriginalId = this.productoData?.cate_Id ?? 0;
@@ -140,6 +145,18 @@ export class EditComponent implements OnChanges {
       this.producto.prov_NombreEmpresa = proveedorSeleccionado.prov_NombreEmpresa;
     } else {
       this.producto.prov_NombreEmpresa = '';
+    }
+  }
+
+  onPesoChange(event: any) {
+    const selectedId = +event.target.value;
+    const pesoSeleccionado = this.Pesos.find(p => p.unPe_Id === selectedId);
+    if (pesoSeleccionado) {
+      this.producto.unPe_Descripcion = pesoSeleccionado.unPe_Descripcion;
+      this.producto.unPe_Abreviatura = pesoSeleccionado.unPe_Abreviatura;
+    } else {
+      this.producto.unPe_Descripcion = '';
+      this.producto.unPe_Abreviatura = '';
     }
   }
 
@@ -193,6 +210,16 @@ export class EditComponent implements OnChanges {
     }).subscribe(data => {this.proveedores = data;},
       error => {
         console.error('Error al cargar los proveedores:', error);
+      }
+    );
+  }
+
+  cargarPesos() {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/UnidadDePeso/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(data => {this.Pesos = data;},
+      error => {
+        console.error('Error al cargar las unidades de peso:', error);
       }
     );
   }
@@ -412,6 +439,22 @@ export class EditComponent implements OnChanges {
       };
     }
 
+    if (a.unPe_Id !== b.unPe_Id) {
+      this.cambiosDetectados.unidadPeso = {
+        anterior: b.unPe_Descripcion + ' (' + b.unPe_Abreviatura + ')',
+        nuevo: a.unPe_Descripcion + ' (' + a.unPe_Abreviatura + ')',
+        label: 'Unidad de Peso'
+      };
+    }
+
+    if (a.prod_Peso !== b.prod_Peso) {
+      this.cambiosDetectados.peso = {
+        anterior: b.prod_Peso,
+        nuevo: a.prod_Peso,
+        label: 'Peso'
+      };
+    }
+
     if (a.prod_PrecioUnitario !== b.prod_PrecioUnitario) {
       this.cambiosDetectados.precioUnitario = {
         anterior: b.prod_PrecioUnitario,
@@ -457,8 +500,11 @@ export class EditComponent implements OnChanges {
       this.producto.subc_Id &&
       this.producto.marc_Id &&
       this.producto.prov_Id &&
+      this.producto.unPe_Id &&
       this.producto.prod_PrecioUnitario != null &&
-      this.producto.prod_PrecioUnitario >= 0
+      this.producto.prod_Peso != null &&
+      this.producto.prod_PrecioUnitario > 0 &&
+      this.producto.prod_Peso >= 0
     ) {
       if (this.hayDiferencias()) {
         this.mostrarConfirmacionEditar = true;
@@ -493,8 +539,11 @@ export class EditComponent implements OnChanges {
       this.producto.subc_Id &&
       this.producto.marc_Id &&
       this.producto.prov_Id &&
+      this.producto.unPe_Id &&
       this.producto.prod_PrecioUnitario != null &&
-      this.producto.prod_PrecioUnitario >= 0
+      this.producto.prod_Peso != null &&
+      this.producto.prod_PrecioUnitario > 0 &&
+      this.producto.prod_Peso >= 0
     ) {
       const productoActualizar = {
         ...this.producto,
@@ -559,13 +608,19 @@ export class EditComponent implements OnChanges {
     const file = event.target.files[0];
 
     if (file) {
+      // Crear una URL temporal para mostrar la imagen inmediatamente
+      const tempImageUrl = URL.createObjectURL(file);
+      this.producto.prod_Imagen = tempImageUrl;
+
       // Mostrar indicador de carga
       this.mostrarOverlayCarga = true;
       
       // Usar el servicio de carga de imágenes
       this.imageUploadService.uploadImageAsync(file)
         .then(imagePath => {
-          this.producto.prod_Imagen = imagePath;
+          const baseUrl = environment.apiBaseUrl.replace('/api', '');
+          this.producto.prod_Imagen = `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
+          console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
           this.mostrarOverlayCarga = false;
         })
         .catch(error => {

@@ -76,7 +76,7 @@
             <!-- Codigo de Barras -->
             <div class="col-md-6">
               <div class="mb-3">
-                <label for="prod_CodigoBarra" class="form-label">Código de Barras</label>
+                <label for="prod_CodigoBarra" class="form-label">Código de Barras <span class="text-light-emphasis" style="font-size: smaller;"> (Opcional)</span></label>
                 <div class="d-flex align-items-center">
                   <i class="ri-barcode-line" [ngStyle]="{
                       border: '1px solid #e9ecf5',
@@ -243,7 +243,7 @@
               <div class="mb-3">
                 <label for="unPe_Id" class="form-label">Unidades de Peso<span class="text-danger">*</span></label>
                 <div class="d-flex align-items-center">
-                  <i class="ri-truck-line" [ngStyle]="{
+                  <i class="ri-ruler-line" [ngStyle]="{
                     border: (!producto.unPe_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
                     backgroundColor: (!producto.unPe_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                     padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
@@ -264,10 +264,10 @@
               <div class="mb-3">
                 <label for="prod_Peso" class="form-label">Cantidad de Peso<span class="text-danger">*</span></label>
                 <div class="d-flex align-items-center">
-                  <span [ngStyle]="{
+                  <i class="ri-scales-2-line" [ngStyle]="{
                     border: (!producto.prod_Peso && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
                     backgroundColor: (!producto.prod_Peso && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">L.</span>
+                    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
                   <input type="number" class="form-control" id="prod_Peso" [(ngModel)]="producto.prod_Peso" [class.is-invalid]="!producto.prod_Peso && mostrarErrores" placeholder="0.00" required/>
                 </div>
                 <div class="text-danger mt-1" *ngIf="!producto.prod_Peso && mostrarErrores">
