@@ -11,6 +11,7 @@ import { Aval } from 'src/app/Modelos/general/Aval.Model';
 import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente.Model';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { Router } from '@angular/router';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   selector: 'app-edit',
@@ -81,7 +82,7 @@ export class EditComponent implements OnChanges {
   avalesEliminados: number[] = [];
 
   @Input() coordenadasIniciales?: { lat: number, lng: number };
-  
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['clienteData']?.currentValue) {
       this.cliente = { ...changes['clienteData'].currentValue };
@@ -98,6 +99,13 @@ export class EditComponent implements OnChanges {
         );
       } else {
         this.cliente.clie_FechaNacimiento = null;
+      }
+
+      // Inicializar uploadedFiles con la imagen existente si la hay
+      if (this.cliente.clie_ImagenDelNegocio) {
+        this.uploadedFiles = [this.cliente.clie_ImagenDelNegocio];
+      } else {
+        this.uploadedFiles = [];
       }
 
       const formatoCodigo = /^CLIE-RT-\d{3}-\d{6}$/;
@@ -164,7 +172,6 @@ export class EditComponent implements OnChanges {
     this.cliente.clie_FechaNacimiento = valor ? new Date(valor) : null;
   }
 
-
   //Declarado para validar la direccion
   validarDireccion: boolean = false;
   //Validacion para que no se desplace con el tab de arriba
@@ -203,7 +210,6 @@ export class EditComponent implements OnChanges {
       if (
         // this.cliente.clie_Codigo.trim() &&
         this.cliente.clie_Nacionalidad.trim() &&
-        this.cliente.clie_RTN.trim() &&
         this.cliente.clie_Nombres.trim() &&
         this.cliente.clie_Apellidos.trim() &&
         this.cliente.esCv_Id &&
@@ -351,11 +357,9 @@ export class EditComponent implements OnChanges {
       if (
         // this.cliente.clie_Codigo.trim() &&
         this.cliente.clie_Nacionalidad.trim() &&
-        this.cliente.clie_RTN.trim() &&
         this.cliente.clie_Nombres.trim() &&
         this.cliente.clie_Apellidos.trim() &&
         this.cliente.esCv_Id &&
-        this.cliente.clie_FechaNacimiento &&
         this.cliente.tiVi_Id &&
         this.cliente.clie_Telefono.trim()
       ) {
@@ -424,8 +428,7 @@ export class EditComponent implements OnChanges {
             this.activeTab = 4;
           } else {
             this.mostrarAlertaWarning = true;
-            this.mensajeWarning =
-              'Se asigno Dias de Credito, pero no un crédito.';
+            this.mensajeWarning = 'Se asigno Dias de Credito, pero no un crédito.';
             setTimeout(() => {
               this.mostrarAlertaWarning = false;
               this.mensajeWarning = '';
@@ -509,7 +512,8 @@ export class EditComponent implements OnChanges {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private imageUploadService: ImageUploadService
   ) {
     this.cargarPaises();
     this.cargarTiposDeVivienda();
@@ -765,26 +769,57 @@ export class EditComponent implements OnChanges {
     this.mensajeWarning = '';
   }
 
+  // Variables para manejo de imágenes
+  uploadedFiles: string[] = [];
+  isUploading = false;
+
   onImagenSeleccionada(event: any) {
     const file = event.target.files[0];
     if (file) {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'subidas_usuarios');
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-
-      fetch(url, {
-        method: 'POST',
-        body: formData,
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.cliente.clie_ImagenDelNegocio = data.secure_url;
-          //console.log(this.cliente.clie_ImagenDelNegocio);
+      this.isUploading = true;
+      this.imageUploadService.uploadImageAsync(file)
+        .then(imagePath => {
+          this.cliente.clie_ImagenDelNegocio = imagePath;
+          this.uploadedFiles = [imagePath];
+          this.isUploading = false;
         })
-        .catch((error) => {
-          //console.error('Error al subir la imagen a Cloudinary:', error);
+        .catch(error => {
+          console.error('Error al subir la imagen:', error);
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error al subir la imagen. Por favor, intente nuevamente.';
+          this.isUploading = false;
+          setTimeout(() => {
+            this.mostrarAlertaError = false;
+            this.mensajeError = '';
+          }, 3000);
         });
+    }
+  }
+
+  /**
+   * Construye la URL completa para mostrar la imagen
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
+  }
+
+  /**
+   * Obtiene la imagen a mostrar (la subida o la por defecto)
+   */
+  getImageToDisplay(): string {
+    if (this.cliente.clie_ImagenDelNegocio && this.cliente.clie_ImagenDelNegocio.trim()) {
+      return this.getImageDisplayUrl(this.cliente.clie_ImagenDelNegocio);
+    }
+    return 'assets/images/users/32/user-svg.svg';
+  }
+
+  /**
+   * Elimina una imagen de la lista
+   */
+  removeImage(index: number): void {
+    this.uploadedFiles.splice(index, 1);
+    if (this.uploadedFiles.length === 0) {
+      this.cliente.clie_ImagenDelNegocio = '';
     }
   }
 
@@ -1481,10 +1516,7 @@ export class EditComponent implements OnChanges {
   private validarCampos(): boolean {
     const errores: string[] = [];
 
-    // Validar campos básicos requeridos
-    if (!this.cliente.clie_RTN.trim()) {
-      errores.push('RTN');
-    }
+    // Validar campos básicos requerido
 
     if (!this.cliente.clie_Nombres.trim()) {
       errores.push('Nombres');

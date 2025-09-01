@@ -15,6 +15,7 @@ import { EditConfigFacturaComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
 import { trigger, state, style, transition, animate } from '@angular/animations';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 // Importar el servicio de exportación optimizado
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
@@ -145,7 +146,8 @@ export class ListComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     public floatingMenuService: FloatingMenuService,
-    private exportService: ExportService
+    private exportService: ExportService,
+    private imageUploadService: ImageUploadService
   ) {
     this.cargardatos(true);
   }
@@ -478,6 +480,13 @@ export class ListComponent implements OnInit {
   onImgError(event: Event): void {
     const target = event.target as HTMLImageElement;
     target.src = 'assets/images/users/32/user-dummy-img.jpg';
+  }
+
+  /**
+   * Obtiene la URL completa para mostrar la imagen
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
   }
 
   cerrarAlerta(): void {

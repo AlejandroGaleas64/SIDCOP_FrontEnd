@@ -28,6 +28,18 @@
      <h5 class="mb-0">Detalles del Vendedor</h5>
   </div>
   <div class="card-body">
+    <!-- Imagen del Vendedor -->
+    <div class="row mb-4" *ngIf="vendedorDetalle.vend_Imagen">
+      <div class="col-12 text-center">
+        <div class="image-display-container">
+          <img [src]="getImageDisplayUrl(vendedorDetalle.vend_Imagen)" 
+               [alt]="'Imagen de ' + vendedorDetalle.vend_Nombres + ' ' + vendedorDetalle.vend_Apellidos"
+               class="vendedor-image"
+               style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%; border: 3px solid #d6b68a; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        </div>
+      </div>
+    </div>
+    
     <div class="row g-3">
       <div class="col-12 col-sm-6">
         <div class="detail-item">

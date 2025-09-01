@@ -65,6 +65,11 @@ const routes: Routes = [
     loadChildren: () =>
       import('./ventas/ventas.module').then((m) => m.VentasModule),
   },
+  {
+    path: 'metas',
+    loadChildren: () =>
+      import('./metas/metas.module').then((m) => m.MetasModule),
+  },
 ];
 
 @NgModule({
