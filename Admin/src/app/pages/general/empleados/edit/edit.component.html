@@ -38,6 +38,7 @@
               class="form-control" 
               id="empl_DNI"
               mask="0000-0000-00000"
+              [dropSpecialCharacters]="false"
               maxlength="15"
               [class.is-invalid]="!empleado.empl_DNI.trim() && mostrarErrores"
               [(ngModel)]="empleado.empl_DNI"
