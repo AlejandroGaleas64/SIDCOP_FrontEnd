@@ -49,11 +49,37 @@
 
 
 
+        <!-- Collapse para el formulario de creación -->
+        <div *ngIf="showCreateForm" [@fadeExpand]>
+          <div class="card card-body mb-3 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
+            <div class="container-fluid flex-grow-1">
+              <app-create (onCancel)="cerrarFormulario()" (onSave)="guardarPE($event)"></app-create>
+            </div>
+          </div>
+        </div>
+
+
         <!-- Collapse para el formulario de edición -->
+        <div *ngIf="showEditForm" [@fadeExpand]>
+          <div class="card card-body mb-3 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
+            <div class="container-fluid flex-grow-1">
+              <app-edit [PEData]="PEEditando" (onCancel)="cerrarFormularioEdicion()" (onSave)="actualizarPE($event)">
+              </app-edit>
+            </div>
+          </div>
+        </div>
 
 
 
         <!-- Collapse para el formulario de detalles -->
+        <div *ngIf="showDetailsForm" [@fadeExpand]>
+          <div class="card card-body mb-3 d-flex flex-column" style="min-height: 400px; padding: 0.5rem;">
+            <div class="container-fluid flex-grow-1">
+              <app-details [PEData]="PEDetalle" (onClose)="cerrarFormularioDetalles()">
+              </app-details>
+            </div>
+          </div>
+        </div>
 
 
         <!--Tabla-->
@@ -124,7 +150,103 @@
                     </span>
                   </th>
 
-                 
+                  <th class="gridjs-th" (click)="table.sortBy('puEm_Descripcion')" style="cursor: pointer">
+                    <span style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                        gap: 4px;
+                      ">
+                      Descripción
+                      <!-- iconos para ordenar -->
+                      <span style="
+                          display: flex;
+                          flex-direction: column;
+                          margin-left: 6px;
+                        ">
+                        <i class="ri-arrow-up-s-line icon-sort" [ngStyle]="
+                            table.sortField === 'puEm_Descripcion' &&
+                            table.sortDirection === 'asc'
+                              ? { color: '#D6B68A' }
+                              : { color: 'white' }
+                          ">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort" [ngStyle]="
+                            table.sortField === 'puEm_Descripcion' &&
+                            table.sortDirection === 'desc'
+                              ? { color: '#D6B68A' }
+                              : { color: 'white' }
+                          ">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+
+                  <th class="gridjs-th" (click)="table.sortBy('sucu_Descripcion')" style="cursor: pointer">
+                    <span style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                        gap: 4px;
+                      ">
+                      Sucursal
+                      <!-- iconos para ordenar -->
+                      <span style="
+                          display: flex;
+                          flex-direction: column;
+                          margin-left: 6px;
+                        ">
+                        <i class="ri-arrow-up-s-line icon-sort" [ngStyle]="
+                            table.sortField === 'sucu_Descripcion' &&
+                            table.sortDirection === 'asc'
+                              ? { color: '#D6B68A' }
+                              : { color: 'white' }
+                          ">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort" [ngStyle]="
+                            table.sortField === 'sucu_Descripcion' &&
+                            table.sortDirection === 'desc'
+                              ? { color: '#D6B68A' }
+                              : { color: 'white' }
+                          ">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+
+                  <th class="gridjs-th" (click)="table.sortBy('estado')" style="cursor: pointer">
+                    <span style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                        gap: 4px;
+                      ">
+                      Estado
+                      <!-- iconos para ordenar -->
+                      <span style="
+                          display: flex;
+                          flex-direction: column;
+                          margin-left: 6px;
+                        ">
+                        <i class="ri-arrow-up-s-line icon-sort" [ngStyle]="
+                            table.sortField === 'estado' &&
+                            table.sortDirection === 'asc'
+                              ? { color: '#D6B68A' }
+                              : { color: 'white' }
+                          ">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort" [ngStyle]="
+                            table.sortField === 'estado' &&
+                            table.sortDirection === 'desc'
+                              ? { color: '#D6B68A' }
+                              : { color: 'white' }
+                          ">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+
+
                 </tr>
                 <tr class="gridjs-th" *ngFor="let data of table.paginated$ | async; let i = index">
                   <td class="position-relative" *ngIf="
@@ -146,7 +268,18 @@
                   <td>{{ data.puEm_Codigo }}</td>
                   <td>{{ data.puEm_Descripcion }}</td>
                   <td>{{ data.sucu_Descripcion }}</td>
-                  <td>{{ data.estado }}</td>
+                  <td style="text-align: center;">
+                    <span *ngIf="data.estado === 'Activo'" class="badge fw-semibold mb-1 px-3 py-1 border"
+                      style="font-size: 0.8rem; background-color: #D1E7DD; color: #0A3622;">
+                      <i class="ri-checkbox-circle-fill" style="font-size: 0.6rem;"></i>
+                      Activo
+                    </span>
+                    <span *ngIf="data.estado === 'Inactivo'" class="badge fw-semibold mb-1 px-3 py-1 border"
+                      style="font-size: 0.8rem; background-color: #FBCFD4; color: #4E1212">
+                     <i class="ri-close-fill" style="font-size: 0.6rem;"></i>
+                      Inactivo
+                    </span>
+                  </td>
                 </tr>
               </thead>
             </table>
@@ -205,7 +338,36 @@
 </div>
 
 <!-- Modal de confirmación para eliminar -->
-
+<div class="modal fade custom-modal" [ngClass]="{ show: mostrarConfirmacionEliminar }"
+  [style.display]="mostrarConfirmacionEliminar ? 'block' : 'none'" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content shadow-lg border-0" style="border-radius: 18px; overflow: hidden;">
+      <div class="modal-header py-3" style="background:#141a2f; border: none;">
+        <div class="fw-bold text-white d-flex align-items-center" style="font-size: 1.3rem;">
+          <i *ngIf="PEEliminar?.estado === 'Activo'" class="ri-close-circle-line me-2" style="font-size: 1.6rem; color: #d6b68a;"></i>
+          <i *ngIf="PEEliminar?.estado !== 'Activo'" class="ri-checkbox-circle-line me-2" style="font-size: 1.6rem; color: #d6b68a;"></i>
+          {{ PEEliminar?.estado === 'Activo' ? 'Desactivar' : 'Activar' }}
+        </div>
+        <button type="button" class="btn-close btn-close-white" (click)="cancelarEliminar()"></button>
+      </div>
+      <div class="modal-body p-4" style="background: #f9fafc;">
+        <p class="text-muted mb-3" style="font-size: 1.05rem;">
+          ¿Estás seguro(a) que deseas {{ PEEliminar?.estado === 'Activo' ? 'desactivar' : 'activar' }} el punto de emisión: <strong>{{ PEEliminar?.puEm_Descripcion }}</strong>?
+        </p>
+      </div>
+      <div class="modal-footer py-3" style="background: #fff; border-top: 1px solid #f0f0f0;">
+        <button type="button" class="btn btn-primary gold" (click)="cancelarEliminar()">
+          <span class="btn-text">Cancelar</span>
+          <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+        </button>
+        <button type="button" class="btn btn-primary" (click)="eliminar()">
+          <span class="btn-text">Confirmar</span>
+          <span class="btn-icon"><i class="ri-check-double-line"></i></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Overlay para el modal -->
 <div class="modal-backdrop fade" [ngClass]="{ show: mostrarConfirmacionEliminar }" *ngIf="mostrarConfirmacionEliminar">
@@ -223,7 +385,23 @@
       Editar <i class="ri-edit-line"></i>
     </button>
   </li>
- 
+
+  <li *ngIf="accionPermitida('eliminar')">
+    <button type="button" class="dropdown-action-btn" (click)="
+        confirmarEliminar(floatingMenuService.data); floatingMenuService.close()
+      ">
+      {{
+      floatingMenuService.data?.estado === "Activo" ? "Desactivar" : "Activar"
+      }}
+
+      <i [class]="
+          floatingMenuService.data?.estado === 'Activo'
+            ? 'ri-close-circle-line'
+            : 'ri-checkbox-circle-line'
+        "></i>
+    </button>
+  </li>
+
   <li *ngIf="accionPermitida('detalle')">
     <button type="button" class="dropdown-action-btn"
       (click)="detalles(floatingMenuService.data); floatingMenuService.close()">
@@ -231,6 +409,8 @@
     </button>
   </li>
 </ul>
+
+
 
 <div *ngIf="mostrarOverlayCarga" class="overlay-carga">
   <div class="typing-indicator">
