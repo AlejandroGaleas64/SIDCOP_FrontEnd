@@ -657,34 +657,21 @@ export class CreateComponent {
     const file = event.target.files[0];
 
     if (file) {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'subidas_usuarios');
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
+      // Crear vista previa inmediata
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imagePreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
 
-
-      fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-        .then(response => response.json())
-        .then(data => {
-          this.cliente.clie_ImagenDelNegocio = data.secure_url;
-          // Crear vista previa inmediata
-          // const reader = new FileReader();
-          // reader.onload = (e: any) => {
-          //   this.imagePreview = e.target.result;
-          // };
-          // reader.readAsDataURL(file);
-
-          // this.isUploading = true;
-          // this.imageUploadService.uploadImageAsync(file)
-          //   .then(imagePath => {
-          //     this.cliente.clie_ImagenDelNegocio = imagePath;
-          //     this.uploadedFiles = [imagePath];
-          //     this.isUploading = false;
-          //     // Limpiar preview ya que ahora tenemos la imagen del servidor
-          //     this.imagePreview = '';
+      this.isUploading = true;
+      this.imageUploadService.uploadImageAsync(file)
+        .then(imagePath => {
+          this.cliente.clie_ImagenDelNegocio = imagePath;
+          this.uploadedFiles = [imagePath];
+          this.isUploading = false;
+          // Limpiar preview ya que ahora tenemos la imagen del servidor
+          this.imagePreview = '';
         })
         .catch(error => {
           console.error('Error al subir la imagen:', error);

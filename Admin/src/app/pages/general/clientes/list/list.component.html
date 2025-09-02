@@ -143,7 +143,7 @@
         <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4 mx-auto">
           <div class="card card-empleado position-relative h-100">
             <div class="card-header p-0 position-relative header-bg"
-              [ngStyle]="{ 'background-image': cliente.clie_ImagenDelNegocio }">
+              [ngStyle]="{ 'background-image': 'url(' + getClienteImageToDisplay(cliente) + ')' }">
               <div class="header-overlay"></div>
 
               <div style="position: absolute; top: 10px; left: 18px; z-index:1;">
@@ -237,7 +237,7 @@
         <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4 mx-auto">
           <div class="card card-empleado position-relative h-100" [class.cliente-inactivo]="!esClienteActivo(cliente)">
             <div class="card-header p-0 position-relative header-bg"
-              [ngStyle]="{ 'background-image': 'url(' + (cliente.clie_ImagenDelNegocio || 'assets/images/imagenes/full-logo.png') + ')' }">
+              [ngStyle]="{ 'background-image': 'url(' + getClienteImageToDisplay(cliente) + ')' }">
               <div class="header-overlay"></div>
 
               <div style="position: absolute; top: 10px; left: 18px; z-index:1;">

@@ -26,6 +26,7 @@ import {
 } from '@angular/animations';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/exportHori.service';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   standalone: true,
@@ -518,7 +519,8 @@ export class ListComponent {
     private router: Router,
     private route: ActivatedRoute,
     private formBuilder: UntypedFormBuilder,
-    private exportService: ExportService) {
+    private exportService: ExportService,
+    private imageUploadService: ImageUploadService) {
     this.cargarDatos(true);
   }
 
@@ -714,5 +716,21 @@ export class ListComponent {
     return cliente.clie_Estado === 1 || cliente.clie_Estado === true;
   }
 
+  /**
+   * Construye la URL completa para mostrar la imagen
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
+  }
+
+  /**
+   * Obtiene la imagen a mostrar para un cliente
+   */
+  getClienteImageToDisplay(cliente: any): string {
+    if (cliente?.clie_ImagenDelNegocio && cliente.clie_ImagenDelNegocio.trim()) {
+      return this.getImageDisplayUrl(cliente.clie_ImagenDelNegocio);
+    }
+    return 'assets/images/imagenes/full-logo.png';
+  }
 
 }
