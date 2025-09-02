@@ -14,6 +14,7 @@ interface TreeItem {
   expanded: boolean;
   children?: TreeItem[];
   parent?: TreeItem;
+  esReporte?: boolean;
 }
 
 interface Permiso {
@@ -171,21 +172,24 @@ export class EditComponent implements OnChanges {
                 children: []
               };
 
-              pantallaNode.children = pantalla.Acciones.map((accion: Accion) => {
-                const accionIdCompuesto = `${pantalla.Pant_Id}_${accion.Acci_Id}`;
-                const selected = this.permisosDelRol.includes(accionIdCompuesto);
+              const esReporte = esquema.Esquema === 'Reportes';
+              pantallaNode.esReporte = esReporte;
+
+              pantallaNode.children  = pantalla.Acciones.map((accion: Accion) => {
+                const selected = this.permisosDelRol.includes(`${pantalla.Pant_Id}_${accion.Acci_Id}`);
                 return {
-                  id: accionIdCompuesto,
+                  id: `${pantalla.Pant_Id}_${accion.Acci_Id}`,
                   name: accion.Accion,
                   type: 'accion',
                   selected: selected,
                   expanded: false,
-                  parent: pantallaNode
+                  parent: pantallaNode  
                 };
               });
 
-              pantallaNode.selected = pantallaNode.children.some(c => c.selected);
+              pantallaNode.selected = pantallaNode.children.some(c => c.selected) ?? false;
               pantallaNode.expanded = pantallaNode.selected;
+
               return pantallaNode;
             });
 
