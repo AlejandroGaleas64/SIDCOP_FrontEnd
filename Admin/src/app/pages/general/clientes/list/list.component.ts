@@ -26,6 +26,7 @@ import {
 } from '@angular/animations';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/exportHori.service';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   standalone: true,
@@ -86,6 +87,7 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
 })
 
 export class ListComponent {
+  mostrarErrores: boolean = false;
   private readonly exportConfig = {
     // Configuración básica
     title: 'Listado de Clientes',                    // Título del reporte
@@ -460,6 +462,8 @@ export class ListComponent {
       this.clientesFiltrados = this.clienteGrid.filter((cliente: any) =>
         (cliente.clie_Codigo || '').toLowerCase().includes(termino) ||
         (cliente.clie_Nombres || '').toLowerCase().includes(termino) ||
+        (cliente.clie_Apellidos || '').toLowerCase().includes(termino) ||
+        (cliente.clie_DNI || '').toLowerCase().includes(termino) ||
         (cliente.clie_NombreNegocio || '').toLowerCase().includes(termino)
       );
     }
@@ -515,7 +519,8 @@ export class ListComponent {
     private router: Router,
     private route: ActivatedRoute,
     private formBuilder: UntypedFormBuilder,
-    private exportService: ExportService) {
+    private exportService: ExportService,
+    private imageUploadService: ImageUploadService) {
     this.cargarDatos(true);
   }
 
@@ -631,30 +636,30 @@ export class ListComponent {
 
   guardarCliente(cliente: Cliente): void {
     this.mostrarOverlayCarga = true;
-    setTimeout(() => {
+    // setTimeout(() => {
       this.cargarDatos(true);
-      this.mostrarOverlayCarga = false;
-      this.mensajeExito = 'Cliente guardado exitosamente.';
-      this.mostrarAlertaExito = true;
-      setTimeout(() => {
-        this.mostrarAlertaExito = false;
-        this.mensajeExito = '';
-      }, 3000);
-    }, 1000);
+      // this.mostrarOverlayCarga = false;
+      // this.mensajeExito = 'Cliente guardado exitosamente.';
+      // this.mostrarAlertaExito = true;
+      // setTimeout(() => {
+      //   this.mostrarAlertaExito = false;
+      //   this.mensajeExito = '';
+      // }, 3000);
+    // }, 1000);
   }
 
   actualizarCliente(cliente: Cliente): void {
     this.mostrarOverlayCarga = true;
-    setTimeout(() => {
+    // setTimeout(() => {
       this.cargarDatos(true);
-      this.mostrarOverlayCarga = false;
-      this.mensajeExito = 'Cliente actualizado exitosamente.';
-      this.mostrarAlertaExito = true;
-      setTimeout(() => {
-        this.mostrarAlertaExito = false;
-        this.mensajeExito = '';
-      }, 3000);
-    }, 1000);
+      // this.mostrarOverlayCarga = false;
+      // this.mensajeExito = `Cliente "${cliente.clie_Nombres} ${cliente.clie_Apellidos}" actualizado exitosamente.`;
+      // this.mostrarAlertaExito = true;
+      // setTimeout(() => {
+      //   this.mostrarAlertaExito = false;
+      //   this.mensajeExito = '';
+      // }, 3000);
+    // }, 1000);
   }
 
   confirmarEliminar(cliente: Cliente): void {
@@ -681,8 +686,16 @@ export class ListComponent {
       next: (resp) => {
         if (resp.code_Status === 1) {
           // Éxito: muestra mensaje y refresca la lista
-          this.mostrarAlertaExito = true;
-          this.mensajeExito = resp.message_Status || 'Estado cambiado correctamente.';
+          const nuevoEstado = !this.esClienteActivo(this.clienteAEliminar); // Cambia el estado actual
+        const accion = nuevoEstado ? 'activó' : 'desactivó';
+        this.mensajeExito = `Cliente "${this.clienteAEliminar?.clie_Nombres} ${this.clienteAEliminar?.clie_Apellidos}" se ${accion} exitosamente`;
+        this.mostrarAlertaExito = true;
+        this.mostrarErrores = false;
+
+            setTimeout(() => {
+              this.mostrarAlertaExito = false;
+              this.mensajeExito = '';
+            }, 4000);
           this.cargarDatos(true);
           this.cancelarEliminar();
         } else {
@@ -703,5 +716,21 @@ export class ListComponent {
     return cliente.clie_Estado === 1 || cliente.clie_Estado === true;
   }
 
- 
+  /**
+   * Construye la URL completa para mostrar la imagen
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
+  }
+
+  /**
+   * Obtiene la imagen a mostrar para un cliente
+   */
+  getClienteImageToDisplay(cliente: any): string {
+    if (cliente?.clie_ImagenDelNegocio && cliente.clie_ImagenDelNegocio.trim()) {
+      return this.getImageDisplayUrl(cliente.clie_ImagenDelNegocio);
+    }
+    return 'assets/images/imagenes/full-logo.png';
+  }
+
 }

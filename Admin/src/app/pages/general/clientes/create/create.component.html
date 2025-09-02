@@ -121,9 +121,8 @@
                 backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
-              <input type="text" class="form-control"
-                id="clienteRTN" [(ngModel)]="cliente.clie_RTN" placeholder="Ingrese el RTN del cliente"
-                mask="00000000000000" />
+              <input type="text" class="form-control" id="clienteRTN" [(ngModel)]="cliente.clie_RTN"
+                placeholder="Ingrese el RTN del cliente" mask="00000000000000" />
             </div>
           </div>
         </div>
@@ -344,13 +343,13 @@
             borderRadius: '10px', position: 'relative', overflow: 'hidden', width: '100%', height: '235px', backgroundColor: '#ffffff'}">
               <input type="file" accept="image/*" (change)="onImagenSeleccionada($event)"
                 style="opacity: 0; position: absolute; width: 100%; height: 100%; left: 0; top: 0; cursor: pointer; z-index: 2;" />
-              <div *ngIf="!cliente.clie_ImagenDelNegocio"
+              <div *ngIf="!cliente.clie_ImagenDelNegocio && !imagePreview"
                 style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1;">
                 <i class="ri-camera-line"
                   style=" margin-right: 10px; font-size: 20px; font-weight: 200; color: #878c9c; margin-bottom: 0.3em;"></i>
                 <h5 class="text-muted">Seleccionar imagen</h5>
               </div>
-              <img *ngIf="cliente.clie_ImagenDelNegocio" [src]="cliente.clie_ImagenDelNegocio" alt="Previsualización"
+              <img *ngIf="cliente.clie_ImagenDelNegocio || imagePreview" [src]="getImageToDisplay()" alt="Previsualización"
                 style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;" />
             </div>
             <div class="text-danger mt-1" *ngIf="!cliente.clie_ImagenDelNegocio.trim() && mostrarErrores">
@@ -810,7 +809,7 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Dirección Exacta -->
           <div class="col-md-6">
             <div class="mb-3">
@@ -974,7 +973,7 @@
                 <input type="text" class="form-control" id="clienteDireccionExacta"
                   [(ngModel)]="direccionPorCliente.diCl_Latitud"
                   [class.is-invalid]="!direccionPorCliente.diCl_Latitud && mostrarErrores" placeholder="Latitud"
-                  required />
+                  (ngModelChange)="actualizarCoordenadasManual()" required />
               </div>
               <div class="text-danger" *ngIf="!direccionPorCliente.diCl_Latitud && mostrarErrores">
                 <small>El campo Latitud es requerida</small>
@@ -996,7 +995,7 @@
                 <input type="text" class="form-control" id="clienteDireccionExacta"
                   [(ngModel)]="direccionPorCliente.diCl_Longitud"
                   [class.is-invalid]="!direccionPorCliente.diCl_Longitud && mostrarErrores" placeholder="Longitud"
-                  required />
+                  (ngModelChange)="actualizarCoordenadasManual()" required />
               </div>
               <div class="text-danger" *ngIf="!direccionPorCliente.diCl_Longitud && mostrarErrores">
                 <small>El Longitud es requerida</small>
@@ -1028,30 +1027,32 @@
           </div>
 
           <!-- Colonia -->
-          <div class="col-md-6">
+           <div class="col-md-6">
+            <label class="form-label">Colonia<span class="text-danger">*</span></label>
             <div class="mb-3">
-              <label for="colo_Id" class="form-label">Colonia</label>
-              <span class="text-danger">*</span>
               <div class="d-flex align-items-center">
                 <i class="ri-community-line"
                   [ngStyle]="{
-                  border: (!direccionPorCliente.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                  backgroundColor: (!direccionPorCliente.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                border: (!direccionPorCliente.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!direccionPorCliente.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
-                <select id="colo_Id" name="colo_Id" class="form-select" [(ngModel)]="direccionPorCliente.colo_Id"
-                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores" required>
-                  <option value="0" disabled>Seleccione una colonia</option>
-                  <option *ngFor="let colonia of TodasColonias" [value]="colonia.colo_Id">
-                    {{ colonia.colo_Descripcion }}, {{ colonia.muni_Descripcion }}, {{ colonia.depa_Descripcion }}
-                  </option>
-                </select>
-                <div *ngIf="cargandoColonias" class="form-text text-muted">
-                  Cargando Colonias...
-                </div>
+                <ng-select class="w-100" [items]="TodasColonias" bindLabel="colo_Descripcion" bindValue="colo_Id"
+                  [(ngModel)]="direccionPorCliente.colo_Id" [searchable]="true" [clearable]="false"
+                  [class.is-invalid]="!direccionPorCliente.colo_Id && mostrarErrores"
+                  placeholder="Seleccione una colonia" required [searchFn]="searchColonias"
+                  (ngModelChange)="onColoniaSeleccionada($event)">
+                  <ng-template ng-label-tmp let-item="item">
+                    {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
+                  </ng-template>
+                  <ng-template ng-option-tmp let-item="item">
+                    {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
+                  </ng-template>
+                </ng-select>
+                <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
               </div>
               <div class="text-danger mt-1" *ngIf="!direccionPorCliente.colo_Id && mostrarErrores">
-                <small>El campo Colonias es requerido</small>
+                <small>El campo Colonia es requerido</small>
               </div>
             </div>
           </div>
@@ -1079,6 +1080,7 @@
               </div>
             </div>
           </div>
+          
           <div class="col-md-12 d-flex justify-content-end gap-2 mt-4">
             <button type="button" class="btn btn-primary gold" style="height: 100%; transform: rotate(180deg);"
               (click)="cancelar()">

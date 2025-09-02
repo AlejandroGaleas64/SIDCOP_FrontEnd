@@ -6,6 +6,7 @@ import { Producto } from 'src/app/Modelos/inventario/Producto.Model';
 import { Categoria } from 'src/app/Modelos/inventario/CategoriaModel';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   selector: 'app-edit',
@@ -90,7 +91,7 @@ export class EditComponent implements OnChanges {
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {
     this.cargarMarcas();
     this.cargarProveedores();
     this.cargarImpuestos();
@@ -579,26 +580,25 @@ export class EditComponent implements OnChanges {
     const file = event.target.files[0];
 
     if (file) {
-      // para enviar la imagen a Cloudinary
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'subidas_usuarios');
-      //Subidas usuarios Carpeta identificadora en Cloudinary
-      //dwiprwtmo es el nombre de la cuenta de Cloudinary
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-
+      // Mostrar indicador de carga
+      this.mostrarOverlayCarga = true;
       
-      fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        this.producto.prod_Imagen = data.secure_url;
-      })
-      .catch(error => {
-        console.error('Error al subir la imagen a Cloudinary:', error);
-      });
+      // Usar el servicio de carga de imágenes
+      this.imageUploadService.uploadImageAsync(file)
+        .then(imagePath => {
+          this.producto.prod_Imagen = imagePath;
+          this.mostrarOverlayCarga = false;
+        })
+        .catch(error => {
+          console.error('Error al subir la imagen:', error);
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error al subir la imagen. Por favor, intente nuevamente.';
+          this.mostrarOverlayCarga = false;
+          setTimeout(() => {
+            this.mostrarAlertaError = false;
+            this.mensajeError = '';
+          }, 3000);
+        });
     }
   }
 

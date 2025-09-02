@@ -61,7 +61,8 @@ export class CreateComponent {
     inicioEscala: 0,
     finEscala: 0,
     canalesOpen: {} as { [key: number]: boolean },
-    clientesChecked: [] as number[]
+    clientesChecked: [] as number[],
+    canalFilters: {} as { [key: number]: string }
   };
 
   createError = '';
@@ -207,6 +208,7 @@ confirmarGuardarCambios() {
             inicioEscala: grupo.items[0].preP_InicioEscala,
             finEscala: grupo.items[0].preP_FinEscala,
             clientesChecked,
+            canalFilters: {},
             isCollapsed: true
           };
         });
@@ -282,7 +284,7 @@ confirmarGuardarCambios() {
     this.noListasMsg = '';
   }
 
-  // --- NUEVA LISTA LOGIC ---
+  // Lista Nueva
   startCreateNewLista() {
     if (!this.productoSeleccionado) {
       this.createError = 'Debes seleccionar un producto antes de crear una lista.';
@@ -304,7 +306,8 @@ confirmarGuardarCambios() {
       inicioEscala: 1,
       finEscala: 1,
       canalesOpen: {},
-      clientesChecked: []
+      clientesChecked: [],
+      canalFilters: {}
     };
   }
 
@@ -394,7 +397,7 @@ confirmarGuardarCambios() {
   return valid;
 }
 
-  // --- CREATE API CALL ---
+  
   crearNuevaLista() {
     this.createError = '';
     if (!this.validateNewLista()) {
@@ -680,5 +683,16 @@ confirmarGuardarCambios() {
       this.cancelarEliminar();
     }
   });
-}
+  }
+
+  getClientesPorCanalFiltrado(canalId: number, filter: string): any[] {
+    const clientes = this.getClientesPorCanal(canalId);
+    if (!filter) return clientes;
+    const f = filter.toLowerCase();
+    return clientes.filter(c =>
+      (c.clie_Nombres + ' ' + c.clie_Apellidos).toLowerCase().includes(f) ||
+      (c.clie_NombreNegocio || '').toLowerCase().includes(f) ||
+      (c.clie_Id + '').includes(f)
+    );
+  }
 }
