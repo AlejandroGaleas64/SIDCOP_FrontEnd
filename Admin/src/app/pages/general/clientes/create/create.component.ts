@@ -30,7 +30,7 @@ export class CreateComponent {
   mapaSelectorComponent!: MapaSelectorComponent;
 
   entrando = true;
-  activeTab = 2;
+  activeTab = 1;
 
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -988,14 +988,34 @@ export class CreateComponent {
   guardarAvales(clie_Id: number): void {
     // Solo guardar si el cliente tiene crédito y hay avales válidos
     if (this.tieneDatosCredito() && this.avales.length > 0 && this.avales.every(aval => this.esAvalValido(aval))) {
+      console.log('Avales:', this.avales);
+      console.log('¿Todos válidos?', this.avales.every(aval => this.esAvalValido(aval)));
       for (const aval of this.avales) {
         const avalGuardar = {
-          ...aval,
-          clie_Id: clie_Id,
-          usua_Creacion: getUserId(),
-          aval_FechaCreacion: new Date(),
-          usua_Modificacion: getUserId(),
-          aval_FechaModificacion: new Date()
+          Aval_Id: aval.aval_Id,
+          Clie_Id: clie_Id,
+          Aval_Nombres: aval.aval_Nombres,
+          Aval_Apellidos: aval.aval_Apellidos,
+          Aval_Sexo: aval.aval_Sexo,
+          Pare_Id: aval.pare_Id,
+          Aval_DNI: aval.aval_DNI,
+          Aval_Telefono: aval.aval_Telefono,
+          TiVi_Id: aval.tiVi_Id,
+          Aval_Observaciones: aval.aval_Observaciones || '',
+          Aval_DireccionExacta: aval.aval_DireccionExacta,
+          Colo_Id: aval.colo_Id,
+          Aval_FechaNacimiento: aval.aval_FechaNacimiento,
+          EsCv_Id: aval.esCv_Id,
+          Pare_Descripcion: '',
+          EsCv_Descripcion: '',
+          Colo_Descripcion: '',
+          Depa_Descripcion: '',
+          TiVi_Descripcion: '',
+          Usua_Creacion: getUserId(),
+          Aval_FechaCreacion: aval.aval_FechaCreacion,
+          Usua_Modificacion: getUserId(),
+          Aval_FechaModificacion: new Date(),
+          Aval_Estado: true,
         };
         this.http.post<any>(`${environment.apiBaseUrl}/Aval/Insertar`, avalGuardar, {
           headers: {
@@ -1014,6 +1034,7 @@ export class CreateComponent {
             }, 3000);
           }
         });
+        console.log('Enviando aval:', avalGuardar);
       }
     }
   }
