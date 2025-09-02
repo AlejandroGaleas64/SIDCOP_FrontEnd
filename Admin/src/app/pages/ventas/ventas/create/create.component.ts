@@ -81,20 +81,21 @@ export class CreateComponent implements OnInit {
       // Asignar la sucursal del usuario automáticamente
       const sucursalId = obtenerSucursalId();
       if (sucursalId > 0) {
-        this.venta.regC_Id = sucursalId;
+        this.sucursalSeleccionada = sucursalId; // Asignar a sucursalSeleccionada, NO a regC_Id
+      }
+      // No llamar a cargarInventarioSucursal aquí, se llamará después de cargar los productos
+      // Asignar el registro CAI del usuario (esto es correcto)
+      const regCId = obtenerRegCId();
+      if (regCId > 0) {
+        this.venta.regC_Id = regCId; // Asignar regC_Id correctamente desde obtenerRegCId()
+        this.venta.regC_Id_Vendedor = regCId;
+        console.log('regC_Id asignado:', regCId);
       }
       
       // Asignar el ID de persona como vendedor
       const personaId = obtenerPersonaId();
       if (personaId > 0) {
         this.venta.vend_Id = personaId;
-      }
-      
-      // Asignar el registro CAI del usuario
-      const regCId = obtenerRegCId();
-      if (regCId > 0) {
-        this.venta.regC_Id_Vendedor = regCId;
-        console.log('regC_Id_Vendedor asignado:', regCId);
       }
     }
     
@@ -110,16 +111,16 @@ private inicializar(): void {
   this.venta = new VentaInsertar({
     fact_Numero: '', // Se generará en el backend
     fact_TipoDeDocumento: '01',
-    regC_Id: 19,
+    regC_Id: 0, // Se asignará correctamente desde obtenerRegCId() o del vendedor seleccionado
     diCl_Id: 0, // Nuevo campo que reemplaza a clie_Id
     direccionId: 0, // Se llenará cuando se seleccione un cliente y sus direcciones
     fact_TipoVenta: '', // se llenará en el formulario
     fact_FechaEmision: hoy,
-    fact_Latitud: 14.123456,
-    fact_Longitud: -87.123456,
+    fact_Latitud: 0,
+    fact_Longitud: 0,
     fact_Referencia: '',
     fact_AutorizadoPor: 'SISTEMA',
-    vend_Id: 1,
+    vend_Id: 0,
     usua_Creacion: 1,
     detallesFacturaInput: []
   });
@@ -190,11 +191,7 @@ private inicializar(): void {
   private cargarVendedoresPorSucursal(sucursalId: number): void {
     if (!sucursalId) return;
     
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'X-Api-Key': environment.apiKey,
-      'accept': '*/*'
-    });
+    const headers = this.obtenerHeaders();
     
     this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/PorSucursal/${sucursalId}`, { headers })
       .subscribe({
@@ -231,6 +228,12 @@ private inicializar(): void {
             stockDisponible: 0,
             tieneStock: false,
           }));
+          
+          // Cargar el inventario después de cargar los productos
+          if (this.sucursalSeleccionada && this.sucursalSeleccionada > 0) {
+            this.cargarInventarioSucursal();
+          }
+          
           this.aplicarFiltros();
         },
         error: () => this.mostrarError('Error al cargar productos'),
@@ -295,11 +298,10 @@ private inicializar(): void {
   
   /**
    * Captura el regC_Id del vendedor seleccionado
+   * Solo actualiza regC_Id si el usuario es administrador
+   * Siempre asigna regC_Id_Vendedor con el registro CAI del vendedor
    */
   onVendedorChange(): void {
-    // Limpiar el regC_Id_Vendedor anterior
-    this.venta.regC_Id_Vendedor = undefined;
-    
     // Si no hay ID de vendedor seleccionado, salir
     if (!this.venta.vend_Id || this.venta.vend_Id === 0) {
       return;
@@ -313,21 +315,37 @@ private inicializar(): void {
       return;
     }
     
+    // Obtener el registro CAI del vendedor
+    let registroCAI: number | undefined;
+    
     // Verificar si el vendedor tiene el campo regC_Id
     if (vendedorSeleccionado.regC_Id !== undefined) {
-      this.venta.regC_Id_Vendedor = vendedorSeleccionado.regC_Id;
-      console.log('regC_Id_Vendedor asignado:', this.venta.regC_Id_Vendedor);
+      registroCAI = vendedorSeleccionado.regC_Id;
     } else {
       // Intentar buscar cualquier propiedad que contenga 'regc'
       const regCProperty = Object.keys(vendedorSeleccionado).find(key => 
         key.toLowerCase().includes('regc'));
       
       if (regCProperty) {
-        this.venta.regC_Id_Vendedor = vendedorSeleccionado[regCProperty];
-        console.log('regC_Id_Vendedor encontrado en propiedad alternativa:', regCProperty, this.venta.regC_Id_Vendedor);
-      } else {
-        console.warn('No se encontró regC_Id para el vendedor seleccionado');
+        registroCAI = vendedorSeleccionado[regCProperty];
       }
+    }
+    
+    // Asignar el registro CAI del vendedor a regC_Id_Vendedor
+    if (registroCAI !== undefined) {
+      this.venta.regC_Id_Vendedor = registroCAI;
+      console.log('regC_Id_Vendedor asignado:', registroCAI);
+      
+      // Solo actualizar regC_Id si es administrador
+      // Si no es administrador, el regC_Id debe ser inmutable y venir de la sesión
+      if (this.esAdmin) {
+        this.venta.regC_Id = registroCAI;
+        console.log('regC_Id asignado desde vendedor:', registroCAI);
+      } else {
+        console.log('Usuario no es administrador, manteniendo regC_Id de la sesión:', this.venta.regC_Id);
+      }
+    } else {
+      console.warn('No se encontró regC_Id para el vendedor seleccionado');
     }
     
     // Actualizar estado de navegación
@@ -348,7 +366,7 @@ private inicializar(): void {
       this.venta.vend_Id = 0;
       // Limpiamos el regC_Id_Vendedor si no hay vendedores
       this.venta.regC_Id_Vendedor = undefined;
-      console.warn('No hay vendedores disponibles para la sucursal seleccionada');
+      this.mostrarWarning('No hay vendedores disponibles para la sucursal seleccionada');
     }
     
     // Limpiar cantidades si cambió la sucursal
@@ -669,11 +687,8 @@ private inicializar(): void {
     // NO asignamos el ID del cliente a diCl_Id, ya que son campos diferentes
     // diCl_Id debe ser el ID de la dirección del cliente, no el ID del cliente
     
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'X-Api-Key': environment.apiKey,
-      'accept': '*/*'
-    });
+    const headers = this.obtenerHeaders(); 
+    
     
     this.http.get<any>(`${environment.apiBaseUrl}/DireccionesPorCliente/Buscar/${clienteId}`, { headers })
       .subscribe({
@@ -770,7 +785,32 @@ private inicializar(): void {
     }
 
     this.limpiarAlertas();
-    this.crearVenta();
+    
+    // Obtener la ubicación actual antes de crear la venta
+    this.obteniendoUbicacion = true;
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          this.venta.fact_Latitud = position.coords.latitude;
+          this.venta.fact_Longitud = position.coords.longitude;
+          this.obteniendoUbicacion = false;
+          // Crear la venta después de obtener la ubicación
+          this.crearVenta();
+        },
+        (error) => {
+          this.obteniendoUbicacion = false;
+          this.errorUbicacion = 'No se pudo obtener la ubicación: ' + this.getErrorUbicacion(error);
+          // Crear la venta aunque no se haya podido obtener la ubicación
+          this.crearVenta();
+        },
+        { timeout: 5000 } // Timeout de 5 segundos para no hacer esperar demasiado al usuario
+      );
+    } else {
+      this.obteniendoUbicacion = false;
+      this.errorUbicacion = 'La geolocalización no está soportada por este navegador';
+      // Crear la venta aunque no se pueda obtener la ubicación
+      this.crearVenta();
+    }
   }
   
   validarFormularioCompleto(): boolean {
@@ -903,11 +943,11 @@ private crearVenta(): void {
     vend_Id: Number(this.venta.vend_Id),
     fact_TipoVenta: this.venta.fact_TipoVenta,
     fact_FechaEmision: this.venta.fact_FechaEmision.toISOString(),
-    fact_Latitud: 14.123456,
-    fact_Longitud: -87.123456,
+    fact_Latitud: this.venta.fact_Latitud || 0,
+    fact_Longitud: this.venta.fact_Longitud || 0,
     fact_Referencia: this.venta.fact_Referencia || 'Venta desde app web',
     fact_AutorizadoPor: 'SISTEMA',
-    usua_Creacion: this.usuarioId || 1,
+    usua_Creacion: this.usuarioId,
     detallesFacturaInput: detalles
   };
   
@@ -967,12 +1007,12 @@ private crearVenta(): void {
         // DEBUGGING DETALLADO - Analizar estructura completa del error
         console.group('🔍 ANÁLISIS DETALLADO DEL ERROR');
         console.log('1. Error completo:', err);
+        this.mostrarError(err);
         console.log('2. Tipo de err:', typeof err);
         console.log('3. err.error:', err.error);
         console.log('4. Tipo de err.error:', typeof err.error);
         console.log('5. err.status:', err.status);
         console.log('6. err.statusText:', err.statusText);
-        console.log('7. err.message:', err.message);
         console.log('8. err.name:', err.name);
         
         // Si err.error es string, intentar parsearlo como JSON
@@ -994,7 +1034,7 @@ private crearVenta(): void {
         console.groupEnd();
         
         // Intentar extraer el mensaje de error de diferentes formas
-        let errorMessage = 'Error al guardar la venta';
+        let errorMessage = err;
         
         // Método 1: err.error como objeto con message
         if (err.error && typeof err.error === 'object' && err.error.message) {

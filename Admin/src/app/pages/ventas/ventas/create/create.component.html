@@ -103,11 +103,11 @@
                   class="ri-store-2-line"
                   [ngStyle]="{
                     border:
-                      (!venta.regC_Id || venta.regC_Id == 0) && mostrarErrores
+                      (!sucursalSeleccionada || sucursalSeleccionada == 0) && mostrarErrores
                         ? '1px solid #f9bcc4'
                         : '1px solid #e9ecf5',
                     backgroundColor:
-                      (!venta.regC_Id || venta.regC_Id == 0) && mostrarErrores
+                      (!sucursalSeleccionada || sucursalSeleccionada == 0) && mostrarErrores
                         ? '#fff5f6'
                         : '#f2f3f9',
                     padding: '0.525rem 0.525rem',
@@ -164,6 +164,74 @@
             <div class="form-control bg-light">
               <i class="ri-store-2-line me-2"></i>
               {{ getNombreSucursal() }}
+            </div>
+          </div>
+
+                    <!-- Selector de Vendedor -->
+          <!-- Dropdown de Vendedor (Solo para administradores) -->
+          <div class="col-md-6" *ngIf="esAdmin">
+            <label class="form-label"
+              >Vendedor<span class="text-danger">*</span></label
+            >
+            <div class="mb-3">
+              <div class="d-flex align-items-center">
+                <i
+                  class="ri-user-star-line"
+                  [ngStyle]="{
+                    border:
+                      (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
+                        ? '1px solid #f9bcc4'
+                        : '1px solid #e9ecf5',
+                    backgroundColor:
+                      (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
+                        ? '#fff5f6'
+                        : '#f2f3f9',
+                    padding: '0.525rem 0.525rem',
+                    position: 'relative',
+                    left: '7px',
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px'
+                  }"
+                ></i>
+                <select
+                  id="vendedor"
+                  name="vendedor"
+                  class="form-select"
+                  [class.is-invalid]="
+                    (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
+                  "
+                  [(ngModel)]="venta.vend_Id"
+                  (change)="onVendedorChange()"
+                  [disabled]="!sucursalSeleccionada || sucursalSeleccionada === 0 || getVendedoresPorSucursal().length === 0"
+                  required
+                >
+                  <option value="0" disabled selected>
+                    Seleccione vendedor
+                  </option>
+                  <option
+                    *ngFor="let vendedor of getVendedoresPorSucursal()"
+                    [value]="vendedor.vend_Id"
+                  >
+                    {{ vendedor.vend_Nombres }} {{ vendedor.vend_Apellidos }}
+                  </option>
+                </select>
+                <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              </div>
+            </div>
+            <div
+              class="text-danger mt-1"
+              *ngIf="(!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores"
+            >
+              <small>El vendedor es requerido</small>
+            </div>
+          </div>
+          
+          <!-- Vendedor (Solo texto para no administradores) -->
+          <div class="col-md-6" *ngIf="!esAdmin">
+            <label class="form-label">Vendedor</label>
+            <div class="form-control bg-light">
+              <i class="ri-user-star-line me-2"></i>
+              {{ getNombreVendedor() }}
             </div>
           </div>
 
@@ -339,80 +407,8 @@
             </div>
           </div>
           
-          <!-- Selector de Vendedor -->
-          <!-- Dropdown de Vendedor (Solo para administradores) -->
-          <div class="col-md-6" *ngIf="esAdmin">
-            <label class="form-label"
-              >Vendedor<span class="text-danger">*</span></label
-            >
-            <div class="mb-3">
-              <div class="d-flex align-items-center">
-                <i
-                  class="ri-user-star-line"
-                  [ngStyle]="{
-                    border:
-                      (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
-                        ? '1px solid #f9bcc4'
-                        : '1px solid #e9ecf5',
-                    backgroundColor:
-                      (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
-                        ? '#fff5f6'
-                        : '#f2f3f9',
-                    padding: '0.525rem 0.525rem',
-                    position: 'relative',
-                    left: '7px',
-                    borderTopLeftRadius: '8px',
-                    borderBottomLeftRadius: '8px'
-                  }"
-                ></i>
-                <select
-                  id="vendedor"
-                  name="vendedor"
-                  class="form-select"
-                  [class.is-invalid]="
-                    (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
-                  "
-                  [(ngModel)]="venta.vend_Id"
-                  required
-                >
-                  <option value="0" disabled selected>
-                    Seleccione vendedor
-                  </option>
-                  <option
-                    *ngFor="let vendedor of getVendedoresPorSucursal()"
-                    [value]="vendedor.vend_Id"
-                  >
-                    {{ vendedor.vend_Nombres }} {{ vendedor.vend_Apellidos }}
-                  </option>
-                </select>
-                <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-              </div>
-            </div>
-            <div
-              class="text-danger mt-1"
-              *ngIf="(!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores"
-            >
-              <small>El vendedor es requerido</small>
-            </div>
-          </div>
+
           
-          <!-- Vendedor (Solo texto para no administradores) -->
-          <div class="col-md-6" *ngIf="!esAdmin">
-            <label class="form-label">Vendedor</label>
-            <div class="form-control bg-light">
-              <i class="ri-user-star-line me-2"></i>
-              {{ getNombreVendedor() }}
-            </div>
-          </div>
-          
-          <!-- Sucursal (Solo texto para no administradores) -->
-          <div class="col-md-6" *ngIf="!esAdmin && sucursales && sucursales.length > 0">
-            <label class="form-label">Sucursal</label>
-            <div class="form-control bg-light">
-              <i class="ri-building-line me-2"></i>
-              {{ getNombreSucursal() }}
-            </div>
-          </div>
           
           <!-- Campo de Referencia -->
           <div class="col-md-6">
@@ -497,7 +493,7 @@
             <!-- Mensaje informativo -->
             <div
               class="alert alert-info d-flex align-items-center mb-3"
-              *ngIf="!venta.regC_Id || venta.regC_Id === 0"
+              *ngIf="!sucursalSeleccionada || sucursalSeleccionada === 0"
             >
               <i class="ri-information-fill me-2"></i>
               <span
@@ -507,7 +503,7 @@
             </div>
 
             <!-- Buscador de productos -->
-            <div class="row mb-3" *ngIf="venta.regC_Id && venta.regC_Id > 0">
+            <div class="row mb-3" *ngIf="sucursalSeleccionada && sucursalSeleccionada > 0">
               <div class="col-md-6">
                 <div class="search-container">
                   <div class="input-group">
@@ -553,7 +549,7 @@
             <!-- Contenedor de tarjetas de productos -->
             <div
               class="productos-container"
-              *ngIf="venta.regC_Id && venta.regC_Id > 0"
+              *ngIf="sucursalSeleccionada && sucursalSeleccionada > 0"
             >
               <div class="row g-3">
                 <div
@@ -734,8 +730,8 @@
               class="d-flex justify-content-between align-items-center mt-4"
               *ngIf="
                 productosFiltrados.length > productosPorPagina &&
-                venta.regC_Id &&
-                venta.regC_Id > 0
+                sucursalSeleccionada &&
+                sucursalSeleccionada > 0
               "
             >
               <div class="pagination-info">
@@ -916,6 +912,7 @@
                 </h6>
               </div>
               <div class="card-body resumen-body">
+                
                 <div
                   class="table-responsive"
                   *ngIf="
