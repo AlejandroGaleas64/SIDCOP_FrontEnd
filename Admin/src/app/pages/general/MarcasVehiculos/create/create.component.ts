@@ -107,7 +107,7 @@ export class CreateComponent {
       }).subscribe({
         next: (response) => {
           console.log('Marca guardada exitosamente:', response);
-          this.mensajeExito = `Marca "${this.marca.maVe_Marca}" guardada exitosamente`;
+          this.mensajeExito = `Marca de Vehiculo "${this.marca.maVe_Marca}" guardada exitosamente`;
           this.mostrarAlertaExito = true;
           this.mostrarErrores = false;
           
