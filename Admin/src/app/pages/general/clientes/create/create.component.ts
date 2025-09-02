@@ -87,7 +87,7 @@ export class CreateComponent {
 
   revisarCorreoValido(correo: string): boolean {
     if (!correo) return true;
-    // Debe contener "@" y terminar en ".com"
+    // Debe contener "@" y terminar en ".com" y aceptar cualquier dominio
     return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
   }
 
