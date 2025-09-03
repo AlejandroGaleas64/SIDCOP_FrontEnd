@@ -64,7 +64,7 @@ export class ReporteClientesMasFacturadosComponent implements OnDestroy {
       titulo: 'Clientes Más Facturados',
       orientacion: 'landscape',
       mostrarResumen: true,
-      textoResumen: `Total de productos: ${this.clientes.length}`,
+      textoResumen: `Total de clientes: ${this.clientes.length}`,
     };
 
     const tableData: TableData = {
@@ -75,8 +75,8 @@ export class ReporteClientesMasFacturadosComponent implements OnDestroy {
           { content: 'Apellidos', styles: { cellWidth: 40 } },
           { content: 'Nombre Del Negocio', styles: { cellWidth: 60 } },
           { content: 'Telefono', styles: { cellWidth: 35 } },
-          { content: 'Total Facturado', styles: { halign: 'right', cellWidth: 25 } },
-          { content: 'Cantidad Compras', styles: { halign: 'right', cellWidth: 25 } }
+          { content: 'Total Facturado', styles: { halign: 'right', cellWidth: 35 } },
+          { content: 'Cantidad Compras', styles: { halign: 'right', cellWidth: 42 } }
         ]
       ],
       body: this.clientes.map((cliente, index) => [
@@ -85,8 +85,8 @@ export class ReporteClientesMasFacturadosComponent implements OnDestroy {
         { content: cliente.clie_Apellidos, styles: { cellWidth: 40 } },
         { content: cliente.clie_NombreNegocio, styles: { cellWidth: 60 } },
         { content: cliente.clie_Telefono, styles: { cellWidth: 35 } },
-        { content: cliente.totalFacturado, styles: { halign: 'right', cellWidth: 25 } },
-        { content: cliente.cantidadCompras, styles: { halign: 'right', cellWidth: 25 } }
+        { content: cliente.totalFacturado, styles: { halign: 'right', cellWidth: 35 } },
+        { content: cliente.cantidadCompras, styles: { halign: 'right', cellWidth: 42 } }
       ])
     };
     

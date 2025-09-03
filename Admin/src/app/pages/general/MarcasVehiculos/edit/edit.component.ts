@@ -131,7 +131,7 @@ export class EditComponent implements OnChanges {
         }
       }).subscribe({
         next: (response) => {
-          this.mensajeExito = `Marca "${this.marcasVehiculos.maVe_Marca}" actualizada exitosamente`;
+          this.mensajeExito = `Marca de Vehiculo "${this.marcasVehiculos.maVe_Marca}" actualizada exitosamente`;
           this.mostrarAlertaExito = true;
           this.mostrarErrores = false;
 
