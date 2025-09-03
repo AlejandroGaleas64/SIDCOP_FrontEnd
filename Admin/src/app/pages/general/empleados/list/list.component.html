@@ -195,6 +195,22 @@
         </div>
     </div>
     }
+
+
+    <div class="row align-items-center mb-3 mx-2" id="pagination-element">
+            <div class="col-sm">
+                <div class="text-sm-start">
+                    Mostrando del <span>{{startIndex}}</span> - <span>{{endIndex}}</span> de <span>{{usuarioGrid?.length}}</span> registros
+                </div>
+            </div>
+            <div class="col-sm-auto mt-3 mt-sm-0 text-md-right float-md-end gridjs-pagination">
+                <pagination 
+                    [totalItems]="usuarioGrid?.length" 
+                    [itemsPerPage]="itemsPerPage" 
+                    (pageChanged)="pageChanged($event)">
+                </pagination>
+            </div>
+        </div>   
 </div><!--end row-->
 
 
@@ -401,26 +417,9 @@
 }
 </style>
 
-<div class="row align-items-center mb-3 mx-2" id="pagination-element">
-            <div class="col-sm">
-                <div class="text-sm-start">
-                    Mostrando del <span>{{startIndex}}</span> - <span>{{endIndex}}</span> de <span>{{usuarioGrid?.length}}</span> registros
-                </div>
-            </div>
-            <div class="col-sm-auto mt-3 mt-sm-0 text-md-right float-md-end gridjs-pagination">
-                <pagination 
-                    [totalItems]="usuarioGrid?.length" 
-                    [itemsPerPage]="itemsPerPage" 
-                    (pageChanged)="pageChanged($event)">
-                </pagination>
-            </div>
-        </div>     
+  
 
-<div id="elmLoader">
-    <div class="spinner-border text-primary avatar-sm" role="status">
-        <span class="visually-hidden">Loading...</span>
-    </div>
-</div>
+
 
 
 <!-- Contenedor de alertas flotantes -->
