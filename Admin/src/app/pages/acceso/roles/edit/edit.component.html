@@ -101,14 +101,11 @@
                 <span>{{ pantalla.name }}</span>
               </label>
             </div>
-            <div class="tree-children" *ngIf="pantalla.expanded">
+            <div class="tree-children" *ngIf="pantalla.expanded && !pantalla.esReporte">
               <div class="tree-item" *ngFor="let accion of pantalla.children">
                 <div class="tree-node">
                   <label (click)="$event.stopPropagation()" style="display: flex; align-items: center; gap: 0.5rem;">
-                    <input type="checkbox"
-                           [checked]="accion.selected"
-                           (change)="toggleSelection(accion); $event.stopPropagation()"
-                           [attr.data-id]="accion.id">
+                    <input type="checkbox" [checked]="accion.selected" (change)="toggleSelection(accion); $event.stopPropagation()" [attr.data-id]="accion.id">
                     <span>{{ accion.name }}</span>
                   </label>
                 </div>
