@@ -45,6 +45,9 @@ export class EditComponent implements OnChanges {
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
 
+  // Objeto para rastrear cambios
+  cambiosDetectados: any = {};
+
   constructor(private http: HttpClient) {}
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -73,21 +76,55 @@ export class EditComponent implements OnChanges {
 
   validarEdicion(): void {
     this.mostrarErrores = true;
+    this.cerrarAlerta();
 
-    if (this.impuestos.impu_Descripcion.trim()) {
-      if (this.impuestos.impu_Descripcion.trim() !== this.ImpuestoOriginal ||
-       this.impuestos.impu_Valor !== this.ImpuestoValorOriginal) {
-        this.mostrarConfirmacionEditar = true;
-      } else {
-        this.mostrarAlertaWarning = true;
-        this.mensajeWarning = 'No se han detectado cambios.';
-        setTimeout(() => this.cerrarAlerta(), 4000);
-      }
+    if (!this.validarCampos()) {
+      setTimeout(() => this.cerrarAlerta(), 4000);
+      return;
+    }
+
+    if (this.hayDiferencias()) {
+      this.mostrarConfirmacionEditar = true;
     } else {
       this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
+      this.mensajeWarning = 'No se han detectado cambios.';
       setTimeout(() => this.cerrarAlerta(), 4000);
     }
+  }
+
+  private hayDiferencias(): boolean {
+    if (!this.impuestos) return false;
+
+    this.cambiosDetectados = {};
+
+    // Verificar cambio en la descripción del impuesto
+    if (this.impuestos.impu_Descripcion.trim() !== this.ImpuestoOriginal) {
+      this.cambiosDetectados.descripcion = {
+        anterior: this.ImpuestoOriginal || 'Sin descripción',
+        nuevo: this.impuestos.impu_Descripcion.trim(),
+        label: 'Descripción del Impuesto'
+      };
+    }
+
+    // Verificar cambio en el valor del impuesto
+    if (this.impuestos.impu_Valor !== this.ImpuestoValorOriginal) {
+      this.cambiosDetectados.valor = {
+        anterior: this.ImpuestoValorOriginal + '%' || '0%',
+        nuevo: this.impuestos.impu_Valor + '%',
+        label: 'Valor del Impuesto'
+      };
+    }
+
+    return Object.keys(this.cambiosDetectados).length > 0;
+  }
+
+  // Método para obtener la lista de cambios en formato para mostrar en el modal
+  obtenerListaCambios(): any[] {
+    return Object.values(this.cambiosDetectados);
+  }
+
+  validarCampos(): boolean {
+    return !!this.impuestos.impu_Descripcion?.trim() && this.impuestos.impu_Valor >= 0;
   }
 
   cancelarEdicion(): void {

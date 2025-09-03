@@ -1,4 +1,3 @@
-
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,28 +15,25 @@ import { Categoria } from 'src/app/Modelos/inventario/CategoriaModel';
   styleUrl: './edit.component.scss'
 })
 
-
 export class EditComponent implements OnChanges {
   @Input() categoriaData: Categoria | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Categoria>();
 
- categoria: Categoria = {
-      
-      cate_Id: 0,
-      cate_Descripcion: '',
-      usua_Creacion: 0,
-      usua_Modificacion: 0,
-      cate_FechaCreacion: new Date(),
-      cate_FechaModificacion: new Date(),
-      cate_Estado: false,
-      subc_Id: 0,
-      code_Status: 0,
-      message_Status: '',
-      usuarioCreacion: '',
-      usuarioModificacion: '',
-      No: 0
-
+  categoria: Categoria = {
+    cate_Id: 0,
+    cate_Descripcion: '',
+    usua_Creacion: 0,
+    usua_Modificacion: 0,
+    cate_FechaCreacion: new Date(),
+    cate_FechaModificacion: new Date(),
+    cate_Estado: false,
+    subc_Id: 0,
+    code_Status: 0,
+    message_Status: '',
+    usuarioCreacion: '',
+    usuarioModificacion: '',
+    No: 0
   };
 
   estadoCivilOriginal = '';
@@ -50,7 +46,10 @@ export class EditComponent implements OnChanges {
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
 
-  constructor(private http: HttpClient) {}
+  // Objeto para rastrear cambios
+  cambiosDetectados: any = {};
+
+  constructor(private http: HttpClient) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['categoriaData'] && changes['categoriaData'].currentValue) {
@@ -77,20 +76,46 @@ export class EditComponent implements OnChanges {
 
   validarEdicion(): void {
     this.mostrarErrores = true;
+    this.cerrarAlerta();
 
-    if (this.categoria.cate_Descripcion.trim()) {
-      if (this.categoria.cate_Descripcion.trim() !== this.estadoCivilOriginal) {
-        this.mostrarConfirmacionEditar = true;
-      } else {
-        this.mostrarAlertaWarning = true;
-        this.mensajeWarning = 'No se han detectado cambios.';
-        setTimeout(() => this.cerrarAlerta(), 4000);
-      }
+    if (!this.validarCampos()) {
+      setTimeout(() => this.cerrarAlerta(), 4000);
+      return;
+    }
+
+    if (this.hayDiferencias()) {
+      this.mostrarConfirmacionEditar = true;
     } else {
       this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
+      this.mensajeWarning = 'No se han detectado cambios.';
       setTimeout(() => this.cerrarAlerta(), 4000);
     }
+  }
+
+  private hayDiferencias(): boolean {
+    if (!this.categoria || !this.estadoCivilOriginal) return false;
+
+    this.cambiosDetectados = {};
+
+    // Verificar cambio en la descripción de la categoría
+    if (this.categoria.cate_Descripcion.trim() !== this.estadoCivilOriginal) {
+      this.cambiosDetectados.descripcion = {
+        anterior: this.estadoCivilOriginal || 'Sin descripción',
+        nuevo: this.categoria.cate_Descripcion.trim(),
+        label: 'Descripción de la Categoría'
+      };
+    }
+
+    return Object.keys(this.cambiosDetectados).length > 0;
+  }
+
+  // Método para obtener la lista de cambios en formato para mostrar en el modal
+  obtenerListaCambios(): any[] {
+    return Object.values(this.cambiosDetectados);
+  }
+
+  validarCampos(): boolean {
+    return !!this.categoria.cate_Descripcion?.trim();
   }
 
   cancelarEdicion(): void {
@@ -112,7 +137,6 @@ export class EditComponent implements OnChanges {
         usua_Creacion: this.categoria.usua_Creacion,
         cate_FechaCreacion: this.categoria.cate_FechaCreacion,
         usua_Modificacion: getUserId(),
-                
         cate_FechaModificacion: new Date().toISOString(),
         usuarioCreacion: '',
         usuarioModificacion: ''

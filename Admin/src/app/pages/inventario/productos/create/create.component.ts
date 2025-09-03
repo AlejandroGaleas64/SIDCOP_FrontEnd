@@ -35,6 +35,7 @@ export class CreateComponent {
   categoriaseleccionada: any[] = [];
   marcas: any[] = [];
   proveedores: any[] = [];
+  Pesos: any[] = [];
   impuestos: any[] = [];
 
   categoria: Categoria = {
@@ -62,12 +63,13 @@ export class CreateComponent {
     prod_Imagen: 'assets/images/users/32/agotado.png',
     cate_Id: 0,
     cate_Descripcion: '',
+    prod_Peso: 0,
+    unPe_Id: 0,
     subc_Id: 0,
     marc_Id: 0,
     prov_Id: 0,
     impu_Id: 0,
     prod_PrecioUnitario: 0,
-    prod_CostoTotal: 0,
     prod_PagaImpuesto: "",
     prod_EsPromo: "",
     prod_Impulsado: false,
@@ -80,7 +82,9 @@ export class CreateComponent {
     prov_NombreEmpresa: '',
     subc_Descripcion: '',
     impu_Descripcion: '',
-    promDesc: '',
+    impulsacion: '',
+    unPe_Descripcion: '',
+    unPe_Abreviatura: '',
     secuencia: 0,
     code_Status: 0,
     message_Status: '',
@@ -95,6 +99,7 @@ export class CreateComponent {
   ) {
     this.cargarMarcas();
     this.cargarProveedores();
+    this.cargarPesos();
     this.cargarImpuestos();
   }
 
@@ -153,6 +158,16 @@ export class CreateComponent {
     }).subscribe(data => {this.proveedores = data;},
       error => {
         console.error('Error al cargar los proveedores:', error);
+      }
+    );
+  }
+
+  cargarPesos() {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/UnidadDePeso/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(data => {this.Pesos = data;},
+      error => {
+        console.error('Error al cargar las unidades de peso:', error);
       }
     );
   }
@@ -249,12 +264,13 @@ export class CreateComponent {
       prod_Imagen: 'assets/images/users/32/agotado.png',
       cate_Id: 0,
       cate_Descripcion: '',
+      prod_Peso: 0,
+      unPe_Id: 0,
       subc_Id: 0,
       marc_Id: 0,
       prov_Id: 0,
       impu_Id: 0,
       prod_PrecioUnitario: 0,
-      prod_CostoTotal: 0,
       prod_PagaImpuesto: "",
       prod_EsPromo: "",
       prod_Impulsado: false,
@@ -267,7 +283,9 @@ export class CreateComponent {
       prov_NombreEmpresa: '',
       subc_Descripcion: '',
       impu_Descripcion: '',
-      promDesc: '',
+      impulsacion: '',
+      unPe_Descripcion: '',
+      unPe_Abreviatura: '',
       secuencia: 0,
       code_Status: 0,
       message_Status: '',
@@ -287,8 +305,8 @@ export class CreateComponent {
   guardar(): void {
     console.log('guardar() llamado');
     this.mostrarErrores = true;
-    if (this.producto.prod_Codigo.trim() && this.producto.prod_CodigoBarra && this.producto.prod_Descripcion.trim() && this.producto.prod_DescripcionCorta.trim() && this.producto.marc_Id && this.producto.prov_Id && this.producto.subc_Id
-      && (this.producto.prod_PrecioUnitario != null && this.producto.prod_PrecioUnitario >= 0) && (this.producto.prod_CostoTotal != null && this.producto.prod_CostoTotal >= 0) && this.producto.prod_PrecioUnitario >= this.producto.prod_CostoTotal)
+    if (this.producto.prod_Codigo.trim() && this.producto.prod_Descripcion.trim() && this.producto.prod_DescripcionCorta.trim() && this.producto.marc_Id && this.producto.prov_Id && this.producto.subc_Id
+      && this.producto.prod_PrecioUnitario != null && this.producto.prod_PrecioUnitario > 0 && this.producto.prod_Peso >= 0 && this.producto.unPe_Id)
     {
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
@@ -296,18 +314,19 @@ export class CreateComponent {
         prod_Id: 0,
         secuencia: 0,
         prod_Codigo: this.producto.prod_Codigo.trim(),
-        prod_CodigoBarra: this.producto.prod_CodigoBarra,
+        prod_CodigoBarra: this.producto.prod_CodigoBarra || 'N/A',
         prod_Descripcion: this.producto.prod_Descripcion.trim(),
         prod_DescripcionCorta: this.producto.prod_DescripcionCorta.trim(),
         prod_Imagen: this.producto.prod_Imagen,
         cate_Id: 0,
         cate_Descripcion: '',
+        prod_Peso: Number(this.producto.prod_Peso),
+        unPe_Id: Number(this.producto.unPe_Id),
         subc_Id: Number(this.producto.subc_Id),
         marc_Id: Number(this.producto.marc_Id),
         prov_Id: Number(this.producto.prov_Id),
         impu_Id: this.producto.prod_PagaImpuesto ? Number(this.producto.impu_Id) : 0,
         prod_PrecioUnitario: Number(this.producto.prod_PrecioUnitario),
-        prod_CostoTotal: Number(this.producto.prod_CostoTotal),
         prod_PagaImpuesto: this.producto.prod_PagaImpuesto ? 'S' : 'N',
         prod_EsPromo: 'N',
         prod_Impulsado: this.producto.prod_Impulsado,
@@ -318,6 +337,9 @@ export class CreateComponent {
         prov_NombreEmpresa: '',
         subc_Descripcion: '',
         impu_Descripcion: '',
+        impulsacion: '',
+        unPe_Descripcion: '',
+        unPe_Abreviatura: '',
         usuarioCreacion: '',
         usuarioModificacion: '',
       };
