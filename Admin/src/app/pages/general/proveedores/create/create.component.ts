@@ -5,13 +5,16 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Proveedor } from 'src/app/Modelos/general/Proveedor.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 
 @Component({
   selector: 'app-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule, NgxMaskDirective],
   templateUrl: './create.component.html',
-  styleUrl: './create.component.scss'
+  styleUrl: './create.component.scss',
+  providers: [provideNgxMask()],
 })
 export class CreateComponent {
   @Output() onCancel = new EventEmitter<void>();
@@ -152,4 +155,33 @@ export class CreateComponent {
       }, 4000);
     }
   }
+
+  revisarCorreoValido(correo: string): boolean {
+    if (!correo) return true;
+    // Debe contener "@" y terminar en ".com" y aceptar cualquier dominio
+    return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
+  }
+
+   direccionExactaInicial: string = '';
+
+  onColoniaSeleccionada(colo_Id: number) {
+    const coloniaSeleccionada = this.TodosColonias.find((c: any) => c.colo_Id === colo_Id);
+    if (coloniaSeleccionada) {
+      this.direccionExactaInicial = coloniaSeleccionada.colo_Descripcion;
+      this.proveedor.prov_DireccionExacta = coloniaSeleccionada.colo_Descripcion;
+    } else {
+      this.direccionExactaInicial = '';
+      this.proveedor.prov_DireccionExacta = '';
+    }
+  }
+
+  //Para buscar colonias en DDL
+  searchColonias = (term: string, item: any) => {
+    term = term.toLowerCase();
+    return (
+      item.colo_Descripcion?.toLowerCase().includes(term) ||
+      item.muni_Descripcion?.toLowerCase().includes(term) ||
+      item.depa_Descripcion?.toLowerCase().includes(term)
+    );
+  };
 }
