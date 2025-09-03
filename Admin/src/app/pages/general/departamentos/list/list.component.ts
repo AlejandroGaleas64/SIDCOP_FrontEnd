@@ -421,8 +421,6 @@ export class ListComponent implements OnInit {
     setTimeout(()=> {
       this.cargardatos(false);
       this.showCreateForm = false;
-      this.mensajeExito = `Departamento guardada exitosamente`;
-      this.mostrarAlertaExito = true;
       setTimeout(() => {
         this.mostrarAlertaExito = false;
         this.mensajeExito = '';
@@ -436,8 +434,6 @@ export class ListComponent implements OnInit {
     setTimeout(()=> {
       this.cargardatos(false);
       this.showEditForm = false;
-      this.mensajeExito = `Departamento actualizado exitosamente`;
-      this.mostrarAlertaExito = true;
       setTimeout(() => {
         this.mostrarAlertaExito = false;
         this.mensajeExito = '';

@@ -54,7 +54,7 @@ export class CreateComponent {
       empl_Codigo: '',
       empl_Nombres: '',
       empl_Apellidos: '',
-      empl_Sexo: '',
+      empl_Sexo: 'M',
       empl_FechaNacimiento: new Date(),
       empl_Correo: '',
       empl_Telefono: '',
@@ -72,6 +72,7 @@ export class CreateComponent {
     };
   
     cancelar(): void {
+      // Limpiar alertas
       this.mostrarErrores = false;
       this.mostrarAlertaExito = false;
       this.mensajeExito = '';
@@ -79,13 +80,21 @@ export class CreateComponent {
       this.mensajeError = '';
       this.mostrarAlertaWarning = false;
       this.mensajeWarning = '';
+
+      // Limpiar imagen
+      this.uploadedFiles = [];
+
+      // Recargar lista de empleados para obtener el código actualizado
+      this.cargarEmpleados();
+
+      // Reiniciar el empleado con valores por defecto
       this.empleado = {
         empl_Id: 0,
         empl_DNI: '',
         empl_Codigo: '',
         empl_Nombres: '',
         empl_Apellidos: '',
-        empl_Sexo: '',
+        empl_Sexo: 'M', // Mantener el valor por defecto 'M'
         empl_FechaNacimiento: new Date(),
         empl_Correo: '',
         empl_Telefono: '',
@@ -101,9 +110,11 @@ export class CreateComponent {
         empl_Estado: true,
         empl_Imagen: ''
       };
-       this.empleado.empl_Codigo = this.generarSiguienteCodigo();
 
-      this.onCancel.emit();
+      // Emitir evento de cancelar solo si se llamó desde el botón de cancelar
+      if (!this.mostrarAlertaExito) {
+        this.onCancel.emit();
+      }
     }
   
     cerrarAlerta(): void {
@@ -182,7 +193,11 @@ export class CreateComponent {
       this.mostrarErrores = false;
         
       this.onSave.emit(this.empleado);
+
+      // Actualizar la lista de empleados y limpiar el formulario
+      this.cargarEmpleados();
       this.cancelar();
+
       setTimeout(() => {
         this.mostrarAlertaExito = false;
       }, 3000);

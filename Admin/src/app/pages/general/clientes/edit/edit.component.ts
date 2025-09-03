@@ -12,6 +12,7 @@ import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { Router } from '@angular/router';
 import { ImageUploadService } from 'src/app/core/services/image-upload.service';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @Component({
   selector: 'app-edit',
@@ -22,6 +23,7 @@ import { ImageUploadService } from 'src/app/core/services/image-upload.service';
     HttpClientModule,
     NgxMaskDirective,
     MapaSelectorComponent,
+    NgSelectModule
   ],
   templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss',
@@ -161,8 +163,8 @@ export class EditComponent implements OnChanges {
     this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
   }
 
-  revisarCorreoValido(correo: string): boolean {
-    if (!correo) return true;
+  esCorreoValido(correo: string): boolean {
+    if (!correo || !correo.trim()) return true;
     // Debe contener "@" y terminar en ".com"
     return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
   }
@@ -875,7 +877,7 @@ export class EditComponent implements OnChanges {
         esCv_Descripcion: this.cliente.esCv_Descripcion,
         ruta_Id: this.cliente.ruta_Id,
         ruta_Descripcion: this.cliente.ruta_Descripcion,
-        clie_LimiteCredito: this.cliente.clie_LimiteCredito,
+        clie_LimiteCredito: this.cliente.clie_LimiteCredito ? this.cliente.clie_LimiteCredito : 0,
         clie_DiasCredito: this.cliente.clie_DiasCredito,
         clie_Saldo: this.cliente.clie_Saldo,
         clie_Vencido: this.cliente.clie_Vencido,
@@ -909,6 +911,19 @@ export class EditComponent implements OnChanges {
         )
         .subscribe({
           next: (response) => {
+            if (response.data.code_Status === 1) {
+              this.actualizarDireccionesYAvales();
+              this.mensajeExito = `Cliente "${this.cliente.clie_Nombres + ' ' + this.cliente.clie_Apellidos}" actualizado exitosamente`;
+              this.mostrarAlertaExito = true;
+              this.mostrarErrores = false;
+
+              // Ocultar la alerta después de 3 segundos
+              setTimeout(() => {
+                this.mostrarAlertaExito = false;
+                this.onSave.emit(this.cliente);
+                this.cancelar();
+              }, 3000);
+            }
             if (response.data?.code_Status === -1) {
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status;
@@ -919,8 +934,17 @@ export class EditComponent implements OnChanges {
               }, 3000);
               return;
             }
-            this.actualizarDireccionesYAvales();
-            this.onSave.emit(this.cliente);
+            // this.actualizarDireccionesYAvales();
+
+            // this.mensajeExito = `Cliente "${this.cliente.clie_Nombres + ' ' + this.cliente.clie_Apellidos}" actualizado exitosamente`;
+            // this.mostrarAlertaExito = true;
+            // this.mostrarErrores = false;
+            // this.onSave.emit(this.cliente);
+
+            // setTimeout(() => {
+            //   this.mostrarAlertaExito = false;
+            //   this.mensajeExito = '';
+            // }, 4000);
           },
           error: (error) => {
             this.mostrarAlertaError = true;
@@ -1492,6 +1516,36 @@ export class EditComponent implements OnChanges {
         label: 'Observaciones'
       };
     }
+
+    for (const avalActual of this.avales) {
+  // Busca el aval original por ID
+  const avalOriginal = this.avalesOriginales.find(a => a.aval_Id === avalActual.aval_Id);
+
+  // Si no hay original, es nuevo (puedes mostrar todos los campos como nuevos si quieres)
+  if (!avalOriginal) continue;
+
+  if (avalActual.aval_Nombres !== avalOriginal.aval_Nombres) {
+    this.cambiosDetectados[`nombreAval${avalActual.aval_Id}`] = {
+      anterior: avalOriginal.aval_Nombres,
+      nuevo: avalActual.aval_Nombres,
+      label: `Nombre del Aval`
+    };
+  }
+  if (avalActual.aval_Apellidos !== avalOriginal.aval_Apellidos) {
+    this.cambiosDetectados[`apellidoAval${avalActual.aval_Id}`] = {
+      anterior: avalOriginal.aval_Apellidos,
+      nuevo: avalActual.aval_Apellidos,
+      label: `Apellido del Aval`
+    };
+  }
+  if (avalActual.aval_DNI !== avalOriginal.aval_DNI) {
+    this.cambiosDetectados[`dniAval${avalActual.aval_Id}`] = {
+      anterior: avalOriginal.aval_DNI,
+      nuevo: avalActual.aval_DNI,
+      label: `DNI del Aval`
+    };
+  }
+}
     return Object.keys(this.cambiosDetectados).length > 0;
   }
 
@@ -1543,6 +1597,11 @@ export class EditComponent implements OnChanges {
     }
 
 
+    if (this.tieneDatosCredito()) {
+      if (this.avales.length === 0 || !this.avales.every(a => this.esAvalValido(a))) {
+        errores.push('Aval');
+      }
+    }
     if (errores.length > 0) {
       this.mensajeWarning = `Por favor corrija los siguientes campos: ${errores.join(', ')}`;
       this.mostrarAlertaWarning = true;
@@ -1570,6 +1629,45 @@ export class EditComponent implements OnChanges {
   buscarDireccion(query: string) {
     if (this.mapaSelectorComponent) {
       this.mapaSelectorComponent.buscarDireccion(query);
+    }
+  }
+
+    //Para buscar colonias en DDL
+  searchColonias = (term: string, item: any) => {
+    term = term.toLowerCase();
+    return (
+      item.colo_Descripcion?.toLowerCase().includes(term) ||
+      item.muni_Descripcion?.toLowerCase().includes(term) ||
+      item.depa_Descripcion?.toLowerCase().includes(term)
+    );
+  };
+
+  direccionExactaInicial: string = '';
+  colonias: any[] = [];
+  onColoniaSeleccionada(colo_Id: number) {
+    const coloniaSeleccionada = this.colonias.find((c: any) => c.colo_Id === colo_Id);
+    if (coloniaSeleccionada) {
+      this.direccionExactaInicial = coloniaSeleccionada.colo_Descripcion;
+      this.direccionPorCliente.diCl_DireccionExacta = coloniaSeleccionada.colo_Descripcion;
+    } else {
+      this.direccionExactaInicial = '';
+      this.direccionPorCliente.diCl_DireccionExacta = '';
+    }
+  }
+
+  //Llenar automáticamente colonias al seleccionar un punto en el mapa
+  coordenadasMapa: { lat: number; lng: number } | null = null;
+
+  actualizarCoordenadasManual() {
+    if (this.direccionPorCliente.diCl_Latitud && this.direccionPorCliente.diCl_Longitud) {
+      this.coordenadasMapa = {
+        lat: Number(this.direccionPorCliente.diCl_Latitud),
+        lng: Number(this.direccionPorCliente.diCl_Longitud)
+      };
+
+      if (this.mapaSelectorComponent) {
+        this.mapaSelectorComponent.setMarker(this.coordenadasMapa.lat, this.coordenadasMapa.lng);
+      }
     }
   }
 }
