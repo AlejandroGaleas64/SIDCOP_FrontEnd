@@ -46,7 +46,11 @@ export class CreateComponent implements OnInit {
   clienteSeleccionado: number = 0; // ID del cliente seleccionado
   clientesFiltrados: any[] = []; // Lista de clientes filtrados para ng-select
   direccionesCliente: any[] = []; // Lista de direcciones del cliente seleccionado
+  clienteActual: any = null; // Cliente seleccionado actualmente con toda su información
   venta: VentaInsertar = new VentaInsertar();
+  
+  // Control de visibilidad de información de crédito
+  mostrarInfoCredito: boolean = false; // Solo se muestra cuando se selecciona opción de crédito
   sucursales: any[] = [];
   productos: any[] = [];
   vendedores: any[] = [];
@@ -604,6 +608,24 @@ private inicializar(): void {
     this.tabActivo = tab;
     this.limpiarAlertas();
   }
+  
+  /**
+   * Maneja el cambio de tipo de venta (Contado/Crédito)
+   * Actualiza la visibilidad de la información de crédito
+   */
+  cambiarTipoVenta(): void {
+    // Actualizar la visibilidad de la información de crédito
+    this.mostrarInfoCredito = (this.venta.fact_TipoVenta === 'Crédito');
+    
+    // Si se seleccionó crédito pero el cliente no puede usarlo, mostrar advertencia
+    if (this.venta.fact_TipoVenta === 'Crédito' && !this.puedeUsarCredito()) {
+      this.mostrarWarning('Este cliente no puede usar crédito. Verifique límite de crédito o saldo vencido.');
+      this.venta.fact_TipoVenta = 'Contado';
+      this.mostrarInfoCredito = false;
+    }
+    
+    this.actualizarEstadoNavegacion();
+  }
 
   irAResumen(): void {
     this.mostrarErrores = true;
@@ -655,6 +677,78 @@ private inicializar(): void {
     const vendedor = this.vendedores.find((v) => v.vend_Id == this.venta.vend_Id);
     return vendedor ? `${vendedor.vend_Nombres} ${vendedor.vend_Apellidos}` : 'No seleccionado';
   }
+  
+  // ========== MÉTODOS PARA INFORMACIÓN DE CRÉDITO ==========
+  
+  /**
+   * Verifica si el cliente seleccionado tiene crédito habilitado
+   * @returns true si el cliente tiene crédito, false en caso contrario
+   */
+  tieneCredito(): boolean {
+    if (!this.clienteActual) return false;
+    
+    // Un cliente tiene crédito si tiene límite de crédito o días de crédito
+    return (this.clienteActual.clie_LimiteCredito > 0 || this.clienteActual.clie_DiasCredito > 0);
+  }
+  
+  /**
+   * Verifica si el cliente puede usar crédito (tiene crédito y no tiene saldo vencido)
+   * @returns true si el cliente puede usar crédito, false en caso contrario
+   */
+  puedeUsarCredito(): boolean {
+    // Si no tiene crédito habilitado, no puede usarlo
+    if (!this.tieneCredito()) return false;
+    
+    // Si tiene saldo vencido, no puede usar crédito
+    if (this.tieneSaldoVencido()) return false;
+    
+    return true;
+  }
+  
+  /**
+   * Obtiene el límite de crédito del cliente seleccionado
+   * @returns Límite de crédito o 0 si no tiene
+   */
+  getLimiteCredito(): number {
+    return this.clienteActual?.clie_LimiteCredito || 0;
+  }
+  
+  /**
+   * Obtiene los días de crédito del cliente seleccionado
+   * @returns Días de crédito o 0 si no tiene
+   */
+  getDiasCredito(): number {
+    return this.clienteActual?.clie_DiasCredito || 0;
+  }
+  
+  /**
+   * Obtiene el saldo actual del cliente seleccionado
+   * @returns Saldo actual o 0 si no tiene
+   */
+  getSaldoCliente(): number {
+    return this.clienteActual?.clie_Saldo || 0;
+  }
+  
+  /**
+   * Calcula el saldo disponible para crédito
+   * @returns Saldo disponible (límite - saldo actual)
+   */
+  getSaldoDisponible(): number {
+    if (!this.clienteActual) return 0;
+    
+    const limite = this.getLimiteCredito();
+    const saldoActual = this.getSaldoCliente();
+    
+    return Math.max(0, limite - saldoActual);
+  }
+  
+  /**
+   * Verifica si el cliente tiene saldo vencido
+   * @returns true si tiene saldo vencido, false en caso contrario
+   */
+  tieneSaldoVencido(): boolean {
+    return this.clienteActual?.clie_Vencido || false;
+  }
 
   // ========== CÁLCULOS FINANCIEROS ==========
   getSubtotal(): number {
@@ -679,6 +773,7 @@ private inicializar(): void {
       this.venta.direccionId = 0; // Resetear la dirección seleccionada
       this.venta.diCl_Id = 0; // Resetear el ID de dirección del cliente
       this.venta.clie_Id = 0; // Resetear el ID del cliente
+      this.clienteActual = null; // Resetear el cliente actual
       return;
     }
     
@@ -686,6 +781,10 @@ private inicializar(): void {
     this.venta.clie_Id = clienteId;
     // NO asignamos el ID del cliente a diCl_Id, ya que son campos diferentes
     // diCl_Id debe ser el ID de la dirección del cliente, no el ID del cliente
+    
+    // Buscar y guardar la información completa del cliente seleccionado
+    this.clienteActual = this.clientes.find(c => c.clie_Id === clienteId);
+    console.log('Cliente seleccionado:', this.clienteActual);
     
     const headers = this.obtenerHeaders(); 
     
