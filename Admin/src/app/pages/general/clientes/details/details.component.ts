@@ -5,6 +5,7 @@ import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente
 import { environment } from 'src/environments/environment.prod';
 import { HttpClient } from '@angular/common/http';
 import { MapaSelectorComponent } from '../mapa-selector/mapa-selector.component';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   selector: 'app-details',
@@ -44,7 +45,6 @@ export class DetailsComponent implements OnChanges {
     this.cargarColonias();
     this.cargarMunicipios();
     this.cargarDepartamentos();
-    this.cargarUltimaVisita();
   }
 
   // Simulación de carga
@@ -59,6 +59,7 @@ export class DetailsComponent implements OnChanges {
 
         this.cargarDirecciones();
         this.cargarAvales();
+        this.cargarUltimaVisita();
       } catch (error) {
         console.error('Error al cargar detalles del cliente:', error);
         this.mostrarAlertaError = true;
@@ -91,7 +92,27 @@ export class DetailsComponent implements OnChanges {
     });
   }
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private imageUploadService: ImageUploadService
+  ) { }
+
+  /**
+   * Construye la URL completa para mostrar la imagen
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
+  }
+
+  /**
+   * Obtiene la imagen a mostrar (la subida o la por defecto)
+   */
+  getImageToDisplay(): string {
+    if (this.clienteDetalle?.clie_ImagenDelNegocio && this.clienteDetalle.clie_ImagenDelNegocio.trim()) {
+      return this.getImageDisplayUrl(this.clienteDetalle.clie_ImagenDelNegocio);
+    }
+    return 'assets/images/users/32/user-svg.svg';
+  }
   direcciones: DireccionPorCliente[] = [];
   avales: any = [];
 
@@ -181,15 +202,22 @@ export class DetailsComponent implements OnChanges {
   }
 
   ultimaVisita: string | null = null;
+
   cargarUltimaVisita() {
-    if (!this.clienteDetalle?.clie_Id) return;
-    this.http.get<any[]>(`${environment.apiBaseUrl}/ClientesVisitaHistorial/${this.clienteDetalle.clie_Id}`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe((visitas: any[]) => {
-      if (visitas && visitas.length) {
-        // Ordena por fecha descendente y toma la primera
-        visitas.sort((a, b) => new Date(b.ClVi_Fecha).getTime() - new Date(a.ClVi_Fecha).getTime());
-        this.ultimaVisita = visitas[0].ClVi_Fecha;
+    if (!this.clienteDetalle || !this.clienteDetalle.clie_Id) {
+      this.ultimaVisita = null;
+      return;
+    }
+    this.http.get<any[]>(
+      `${environment.apiBaseUrl}/ClientesVisitaHistorial/ListarVisitasPorCliente`,
+      {
+        headers: { 'x-api-key': environment.apiKey },
+        params: { clie_Id: this.clienteDetalle.clie_Id }
+      }
+    ).subscribe(visitas => {
+      console.log('Visitas recibidas:', visitas);
+      if (visitas && visitas.length > 0) {
+        this.ultimaVisita = visitas[0].clVi_Fecha; // Ajusta el campo si es necesario
       } else {
         this.ultimaVisita = null;
       }

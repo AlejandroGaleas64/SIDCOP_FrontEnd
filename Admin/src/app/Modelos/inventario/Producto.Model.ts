@@ -7,12 +7,13 @@ export class Producto {
     prod_CodigoBarra: string = '';
     cate_Id?: number = 0;
     cate_Descripcion?: string = '';
+    prod_Peso: number = 0;
+    unPe_Id: number = 0;
     subc_Id: number = 0;
     marc_Id: number = 0;
     prov_Id: number = 0;
     impu_Id?: number = 0;
     prod_PrecioUnitario: number = 0;
-    prod_CostoTotal: number = 0;
     prod_PagaImpuesto?: string = "";
     prod_EsPromo?: string = "";
     prod_Impulsado: boolean = false;
@@ -25,7 +26,9 @@ export class Producto {
     prov_NombreEmpresa?: string = '';
     subc_Descripcion?: string = '';
     impu_Descripcion?: string = '';
-    promDesc?: string = '';
+    impulsacion?: string = '';
+    unPe_Descripcion?: string = '';
+    unPe_Abreviatura?: string = '';
     usuarioCreacion?: string = '';
     usuarioModificacion?: string;
     secuencia?: number;

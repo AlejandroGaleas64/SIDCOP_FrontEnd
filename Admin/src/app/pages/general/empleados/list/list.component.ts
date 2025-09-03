@@ -206,7 +206,6 @@ export class ListComponent {
     });
     this.cargarAccionesUsuario();
     this.cargardatos();
-    document.getElementById('elmLoader')?.classList.add('d-none');
   }
 
    private cargarAccionesUsuario(): void {

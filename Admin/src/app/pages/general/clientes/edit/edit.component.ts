@@ -11,6 +11,8 @@ import { Aval } from 'src/app/Modelos/general/Aval.Model';
 import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente.Model';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { Router } from '@angular/router';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @Component({
   selector: 'app-edit',
@@ -21,6 +23,7 @@ import { Router } from '@angular/router';
     HttpClientModule,
     NgxMaskDirective,
     MapaSelectorComponent,
+    NgSelectModule
   ],
   templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss',
@@ -81,7 +84,7 @@ export class EditComponent implements OnChanges {
   avalesEliminados: number[] = [];
 
   @Input() coordenadasIniciales?: { lat: number, lng: number };
-  
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['clienteData']?.currentValue) {
       this.cliente = { ...changes['clienteData'].currentValue };
@@ -98,6 +101,13 @@ export class EditComponent implements OnChanges {
         );
       } else {
         this.cliente.clie_FechaNacimiento = null;
+      }
+
+      // Inicializar uploadedFiles con la imagen existente si la hay
+      if (this.cliente.clie_ImagenDelNegocio) {
+        this.uploadedFiles = [this.cliente.clie_ImagenDelNegocio];
+      } else {
+        this.uploadedFiles = [];
       }
 
       const formatoCodigo = /^CLIE-RT-\d{3}-\d{6}$/;
@@ -153,8 +163,8 @@ export class EditComponent implements OnChanges {
     this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
   }
 
-  revisarCorreoValido(correo: string): boolean {
-    if (!correo) return true;
+  esCorreoValido(correo: string): boolean {
+    if (!correo || !correo.trim()) return true;
     // Debe contener "@" y terminar en ".com"
     return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
   }
@@ -163,7 +173,6 @@ export class EditComponent implements OnChanges {
     const valor = event.target.value;
     this.cliente.clie_FechaNacimiento = valor ? new Date(valor) : null;
   }
-
 
   //Declarado para validar la direccion
   validarDireccion: boolean = false;
@@ -421,8 +430,7 @@ export class EditComponent implements OnChanges {
             this.activeTab = 4;
           } else {
             this.mostrarAlertaWarning = true;
-            this.mensajeWarning =
-              'Se asigno Dias de Credito, pero no un crédito.';
+            this.mensajeWarning = 'Se asigno Dias de Credito, pero no un crédito.';
             setTimeout(() => {
               this.mostrarAlertaWarning = false;
               this.mensajeWarning = '';
@@ -506,7 +514,8 @@ export class EditComponent implements OnChanges {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private imageUploadService: ImageUploadService
   ) {
     this.cargarPaises();
     this.cargarTiposDeVivienda();
@@ -762,26 +771,57 @@ export class EditComponent implements OnChanges {
     this.mensajeWarning = '';
   }
 
+  // Variables para manejo de imágenes
+  uploadedFiles: string[] = [];
+  isUploading = false;
+
   onImagenSeleccionada(event: any) {
     const file = event.target.files[0];
     if (file) {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'subidas_usuarios');
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-
-      fetch(url, {
-        method: 'POST',
-        body: formData,
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.cliente.clie_ImagenDelNegocio = data.secure_url;
-          //console.log(this.cliente.clie_ImagenDelNegocio);
+      this.isUploading = true;
+      this.imageUploadService.uploadImageAsync(file)
+        .then(imagePath => {
+          this.cliente.clie_ImagenDelNegocio = imagePath;
+          this.uploadedFiles = [imagePath];
+          this.isUploading = false;
         })
-        .catch((error) => {
-          //console.error('Error al subir la imagen a Cloudinary:', error);
+        .catch(error => {
+          console.error('Error al subir la imagen:', error);
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error al subir la imagen. Por favor, intente nuevamente.';
+          this.isUploading = false;
+          setTimeout(() => {
+            this.mostrarAlertaError = false;
+            this.mensajeError = '';
+          }, 3000);
         });
+    }
+  }
+
+  /**
+   * Construye la URL completa para mostrar la imagen
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
+  }
+
+  /**
+   * Obtiene la imagen a mostrar (la subida o la por defecto)
+   */
+  getImageToDisplay(): string {
+    if (this.cliente.clie_ImagenDelNegocio && this.cliente.clie_ImagenDelNegocio.trim()) {
+      return this.getImageDisplayUrl(this.cliente.clie_ImagenDelNegocio);
+    }
+    return 'assets/images/users/32/user-svg.svg';
+  }
+
+  /**
+   * Elimina una imagen de la lista
+   */
+  removeImage(index: number): void {
+    this.uploadedFiles.splice(index, 1);
+    if (this.uploadedFiles.length === 0) {
+      this.cliente.clie_ImagenDelNegocio = '';
     }
   }
 
@@ -837,7 +877,7 @@ export class EditComponent implements OnChanges {
         esCv_Descripcion: this.cliente.esCv_Descripcion,
         ruta_Id: this.cliente.ruta_Id,
         ruta_Descripcion: this.cliente.ruta_Descripcion,
-        clie_LimiteCredito: this.cliente.clie_LimiteCredito,
+        clie_LimiteCredito: this.cliente.clie_LimiteCredito ? this.cliente.clie_LimiteCredito : 0,
         clie_DiasCredito: this.cliente.clie_DiasCredito,
         clie_Saldo: this.cliente.clie_Saldo,
         clie_Vencido: this.cliente.clie_Vencido,
@@ -871,6 +911,19 @@ export class EditComponent implements OnChanges {
         )
         .subscribe({
           next: (response) => {
+            if (response.data.code_Status === 1) {
+              this.actualizarDireccionesYAvales();
+              this.mensajeExito = `Cliente "${this.cliente.clie_Nombres + ' ' + this.cliente.clie_Apellidos}" actualizado exitosamente`;
+              this.mostrarAlertaExito = true;
+              this.mostrarErrores = false;
+
+              // Ocultar la alerta después de 3 segundos
+              setTimeout(() => {
+                this.mostrarAlertaExito = false;
+                this.onSave.emit(this.cliente);
+                this.cancelar();
+              }, 3000);
+            }
             if (response.data?.code_Status === -1) {
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status;
@@ -881,8 +934,17 @@ export class EditComponent implements OnChanges {
               }, 3000);
               return;
             }
-            this.actualizarDireccionesYAvales();
-            this.onSave.emit(this.cliente);
+            // this.actualizarDireccionesYAvales();
+
+            // this.mensajeExito = `Cliente "${this.cliente.clie_Nombres + ' ' + this.cliente.clie_Apellidos}" actualizado exitosamente`;
+            // this.mostrarAlertaExito = true;
+            // this.mostrarErrores = false;
+            // this.onSave.emit(this.cliente);
+
+            // setTimeout(() => {
+            //   this.mostrarAlertaExito = false;
+            //   this.mensajeExito = '';
+            // }, 4000);
           },
           error: (error) => {
             this.mostrarAlertaError = true;
@@ -1454,6 +1516,36 @@ export class EditComponent implements OnChanges {
         label: 'Observaciones'
       };
     }
+
+    for (const avalActual of this.avales) {
+  // Busca el aval original por ID
+  const avalOriginal = this.avalesOriginales.find(a => a.aval_Id === avalActual.aval_Id);
+
+  // Si no hay original, es nuevo (puedes mostrar todos los campos como nuevos si quieres)
+  if (!avalOriginal) continue;
+
+  if (avalActual.aval_Nombres !== avalOriginal.aval_Nombres) {
+    this.cambiosDetectados[`nombreAval${avalActual.aval_Id}`] = {
+      anterior: avalOriginal.aval_Nombres,
+      nuevo: avalActual.aval_Nombres,
+      label: `Nombre del Aval`
+    };
+  }
+  if (avalActual.aval_Apellidos !== avalOriginal.aval_Apellidos) {
+    this.cambiosDetectados[`apellidoAval${avalActual.aval_Id}`] = {
+      anterior: avalOriginal.aval_Apellidos,
+      nuevo: avalActual.aval_Apellidos,
+      label: `Apellido del Aval`
+    };
+  }
+  if (avalActual.aval_DNI !== avalOriginal.aval_DNI) {
+    this.cambiosDetectados[`dniAval${avalActual.aval_Id}`] = {
+      anterior: avalOriginal.aval_DNI,
+      nuevo: avalActual.aval_DNI,
+      label: `DNI del Aval`
+    };
+  }
+}
     return Object.keys(this.cambiosDetectados).length > 0;
   }
 
@@ -1505,6 +1597,11 @@ export class EditComponent implements OnChanges {
     }
 
 
+    if (this.tieneDatosCredito()) {
+      if (this.avales.length === 0 || !this.avales.every(a => this.esAvalValido(a))) {
+        errores.push('Aval');
+      }
+    }
     if (errores.length > 0) {
       this.mensajeWarning = `Por favor corrija los siguientes campos: ${errores.join(', ')}`;
       this.mostrarAlertaWarning = true;
@@ -1532,6 +1629,45 @@ export class EditComponent implements OnChanges {
   buscarDireccion(query: string) {
     if (this.mapaSelectorComponent) {
       this.mapaSelectorComponent.buscarDireccion(query);
+    }
+  }
+
+    //Para buscar colonias en DDL
+  searchColonias = (term: string, item: any) => {
+    term = term.toLowerCase();
+    return (
+      item.colo_Descripcion?.toLowerCase().includes(term) ||
+      item.muni_Descripcion?.toLowerCase().includes(term) ||
+      item.depa_Descripcion?.toLowerCase().includes(term)
+    );
+  };
+
+  direccionExactaInicial: string = '';
+  colonias: any[] = [];
+  onColoniaSeleccionada(colo_Id: number) {
+    const coloniaSeleccionada = this.colonias.find((c: any) => c.colo_Id === colo_Id);
+    if (coloniaSeleccionada) {
+      this.direccionExactaInicial = coloniaSeleccionada.colo_Descripcion;
+      this.direccionPorCliente.diCl_DireccionExacta = coloniaSeleccionada.colo_Descripcion;
+    } else {
+      this.direccionExactaInicial = '';
+      this.direccionPorCliente.diCl_DireccionExacta = '';
+    }
+  }
+
+  //Llenar automáticamente colonias al seleccionar un punto en el mapa
+  coordenadasMapa: { lat: number; lng: number } | null = null;
+
+  actualizarCoordenadasManual() {
+    if (this.direccionPorCliente.diCl_Latitud && this.direccionPorCliente.diCl_Longitud) {
+      this.coordenadasMapa = {
+        lat: Number(this.direccionPorCliente.diCl_Latitud),
+        lng: Number(this.direccionPorCliente.diCl_Longitud)
+      };
+
+      if (this.mapaSelectorComponent) {
+        this.mapaSelectorComponent.setMarker(this.coordenadasMapa.lat, this.coordenadasMapa.lng);
+      }
     }
   }
 }
