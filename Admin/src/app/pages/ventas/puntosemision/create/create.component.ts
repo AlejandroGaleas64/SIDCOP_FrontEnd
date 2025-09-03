@@ -181,9 +181,24 @@ export class CreateComponent {
         )
         .subscribe({
           next: (response) => {
-            this.mostrarErrores = false;
-            this.onSave.emit(this.puntoEmision);
-            this.cancelar();
+            if (response.data.code_Status === 1) {
+              this.mostrarErrores = false;
+              this.onSave.emit(this.puntoEmision);
+              this.cancelar();
+            } else {
+              console.error(
+                'Error al guardar PE:'
+              );
+              this.mostrarAlertaError = true;
+              this.mensajeError = response.data.message_Status;
+              this.mostrarAlertaExito = false;
+
+              // Ocultar la alerta de error después de 5 segundos
+              setTimeout(() => {
+                this.mostrarAlertaError = false;
+                this.mensajeError = '';
+              }, 5000);
+            }
           },
           error: (error) => {
             this.mostrarAlertaError = true;

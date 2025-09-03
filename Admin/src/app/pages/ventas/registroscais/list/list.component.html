@@ -83,7 +83,7 @@
                 <tr>
                   <th class="gridjs-th" *ngIf="
                       accionPermitida('editar') ||
-                      accionPermitida('eliminar') ||
+                      accionPermitida('cambiar estado') ||
                       accionPermitida('detalle')
                     ">
                     Acciones
@@ -373,7 +373,7 @@
                 <tr class="gridjs-th" *ngFor="let data of table.paginated$ | async; let i = index">
                   <td class="position-relative" *ngIf="
                       accionPermitida('editar') ||
-                      accionPermitida('eliminar') ||
+                      accionPermitida('cambiar estado') ||
                       accionPermitida('detalle')
                     ">
                     <div class="dropdown-action-list">
@@ -514,7 +514,7 @@
       Editar <i class="ri-edit-line"></i>
     </button>
   </li>
-  <li *ngIf="accionPermitida('eliminar')">
+  <li *ngIf="accionPermitida('cambiar estado')">
     <button type="button" class="dropdown-action-btn" (click)="
         confirmarEliminar(floatingMenuService.data); floatingMenuService.close()
       ">
