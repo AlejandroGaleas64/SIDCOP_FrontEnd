@@ -349,4 +349,20 @@ export class EditRecargaComponent implements OnChanges {
   trackByProducto(index: number, producto: ProductosRecarga): any {
     return producto.prod_Id || index;
   }
+
+  // Formatear fecha a un formato legible
+  formatDate(dateString: string): string {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }).format(date);
+  }
 }

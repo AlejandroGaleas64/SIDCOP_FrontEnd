@@ -9,11 +9,13 @@ import { Empleado } from 'src/app/Modelos/general/Empleado.Model';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { DropzoneModule, DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
 import { ImageUploadService } from 'src/app/core/services/image-upload.service';
+import { NgxMaskDirective, NgxMaskPipe, provideNgxMask } from 'ngx-mask';
 
 @Component({
   selector: 'app-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule, DropzoneModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule, DropzoneModule, NgxMaskDirective, NgxMaskPipe],
+  providers: [provideNgxMask()],
   templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss'
 })
@@ -56,6 +58,7 @@ export class EditComponent implements OnChanges {
       empl_FechaNacimiento: new Date(),
       empl_Correo: '',
       empl_Telefono: '',
+      empl_Imagen: '',
       sucu_Id: 0,
       esCv_Id: 0,
       carg_Id: 0,
@@ -117,13 +120,31 @@ export class EditComponent implements OnChanges {
     this.mensajeWarning = '';
   }
 
+  private validarFormatoDNI(dni: string): boolean {
+    const formatoDNI = /^\d{4}-\d{4}-\d{5}$/;
+    return formatoDNI.test(dni);
+  }
+
   validarEdicion(): void {
     this.mostrarErrores = true;
+
+    // Validar formato del DNI
+    if (!this.validarFormatoDNI(this.empleado.empl_DNI)) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'El DNI debe tener el formato 0000-0000-00000';
+      setTimeout(() => this.cerrarAlerta(), 4000);
+      return;
+    }
 
     // Compara todos los campos relevantes
     const original = this.empleadoData;
     const actual = this.empleado;
+
+    // Verificar si hay cambios en la imagen
+    const imagenHaCambiado = this.uploadedFiles.length > 0 && this.uploadedFiles[0].file !== undefined;
+
     const haCambiado =
+      imagenHaCambiado || // Incluir cambios en la imagen
       (original?.empl_DNI?.trim() || '') !== (actual.empl_DNI?.trim() || '') ||
       (original?.empl_Codigo?.trim() || '') !== (actual.empl_Codigo?.trim() || '') ||
       (original?.empl_Nombres?.trim() || '') !== (actual.empl_Nombres?.trim() || '') ||
@@ -136,9 +157,11 @@ export class EditComponent implements OnChanges {
       (original?.esCv_Id || 0) !== (actual.esCv_Id || 0) ||
       (original?.carg_Id || 0) !== (actual.carg_Id || 0) ||
       (original?.colo_Id || 0) !== (actual.colo_Id || 0) ||
-      (original?.empl_DireccionExacta?.trim() || '') !== (actual.empl_DireccionExacta?.trim() || '');
+      (original?.empl_DireccionExacta?.trim() || '') !== (actual.empl_DireccionExacta?.trim() || '') ||
+      (original?.empl_Imagen || '') !== (actual.empl_Imagen || '');
 
     // Valida campos requeridos
+    const tieneImagen = this.uploadedFiles.length > 0 || actual.empl_Imagen;
     const camposRequeridos = [
       actual.empl_DNI,
       actual.empl_Codigo,
@@ -154,7 +177,16 @@ export class EditComponent implements OnChanges {
       actual.colo_Id,
       actual.empl_DireccionExacta
     ];
-    const todosLlenos = camposRequeridos.every(c => c && c.toString().trim() !== '');
+
+    // Verifica si todos los campos están llenos y si hay una imagen
+    const todosLlenos = camposRequeridos.every(c => c && c.toString().trim() !== '') && tieneImagen;
+
+    if (!tieneImagen) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'La imagen del empleado es obligatoria.';
+      setTimeout(() => this.cerrarAlerta(), 4000);
+      return;
+    }
 
     if (todosLlenos) {
       if (haCambiado) {
@@ -197,7 +229,22 @@ export class EditComponent implements OnChanges {
       }
     }
 
-    if (this.empleado.empl_Nombres.trim()) {
+    // Validar que al menos un campo haya cambiado
+    const camposValidos = 
+      this.empleado.empl_DNI?.trim() !== '' &&
+      this.empleado.empl_Codigo?.trim() !== '' &&
+      this.empleado.empl_Nombres?.trim() !== '' &&
+      this.empleado.empl_Apellidos?.trim() !== '' &&
+      this.empleado.empl_Sexo?.trim() !== '' &&
+      this.empleado.empl_Correo?.trim() !== '' &&
+      this.empleado.empl_Telefono?.trim() !== '' &&
+      this.empleado.sucu_Id !== 0 &&
+      this.empleado.esCv_Id !== 0 &&
+      this.empleado.carg_Id !== 0 &&
+      this.empleado.colo_Id !== 0 &&
+      this.empleado.empl_DireccionExacta?.trim() !== '';
+
+    if (camposValidos) {
       const empleadoActualizar = {
         empl_Id: this.empleado.empl_Id,
         empl_DNI: this.empleado.empl_DNI,

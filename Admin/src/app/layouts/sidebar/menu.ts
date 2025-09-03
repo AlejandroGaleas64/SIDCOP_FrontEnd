@@ -41,6 +41,12 @@ export const MENU: MenuItem[] = [
         label: 'MENUITEMS.ACCESO.LIST.USUARIOS',
         link: '/acceso/usuarios',
         parentId: 1,
+      },
+      {
+        id: 63,
+        label: 'MENUITEMS.ACCESO.LIST.MIGRACIONES',
+        link: '/acceso/migraciones',
+        parentId: 1,
       }
     ],
   },
