@@ -163,8 +163,8 @@ export class EditComponent implements OnChanges {
     this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
   }
 
-  revisarCorreoValido(correo: string): boolean {
-    if (!correo) return true;
+  esCorreoValido(correo: string): boolean {
+    if (!correo || !correo.trim()) return true;
     // Debe contener "@" y terminar en ".com"
     return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
   }
@@ -877,7 +877,7 @@ export class EditComponent implements OnChanges {
         esCv_Descripcion: this.cliente.esCv_Descripcion,
         ruta_Id: this.cliente.ruta_Id,
         ruta_Descripcion: this.cliente.ruta_Descripcion,
-        clie_LimiteCredito: this.cliente.clie_LimiteCredito,
+        clie_LimiteCredito: this.cliente.clie_LimiteCredito ? this.cliente.clie_LimiteCredito : 0,
         clie_DiasCredito: this.cliente.clie_DiasCredito,
         clie_Saldo: this.cliente.clie_Saldo,
         clie_Vencido: this.cliente.clie_Vencido,
@@ -1517,29 +1517,35 @@ export class EditComponent implements OnChanges {
       };
     }
 
-    if (e.aval_Nombres !== f.aval_Nombres) {
-      this.cambiosDetectados.nombreAval = {
-        anterior: f.aval_Nombres,
-        nuevo: e.aval_Nombres,
-        label: 'Nombre del Aval'
-      };
-    }
+    for (const avalActual of this.avales) {
+  // Busca el aval original por ID
+  const avalOriginal = this.avalesOriginales.find(a => a.aval_Id === avalActual.aval_Id);
 
-    if (e.aval_Nombres !== f.aval_Nombres) {
-      this.cambiosDetectados.nombreAval = {
-        anterior: f.aval_Nombres,
-        nuevo: e.aval_Nombres,
-        label: 'Nombre del Aval'
-      };
-    }
+  // Si no hay original, es nuevo (puedes mostrar todos los campos como nuevos si quieres)
+  if (!avalOriginal) continue;
 
-    if (e.aval_DNI !== f.aval_DNI) {
-      this.cambiosDetectados.dniAval = {
-        anterior: f.aval_DNI,
-        nuevo: e.aval_DNI,
-        label: 'Apellido del Aval'
-      };
-    }
+  if (avalActual.aval_Nombres !== avalOriginal.aval_Nombres) {
+    this.cambiosDetectados[`nombreAval${avalActual.aval_Id}`] = {
+      anterior: avalOriginal.aval_Nombres,
+      nuevo: avalActual.aval_Nombres,
+      label: `Nombre del Aval`
+    };
+  }
+  if (avalActual.aval_Apellidos !== avalOriginal.aval_Apellidos) {
+    this.cambiosDetectados[`apellidoAval${avalActual.aval_Id}`] = {
+      anterior: avalOriginal.aval_Apellidos,
+      nuevo: avalActual.aval_Apellidos,
+      label: `Apellido del Aval`
+    };
+  }
+  if (avalActual.aval_DNI !== avalOriginal.aval_DNI) {
+    this.cambiosDetectados[`dniAval${avalActual.aval_Id}`] = {
+      anterior: avalOriginal.aval_DNI,
+      nuevo: avalActual.aval_DNI,
+      label: `DNI del Aval`
+    };
+  }
+}
     return Object.keys(this.cambiosDetectados).length > 0;
   }
 

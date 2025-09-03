@@ -87,8 +87,17 @@
                                 <div class="detail-item">
                                     <div class="detail-icon bg-dark-blue text-white"><span>L</span></div>
                                     <div class="detail-content">
-                                        <div class="details-id-label">Precio Unitario</div>
-                                        <div class="details-id-value" style="font-size: 100%;">{{ productoDetalle.prod_PrecioUnitario | number: '1.2-2' }}</div>
+                                        <div class="details-id-label">Cantidad de Peso</div>
+                                        <div class="details-id-value" style="font-size: 100%;">{{ productoDetalle.prod_Peso | number: '1.2-2' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white"><i class="ri-truck-line"></i></div>
+                                    <div class="detail-content">
+                                        <div class="details-id-label">Unidad de Peso</div>
+                                        <div class="details-id-value" style="font-size: 100%;">{{ productoDetalle.unPe_Descripcion }} ({{ productoDetalle.unPe_Abreviatura }})</div>
                                     </div>
                                 </div>
                             </div>
@@ -96,8 +105,8 @@
                                 <div class="detail-item">
                                     <div class="detail-icon bg-dark-blue text-white"><span>L</span></div>
                                     <div class="detail-content">
-                                        <div class="details-id-label">Costo de Compra</div>
-                                        <div class="details-id-value" style="font-size: 100%;">{{ productoDetalle.prod_CostoTotal | number: '1.2-2' }}</div>
+                                        <div class="details-id-label">Precio</div>
+                                        <div class="details-id-value" style="font-size: 100%;">{{ productoDetalle.prod_PrecioUnitario | number: '1.2-2' }}</div>
                                     </div>
                                 </div>
                             </div>
