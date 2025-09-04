@@ -138,7 +138,7 @@ export class ZplPrintingService {
     const factTipo = invoiceData.fact_TipoVenta || 'EFECTIVO';
     const factFecha = this.formatDate(invoiceData.fact_FechaEmision);
     const factHora = this.formatTime(invoiceData.fact_FechaEmision);
-    const cai = invoiceData.regC_Descripcion || 'ABC123-XYZ456-789DEF';
+    const cai = invoiceData.regC_Descripcion || '35ABDF-AB7210-9748E0-63BE03-090965';
     const tipoDocumento = invoiceData.fact_TipoDeDocumento || 'FACTURA';
 
     // Información del cliente
