@@ -44,7 +44,7 @@
                                   @if (file.dataURL) {
                                   <img class="img-fluid rounded d-block" [src]="file.dataURL" alt="Dropzone-Image" />
                                   }@else {
-                                  <img class="img-fluid rounded d-block" [src]="file" alt="Dropzone-Image" />
+                                  <img class="img-fluid rounded d-block" [src]="getImageDisplayUrl(file)" alt="Dropzone-Image" />
                                   }
                               </div>
                           </div>
