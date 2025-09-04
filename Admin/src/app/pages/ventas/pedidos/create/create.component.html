@@ -43,7 +43,7 @@
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
             </i>
             <input type="text" class="form-control" [class.is-invalid]="!pedido.pedi_Codigo.trim() && mostrarErrores"
-              id="pedidoCodigo" [(ngModel)]="pedido.pedi_Codigo" placeholder="Ingrese el codigo del pedido" required
+              id="pedidoCodigo" [(ngModel)]="pedido.pedi_Codigo" placeholder="Código del pedido autogenerado" required
               [disabled]="true" />
           </div>
           <div class="text-danger mt-1" *ngIf="!pedido.pedi_Codigo.trim() && mostrarErrores">
@@ -253,20 +253,23 @@
                           ">
                           <i class="ri-subtract-line"></i>
                         </button>
-                        <input type="number" class="cantidad-input-premium"
-                          [ngModel]="getCantidadProducto(producto.prod_Id)" (ngModelChange)="
-                            productos[
-                              getProductoIndex(producto.prod_Id)
-                            ].cantidad =
-                              $event > 999 ? 999 : $event < 0 ? 0 : $event;
-                            validarCantidad(producto.prod_Id);
-                              actualizarPrecio(productos[getProductoIndex(producto.prod_Id)]);
-                          " min="0" max="999" />
-
-                        <button class="btn-cantidad-premium btn-plus" type="button"
-                          (click)="aumentarCantidad(producto.prod_Id)">
-                          <i class="ri-add-line"></i>
-                        </button>
+              <input
+  type="number"
+  class="cantidad-input-premium"
+  [ngModel]="getCantidadProducto(producto.prod_Id)"
+  (ngModelChange)="onCantidadChange(producto.prod_Id, $event)"
+  (keydown)="onKeyDown($event)"
+  min="0"
+  max="999"
+/>
+<button
+  class="btn-cantidad-premium btn-plus"
+  type="button"
+  (click)="aumentarCantidad(producto.prod_Id)"
+  [disabled]="getCantidadProducto(producto.prod_Id) >= 999"
+>
+  <i class="ri-add-line"></i>
+</button>
                       </div>
                     </div>
                   </div>

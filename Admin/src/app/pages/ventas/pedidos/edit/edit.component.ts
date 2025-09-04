@@ -14,6 +14,7 @@ import { Pedido } from 'src/app/Modelos/ventas/Pedido.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-edit',
@@ -451,6 +452,15 @@ export class EditComponent implements OnInit, OnChanges {
     return `${anio}-${mes}-${dia}`; // formato 'yyyy-MM-dd'
   }
 
+   formatFechaDDMMYYYY(fecha: Date | string | null | undefined): string {
+    if (!fecha) return '';
+    const d = new Date(fecha);
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  }
+
   get fechaInicioFormato(): string {
     return new Date(this.pedidoEditada.pedi_FechaEntrega)
       .toISOString()
@@ -589,6 +599,21 @@ export class EditComponent implements OnInit, OnChanges {
         anterior: formatDireccion(direccionAnterior, clienteAnterior),
         nuevo: formatDireccion(direccionNueva, clienteNuevo),
         label: 'Dirección y Cliente',
+      };
+    }
+
+    const fechaOriginalFormateada = this.formatFechaDDMMYYYY(
+      this.PedidoData?.pedi_FechaEntrega
+    );
+    const fechaActualFormateada = this.formatFechaDDMMYYYY(
+      this.pedidoEditada.pedi_FechaEntrega
+    );
+
+    if (fechaOriginalFormateada !== fechaActualFormateada) {
+      this.cambiosDetectados.fechaEntrega = {
+        anterior: fechaOriginalFormateada,
+        nuevo: fechaActualFormateada,
+        label: 'Fecha de Entrega',
       };
     }
 

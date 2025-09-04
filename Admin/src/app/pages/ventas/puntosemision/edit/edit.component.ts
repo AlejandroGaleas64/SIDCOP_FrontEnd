@@ -90,6 +90,30 @@ export class EditComponent implements OnChanges {
     this.cargarSucursales();
   }
 
+   // Solo permite números en el campo Código
+  soloNumeros(event: KeyboardEvent): void {
+    const charCode = event.key.charCodeAt(0);
+    if (charCode < 48 || charCode > 57 || this.puntoEmision.puEm_Codigo.length >= 3) {
+      event.preventDefault();
+    }
+  }
+
+  // Evita pegar en el campo Código
+  evitarPegar(event: ClipboardEvent): void {
+    event.preventDefault();
+  }
+
+  // Valida que el código siempre sean 3 dígitos numéricos
+  validarCodigo(): void {
+    if (!/^[0-9]{0,3}$/.test(this.puntoEmision.puEm_Codigo)) {
+      this.puntoEmision.puEm_Codigo = this.puntoEmision.puEm_Codigo.replace(/[^0-9]/g, '').slice(0, 3);
+    }
+  }
+
+   codigoValido(): boolean {
+    return /^[0-9]{3}$/.test(this.puntoEmision.puEm_Codigo);
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['PEData'] && changes['PEData'].currentValue) {
       this.puntoEmision = { ...changes['PEData'].currentValue };
@@ -200,7 +224,7 @@ export class EditComponent implements OnChanges {
 
     if (
       this.puntoEmision.puEm_Descripcion.trim() &&
-      this.puntoEmision.puEm_Codigo.trim() &&
+      this.codigoValido() &&
       this.puntoEmision.sucu_Id > 0
     ) {
       const PEActualizar = {
