@@ -72,14 +72,20 @@
       </button>
       
       <!-- Botón Imprimir Pedido Original -->
+      
+      <!-- Botón Venta (Factura + Impresión) -->
       <button
         type="button"
-        class="btn text-white"
-        style="background-color: #141a2f; border-color: #141a2f;"
-        (click)="imprimirPedido()"
+        class="btn btn-success"
+        (click)="realizarVenta()"
+        [disabled]="!PedidoDetalle || procesandoVenta"
       >
-        <span class="btn-text">Imprimir Pedido</span>
-        <span class="btn-icon"><i class="ri-printer-line"></i></span>
+        <span class="btn-text" *ngIf="!procesandoVenta">Venta</span>
+        <span class="btn-text" *ngIf="procesandoVenta">Procesando...</span>
+        <span class="btn-icon">
+          <i class="ri-shopping-cart-line" *ngIf="!procesandoVenta"></i>
+          <span class="spinner-border spinner-border-sm" *ngIf="procesandoVenta" role="status"></span>
+        </span>
       </button>
     </div>
 

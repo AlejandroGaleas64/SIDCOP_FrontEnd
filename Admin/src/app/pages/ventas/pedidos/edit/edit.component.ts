@@ -328,7 +328,7 @@ export class EditComponent implements OnInit, OnChanges {
 
   pedidoEditada: Pedido = {
     pedi_Id: 0,
-     pedi_Codigo: '',
+    pedi_Codigo: '',
     diCl_Id: 0,
     vend_Id: 0,
     pedi_FechaPedido: new Date(),
@@ -336,6 +336,10 @@ export class EditComponent implements OnInit, OnChanges {
     clie_Codigo: '',
     clie_Id: 0,
     clie_NombreNegocio: '',
+    // Propiedades adicionales para la factura
+    regC_Id: 0,
+    pedi_Latitud: 0,
+    pedi_Longitud: 0,
     clie_Nombres: '',
     clie_Apellidos: '',
     colo_Descripcion: '',

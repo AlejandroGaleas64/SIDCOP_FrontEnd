@@ -568,6 +568,10 @@ export class CreateComponent {
     peDe_Cantidad: 0,
     detalles: [],
     detallesJson: '',
+    // Propiedades adicionales para la factura
+    regC_Id: 0,
+    pedi_Latitud: 0,
+    pedi_Longitud: 0,
     usua_Creacion: 0,
     usua_Modificacion: 0,
     pedi_FechaCreacion: new Date(),
@@ -604,6 +608,10 @@ export class CreateComponent {
     this.pedido = {
       pedi_Id: 0,
       pedi_Codigo: '',
+      // Propiedades adicionales para la factura
+      regC_Id: 0,
+      pedi_Latitud: 0,
+      pedi_Longitud: 0,
       diCl_Id: 0,
       vend_Id: 0,
       pedi_FechaPedido: new Date(),
