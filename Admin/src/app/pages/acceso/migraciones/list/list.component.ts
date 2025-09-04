@@ -181,7 +181,22 @@ export class ListComponent implements OnInit {
       );
   }
 
-  // ...existing code...
+ private descargarLogMigracion(message: string, tabla: string): void {
+  const fecha = new Date();
+  const fechaStr = `${fecha.getFullYear()}${(fecha.getMonth()+1).toString().padStart(2,'0')}${fecha.getDate().toString().padStart(2,'0')}_${fecha.getHours().toString().padStart(2,'0')}${fecha.getMinutes().toString().padStart(2,'0')}${fecha.getSeconds().toString().padStart(2,'0')}`;
+  const nombreArchivo = `Log_Migracion_${tabla}_${fechaStr}.txt`;
+
+  const blob = new Blob([message], { type: 'text/plain' });
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nombreArchivo;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+}
 
   migrar(migracionesinfo: Migracion): void {
     this.mostrarOverlayCarga = true;
@@ -212,6 +227,11 @@ export class ListComponent implements OnInit {
     next: (response: any) => {
       this.mostrarOverlayCarga = false;
       console.log('Respuesta al migrar :', response);
+
+       if (response?.message) {
+    this.descargarLogMigracion(response.message, paquete);
+  }
+
       if (response && response.success) {
         this.mostrarAlertaExito = true;
         this.mensajeExito = `Migración de ${paquete} completada exitosamente.`;
@@ -228,6 +248,11 @@ export class ListComponent implements OnInit {
       this.mostrarOverlayCarga = false;
       this.mostrarAlertaError = true;
       console.error(`Error al migrar "${paquete}":`, error);
+
+       if (error?.error?.message) {
+    this.descargarLogMigracion(error.error.message, paquete);
+  }
+
       this.mensajeError = `Error de conexión al intentar migrar "${paquete}".`;
       setTimeout(() => this.cerrarAlerta(), 5000);
     }
@@ -528,10 +553,20 @@ export class ListComponent implements OnInit {
   migrarGeneral(): void {
     this.mostrarOverlayCarga = true;
 
+     const config = this.infoconfiguracion.map(
+      (config) => config.coFa_RutaMigracion
+    );
+    const rutaFisica = config?.[0] || '';
+
+      const body = {
+    paquete: 'General',
+    rutaFisica: rutaFisica,
+  };
+
     this.http
       .post(
-        `${environment.apiBaseUrl}/Migracion/Migrar/General`,
-        {},
+        `${environment.apiBaseUrl}/Migracion/Migrar`,
+        body,
         {
           headers: {
             'X-Api-Key': environment.apiKey,
@@ -545,6 +580,10 @@ export class ListComponent implements OnInit {
 
           setTimeout(() => {
             this.mostrarOverlayCarga = false;
+
+             if (response?.message) {
+    this.descargarLogMigracion(response.message, 'General');
+  }
 
             if (response.success) {
               this.mostrarAlertaExito = true;
@@ -565,6 +604,10 @@ export class ListComponent implements OnInit {
           console.error('Error al migrar "General":', error);
           this.mostrarOverlayCarga = false;
           this.mostrarAlertaError = true;
+          if (error?.error?.message) {
+            this.descargarLogMigracion(error.error.message, 'General');
+          }
+
           this.mensajeError = 'Error de conexión al intentar migrar "General".';
           setTimeout(() => this.cerrarAlerta(), 5000);
         },
