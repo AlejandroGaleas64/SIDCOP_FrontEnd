@@ -650,10 +650,9 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
           }
         }
 
-        this.mostrarMensajeExito(`${this.dispositivosDisponibles.length} impresora(s) encontrada(s)`);
       } else {
         this.dispositivosDisponibles = [];
-        this.mostrarMensajeError('No se encontraron impresoras Zebra');
+
       }
       
     } catch (error) {

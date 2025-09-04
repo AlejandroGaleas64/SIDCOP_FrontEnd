@@ -20,6 +20,20 @@ const routes: Routes = [
           title: 'Listado de Metas',
         }
       },
+      {
+        path: 'create',
+        loadComponent: () => import('./create/create.component').then(m => m.CreateComponent),
+        data: {
+          title: 'Crear Metas',
+        }
+      },
+      {
+        path: 'progress',
+        loadComponent: () => import('./progress/progress.component').then(m => m.ProgressComponent),
+        data: {
+          title: 'Progreso de Metas',
+        }
+      },
 
     ]
   }

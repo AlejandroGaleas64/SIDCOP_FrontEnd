@@ -34,7 +34,7 @@ export class EditComponent implements OnChanges {
     secuencia: 0,
   };
 
-  estadoVisitaOriginal = '';
+  // estadoVisitaOriginal = '';
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -49,7 +49,7 @@ export class EditComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['estadoVisitaData'] && changes['estadoVisitaData'].currentValue) {
       this.estadoVisita = { ...changes['estadoVisitaData'].currentValue };
-      this.estadoVisitaOriginal = this.estadoVisita.esVi_Descripcion || '';
+      this.estadoVisitaOriginal = { ...changes['estadoVisitaData'].currentValue };
       this.mostrarErrores = false;
       this.cerrarAlerta();
     }
@@ -142,5 +142,54 @@ export class EditComponent implements OnChanges {
       this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
       setTimeout(() => this.cerrarAlerta(), 4000);
     }
+  }
+
+  estadoVisitaOriginal: any = {};
+  cambiosDetectados: any = {};
+    obtenerListaCambios(): { label: string; anterior: string; nuevo: string }[] {
+    const cambios: { label: string; anterior: string; nuevo: string }[] = [];
+
+    const val = (v: any) => v == null || v === '' ? '—' : String(v);
+    const trim = (s: any) => (s ?? '').toString().trim();
+    const nuevo = this.estadoVisita as any;
+    const original = this.estadoVisitaOriginal as any;
+    this.cambiosDetectados = {};
+
+    const camposBasicos = [
+      { key: 'esVi_Descripcion', label: 'Descripción' },
+    ];
+
+    camposBasicos.forEach(campo => {
+      const valorOriginal = original[campo.key];
+      const valorNuevo = nuevo[campo.key];
+      const sonDiferentes = trim(valorOriginal) !== trim(valorNuevo);
+
+      console.log(`Campo: ${campo.key}`, {
+        original: valorOriginal,
+        nuevo: valorNuevo,
+        sonDiferentes
+      });
+
+      if (sonDiferentes) {
+        const item = {
+          anterior: val(valorOriginal),
+          nuevo: val(valorNuevo),
+          label: campo.label
+        };
+        this.cambiosDetectados[campo.key] = item as any;
+        cambios.push(item);
+      }
+    });
+
+    // Verificar cada campo y almacenar los cambios
+    if (nuevo.esVi_Descripcion !== original.esVi_Descripcion) {
+      this.cambiosDetectados.descripcion = {
+        anterior: original.esVi_Descripcion,
+        nuevo: nuevo.esVi_Descripcion,
+        label: 'Descripción del Estado de Visita'
+      };
+    }
+
+    return cambios;
   }
 }
