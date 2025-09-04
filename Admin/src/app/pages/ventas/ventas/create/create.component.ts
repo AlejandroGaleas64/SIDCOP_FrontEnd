@@ -46,7 +46,11 @@ export class CreateComponent implements OnInit {
   clienteSeleccionado: number = 0; // ID del cliente seleccionado
   clientesFiltrados: any[] = []; // Lista de clientes filtrados para ng-select
   direccionesCliente: any[] = []; // Lista de direcciones del cliente seleccionado
+  clienteActual: any = null; // Cliente seleccionado actualmente con toda su información
   venta: VentaInsertar = new VentaInsertar();
+  
+  // Control de visibilidad de información de crédito
+  mostrarInfoCredito: boolean = false; // Solo se muestra cuando se selecciona opción de crédito
   sucursales: any[] = [];
   productos: any[] = [];
   vendedores: any[] = [];
@@ -81,20 +85,21 @@ export class CreateComponent implements OnInit {
       // Asignar la sucursal del usuario automáticamente
       const sucursalId = obtenerSucursalId();
       if (sucursalId > 0) {
-        this.venta.regC_Id = sucursalId;
+        this.sucursalSeleccionada = sucursalId; // Asignar a sucursalSeleccionada, NO a regC_Id
+      }
+      // No llamar a cargarInventarioSucursal aquí, se llamará después de cargar los productos
+      // Asignar el registro CAI del usuario (esto es correcto)
+      const regCId = obtenerRegCId();
+      if (regCId > 0) {
+        this.venta.regC_Id = regCId; // Asignar regC_Id correctamente desde obtenerRegCId()
+        this.venta.regC_Id_Vendedor = regCId;
+        console.log('regC_Id asignado:', regCId);
       }
       
       // Asignar el ID de persona como vendedor
       const personaId = obtenerPersonaId();
       if (personaId > 0) {
         this.venta.vend_Id = personaId;
-      }
-      
-      // Asignar el registro CAI del usuario
-      const regCId = obtenerRegCId();
-      if (regCId > 0) {
-        this.venta.regC_Id_Vendedor = regCId;
-        console.log('regC_Id_Vendedor asignado:', regCId);
       }
     }
     
@@ -110,16 +115,16 @@ private inicializar(): void {
   this.venta = new VentaInsertar({
     fact_Numero: '', // Se generará en el backend
     fact_TipoDeDocumento: '01',
-    regC_Id: 19,
+    regC_Id: 0, // Se asignará correctamente desde obtenerRegCId() o del vendedor seleccionado
     diCl_Id: 0, // Nuevo campo que reemplaza a clie_Id
     direccionId: 0, // Se llenará cuando se seleccione un cliente y sus direcciones
     fact_TipoVenta: '', // se llenará en el formulario
     fact_FechaEmision: hoy,
-    fact_Latitud: 14.123456,
-    fact_Longitud: -87.123456,
+    fact_Latitud: 0,
+    fact_Longitud: 0,
     fact_Referencia: '',
     fact_AutorizadoPor: 'SISTEMA',
-    vend_Id: 1,
+    vend_Id: 0,
     usua_Creacion: 1,
     detallesFacturaInput: []
   });
@@ -190,11 +195,7 @@ private inicializar(): void {
   private cargarVendedoresPorSucursal(sucursalId: number): void {
     if (!sucursalId) return;
     
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'X-Api-Key': environment.apiKey,
-      'accept': '*/*'
-    });
+    const headers = this.obtenerHeaders();
     
     this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/PorSucursal/${sucursalId}`, { headers })
       .subscribe({
@@ -231,6 +232,12 @@ private inicializar(): void {
             stockDisponible: 0,
             tieneStock: false,
           }));
+          
+          // Cargar el inventario después de cargar los productos
+          if (this.sucursalSeleccionada && this.sucursalSeleccionada > 0) {
+            this.cargarInventarioSucursal();
+          }
+          
           this.aplicarFiltros();
         },
         error: () => this.mostrarError('Error al cargar productos'),
@@ -295,11 +302,10 @@ private inicializar(): void {
   
   /**
    * Captura el regC_Id del vendedor seleccionado
+   * Solo actualiza regC_Id si el usuario es administrador
+   * Siempre asigna regC_Id_Vendedor con el registro CAI del vendedor
    */
   onVendedorChange(): void {
-    // Limpiar el regC_Id_Vendedor anterior
-    this.venta.regC_Id_Vendedor = undefined;
-    
     // Si no hay ID de vendedor seleccionado, salir
     if (!this.venta.vend_Id || this.venta.vend_Id === 0) {
       return;
@@ -313,21 +319,37 @@ private inicializar(): void {
       return;
     }
     
+    // Obtener el registro CAI del vendedor
+    let registroCAI: number | undefined;
+    
     // Verificar si el vendedor tiene el campo regC_Id
     if (vendedorSeleccionado.regC_Id !== undefined) {
-      this.venta.regC_Id_Vendedor = vendedorSeleccionado.regC_Id;
-      console.log('regC_Id_Vendedor asignado:', this.venta.regC_Id_Vendedor);
+      registroCAI = vendedorSeleccionado.regC_Id;
     } else {
       // Intentar buscar cualquier propiedad que contenga 'regc'
       const regCProperty = Object.keys(vendedorSeleccionado).find(key => 
         key.toLowerCase().includes('regc'));
       
       if (regCProperty) {
-        this.venta.regC_Id_Vendedor = vendedorSeleccionado[regCProperty];
-        console.log('regC_Id_Vendedor encontrado en propiedad alternativa:', regCProperty, this.venta.regC_Id_Vendedor);
-      } else {
-        console.warn('No se encontró regC_Id para el vendedor seleccionado');
+        registroCAI = vendedorSeleccionado[regCProperty];
       }
+    }
+    
+    // Asignar el registro CAI del vendedor a regC_Id_Vendedor
+    if (registroCAI !== undefined) {
+      this.venta.regC_Id_Vendedor = registroCAI;
+      console.log('regC_Id_Vendedor asignado:', registroCAI);
+      
+      // Solo actualizar regC_Id si es administrador
+      // Si no es administrador, el regC_Id debe ser inmutable y venir de la sesión
+      if (this.esAdmin) {
+        this.venta.regC_Id = registroCAI;
+        console.log('regC_Id asignado desde vendedor:', registroCAI);
+      } else {
+        console.log('Usuario no es administrador, manteniendo regC_Id de la sesión:', this.venta.regC_Id);
+      }
+    } else {
+      console.warn('No se encontró regC_Id para el vendedor seleccionado');
     }
     
     // Actualizar estado de navegación
@@ -348,7 +370,7 @@ private inicializar(): void {
       this.venta.vend_Id = 0;
       // Limpiamos el regC_Id_Vendedor si no hay vendedores
       this.venta.regC_Id_Vendedor = undefined;
-      console.warn('No hay vendedores disponibles para la sucursal seleccionada');
+      this.mostrarWarning('No hay vendedores disponibles para la sucursal seleccionada');
     }
     
     // Limpiar cantidades si cambió la sucursal
@@ -586,6 +608,37 @@ private inicializar(): void {
     this.tabActivo = tab;
     this.limpiarAlertas();
   }
+  
+  /**
+   * Maneja el cambio de tipo de venta (Contado/Crédito)
+   * Actualiza la visibilidad de la información de crédito
+   */
+  cambiarTipoVenta(): void {
+    // Actualizar la visibilidad de la información de crédito
+    this.mostrarInfoCredito = (this.venta.fact_TipoVenta === 'Crédito');
+    
+    // Si se seleccionó crédito pero el cliente no puede usarlo, mostrar advertencia
+    if (this.venta.fact_TipoVenta === 'Crédito') {
+      // Verificar si el cliente puede usar crédito (tiene crédito habilitado y no tiene saldo vencido)
+      if (!this.puedeUsarCredito()) {
+        this.mostrarWarning('Este cliente no puede usar crédito. Verifique límite de crédito o saldo vencido.');
+        this.venta.fact_TipoVenta = 'Contado';
+        this.mostrarInfoCredito = false;
+        return;
+      }
+      
+      // Verificar si el total de la venta excede el crédito disponible
+      if (this.excedeCreditoDisponible()) {
+        const totalVenta = this.getTotalGeneral();
+        const saldoDisponible = this.getSaldoDisponible();
+        this.mostrarWarning(`El total de la venta (L. ${totalVenta.toFixed(2)}) excede el crédito disponible (L. ${saldoDisponible.toFixed(2)})`);
+        this.venta.fact_TipoVenta = 'Contado';
+        this.mostrarInfoCredito = false;
+      }
+    }
+    
+    this.actualizarEstadoNavegacion();
+  }
 
   irAResumen(): void {
     this.mostrarErrores = true;
@@ -637,6 +690,133 @@ private inicializar(): void {
     const vendedor = this.vendedores.find((v) => v.vend_Id == this.venta.vend_Id);
     return vendedor ? `${vendedor.vend_Nombres} ${vendedor.vend_Apellidos}` : 'No seleccionado';
   }
+  
+  // ========== MÉTODOS PARA INFORMACIÓN DE CRÉDITO ==========
+  
+  /**
+   * Verifica si el cliente seleccionado tiene crédito habilitado
+   * @returns true si el cliente tiene crédito, false en caso contrario
+   */
+  tieneCredito(): boolean {
+    if (!this.clienteActual) return false;
+    
+    // Un cliente tiene crédito si tiene límite de crédito o días de crédito
+    return (this.clienteActual.clie_LimiteCredito > 0 || this.clienteActual.clie_DiasCredito > 0);
+  }
+  
+  /**
+   * Verifica si el cliente puede usar crédito (tiene crédito y no tiene saldo vencido)
+   * @returns true si el cliente puede usar crédito, false en caso contrario
+   */
+  puedeUsarCredito(): boolean {
+    // Si no tiene crédito habilitado, no puede usarlo
+    if (!this.tieneCredito()) return false;
+    
+    // Si tiene saldo vencido, no puede usar crédito
+    if (this.tieneSaldoVencido()) return false;
+    
+    return true;
+  }
+  
+  /**
+   * Verifica si el total de la venta excede el crédito disponible del cliente
+   * @returns true si el total excede el crédito disponible, false en caso contrario
+   */
+  excedeCreditoDisponible(): boolean {
+    // Si no es venta a crédito, no aplica esta validación
+    if (this.venta.fact_TipoVenta !== 'Crédito') return false;
+    
+    // Si no hay cliente seleccionado o no tiene crédito, no se puede usar crédito
+    if (!this.clienteActual || !this.tieneCredito()) return true;
+    
+    // Calcular el total de la venta
+    const totalVenta = this.getTotalGeneral();
+    
+    // Obtener el saldo disponible para crédito
+    const saldoDisponible = this.getSaldoDisponible();
+    
+    // Verificar si el total excede el saldo disponible
+    return totalVenta > saldoDisponible;
+  }
+  
+  /**
+   * Obtiene el límite de crédito del cliente seleccionado
+   * @returns Límite de crédito o 0 si no tiene
+   */
+  getLimiteCredito(): number {
+    return this.clienteActual?.clie_LimiteCredito || 0;
+  }
+  
+  /**
+   * Obtiene los días de crédito del cliente seleccionado
+   * @returns Días de crédito o 0 si no tiene
+   */
+  getDiasCredito(): number {
+    return this.clienteActual?.clie_DiasCredito || 0;
+  }
+  
+  /**
+   * Obtiene el saldo actual del cliente seleccionado
+   * @returns Saldo actual o 0 si no tiene
+   */
+  getSaldoCliente(): number {
+    return this.clienteActual?.clie_Saldo || 0;
+  }
+  
+  /**
+   * Calcula el saldo disponible para crédito
+   * @returns Saldo disponible (límite - saldo actual)
+   */
+  getSaldoDisponible(): number {
+    if (!this.clienteActual) return 0;
+    
+    const limite = this.getLimiteCredito();
+    const saldoActual = this.getSaldoCliente();
+    
+    return Math.max(0, limite - saldoActual);
+  }
+  
+  /**
+   * Verifica si el cliente tiene saldo vencido
+   * @returns true si tiene saldo vencido, false en caso contrario
+   */
+  tieneSaldoVencido(): boolean {
+    return this.clienteActual?.clie_Vencido || false;
+  }
+  
+  /**
+   * Calcula el porcentaje del crédito disponible que representa el total de la venta
+   * @returns Porcentaje del 0 al 100, limitado a 100 si excede el crédito disponible
+   */
+  getPorcentajeCredito(): number {
+    if (!this.clienteActual || !this.tieneCredito()) return 0;
+    
+    const saldoDisponible = this.getSaldoDisponible();
+    if (saldoDisponible <= 0) return 100; // Si no hay saldo disponible, mostrar 100%
+    
+    const totalVenta = this.getTotalGeneral();
+    if (totalVenta <= 0) return 0; // Si no hay total, mostrar 0%
+    
+    // Calcular el porcentaje y limitarlo a 100%
+    const porcentaje = (totalVenta / saldoDisponible) * 100;
+    return Math.min(100, Math.round(porcentaje * 10) / 10); // Redondear a 1 decimal para mayor precisión
+  }
+  
+  /**
+   * Obtiene el estado del crédito basado en el porcentaje utilizado
+   * @returns String con el estado: 'Seguro', 'Precaución' o 'Límite'
+   */
+  getEstadoCredito(): string {
+    const porcentaje = this.getPorcentajeCredito();
+    
+    if (porcentaje < 70) {
+      return 'Seguro';
+    } else if (porcentaje < 90) {
+      return 'Precaución';
+    } else {
+      return 'Límite';
+    }
+  }
 
   // ========== CÁLCULOS FINANCIEROS ==========
   getSubtotal(): number {
@@ -661,6 +841,7 @@ private inicializar(): void {
       this.venta.direccionId = 0; // Resetear la dirección seleccionada
       this.venta.diCl_Id = 0; // Resetear el ID de dirección del cliente
       this.venta.clie_Id = 0; // Resetear el ID del cliente
+      this.clienteActual = null; // Resetear el cliente actual
       return;
     }
     
@@ -669,11 +850,12 @@ private inicializar(): void {
     // NO asignamos el ID del cliente a diCl_Id, ya que son campos diferentes
     // diCl_Id debe ser el ID de la dirección del cliente, no el ID del cliente
     
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'X-Api-Key': environment.apiKey,
-      'accept': '*/*'
-    });
+    // Buscar y guardar la información completa del cliente seleccionado
+    this.clienteActual = this.clientes.find(c => c.clie_Id === clienteId);
+    console.log('Cliente seleccionado:', this.clienteActual);
+    
+    const headers = this.obtenerHeaders(); 
+    
     
     this.http.get<any>(`${environment.apiBaseUrl}/DireccionesPorCliente/Buscar/${clienteId}`, { headers })
       .subscribe({
@@ -741,12 +923,21 @@ private inicializar(): void {
   }
 
   private actualizarEstadoNavegacion(): void {
+    // Si estamos en la pestaña de resumen, validar los datos básicos
     if (this.tabActivo === 2) {
       const valido = this.validarDatosBasicos();
       this.puedeAvanzarAResumen = valido;
       if (!valido) {
         this.tabActivo = 1;
         this.mostrarWarning('Se detectaron cambios. Complete los datos requeridos.');
+        return;
+      }
+      
+      // Si la venta es a crédito, verificar si el total excede el crédito disponible
+      if (this.venta.fact_TipoVenta === 'Crédito' && this.excedeCreditoDisponible()) {
+        const totalVenta = this.getTotalGeneral();
+        const saldoDisponible = this.getSaldoDisponible();
+        this.mostrarWarning(`El total de la venta (L. ${totalVenta.toFixed(2)}) excede el crédito disponible (L. ${saldoDisponible.toFixed(2)})`);
       }
     }
   }
@@ -770,7 +961,32 @@ private inicializar(): void {
     }
 
     this.limpiarAlertas();
-    this.crearVenta();
+    
+    // Obtener la ubicación actual antes de crear la venta
+    this.obteniendoUbicacion = true;
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          this.venta.fact_Latitud = position.coords.latitude;
+          this.venta.fact_Longitud = position.coords.longitude;
+          this.obteniendoUbicacion = false;
+          // Crear la venta después de obtener la ubicación
+          this.crearVenta();
+        },
+        (error) => {
+          this.obteniendoUbicacion = false;
+          this.errorUbicacion = 'No se pudo obtener la ubicación: ' + this.getErrorUbicacion(error);
+          // Crear la venta aunque no se haya podido obtener la ubicación
+          this.crearVenta();
+        },
+        { timeout: 5000 } // Timeout de 5 segundos para no hacer esperar demasiado al usuario
+      );
+    } else {
+      this.obteniendoUbicacion = false;
+      this.errorUbicacion = 'La geolocalización no está soportada por este navegador';
+      // Crear la venta aunque no se pueda obtener la ubicación
+      this.crearVenta();
+    }
   }
   
   validarFormularioCompleto(): boolean {
@@ -781,6 +997,14 @@ private inicializar(): void {
     if (!this.venta.fact_TipoVenta) errores.push('Tipo de venta');
     if (!this.venta.fact_FechaEmision) errores.push('Fecha de emisión');
     if (this.obtenerDetallesVenta().length === 0) errores.push('Productos');
+
+    // Validar que el total de la venta no exceda el crédito disponible
+    if (this.venta.fact_TipoVenta === 'Crédito' && this.excedeCreditoDisponible()) {
+      const totalVenta = this.getTotalGeneral();
+      const saldoDisponible = this.getSaldoDisponible();
+      this.mostrarWarning(`El total de la venta (L. ${totalVenta.toFixed(2)}) excede el crédito disponible (L. ${saldoDisponible.toFixed(2)})`);
+      return false;
+    }
 
     if (errores.length > 0) {
       this.mostrarWarning(`Complete: ${errores.join(', ')}`);
@@ -903,11 +1127,11 @@ private crearVenta(): void {
     vend_Id: Number(this.venta.vend_Id),
     fact_TipoVenta: this.venta.fact_TipoVenta,
     fact_FechaEmision: this.venta.fact_FechaEmision.toISOString(),
-    fact_Latitud: 14.123456,
-    fact_Longitud: -87.123456,
+    fact_Latitud: this.venta.fact_Latitud || 0,
+    fact_Longitud: this.venta.fact_Longitud || 0,
     fact_Referencia: this.venta.fact_Referencia || 'Venta desde app web',
     fact_AutorizadoPor: 'SISTEMA',
-    usua_Creacion: this.usuarioId || 1,
+    usua_Creacion: this.usuarioId,
     detallesFacturaInput: detalles
   };
   
@@ -967,12 +1191,12 @@ private crearVenta(): void {
         // DEBUGGING DETALLADO - Analizar estructura completa del error
         console.group('🔍 ANÁLISIS DETALLADO DEL ERROR');
         console.log('1. Error completo:', err);
+        this.mostrarError(err);
         console.log('2. Tipo de err:', typeof err);
         console.log('3. err.error:', err.error);
         console.log('4. Tipo de err.error:', typeof err.error);
         console.log('5. err.status:', err.status);
         console.log('6. err.statusText:', err.statusText);
-        console.log('7. err.message:', err.message);
         console.log('8. err.name:', err.name);
         
         // Si err.error es string, intentar parsearlo como JSON
@@ -994,7 +1218,7 @@ private crearVenta(): void {
         console.groupEnd();
         
         // Intentar extraer el mensaje de error de diferentes formas
-        let errorMessage = 'Error al guardar la venta';
+        let errorMessage = err;
         
         // Método 1: err.error como objeto con message
         if (err.error && typeof err.error === 'object' && err.error.message) {

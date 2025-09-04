@@ -45,63 +45,58 @@
             <!-- TAB CUENTAS POR COBRAR -->
             <div *ngIf="activeTab === 1">
               <div class="d-flex justify-content-between mb-3 flex-wrap">
-                <!-- Botones de acción -->
-                <div class="mb-2 d-flex gap-2">
-                  <!-- Botón de agregar si tiene permisos -->
-                  <button
-                    type="button"
-                    class="btn btn-primary"
-                    routerLink="/ventas/cuentasporcobrar/add"
-                    *ngIf="accionPermitida('agregar')"
-                  >
-                    <i class="ri-add-line me-1"></i> Agregar
-                  </button>
-                  
+                <div></div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
                   <!-- Botones de exportación -->
                   <div class="export-buttons d-flex gap-1 mb-2">
-                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportar('excel')" [disabled]="exportando" title="Exportar a Excel">
-                      <span class="btn-text">Excel</span>
+                    <button type="button" 
+                            class="btn btn-primary gold btn-sm btn-minw-5-1" 
+                            (click)="exportar('excel')" 
+                            [disabled]="exportando" 
+                            title="Exportar a Excel">
+                      <span class="btn-text" *ngIf="!exportando || tipoExportacion !== 'excel'">Excel</span>
+                      <span class="btn-text" *ngIf="exportando && tipoExportacion === 'excel'">
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                        Exportando...
+                      </span>
                       <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
-                      <span *ngIf="exportando && tipoExportacion === 'excel'">Exportando...</span>
                     </button>
                     
-                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportar('pdf')" [disabled]="exportando" title="Exportar a PDF">
-                      <span class="btn-text">PDF</span>
-                      <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
-                      <span *ngIf="exportando && tipoExportacion === 'pdf'">Exportando...</span>
+                    <button type="button" 
+                            class="btn btn-primary gold btn-sm btn-minw-5-1" 
+                            (click)="exportar('pdf')" 
+                            [disabled]="exportando" 
+                            title="Exportar a PDF">
+                      <span class="btn-text" *ngIf="!exportando || tipoExportacion !== 'pdf'">PDF</span>
+                      <span class="btn-text" *ngIf="exportando && tipoExportacion === 'pdf'">
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                        Exportando...
+                      </span>
+                      <span class="btn-icon"><i class="ri-file-pdf-line" style="font-weight: 100;"></i></span>
                     </button>
                     
-                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportar('csv')" [disabled]="exportando" title="Exportar a CSV">
-                      <span class="btn-text">CSV</span>
+                    <button type="button" 
+                            class="btn btn-primary gold btn-sm btn-minw-5-1" 
+                            (click)="exportar('csv')" 
+                            [disabled]="exportando" 
+                            title="Exportar a CSV">
+                      <span class="btn-text" *ngIf="!exportando || tipoExportacion !== 'csv'">CSV</span>
+                      <span class="btn-text" *ngIf="exportando && tipoExportacion === 'csv'">
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                        Exportando...
+                      </span>
                       <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
-                      <span *ngIf="exportando && tipoExportacion === 'csv'">Exportando...</span>
                     </button>
                   </div>
-                </div>
-
-                <!-- Búsqueda -->
-                <div class="search-box mb-2">
-                  <div class="d-flex align-items-center">
-                    <i
-                      class="ri-search-line"
-                      [ngStyle]="{
-                        border: '1px solid #e9ecf5',
-                        backgroundColor: '#f2f3f9',
-                        padding: '0.525rem 0.525rem',
-                        position: 'relative',
-                        left: '7px',
-                        borderTopLeftRadius: '8px',
-                        borderBottomLeftRadius: '8px'
-                      }"
-                    >
-                    </i>
-                    <input
-                      type="text"
-                      class="form-control"
-                      placeholder="Buscar cliente..."
-                      [(ngModel)]="table.searchTerm"
-                      (ngModelChange)="table.setSearchTerm($event)"
-                    />
+                  
+                  <!-- Campo de búsqueda -->
+                  <div class="search-box mb-2">
+                    <input type="text" 
+                           class="form-control search" 
+                           placeholder="Buscar cliente..." 
+                           [(ngModel)]="table.searchTerm" 
+                           (ngModelChange)="table.setSearchTerm($event)">
+                    <i class="ri-search-line search-icon"></i>
                   </div>
                 </div>
               </div>
@@ -413,7 +408,7 @@
                         >
                           <button
                             type="button"
-                            class="btn btn-primary"
+                            class="btn btn-primary btn-sm"
                             (click)="irADetalles(data.clie_Id)"
                           >
                             <span class="btn-text">Detalles</span>
@@ -460,70 +455,96 @@
 
               <!-- Paginación corregida -->
               <div class="row justify-content-md-between align-items-md-center">
-                <ng-container *ngIf="table.paginated$ | async as paginados">
-                  <div class="col-sm-12 col-md-5">
-                    <div class="text-md-right float-md-end gridjs-pagination">
-                      <pagination
-                        [totalItems]="(table.total$ | async) || 0"
-                        [ngModel]="table.page"
-                        [itemsPerPage]="table.pageSizeValue"
-                        (pageChanged)="table.setPage($event.page)"
-                      >
-                      </pagination>
-                    </div>
+                <div class="col-sm-12 col-md-5">
+                  <div
+                    class="dataTables_info mb-2"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <ng-container *ngIf="(table.total$ | async) as totalItems; else noItems">
+                      Mostrando {{ ((table.page - 1) * table.pageSizeValue) + 1 }} a 
+                      {{ table.page * table.pageSizeValue > totalItems ? totalItems : table.page * table.pageSizeValue }} 
+                      de {{ totalItems }} registros
+                    </ng-container>
+                    <ng-template #noItems>
+                      Mostrando 0 registros
+                    </ng-template>
                   </div>
-                </ng-container>
+                </div>
+                <div class="col-sm-12 col-md-7">
+                  <div class="d-flex justify-content-md-end">
+                    <pagination
+                      [boundaryLinks]="true"
+                      [totalItems]="(table.total$ | async) || 0"
+                      [itemsPerPage]="table.pageSizeValue"
+                      [(ngModel)]="table.page"
+                      (pageChanged)="table.setPage($event.page)"
+                      previousText="&lsaquo;"
+                      nextText="&rsaquo;"
+                      firstText="&laquo;"
+                      lastText="&raquo;"
+                      [maxSize]="5"
+                    ></pagination>
+                  </div>
+                </div>
               </div>
             </div>
 
             <!-- TAB RESUMEN ANTIGÜEDAD -->
             <div *ngIf="activeTab === 2">
               <div class="d-flex justify-content-between mb-3 flex-wrap">
-                <!-- Botones de exportación para la tabla de Antigüedad -->
-                <div class="mb-2">
+                <div></div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <!-- Botones de exportación para la tabla de Antigüedad -->
                   <div class="export-buttons d-flex gap-1 mb-2">
-                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarResumen('excel')" [disabled]="exportandoResumen" title="Exportar a Excel">
-                      <span class="btn-text">Excel</span>
+                    <button type="button" 
+                            class="btn btn-primary gold btn-sm btn-minw-5-1" 
+                            (click)="exportarResumen('excel')" 
+                            [disabled]="exportandoResumen" 
+                            title="Exportar a Excel">
+                      <span class="btn-text" *ngIf="!exportandoResumen || tipoExportacionResumen !== 'excel'">Excel</span>
+                      <span class="btn-text" *ngIf="exportandoResumen && tipoExportacionResumen === 'excel'">
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                        Exportando...
+                      </span>
                       <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
-                      <span *ngIf="exportandoResumen && tipoExportacionResumen === 'excel'">Exportando...</span>
                     </button>
                     
-                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarResumen('pdf')" [disabled]="exportandoResumen" title="Exportar a PDF">
-                      <span class="btn-text">PDF</span>
-                      <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
-                      <span *ngIf="exportandoResumen && tipoExportacionResumen === 'pdf'">Exportando...</span>
+                    <button type="button" 
+                            class="btn btn-primary gold btn-sm btn-minw-5-1" 
+                            (click)="exportarResumen('pdf')" 
+                            [disabled]="exportandoResumen" 
+                            title="Exportar a PDF">
+                      <span class="btn-text" *ngIf="!exportandoResumen || tipoExportacionResumen !== 'pdf'">PDF</span>
+                      <span class="btn-text" *ngIf="exportandoResumen && tipoExportacionResumen === 'pdf'">
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                        Exportando...
+                      </span>
+                      <span class="btn-icon"><i class="ri-file-pdf-line" style="font-weight: 100;"></i></span>
                     </button>
                     
-                    <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarResumen('csv')" [disabled]="exportandoResumen" title="Exportar a CSV">
-                      <span class="btn-text">CSV</span>
+                    <button type="button" 
+                            class="btn btn-primary gold btn-sm btn-minw-5-1" 
+                            (click)="exportarResumen('csv')" 
+                            [disabled]="exportandoResumen" 
+                            title="Exportar a CSV">
+                      <span class="btn-text" *ngIf="!exportandoResumen || tipoExportacionResumen !== 'csv'">CSV</span>
+                      <span class="btn-text" *ngIf="exportandoResumen && tipoExportacionResumen === 'csv'">
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                        Exportando...
+                      </span>
                       <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
-                      <span *ngIf="exportandoResumen && tipoExportacionResumen === 'csv'">Exportando...</span>
                     </button>
                   </div>
-                </div>
-
-                <div class="search-box mb-2">
-                  <div class="d-flex align-items-center">
-                    <i
-                      class="ri-search-line"
-                      [ngStyle]="{
-                        border: '1px solid #e9ecf5',
-                        backgroundColor: '#f2f3f9',
-                        padding: '0.525rem 0.525rem',
-                        position: 'relative',
-                        left: '7px',
-                        borderTopLeftRadius: '8px',
-                        borderBottomLeftRadius: '8px'
-                      }"
-                    >
-                    </i>
-                    <input
-                      type="text"
-                      class="form-control"
-                      placeholder="Buscar cliente..."
-                      [(ngModel)]="resumenSearchTerm"
-                      (ngModelChange)="filtrarResumenAntiguedad()"
-                    />
+                  
+                  <!-- Campo de búsqueda -->
+                  <div class="search-box mb-2">
+                    <input type="text" 
+                           class="form-control search" 
+                           placeholder="Buscar cliente..." 
+                           [(ngModel)]="resumenSearchTerm" 
+                           (ngModelChange)="filtrarResumenAntiguedad()">
+                    <i class="ri-search-line search-icon"></i>
                   </div>
                 </div>
               </div>
@@ -807,14 +828,14 @@
                     </thead>
 
                     <tbody>
-                      <tr *ngFor="let item of resumenAntiguedadFiltrado">
+                      <tr *ngFor="let item of resumenAntiguedadPaginado">
                         <!-- Celda de acciones para el resumen de antigüedad -->
                         <td
                           *ngIf="accionPermitida('detalle')"
                         >
                           <button
                             type="button"
-                            class="btn btn-primary"
+                            class="btn btn-primary btn-sm"
                             (click)="irADetalles(item.clie_Id)"
                           >
                             <span class="btn-text">Detalles</span>
@@ -862,8 +883,8 @@
                           }}
                         </td>
                       </tr>
-                      <tr *ngIf="!resumenAntiguedadFiltrado.length">
-                        <td colspan="7" class="text-center">
+                      <tr *ngIf="!resumenAntiguedadPaginado.length">
+                        <td colspan="10" class="text-center">
                           <span *ngIf="mostrarOverlayCarga"
                             >Cargando resumen de antigüedad...</span
                           >
@@ -885,8 +906,25 @@
                     role="status"
                     aria-live="polite"
                   >
-                    Mostrando {{ resumenAntiguedadFiltrado.length }} de
-                    {{ resumenAntiguedad.length }} registros
+                    Mostrando {{ (resumenPaginaActual - 1) * resumenTamanoPagina + 1 }} a 
+                    {{ resumenPaginaActual * resumenTamanoPagina > resumenTotalItems ? resumenTotalItems : resumenPaginaActual * resumenTamanoPagina }} 
+                    de {{ resumenTotalItems }} registros
+                  </div>
+                </div>
+                <div class="col-sm-12 col-md-7">
+                  <div class="d-flex justify-content-md-end">
+                    <pagination
+                      [boundaryLinks]="true"
+                      [totalItems]="resumenTotalItems"
+                      [itemsPerPage]="resumenTamanoPagina"
+                      [(ngModel)]="resumenPaginaActual"
+                      (pageChanged)="pageChangedResumen($event)"
+                      previousText="&lsaquo;"
+                      nextText="&rsaquo;"
+                      firstText="&laquo;"
+                      lastText="&raquo;"
+                      [maxSize]="5"
+                    ></pagination>
                   </div>
                 </div>
               </div>
