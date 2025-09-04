@@ -156,7 +156,7 @@ export class EditComponent implements OnChanges {
     this.cambiosDetectados = {};
 
     const camposBasicos = [
-      { key: 'esVi_Descripcion', label: 'Estado de Visita' },
+      { key: 'esVi_Descripcion', label: 'Descripción' },
     ];
 
     camposBasicos.forEach(campo => {

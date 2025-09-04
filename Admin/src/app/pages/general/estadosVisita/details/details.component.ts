@@ -55,7 +55,7 @@ export class DetailsComponent implements OnChanges {
     this.mensajeError = '';
   }
 
- formatearFecha(fecha: string | Date | null): string {
+  formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
     const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
     if (isNaN(dateObj.getTime())) return 'N/A';
@@ -65,7 +65,7 @@ export class DetailsComponent implements OnChanges {
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit'
-  });
- }
+    });
+  }
 }
 

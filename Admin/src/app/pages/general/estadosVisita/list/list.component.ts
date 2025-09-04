@@ -212,7 +212,7 @@ export class ListComponent implements OnInit {
         if (response.success && response.data) {
           if (response.data.code_Status === 1) {
             // Éxito: eliminado correctamente
-            this.mensajeExito = `Estado de visita "${this.estadoVisitaAEliminar!.esVi_Descripcion}" eliminado exitosamente`;
+            this.mensajeExito = `Estado de Visita "${this.estadoVisitaAEliminar!.esVi_Descripcion}" eliminado exitosamente`;
             this.mostrarAlertaExito = true;
             
             // Ocultar la alerta después de 3 segundos
@@ -227,7 +227,7 @@ export class ListComponent implements OnInit {
           } else if (response.data.code_Status === -1) {
             //result: está siendo utilizado
             this.mostrarAlertaError = true;
-            this.mensajeError = response.data.message_Status || 'No se puede eliminar: el estado civil está siendo utilizado.';
+            this.mensajeError = response.data.message_Status || 'No se puede eliminar: el estado de visita está siendo utilizado.';
             
             setTimeout(() => {
               this.mostrarAlertaError = false;
@@ -239,7 +239,7 @@ export class ListComponent implements OnInit {
           } else if (response.data.code_Status === 0) {
             // Error general
             this.mostrarAlertaError = true;
-            this.mensajeError = response.data.message_Status || 'Error al eliminar el estado civil.';
+            this.mensajeError = response.data.message_Status || 'Error al eliminar el estado de visita.';
             
             setTimeout(() => {
               this.mostrarAlertaError = false;
@@ -252,7 +252,7 @@ export class ListComponent implements OnInit {
         } else {
           // Respuesta inesperada
           this.mostrarAlertaError = true;
-          this.mensajeError = response.message || 'Error inesperado al eliminar el estado civil.';
+          this.mensajeError = response.message || 'Error inesperado al eliminar el estado de visita.';
           
           setTimeout(() => {
             this.mostrarAlertaError = false;
@@ -470,10 +470,10 @@ export class ListComponent implements OnInit {
         let modulo = null;
         if (Array.isArray(permisos)) {
           // BUSCAMOS EL MÓDULO DE ESTADOS CIVILES POR ID
-          modulo = permisos.find((m: any) => m.Pant_Id === 14);
+          modulo = permisos.find((m: any) => m.Pant_Id === 78);
         } else if (typeof permisos === 'object' && permisos !== null) {
           // ESTO ES PARA CUANDO LOS PERMISOS ESTÁN EN UN OBJETO CON CLAVES
-          modulo = permisos['Estados Civiles'] || permisos['estados civiles'] || null;
+          modulo = permisos['Estados de Visita'] || permisos['estados de visita'] || null;
         }
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
           // AQUI SACAMOS SOLO EL NOMBRE DE LA ACCIÓN
