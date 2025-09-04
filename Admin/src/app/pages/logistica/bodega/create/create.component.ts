@@ -218,22 +218,26 @@ export class CreateComponent  {
 
   // Nueva función para manejar el cambio de sucursal
   onSucursalChange(): void {
+    console.log('Sucursal cambiada a:', this.bodega.sucu_Id, typeof this.bodega.sucu_Id);
+    
     // Resetear el vendedor seleccionado
     this.bodega.vend_Id = 0;
     
     // Si hay una sucursal seleccionada, cargar los vendedores
-    if (this.bodega.sucu_Id && this.bodega.sucu_Id > 0) {
-      this.cargarVendedoresPorSucursal(this.bodega.sucu_Id);
+    if (this.bodega.sucu_Id && Number(this.bodega.sucu_Id) > 0) {
+      this.cargarVendedoresPorSucursal(Number(this.bodega.sucu_Id));
     } else {
       // Si no hay sucursal seleccionada, limpiar la lista de vendedores filtrados
       this.vendedoresFiltrados = [];
     }
-  }
+}
 
   // Nueva función para cargar vendedores por sucursal
   cargarVendedoresPorSucursal(sucursalId: number): void {
     this.listarVendedores(() => {
-      this.vendedoresFiltrados = this.vendedores.filter(vendedor => vendedor.bodega?.sucu_Id === sucursalId);
+      this.vendedoresFiltrados = this.vendedores.filter(vendedor => 
+        Number(vendedor.sucu_Id) === Number(sucursalId)
+      );
     });
   }
 
