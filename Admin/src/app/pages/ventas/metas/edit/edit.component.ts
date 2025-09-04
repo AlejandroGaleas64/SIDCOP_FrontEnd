@@ -63,12 +63,12 @@ export class EditComponent implements OnInit, OnChanges {
 
   // Tipo options
   tiposMeta = [
-    { value: 'IT', label: 'Ingresos Totales' },
-    { value: 'TP', label: 'Total Productos (Cantidad)' },
-    { value: 'CN', label: 'Clientes Nuevos' },
-    { value: 'PE', label: 'Producto Específico (Cantidad)' },
-    { value: 'IP', label: 'Ingresos de Producto Específico' },
-    { value: 'PC', label: 'Productos de Categoría (Ingresos)' },
+    { value: 'IT', label: 'Ingresos Totales - Automatico' },
+    { value: 'TP', label: 'Productos Vendidos Totales (Unidades) - Automatico' },
+    { value: 'CN', label: 'Clientes Nuevos - Automatico' },
+    { value: 'PE', label: 'Producto Específico (Unidades) - Automatico' },
+    { value: 'IP', label: 'Ingresos de Producto Específico - Automatico' },
+    { value: 'PC', label: 'Productos vendidos de Categoría - Automatico' },
     { value: 'CM', label: 'Cantidades Administradas Manualmente' },
     { value: 'IM', label: 'Ingresos Administradas Manualmente' }
   ];
@@ -90,27 +90,55 @@ export class EditComponent implements OnInit, OnChanges {
     }
   }
 
+  // preloadMeta(meta: any) {
+  //   // Deep copy to avoid mutating input
+  //   this.meta = {
+  //     ...meta,
+  //     meta_FechaInicio: meta.meta_FechaInicio ? meta.meta_FechaInicio.substring(0, 10) : '',
+  //     meta_FechaFin: meta.meta_FechaFin ? meta.meta_FechaFin.substring(0, 10) : '',
+  //   };
+  //   // Preload vendedoresSeleccionados from XML/JSON or array
+  //   if (meta.vendedoresSeleccionados && Array.isArray(meta.vendedoresSeleccionados)) {
+  //     this.vendedoresSeleccionados = [...meta.vendedoresSeleccionados];
+  //   } else if (meta.vendedores && Array.isArray(meta.vendedores)) {
+  //     this.vendedoresSeleccionados = meta.vendedores.map((v: any) => v.vend_Id);
+  //   } else if (meta.vendedoresXml) {
+  //     // Parse XML if needed (simple parser)
+  //     const matches = meta.vendedoresXml.match(/<vend_id>(\d+)<\/vend_id>/g) || [];
+  //     this.vendedoresSeleccionados = matches.map((m:any) => Number(m.replace(/\D/g, '')));
+  //   } else {
+  //     this.vendedoresSeleccionados = [];
+  //   }
+  //   this.selectAllVendedores = this.vendedoresSeleccionados.length === this.vendedores.length;
+  // }
+
   preloadMeta(meta: any) {
-    // Deep copy to avoid mutating input
-    this.meta = {
-      ...meta,
-      meta_FechaInicio: meta.meta_FechaInicio ? meta.meta_FechaInicio.substring(0, 10) : '',
-      meta_FechaFin: meta.meta_FechaFin ? meta.meta_FechaFin.substring(0, 10) : '',
-    };
-    // Preload vendedoresSeleccionados from XML/JSON or array
-    if (meta.vendedoresSeleccionados && Array.isArray(meta.vendedoresSeleccionados)) {
-      this.vendedoresSeleccionados = [...meta.vendedoresSeleccionados];
-    } else if (meta.vendedores && Array.isArray(meta.vendedores)) {
-      this.vendedoresSeleccionados = meta.vendedores.map((v: any) => v.vend_Id);
-    } else if (meta.vendedoresXml) {
-      // Parse XML if needed (simple parser)
-      const matches = meta.vendedoresXml.match(/<vend_id>(\d+)<\/vend_id>/g) || [];
-      this.vendedoresSeleccionados = matches.map((m:any) => Number(m.replace(/\D/g, '')));
-    } else {
+  // Deep copy to avoid mutating input
+  this.meta = {
+    ...meta,
+    meta_FechaInicio: meta.meta_FechaInicio ? meta.meta_FechaInicio.substring(0, 10) : '',
+    meta_FechaFin: meta.meta_FechaFin ? meta.meta_FechaFin.substring(0, 10) : '',
+  };
+
+  // Preload vendedoresSeleccionados from vendedoresJson, vendedoresSeleccionados, vendedores, or vendedoresXml
+  if (meta.vendedoresJson) {
+    try {
+      const vendArray = JSON.parse(meta.vendedoresJson);
+      this.vendedoresSeleccionados = vendArray.map((v: any) => v.Vend_Id);
+    } catch (e) {
       this.vendedoresSeleccionados = [];
     }
-    this.selectAllVendedores = this.vendedoresSeleccionados.length === this.vendedores.length;
+  } else if (meta.vendedoresSeleccionados && Array.isArray(meta.vendedoresSeleccionados)) {
+    this.vendedoresSeleccionados = [...meta.vendedoresSeleccionados];
+  } else if (meta.vendedores && Array.isArray(meta.vendedores)) {
+    this.vendedoresSeleccionados = meta.vendedores.map((v: any) => v.vend_Id);
+  } else if (meta.vendedoresXml) {
+    const matches = meta.vendedoresXml.match(/<vend_id>(\d+)<\/vend_id>/g) || [];
+    this.vendedoresSeleccionados = matches.map((m: any) => Number(m.replace(/\D/g, '')));
+  } else {
+    this.vendedoresSeleccionados = [];
   }
+}
 
   cargarCategorias(): void {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Categorias/Listar`, {
@@ -130,18 +158,34 @@ export class EditComponent implements OnInit, OnChanges {
     });
   }
 
+  // cargarVendedores(): void {
+  //   this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
+  //     headers: { 'x-api-key': environment.apiKey }
+  //   }).subscribe({
+  //     next: (data) => {
+  //       this.vendedores = data;
+  //       // If metaData is already loaded, update selectAllVendedores
+  //       this.selectAllVendedores = this.vendedoresSeleccionados.length === data.length;
+  //     },
+  //     error: (error) => console.error('Error cargando vendedores:', error)
+  //   });
+  // }
+
   cargarVendedores(): void {
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe({
-      next: (data) => {
-        this.vendedores = data;
-        // If metaData is already loaded, update selectAllVendedores
-        this.selectAllVendedores = this.vendedoresSeleccionados.length === data.length;
-      },
-      error: (error) => console.error('Error cargando vendedores:', error)
-    });
-  }
+  this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
+    headers: { 'x-api-key': environment.apiKey }
+  }).subscribe({
+    next: (data) => {
+      this.vendedores = data;
+      // Recalculate selectAllVendedores and update selection after loading vendedores
+      if (this.metaData) {
+        this.preloadMeta(this.metaData);
+      }
+      this.selectAllVendedores = this.vendedoresSeleccionados.length === this.vendedores.length;
+    },
+    error: (error) => console.error('Error cargando vendedores:', error)
+  });
+}
 
   // Stepper navigation
   irAlSiguientePaso() {
@@ -269,12 +313,15 @@ export class EditComponent implements OnInit, OnChanges {
       ...this.meta,
       meta_Estado: true,
       usua_Modificacion: environment.usua_Id || getUserId(),
+      usua_Creacion: environment.usua_Id || getUserId(),
       meta_FechaModificacion: new Date(),
       vendedoresXml: this.generateVendedoresXml(),
       vendedoresJson: ''
     };
 
-    this.http.put<any>(`${environment.apiBaseUrl}/Metas/ActualizarCompleto`, payload, {
+    console.log('Payload para guardar meta editada:', payload);
+
+    this.http.post<any>(`${environment.apiBaseUrl}/Metas/ActualizarCompleto`, payload, {
       headers: {
         'X-Api-Key': environment.apiKey,
         'Content-Type': 'application/json',
@@ -282,6 +329,8 @@ export class EditComponent implements OnInit, OnChanges {
       }
     }).subscribe({
       next: (response) => {
+
+        console.log('Respuesta al guardar meta:', response);
         if (response?.data?.code_Status > 0) {
           this.mostrarAlertaExito = true;
           this.mensajeExito = 'Meta actualizada exitosamente.';

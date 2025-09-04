@@ -188,7 +188,9 @@ get vendedoresFiltrados(): any[] {
       detallesXml: this.buildDetallesXml()
     };
 
-    this.http.put<any>(`${environment.apiBaseUrl}/Metas/ActualizarProgreso`, payload, {
+    console.log('Payload para guardar progreso:', payload);
+
+    this.http.post<any>(`${environment.apiBaseUrl}/Metas/ActualizarProgreso`, payload, {
       headers: {
         'X-Api-Key': environment.apiKey,
         'Content-Type': 'application/json',

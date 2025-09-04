@@ -256,6 +256,7 @@ export class ListComponent implements OnInit {
 cerrarProgresoForm() {
   this.metaProgreso = null;
   this.mostrarProgresoForm = false;
+  this.cargardatos(false);
 }
 
   guardarMeta(meta: any): void {
@@ -275,7 +276,7 @@ cerrarProgresoForm() {
   actualizarMeta(meta: any): void {
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
-      this.cargardatos(false);
+      this.cargardatos(true);
       this.showEditForm = false;
       this.mensajeExito = `Meta actualizada exitosamente`;
       this.mostrarAlertaExito = true;
@@ -295,12 +296,13 @@ cerrarProgresoForm() {
   cancelarEliminar(): void {
     this.mostrarConfirmacionEliminar = false;
     this.metaEliminar = null;
+    this.mostrarOverlayCarga = false;
   }
 
   eliminar(): void {
     if (!this.metaEliminar) return;
     this.mostrarOverlayCarga = true;
-    this.http.post(`${environment.apiBaseUrl}/Metas/Eliminar/${this.metaEliminar.meta_Id}`, {}, {
+    this.http.put(`${environment.apiBaseUrl}/Metas/Eliminar/${this.metaEliminar.meta_Id}`, {}, {
       headers: {
         'X-Api-Key': environment.apiKey,
         'accept': '*/*'
