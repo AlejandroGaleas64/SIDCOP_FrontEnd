@@ -320,7 +320,7 @@
           <div class="d-flex justify-content-center align-items-center gap-3">
             <div class="text-center">
               <small class="text-muted d-block">Anterior</small>
-              <img *ngIf="configFacturaOriginal.coFa_Logo" [src]="configFacturaOriginal.coFa_Logo" alt="Logo anterior"
+              <img *ngIf="configFacturaOriginal.coFa_Logo" [src]="getImageDisplayUrl(configFacturaOriginal.coFa_Logo)" alt="Logo anterior"
                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6;">
               <div *ngIf="!configFacturaOriginal.coFa_Logo"
                 style="width: 60px; height: 60px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
@@ -330,7 +330,7 @@
             <i class="ri-arrow-right-line text-primary"></i>
             <div class="text-center">
               <small class="text-muted d-block">Nuevo</small>
-              <img *ngIf="configFactura.coFa_Logo" [src]="configFactura.coFa_Logo" alt="Logo nuevo"
+              <img *ngIf="configFactura.coFa_Logo" [src]="getImageDisplayUrl(configFactura.coFa_Logo)" alt="Logo nuevo"
                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6;">
               <div *ngIf="!configFactura.coFa_Logo"
                 style="width: 60px; height: 60px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
