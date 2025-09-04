@@ -60,6 +60,11 @@ export class DetailsComponent implements OnChanges, OnDestroy {
     printerPort: 9101,
     metodoImpresion: 'zebra-wrapper'
   };
+  
+  // Variables para el modal de selección de formato de factura
+  mostrarModalFormatoFactura = false;
+  formatoSeleccionado: 'pdf' | 'zpl' | null = null;
+  facturaInsertada = false;
 
   // Propiedades para Zebra Browser Print Wrapper
   verificandoConexion = false;
@@ -379,7 +384,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
   }
   
   /**
-   * Realiza el proceso completo de venta: insertar factura e imprimir
+   * Realiza el proceso completo de venta: insertar factura y mostrar modal de selección de formato
    */
   realizarVenta(): void {
     if (!this.PedidoDetalle) {
@@ -396,8 +401,11 @@ export class DetailsComponent implements OnChanges, OnDestroy {
         const facturaId = response.id || response.fact_Id || 'N/A';
         this.mostrarMensajeExito(`Factura insertada correctamente.`);
         
-        // Paso 2: Imprimir el pedido
-        this.imprimirPedido();
+        // Marcar que la factura se ha insertado correctamente
+        this.facturaInsertada = true;
+        
+        // Mostrar el modal para seleccionar el formato de factura
+        this.abrirModalFormatoFactura();
         
         // Opcional: Actualizar el estado del pedido si es necesario
         // this.actualizarEstadoPedido(this.PedidoDetalle.pedi_Id);
@@ -760,50 +768,70 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
   }
 
   /**
-   * Método principal de impresión ZPL
+   * Método principal de impresión ZPL - COPIADO EXACTO DE VENTAS/DETAILS
    */
   async imprimirPedidoZPL(): Promise<void> {
-    if (!this.PedidoDetalle) {
-      this.mostrarMensajeError('No hay datos de pedido para imprimir');
-      return;
-    }
-
-    try {
-      this.imprimiendo = true;
-      
-      if (!this.zebraBrowserPrint || !this.dispositivoSeleccionado) {
-        this.mostrarMensajeError('Debe seleccionar una impresora primero');
-        this.imprimiendo = false;
+      if (!this.PedidoDetalle) {
+        this.mostrarMensajeError('No hay datos de pedido para imprimir');
         return;
       }
-      
-      const browserPrint = this.zebraBrowserPrint;
-      const printerStatus = await browserPrint.checkPrinterStatus();
-      
-      if (printerStatus.isReadyToPrint) {
-        const pedidoData = this.pedidoInvoiceService.prepararDatosParaZPL();
-        const zplCode = this.zplPrintingService.generateInvoiceZPL(pedidoData);
-        await browserPrint.print(zplCode);
-        
-        // Insertar datos en el endpoint /Facturas/Insertar
-        this.insertarFactura();
-        
-        this.mostrarMensajeExito(`Pedido ${this.PedidoDetalle.pedi_Id} enviado a impresión correctamente`);
-      } else {
-        this.mostrarMensajeError(`Error en la impresora: ${printerStatus.errors}`);
-      }
 
-    } catch (error: any) {
-      console.error('Error al imprimir pedido:', error);
-      this.mostrarMensajeError('Error al imprimir pedido: ' + error.message);
-    } finally {
-      this.imprimiendo = false;
+      this.imprimiendo = true;
+      this.mostrarAlertaError = false;
+      this.mostrarAlertaExito = false;
+
+      try {
+        // Create a new instance of the object (igual que printBarcode)
+        const browserPrint = new ZebraBrowserPrintWrapper();
+
+        // Select default printer (igual que printBarcode)
+        const defaultPrinter = await browserPrint.getDefaultPrinter();
+      
+        // Set the printer (igual que printBarcode)
+        browserPrint.setPrinter(defaultPrinter);
+
+        // Check printer status (igual que printBarcode)
+        const printerStatus = await browserPrint.checkPrinterStatus();
+
+        // Check if the printer is ready (igual que printBarcode)
+        if(printerStatus.isReadyToPrint) {
+          
+          // Preparar datos de pedido
+          const pedidoData = this.pedidoInvoiceService.prepararDatosParaZPL();
+          
+          // Generar código ZPL del pedido
+          const zplCode = this.zplPrintingService.generateInvoiceZPL(pedidoData);
+
+          // Imprimir el pedido (igual que printBarcode)
+          await browserPrint.print(zplCode);
+          
+          this.mostrarMensajeExito(`Pedido ${this.PedidoDetalle.pedi_Id} enviado a impresión correctamente`);
+          this.cerrarConfiguracionImpresion();
+          
+        } else {
+          console.log("Error/s", printerStatus.errors);
+          this.mostrarMensajeError(`Error en la impresora: ${printerStatus.errors}`);
+        }
+
+      } catch (error: any) {
+        console.error('Error al imprimir pedido:', error);
+        this.mostrarMensajeError('Error al imprimir pedido: ' + error.message);
+      } finally {
+        this.imprimiendo = false;
+      }
     }
-  }
 
   // ===== MÉTODOS DE CONFIGURACIÓN =====
 
-  abrirConfiguracionImpresion(): void {
+  async abrirConfiguracionImpresion(): Promise<void> {
+    // Asegurar que Zebra Browser Print esté inicializado
+    if (!this.zebraBrowserPrint) {
+      await this.inicializarZebraBrowserPrint();
+    }
+    
+    // Refrescar dispositivos disponibles
+    await this.refrescarDispositivos();
+    
     this.mostrarConfiguracionImpresion = true;
   }
 
@@ -818,6 +846,35 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
   onBackdropClick(event: Event): void {
     if (event.target === event.currentTarget) {
       this.cerrarConfiguracionImpresion();
+    }
+  }
+  
+  // Métodos para el modal de selección de formato de factura
+  abrirModalFormatoFactura(): void {
+    this.formatoSeleccionado = null;
+    this.mostrarModalFormatoFactura = true;
+  }
+  
+  cerrarModalFormatoFactura(): void {
+    this.mostrarModalFormatoFactura = false;
+  }
+  
+  seleccionarFormato(formato: 'pdf' | 'zpl'): void {
+    this.formatoSeleccionado = formato;
+  }
+  
+  onBackdropClickFormato(event: Event): void {
+    if (event.target === event.currentTarget) {
+      this.cerrarModalFormatoFactura();
+    }
+  }
+  
+  // Este método ya no es necesario para la acción de los botones,
+  // pero lo mantenemos por si se necesita en el futuro
+  confirmarFormatoFactura(): void {
+    if (!this.formatoSeleccionado) {
+      this.mostrarMensajeError('Debe seleccionar un formato de factura');
+      return;
     }
   }
 
