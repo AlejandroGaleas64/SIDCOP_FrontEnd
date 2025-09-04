@@ -5,6 +5,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { obtenerUsuario } from 'src/app/core/utils/user-utils'; // Cambiado a obtenerUsuario
 import * as XLSX from 'xlsx';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 export interface ExportConfig {
   title: string;
@@ -47,7 +48,7 @@ export class ExportService {
     grisTexto: '#666666'
   };
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {
     this.cargarConfiguracionEmpresa();
   }
 
@@ -92,6 +93,7 @@ export class ExportService {
       
       // Asegurar que el logo esté cargado antes de generar el PDF
       if (this.configuracionEmpresa?.coFa_Logo && !this.logoDataUrl) {
+        console.log('🖼️ Iniciando carga de logo para PDF...');
         await this.precargarLogo();
       }
 
@@ -473,16 +475,16 @@ export class ExportService {
       };
       
       try {
-        const logoUrl = this.configuracionEmpresa.coFa_Logo;
-        console.log('Intentando precargar logo desde:', logoUrl);
+        const logoPath = this.configuracionEmpresa.coFa_Logo;
+        console.log('Intentando precargar logo desde:', logoPath);
         
-        if (logoUrl.startsWith('http')) {
-          img.src = logoUrl;
-        } else if (logoUrl.startsWith('data:')) {
-          img.src = logoUrl;
-        } else {
-          img.src = `data:image/png;base64,${logoUrl}`;
-        }
+        // Usar exactamente la misma lógica que configuración de factura details
+        const logoUrl = this.imageUploadService.getImageUrl(logoPath);
+        
+        console.log('📍 URL construida para el logo:', logoUrl);
+        console.log('📁 Ruta original del logo:', logoPath);
+        
+        img.src = logoUrl;
       } catch (e) {
         console.error('Error al configurar src del logo:', e);
         resolve(null);

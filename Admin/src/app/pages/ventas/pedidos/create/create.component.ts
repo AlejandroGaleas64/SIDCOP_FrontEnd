@@ -131,14 +131,13 @@ export class CreateComponent {
     return paginas;
   }
 
-  getInicioRegistro(): number {
-    return (this.paginaActual - 1) * this.productosPorPagina + 1;
-  }
+getInicioRegistro(): number {
+  return this.productosFiltrados.length === 0 ? 0 : (this.paginaActual - 1) * this.productosPorPagina + 1;
+}
 
-  getFinRegistro(): number {
-    const fin = this.paginaActual * this.productosPorPagina;
-    return Math.min(fin, this.productosFiltrados.length);
-  }
+getFinRegistro(): number {
+  return this.productosFiltrados.length === 0 ? 0 : Math.min(this.paginaActual * this.productosPorPagina, this.productosFiltrados.length);
+}
 
   // Método para obtener el índice real del producto en el array principal
   getProductoIndex(prodId: number): number {
@@ -536,8 +535,17 @@ export class CreateComponent {
 
   constructor(private http: HttpClient) {
     this.cargarClientes();
+      (this.pedido.pedi_FechaEntrega as any) = this.getTodayAsDateInput();
     // this.listarProductos();
   }
+
+  private getTodayAsDateInput(): string {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
   // Agregar al componente TypeScript
   trackByProducto(index: number, producto: any): number {
@@ -568,6 +576,10 @@ export class CreateComponent {
     peDe_Cantidad: 0,
     detalles: [],
     detallesJson: '',
+    // Propiedades adicionales para la factura
+    regC_Id: 0,
+    pedi_Latitud: 0,
+    pedi_Longitud: 0,
     usua_Creacion: 0,
     usua_Modificacion: 0,
     pedi_FechaCreacion: new Date(),
@@ -604,6 +616,10 @@ export class CreateComponent {
     this.pedido = {
       pedi_Id: 0,
       pedi_Codigo: '',
+      // Propiedades adicionales para la factura
+      regC_Id: 0,
+      pedi_Latitud: 0,
+      pedi_Longitud: 0,
       diCl_Id: 0,
       vend_Id: 0,
       pedi_FechaPedido: new Date(),
@@ -639,6 +655,60 @@ export class CreateComponent {
     this.onCancel.emit();
   }
 
+// ...existing code...
+onKeyDown(event: KeyboardEvent): void {
+  const input = event.target as HTMLInputElement;
+  const value = input.value;
+  
+  // Permitir teclas de control (backspace, delete, flechas, etc)
+  if (event.key === 'Backspace' || 
+      event.key === 'Delete' || 
+      event.key === 'ArrowLeft' || 
+      event.key === 'ArrowRight' ||
+      event.key === 'Tab') {
+    return;
+  }
+  
+  // Prevenir entrada de caracteres no numéricos
+  if (!/^\d$/.test(event.key)) {
+    event.preventDefault();
+    return;
+  }
+
+  // Prevenir entrada si ya hay 3 dígitos y no hay texto seleccionado
+  if (value.length >= 3 && !input.selectionStart && !input.selectionEnd) {
+    event.preventDefault();
+  }
+}
+
+onCantidadChange(prodId: number, valor: any): void {
+  const index = this.getProductoIndex(prodId);
+  if (index >= 0) {
+    // Convertir a string y remover caracteres no numéricos
+    let cantidad = String(valor).replace(/\D/g, '');
+    
+    // Limitar a 3 dígitos
+    if (cantidad.length > 3) {
+      cantidad = cantidad.slice(0, 3);
+    }
+    
+    // Convertir a número
+    let cantidadNum = parseInt(cantidad, 10);
+    
+    // Validar rango
+    if (isNaN(cantidadNum) || cantidadNum < 0) {
+      cantidadNum = 0;
+    } else if (cantidadNum > 999) {
+      cantidadNum = 999;
+    }
+    
+    // Actualizar el producto
+    this.productos[index].cantidad = cantidadNum;
+    this.actualizarPrecio(this.productos[index]);
+  }
+}
+// ...existing code...
+  
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
