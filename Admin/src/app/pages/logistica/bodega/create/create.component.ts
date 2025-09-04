@@ -30,7 +30,7 @@ export class CreateComponent  {
   constructor(private http: HttpClient) {
     this.listarSucursales();
     this.listarRegistroCai();
-    this.listarModelos();
+    this.listarMarcas(); // Cambiado de listarModelos() a listarMarcas()
   }
 
   bodega: Bodega = {
@@ -60,31 +60,30 @@ export class CreateComponent  {
     sucursales: any[] = [];
     registroCais: any[] = [];
     vendedores: any[] = [];
-    vendedoresFiltrados: any[] = []; // Nueva propiedad para vendedores filtrados
+    vendedoresFiltrados: any[] = []; 
+    marcas: any[] = []; // Nueva propiedad para marcas
     modelos: any[] = [];
+    modelosFiltrados: any[] = []; // Nueva propiedad para modelos filtrados
+    marcaSeleccionada: number = 0; // Nueva propiedad para la marca seleccionada
 
    // Función para validar VIN
   validarVIN(vin: string): { esValido: boolean, mensaje: string } {
-    if (!vin) return { esValido: true, mensaje: '' }; // Si está vacío, no validamos aquí
+    if (!vin) return { esValido: true, mensaje: '' }; 
     
-    // Verificar longitud máxima de 17 caracteres
     if (vin.length > 17 || vin.length < 17) {
       return { esValido: false, mensaje: 'Ingrese un VIN Válido' };
     }
     
-    // Verificar que no contenga las letras prohibidas O, I, Q (mayúsculas o minúsculas)
     const letrasProhibidas = /[OIQoiq]/;
     if (letrasProhibidas.test(vin)) {
       return { esValido: false, mensaje: 'El VIN no puede contener las letras O, I, Q' };
     }
     
-    // Verificar que tenga al menos 3 letras (no solo números)
-    const letras = vin.match(/[A-HJ-NPR-Z]/g); // Excluye O, I, Q
+    const letras = vin.match(/[A-HJ-NPR-Z]/g);
     if (!letras || letras.length < 3) {
       return { esValido: false, mensaje: 'El VIN debe contener al menos 3 letras' };
     }
 
-    // Verificar que tenga al menos 3 números (no solo letras)
     const numeros = vin.match(/[0-9]/g);
     if (!numeros || numeros.length < 3) {
       return { esValido: false, mensaje: 'El VIN debe contener al menos 3 números' };
@@ -94,9 +93,8 @@ export class CreateComponent  {
   }
 
   validarPlaca(placa: string): { esValido: boolean, mensaje: string } {
-    if (!placa) return { esValido: true, mensaje: '' }; // Si está vacío, no validamos aquí
+    if (!placa) return { esValido: true, mensaje: '' };
     
-    // Verificar longitud máxima de 7 caracteres
     if (placa.length > 8 || placa.length < 8) {
       return { esValido: false, mensaje: 'Ingrese una Placa Válida' };
     }
@@ -104,7 +102,6 @@ export class CreateComponent  {
     return { esValido: true, mensaje: '' };
   }
 
-  // Función auxiliar para verificar si es válido (para usar en condiciones simples)
   esVINValido(vin: string): boolean {
     return this.validarVIN(vin).esValido;
   }
@@ -113,46 +110,35 @@ export class CreateComponent  {
     return this.validarPlaca(placa).esValido;
   }
 
-  // Función para filtrar caracteres en tiempo real
   onVINInput(event: any): void {
     let valor = event.target.value;
     
-    // Remover caracteres prohibidos O, I, Q
     valor = valor.replace(/[OIQoiq]/g, '');
     
-    // Limitar a 17 caracteres
     if (valor.length > 17) {
       valor = valor.substring(0, 17);
     }
 
-    // Convertir a mayúsculas (opcional, ya que los VIN suelen ser en mayúsculas)
     valor = valor.toUpperCase();
     
-    // Actualizar el modelo
     this.bodega.bode_VIN = valor;
     
-    // Actualizar el input si fue modificado
     if (event.target.value !== valor) {
       event.target.value = valor;
     }
   }
 
-  // Función para filtrar caracteres en tiempo real
   onPlacaInput(event: any): void {
     let valor = event.target.value;
 
-    // Limitar a 8 caracteres
     if (valor.length > 8) {
       valor = valor.substring(0, 8);
     }
     
-    // Convertir a mayúsculas (opcional, ya que las Placas suelen ser en mayúsculas)
     valor = valor.toUpperCase();
     
-    // Actualizar el modelo
     this.bodega.bode_Placa = valor;
 
-    // Actualizar el input si fue modificado
     if (event.target.value !== valor) {
       event.target.value = valor;
     }
@@ -170,7 +156,6 @@ export class CreateComponent  {
     return numeros ? numeros.length : 0;
   }
 
-  // Función para obtener el mensaje de error del VIN
   getMensajeErrorVIN(): string {
     if (!this.bodega.bode_VIN.trim()) {
       return 'El campo VIN es requerido';
@@ -178,7 +163,6 @@ export class CreateComponent  {
     return this.validarVIN(this.bodega.bode_VIN).mensaje;
   }
 
-  // Función para obtener el mensaje de error de la Placa
   getMensajeErrorPlaca(): string {
     if (!this.bodega.bode_Placa.trim()) {
       return 'El campo Placa es requerido';
@@ -210,33 +194,66 @@ export class CreateComponent  {
     });
   }
 
-  listarModelos(): void {
+  // Nuevo método para listar marcas de vehículos
+  listarMarcas(): void {
+    this.http.get<any>(`${environment.apiBaseUrl}/MarcasVehiculos/Listar`, {
+        headers: { 'x-api-key': environment.apiKey }
+      }).subscribe((data) => this.marcas = data);
+  };
+
+  // Método modificado para listar modelos (ahora carga todos)
+  listarModelos(callback?: () => void): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Modelo/Listar`, {
         headers: { 'x-api-key': environment.apiKey }
-      }).subscribe((data) => this.modelos = data);
-    };
+      }).subscribe((data) => {
+        this.modelos = data;
+        if (callback) {
+          callback();
+        }
+      });
+  };
 
-  // Nueva función para manejar el cambio de sucursal
   onSucursalChange(): void {
     console.log('Sucursal cambiada a:', this.bodega.sucu_Id, typeof this.bodega.sucu_Id);
     
-    // Resetear el vendedor seleccionado
     this.bodega.vend_Id = 0;
     
-    // Si hay una sucursal seleccionada, cargar los vendedores
     if (this.bodega.sucu_Id && Number(this.bodega.sucu_Id) > 0) {
       this.cargarVendedoresPorSucursal(Number(this.bodega.sucu_Id));
     } else {
-      // Si no hay sucursal seleccionada, limpiar la lista de vendedores filtrados
       this.vendedoresFiltrados = [];
     }
-}
+  }
 
-  // Nueva función para cargar vendedores por sucursal
   cargarVendedoresPorSucursal(sucursalId: number): void {
     this.listarVendedores(() => {
       this.vendedoresFiltrados = this.vendedores.filter(vendedor => 
         Number(vendedor.sucu_Id) === Number(sucursalId)
+      );
+    });
+  }
+
+  // Nueva función para manejar el cambio de marca
+  onMarcaChange(): void {
+    console.log('Marca cambiada a:', this.marcaSeleccionada);
+    
+    // Resetear el modelo seleccionado
+    this.bodega.mode_Id = 0;
+    
+    // Si hay una marca seleccionada, cargar los modelos
+    if (this.marcaSeleccionada && Number(this.marcaSeleccionada) > 0) {
+      this.cargarModelosPorMarca(Number(this.marcaSeleccionada));
+    } else {
+      // Si no hay marca seleccionada, limpiar la lista de modelos filtrados
+      this.modelosFiltrados = [];
+    }
+  }
+
+  // Nueva función para cargar modelos por marca
+  cargarModelosPorMarca(marcaId: number): void {
+    this.listarModelos(() => {
+      this.modelosFiltrados = this.modelos.filter(modelo => 
+        Number(modelo.maVe_Id) === Number(marcaId)
       );
     });
   }
@@ -249,27 +266,29 @@ export class CreateComponent  {
     this.mensajeError = '';
     this.mostrarAlertaWarning = false;
     this.mensajeWarning = '';
-    this.vendedoresFiltrados = []; // Limpiar vendedores filtrados
+    this.vendedoresFiltrados = [];
+    this.modelosFiltrados = []; // Limpiar modelos filtrados
+    this.marcaSeleccionada = 0; // Resetear marca seleccionada
     this.bodega = {
       bode_Id: 0,
-    bode_Descripcion: '',
-    bode_Capacidad: 0,
-    bode_Placa: '',
-    bode_TipoCamion: '',
-    bode_VIN: '',
-    mode_Id: 0,
-    regC_Id: 0,
-    sucu_Id: 0,
-    vend_Id: 0,
-    usua_Creacion: 0,
-    usua_Modificacion: 0,
-    secuencia: 0,
-    bode_FechaCreacion: new Date(),
-    bode_FechaModificacion: new Date(),
-    code_Status: 0,
-    message_Status: '',
-    usuarioCreacion: '',
-    usuarioModificacion: ''
+      bode_Descripcion: '',
+      bode_Capacidad: 0,
+      bode_Placa: '',
+      bode_TipoCamion: '',
+      bode_VIN: '',
+      mode_Id: 0,
+      regC_Id: 0,
+      sucu_Id: 0,
+      vend_Id: 0,
+      usua_Creacion: 0,
+      usua_Modificacion: 0,
+      secuencia: 0,
+      bode_FechaCreacion: new Date(),
+      bode_FechaModificacion: new Date(),
+      code_Status: 0,
+      message_Status: '',
+      usuarioCreacion: '',
+      usuarioModificacion: ''
     };
     this.onCancel.emit();
   }
@@ -286,17 +305,17 @@ export class CreateComponent  {
   guardar(): void {
     this.mostrarErrores = true;
     
-    // Validar campos requeridos
+    // Validar campos requeridos (agregamos la validación de marca)
     if (this.bodega.bode_Descripcion.trim() &&
         this.bodega.bode_Capacidad > 0 && this.bodega.bode_Placa.trim() &&
         this.bodega.bode_TipoCamion.trim() && this.bodega.bode_VIN.trim() &&
         this.esVINValido(this.bodega.bode_VIN) &&
         this.esPlacaValido(this.bodega.bode_Placa) &&
-        this.bodega.sucu_Id > 0 && this.bodega.regC_Id > 0 && this.bodega.vend_Id > 0 && this.bodega.mode_Id > 0
-      
+        this.bodega.sucu_Id > 0 && this.bodega.regC_Id > 0 && 
+        this.bodega.vend_Id > 0 && this.bodega.mode_Id > 0 && 
+        this.marcaSeleccionada > 0 // Validación de marca agregada
       )
       {
-      // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
 
@@ -314,7 +333,7 @@ export class CreateComponent  {
         bode_Placa: placaMask,
         bode_TipoCamion: this.bodega.bode_TipoCamion.trim(),
         bode_Capacidad: this.bodega.bode_Capacidad,
-        usua_Creacion: getUserId(),// varibale global, obtiene el valor del environment, esto por mientras
+        usua_Creacion: getUserId(),
         bode_FechaCreacion: new Date().toISOString(),
         usua_Modificacion: 0,
         numero: "", 
@@ -352,7 +371,6 @@ export class CreateComponent  {
           this.mensajeError = 'Error al guardar el bodega. Por favor, intente nuevamente.';
           this.mostrarAlertaExito = false;
           
-          // Ocultar la alerta de error después de 5 segundos
           setTimeout(() => {
             this.mostrarAlertaError = false;
             this.mensajeError = '';
@@ -372,10 +390,7 @@ export class CreateComponent  {
         this.mostrarAlertaError = false;
         this.mostrarAlertaExito = false;
        }
-      // Mostrar alerta de warning para campos vacíos
-     
       
-      // Ocultar la alerta de warning después de 4 segundos
       setTimeout(() => {
         this.mostrarAlertaWarning = false;
         this.mensajeWarning = '';

@@ -270,12 +270,44 @@
       </div>
 
       <div class="col-md-6">
-        <label  class="form-label">Modelo<span class="text-danger">*</span></label>
+        <label  class="form-label">Marca<span class="text-danger">*</span></label>
         <div class="mb-3">
           <div class="d-flex align-items-center">
              <i class=" ri-steering-fill" [ngStyle]="{
+                border: (!marcaSeleccionada && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!marcaSeleccionada && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+            <select 
+                id="marcaId" 
+                name="marcaId" 
+                class="form-select"
+                [class.is-invalid]="!marcaSeleccionada && mostrarErrores"
+                [(ngModel)]="marcaSeleccionada"
+                (change)="onMarcaChange()"
+                required>
+                    <option value=0 disabled selected>Seleccione una marca para el camión</option>
+                    <option 
+                        *ngFor="let marca of marcas" 
+                        [value]="marca.maVe_Id">
+                            {{ marca.maVe_Marca }}
+                    </option>
+            </select>
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          </div>
+          <div class="text-danger mt-1" *ngIf="!marcaSeleccionada && mostrarErrores">
+            <small>El campo marca es requerido</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <label  class="form-label">Modelo<span class="text-danger">*</span></label>
+        <div class="mb-3">
+          <div class="d-flex align-items-center">
+             <i class=" ri-car-line" [ngStyle]="{
                 border: (!bodega.mode_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!bodega.mode_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                backgroundColor: (!bodega.mode_Id && mostrarErrores || !marcaSeleccionada) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
             <select 
@@ -284,11 +316,13 @@
                 class="form-select"
                 [class.is-invalid]="!bodega.mode_Id && mostrarErrores"
                 [(ngModel)]="bodega.mode_Id"
-                [(ngModel)]="bodega.mode_Id" 
+                [disabled]="!marcaSeleccionada || marcaSeleccionada === 0"
                 required>
-                    <option value=0 disabled selected>Seleccione un modelo para el camión</option>
+                    <option value=0 disabled selected>
+                      {{ !marcaSeleccionada || marcaSeleccionada === 0 ? 'Primero seleccione una marca' : 'Seleccione un modelo para el camión' }}
+                    </option>
                     <option 
-                        *ngFor="let mode of modelos" 
+                        *ngFor="let mode of modelosFiltrados" 
                         [value]="mode.mode_Id">
                             {{ mode.mode_Descripcion }}
                     </option>
