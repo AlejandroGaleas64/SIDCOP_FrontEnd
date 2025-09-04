@@ -1,1 +1,315 @@
-<p>edit works!</p>
+<div class="d-flex flex-column" style="height: 100%; min-height: 250px;">
+  <h5 class="card-title mb-4">Editar Meta</h5>
+
+  <!-- Floating Alerts -->
+  <div class="alert-container">
+    <div *ngIf="mostrarAlertaExito" class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+      <strong>¡Éxito!</strong> {{ mensajeExito }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+    <div *ngIf="mostrarAlertaWarning" class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+      <strong>¡Atención!</strong> {{ mensajeWarning }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+    <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+      <strong>¡Error!</strong> {{ mensajeError }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <div class="flex-grow-1">
+    <!-- Stepper Tabs -->
+    <ul class="nav nav-tabs mb-3 d-flex justify-content-center" role="tablist" style="width: 100%;">
+      <li class="nav-item flex-fill text-center" role="presentation">
+        <button class="nav-link w-100" [class.active]="activeStep === 1" (click)="activeStep = 1" type="button" role="tab">
+          Información de Meta
+        </button>
+      </li>
+      <li class="nav-item flex-fill text-center" role="presentation">
+        <button class="nav-link w-100" [class.active]="activeStep === 2" [disabled]="!validarPasoActual()" (click)="activeStep = 2" type="button" role="tab">
+          Vendedores Asignados
+        </button>
+      </li>
+    </ul>
+
+    <!-- Paso 1: Información General -->
+    <div *ngIf="activeStep === 1">
+      <div class="row mx-lg-4">
+        <!-- Tipo -->
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Tipo <span class="text-danger">*</span></label>
+          <div class="d-flex align-items-center">
+            <i class="ri-list-settings-line"
+              [ngStyle]="{
+                border: (!meta.meta_Tipo && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!meta.meta_Tipo && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'
+              }"></i>
+            <select class="form-select"
+              [(ngModel)]="meta.meta_Tipo"
+              (ngModelChange)="onTipoChange()"
+              [class.is-invalid]="!meta.meta_Tipo && mostrarErrores"
+              required>
+              <option value="" disabled selected>Seleccione un tipo</option>
+              <option *ngFor="let tipo of tiposMeta" [value]="tipo.value">{{ tipo.label }}</option>
+            </select>
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          </div>
+          <div class="text-danger mt-1" *ngIf="!meta.meta_Tipo && mostrarErrores">
+            <small>El campo Tipo es requerido</small>
+          </div>
+        </div>
+
+        <!-- Descripción -->
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Descripción <span class="text-danger">*</span></label>
+          <div class="d-flex align-items-center">
+            <i class="ri-attachment-line"
+              [ngStyle]="{
+                border: (!meta.meta_Descripcion?.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!meta.meta_Descripcion?.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'
+              }"></i>
+            <input type="text" class="form-control"
+              [(ngModel)]="meta.meta_Descripcion"
+              [class.is-invalid]="!meta.meta_Descripcion?.trim() && mostrarErrores"
+              placeholder="Ingrese la descripción de la meta"
+              required>
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          </div>
+          <div class="text-danger mt-1" *ngIf="!meta.meta_Descripcion?.trim() && mostrarErrores">
+            <small>El campo Descripción es requerido</small>
+          </div>
+        </div>
+
+        <!-- Fecha Inicio -->
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Fecha Inicio <span class="text-danger">*</span></label>
+          <div class="d-flex align-items-center">
+            <i class="ri-calendar-2-line"
+              [ngStyle]="{
+                border: (!meta.meta_FechaInicio && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!meta.meta_FechaInicio && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'
+              }"></i>
+            <input type="date" class="form-control"
+              [(ngModel)]="meta.meta_FechaInicio"
+              [class.is-invalid]="!meta.meta_FechaInicio && mostrarErrores"
+              required>
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          </div>
+          <div class="text-danger mt-1" *ngIf="!meta.meta_FechaInicio && mostrarErrores">
+            <small>El campo Fecha Inicio es requerido</small>
+          </div>
+        </div>
+
+        <!-- Fecha Fin -->
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Fecha Fin <span class="text-danger">*</span></label>
+          <div class="d-flex align-items-center">
+            <i class="ri-calendar-2-line"
+              [ngStyle]="{
+                border: (!meta.meta_FechaFin && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!meta.meta_FechaFin && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'
+              }"></i>
+            <input type="date" class="form-control"
+              [(ngModel)]="meta.meta_FechaFin"
+              [class.is-invalid]="!meta.meta_FechaFin && mostrarErrores"
+              required>
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          </div>
+          <div class="text-danger mt-1" *ngIf="!meta.meta_FechaFin && mostrarErrores">
+            <small>El campo Fecha Fin es requerido</small>
+          </div>
+        </div>
+
+        <!-- Ingresos -->
+        <div class="col-md-6 mb-3" *ngIf="meta.meta_Tipo === 'IT' || meta.meta_Tipo === 'IP' || meta.meta_Tipo === 'PC' || meta.meta_Tipo === 'IM'">
+          <label class="form-label">Ingresos <span class="text-danger">*</span></label>
+          <div class="d-flex align-items-center">
+            <i class="ri-coin-fill"
+              [ngStyle]="{
+                border: (!meta.meta_Ingresos && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!meta.meta_Ingresos && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'
+              }"></i>
+            <input type="text" class="form-control"
+              currencyMask [options]="{ prefix: 'L. ', thousands: ',', decimal: '.', precision: 2 }"
+              [(ngModel)]="meta.meta_Ingresos"
+              [class.is-invalid]="(!meta.meta_Ingresos || meta.meta_Ingresos <= 0) && mostrarErrores"
+              placeholder="Ingresos meta"
+              required>
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          </div>
+          <div class="text-danger mt-1" *ngIf="(!meta.meta_Ingresos || meta.meta_Ingresos <= 0) && mostrarErrores">
+            <small>El campo Ingresos es requerido</small>
+          </div>
+        </div>
+
+        <!-- Unidades -->
+        <div class="col-md-6 mb-3" *ngIf="meta.meta_Tipo === 'TP' || meta.meta_Tipo === 'CN' || meta.meta_Tipo === 'PE' || meta.meta_Tipo === 'CM'">
+          <label class="form-label">Unidades <span class="text-danger">*</span></label>
+          <div class="d-flex align-items-center">
+            <i class="ri-hashtag"
+              [ngStyle]="{
+                border: (!meta.meta_Unidades && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!meta.meta_Unidades && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'
+              }"></i>
+            <input type="number" class="form-control"
+              [(ngModel)]="meta.meta_Unidades"
+              min="0"
+              [class.is-invalid]="(!meta.meta_Unidades || meta.meta_Unidades <= 0) && mostrarErrores"
+              placeholder="Unidades meta"
+              required>
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          </div>
+          <div class="text-danger mt-1" *ngIf="(!meta.meta_Unidades || meta.meta_Unidades <= 0) && mostrarErrores">
+            <small>El campo Unidades es requerido</small>
+          </div>
+        </div>
+
+        <!-- Producto -->
+        <div class="col-md-6 mb-3" *ngIf="meta.meta_Tipo === 'PE' || meta.meta_Tipo === 'IP'">
+          <label class="form-label">Producto <span class="text-danger">*</span></label>
+          <div class="d-flex align-items-center">
+            <i class="ri-shopping-bag-3-line"
+              [ngStyle]="{
+                border: (!meta.prod_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!meta.prod_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'
+              }"></i>
+            <select class="form-select"
+              [(ngModel)]="meta.prod_Id"
+              [class.is-invalid]="(!meta.prod_Id || meta.prod_Id == 0) && mostrarErrores"
+              required>
+              <option value="0" disabled selected>Seleccione un producto</option>
+              <option *ngFor="let prod of productos" [value]="prod.prod_Id">{{ prod.prod_Descripcion }}</option>
+            </select>
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          </div>
+          <div class="text-danger mt-1" *ngIf="(!meta.prod_Id || meta.prod_Id == 0) && mostrarErrores">
+            <small>El campo Producto es requerido</small>
+          </div>
+        </div>
+
+        <!-- Categoría -->
+        <div class="col-md-6 mb-3" *ngIf="meta.meta_Tipo === 'PC'">
+          <label class="form-label">Categoría <span class="text-danger">*</span></label>
+          <div class="d-flex align-items-center">
+            <i class="ri-price-tag-3-line"
+              [ngStyle]="{
+                border: (!meta.cate_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!meta.cate_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'
+              }"></i>
+            <select class="form-select"
+              [(ngModel)]="meta.cate_Id"
+              [class.is-invalid]="(!meta.cate_Id || meta.cate_Id == 0) && mostrarErrores"
+              required>
+              <option value="0" disabled selected>Seleccione una categoría</option>
+              <option *ngFor="let cate of categorias" [value]="cate.cate_Id">{{ cate.cate_Descripcion }}</option>
+            </select>
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          </div>
+          <div class="text-danger mt-1" *ngIf="(!meta.cate_Id || meta.cate_Id == 0) && mostrarErrores">
+            <small>El campo Categoría es requerido</small>
+          </div>
+        </div>
+      </div>
+      <div class="row mx-lg-4 gap-3">
+        <div class="col-md-12 d-flex justify-content-between gap-2">
+          <button type="button" class="btn btn-primary gold" (click)="cancelar()">
+            <span class="btn-text">Cancelar</span>
+            <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+          </button>
+          <button type="button" (click)="irAlSiguientePaso()" class="btn btn-primary right ms-auto nexttab nexttab">
+            <span class="btn-text">Siguiente</span>
+            <span class="btn-icon"><i class="ri-arrow-right-line label-icon align-middle fs-16 ms-2"></i></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paso 2: Vendedores -->
+    <div *ngIf="activeStep === 2">
+      <div class="row mx-lg-4">
+        <div class="col-md-12">
+          <label class="form-label">Vendedores <span class="text-danger">*</span></label>
+          <!-- Filtro de vendedores -->
+          <div class="input-group input-group-sm mb-3">
+            <span class="input-group-text">
+              <i class="ri-search-line"></i>
+            </span>
+            <input type="text" class="form-control" [(ngModel)]="filtroVendedor" placeholder="Buscar vendedor...">
+            <button class="btn btn-outline-secondary" type="button" (click)="filtroVendedor = ''" [disabled]="!filtroVendedor">
+              <i class="ri-close-line"></i>
+            </button>
+          </div>
+          <!-- Seleccionar todos -->
+          <div class="form-check mb-2">
+            <input type="checkbox" class="form-check-input" id="selectAllVendedores" [checked]="selectAllVendedores" (change)="toggleSelectAllVendedores($event)">
+            <label class="form-check-label" for="selectAllVendedores">Seleccionar todos</label>
+          </div>
+          <div class="row">
+            <ng-container *ngIf="vendedoresFiltrados.length > 0; else noVendedores">
+              <div class="col-md-4 mb-2" *ngFor="let vendedor of vendedoresFiltrados">
+                <div class="form-check">
+                  <input type="checkbox"
+                    class="form-check-input"
+                    [id]="'vendedor-' + vendedor.vend_Id"
+                    [checked]="isVendedorSeleccionado(vendedor.vend_Id)"
+                    (change)="toggleVendedor(vendedor.vend_Id, $event)">
+                  <label class="form-check-label" [for]="'vendedor-' + vendedor.vend_Id">
+                    {{ vendedor.vend_Nombres }} {{ vendedor.vend_Apellidos }}
+                  </label>
+                </div>
+              </div>
+            </ng-container>
+            <ng-template #noVendedores>
+              <div class="col-12">
+                <div class="text-muted text-center py-3">
+                  <i class="ri-search-line me-2"></i>
+                  No se encontraron vendedores que coincidan con "{{ filtroVendedor }}"
+                </div>
+              </div>
+            </ng-template>
+          </div>
+          <div class="text-danger mt-1" *ngIf="vendedoresSeleccionados.length === 0 && mostrarErrores">
+            <small>Debe seleccionar al menos un vendedor</small>
+          </div>
+        </div>
+      </div>
+      <div class="row mx-lg-4 gap-3">
+        <div class="col-md-12 d-flex justify-content-between gap-2">
+          <button type="button" class="btn btn-primary gold" (click)="cancelar()">
+            <span class="btn-text">Cancelar</span>
+            <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+          </button>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-primary" (click)="irAlPasoAnterior()">
+              <span class="btn-text">Anterior</span>
+              <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
+            </button>
+            <button type="button" class="btn btn-primary" (click)="guardar()">
+              <span class="btn-text">Guardar</span>
+              <span class="btn-icon"><i class="ri-save-line"></i></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
