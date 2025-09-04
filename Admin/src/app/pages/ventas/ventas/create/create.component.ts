@@ -618,10 +618,23 @@ private inicializar(): void {
     this.mostrarInfoCredito = (this.venta.fact_TipoVenta === 'Crédito');
     
     // Si se seleccionó crédito pero el cliente no puede usarlo, mostrar advertencia
-    if (this.venta.fact_TipoVenta === 'Crédito' && !this.puedeUsarCredito()) {
-      this.mostrarWarning('Este cliente no puede usar crédito. Verifique límite de crédito o saldo vencido.');
-      this.venta.fact_TipoVenta = 'Contado';
-      this.mostrarInfoCredito = false;
+    if (this.venta.fact_TipoVenta === 'Crédito') {
+      // Verificar si el cliente puede usar crédito (tiene crédito habilitado y no tiene saldo vencido)
+      if (!this.puedeUsarCredito()) {
+        this.mostrarWarning('Este cliente no puede usar crédito. Verifique límite de crédito o saldo vencido.');
+        this.venta.fact_TipoVenta = 'Contado';
+        this.mostrarInfoCredito = false;
+        return;
+      }
+      
+      // Verificar si el total de la venta excede el crédito disponible
+      if (this.excedeCreditoDisponible()) {
+        const totalVenta = this.getTotalGeneral();
+        const saldoDisponible = this.getSaldoDisponible();
+        this.mostrarWarning(`El total de la venta (L. ${totalVenta.toFixed(2)}) excede el crédito disponible (L. ${saldoDisponible.toFixed(2)})`);
+        this.venta.fact_TipoVenta = 'Contado';
+        this.mostrarInfoCredito = false;
+      }
     }
     
     this.actualizarEstadoNavegacion();
@@ -706,6 +719,27 @@ private inicializar(): void {
   }
   
   /**
+   * Verifica si el total de la venta excede el crédito disponible del cliente
+   * @returns true si el total excede el crédito disponible, false en caso contrario
+   */
+  excedeCreditoDisponible(): boolean {
+    // Si no es venta a crédito, no aplica esta validación
+    if (this.venta.fact_TipoVenta !== 'Crédito') return false;
+    
+    // Si no hay cliente seleccionado o no tiene crédito, no se puede usar crédito
+    if (!this.clienteActual || !this.tieneCredito()) return true;
+    
+    // Calcular el total de la venta
+    const totalVenta = this.getTotalGeneral();
+    
+    // Obtener el saldo disponible para crédito
+    const saldoDisponible = this.getSaldoDisponible();
+    
+    // Verificar si el total excede el saldo disponible
+    return totalVenta > saldoDisponible;
+  }
+  
+  /**
    * Obtiene el límite de crédito del cliente seleccionado
    * @returns Límite de crédito o 0 si no tiene
    */
@@ -748,6 +782,40 @@ private inicializar(): void {
    */
   tieneSaldoVencido(): boolean {
     return this.clienteActual?.clie_Vencido || false;
+  }
+  
+  /**
+   * Calcula el porcentaje del crédito disponible que representa el total de la venta
+   * @returns Porcentaje del 0 al 100, limitado a 100 si excede el crédito disponible
+   */
+  getPorcentajeCredito(): number {
+    if (!this.clienteActual || !this.tieneCredito()) return 0;
+    
+    const saldoDisponible = this.getSaldoDisponible();
+    if (saldoDisponible <= 0) return 100; // Si no hay saldo disponible, mostrar 100%
+    
+    const totalVenta = this.getTotalGeneral();
+    if (totalVenta <= 0) return 0; // Si no hay total, mostrar 0%
+    
+    // Calcular el porcentaje y limitarlo a 100%
+    const porcentaje = (totalVenta / saldoDisponible) * 100;
+    return Math.min(100, Math.round(porcentaje * 10) / 10); // Redondear a 1 decimal para mayor precisión
+  }
+  
+  /**
+   * Obtiene el estado del crédito basado en el porcentaje utilizado
+   * @returns String con el estado: 'Seguro', 'Precaución' o 'Límite'
+   */
+  getEstadoCredito(): string {
+    const porcentaje = this.getPorcentajeCredito();
+    
+    if (porcentaje < 70) {
+      return 'Seguro';
+    } else if (porcentaje < 90) {
+      return 'Precaución';
+    } else {
+      return 'Límite';
+    }
   }
 
   // ========== CÁLCULOS FINANCIEROS ==========
@@ -855,12 +923,21 @@ private inicializar(): void {
   }
 
   private actualizarEstadoNavegacion(): void {
+    // Si estamos en la pestaña de resumen, validar los datos básicos
     if (this.tabActivo === 2) {
       const valido = this.validarDatosBasicos();
       this.puedeAvanzarAResumen = valido;
       if (!valido) {
         this.tabActivo = 1;
         this.mostrarWarning('Se detectaron cambios. Complete los datos requeridos.');
+        return;
+      }
+      
+      // Si la venta es a crédito, verificar si el total excede el crédito disponible
+      if (this.venta.fact_TipoVenta === 'Crédito' && this.excedeCreditoDisponible()) {
+        const totalVenta = this.getTotalGeneral();
+        const saldoDisponible = this.getSaldoDisponible();
+        this.mostrarWarning(`El total de la venta (L. ${totalVenta.toFixed(2)}) excede el crédito disponible (L. ${saldoDisponible.toFixed(2)})`);
       }
     }
   }
@@ -920,6 +997,14 @@ private inicializar(): void {
     if (!this.venta.fact_TipoVenta) errores.push('Tipo de venta');
     if (!this.venta.fact_FechaEmision) errores.push('Fecha de emisión');
     if (this.obtenerDetallesVenta().length === 0) errores.push('Productos');
+
+    // Validar que el total de la venta no exceda el crédito disponible
+    if (this.venta.fact_TipoVenta === 'Crédito' && this.excedeCreditoDisponible()) {
+      const totalVenta = this.getTotalGeneral();
+      const saldoDisponible = this.getSaldoDisponible();
+      this.mostrarWarning(`El total de la venta (L. ${totalVenta.toFixed(2)}) excede el crédito disponible (L. ${saldoDisponible.toFixed(2)})`);
+      return false;
+    }
 
     if (errores.length > 0) {
       this.mostrarWarning(`Complete: ${errores.join(', ')}`);

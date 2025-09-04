@@ -551,8 +551,58 @@
                             <span>Días de crédito:</span>
                             <span class="fw-bold">{{ getDiasCredito() }} días</span>
                           </div>
+                          
+                          <!-- Indicador visual de crédito disponible vs total de venta -->
+                          <div class="mt-3 border rounded p-3 bg-light shadow-sm" *ngIf="getTotalGeneral() > 0">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                              <h6 class="mb-0"><i class="ri-bank-card-line me-1"></i> Indicador de Crédito</h6>
+                              <span class="badge" [ngClass]="{
+                                'bg-success': getPorcentajeCredito() < 70, 
+                                'bg-warning': getPorcentajeCredito() >= 70 && getPorcentajeCredito() < 90,
+                                'bg-danger': getPorcentajeCredito() >= 90
+                              }">
+                                {{ getEstadoCredito() }}
+                              </span>
+                            </div>
+                            
+                            <div class="row align-items-center mb-2">
+                              <div class="col-6 col-md-5">
+                                <span>Total de venta:</span>
+                              </div>
+                              <div class="col-6 col-md-7 text-end">
+                                <span class="fw-bold fs-6" [ngClass]="{'text-danger': excedeCreditoDisponible(), 'text-success': !excedeCreditoDisponible()}">L. {{ getTotalGeneral() | number:'1.2-2' }}</span>
+                              </div>
+                            </div>
+                            
+                            <!-- Barra de progreso mejorada con animación -->
+                            <div class="position-relative mb-2">
+                              <div class="progress" style="height: 18px; border-radius: 10px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" 
+                                  [ngClass]="{
+                                    'bg-success': getPorcentajeCredito() < 70, 
+                                    'bg-warning': getPorcentajeCredito() >= 70 && getPorcentajeCredito() < 90,
+                                    'bg-danger': getPorcentajeCredito() >= 90
+                                  }"
+                                  [style.width.%]="getPorcentajeCredito()" 
+                                  [attr.aria-valuenow]="getPorcentajeCredito()" 
+                                  aria-valuemin="0" 
+                                  aria-valuemax="100">
+                                  <span *ngIf="getPorcentajeCredito() > 25" class="ms-1">{{ getPorcentajeCredito() | number:'1.0-0' }}%</span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                              <small class="text-muted">{{ getPorcentajeCredito() | number:'1.1-1' }}% del crédito disponible</small>
+                              <small class="text-muted">Disponible: <span class="fw-bold">L. {{ getSaldoDisponible() | number:'1.2-2' }}</span></small>
+                            </div>
+                          </div>
+                          
                           <div *ngIf="tieneSaldoVencido()" class="text-danger fw-bold mt-1">
                             <i class="ri-error-warning-line"></i> Cliente con saldo vencido
+                          </div>
+                          <div *ngIf="excedeCreditoDisponible()" class="text-danger fw-bold mt-1">
+                            <i class="ri-error-warning-line"></i> Total excede crédito disponible
                           </div>
                         </div>
                       </div>
