@@ -152,12 +152,10 @@ export class ListComponent implements OnInit {
 
     // OBTENER ACCIONES DISPONIBLES DEL USUARIO
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
   // // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -182,8 +180,7 @@ export class ListComponent implements OnInit {
   // }
 
   detalles(factura: Factura): void {
-    console.log('Abriendo detalles para:', factura);
-    console.log('ID del factura seleccionado:', factura.fact_Id);
+
 
     // Usar el ID para cargar datos actualizados desde el API
     this.facturaIdDetalle = factura.fact_Id;
@@ -256,7 +253,6 @@ export class ListComponent implements OnInit {
 
       this.manejarResultadoExport(resultado);
     } catch (error) {
-      console.error(`Error en exportación ${tipo}:`, error);
       this.mostrarMensaje(
         'error',
         `Error al exportar archivo ${tipo.toUpperCase()}`
@@ -325,7 +321,6 @@ export class ListComponent implements OnInit {
         this.exportConfig.dataMapping.call(this, modelo, index)
       );
     } catch (error) {
-      console.error('Error obteniendo datos:', error);
       throw error;
     }
   }
@@ -454,7 +449,6 @@ export class ListComponent implements OnInit {
   guardarFactura(datos: any): void {
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
-      console.log('Datos recibidos del componente create:', datos);
       
       // Recargar los datos de la tabla
       this.cargardatos();
@@ -468,7 +462,6 @@ export class ListComponent implements OnInit {
       
       // Si se solicitó mostrar detalles y tenemos un ID válido
       if (datos.mostrarDetalles && datos.fact_Id > 0) {
-        console.log('Mostrando detalles de la factura:', datos.fact_Id);
         
         // Configurar el ID para el componente de detalles
         this.facturaIdDetalle = datos.fact_Id;
@@ -501,8 +494,7 @@ export class ListComponent implements OnInit {
   private cargarAccionesUsuario(): void {
     // OBTENEMOS PERMISOSJSON DEL LOCALSTORAGE
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
-    let accionesArray: string[] = [];
+     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
         const permisos = JSON.parse(permisosRaw);
@@ -520,17 +512,14 @@ export class ListComponent implements OnInit {
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter(
             (a: any) => typeof a === 'string'
           );
-          console.log('Acciones del módulo:', accionesArray);
         }
       } catch (e) {
-        console.error('Error al parsear permisosJson:', e);
       }
     }
     // AQUI FILTRAMOS Y NORMALIZAMOS LAS ACCIONES
     this.accionesDisponibles = accionesArray
       .filter((a) => typeof a === 'string' && a.length > 0)
       .map((a) => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   // Declaramos un estado en el cargarDatos, esto para hacer el overlay
@@ -582,12 +571,10 @@ export class ListComponent implements OnInit {
 
           setTimeout(() => {
             this.mostrarOverlayCarga = false;
-            console.log('Datos recargados:', datosFiltrados);
             this.table.setData(datosFiltrados); // ahora sí es Factura[]
           }, 500);
         },
         error: (error) => {
-          console.error('Error al cargar facturas:', error);
           this.mostrarOverlayCarga = false;
           this.table.setData([]);
         },
