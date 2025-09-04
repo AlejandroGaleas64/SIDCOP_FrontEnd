@@ -22,6 +22,11 @@ export class Pedido {
   peDe_Cantidad: number = 0;
   detalles: any[] = []; // Cambia el tipo según tu modelo de detalle
   detallesJson: string = '';
+  
+  // Propiedades adicionales para la factura
+  regC_Id: number = 0;
+  pedi_Latitud: number = 0;
+  pedi_Longitud: number = 0;
 
   usuarioCreacion: string = '';
   usuarioModificacion: string = '';

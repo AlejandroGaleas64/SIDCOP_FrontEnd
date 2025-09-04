@@ -107,6 +107,8 @@ export class ListComponent implements OnInit {
     })
   };
 
+  
+
   // Estado de exportación
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
@@ -331,8 +333,6 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
     if (!texto) return '';
     
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }
@@ -503,6 +503,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
 
             this.cargardatos(false);
             this.cancelarEliminar();
+            this.mostrarOverlayCarga = false;
           } else if (response.data.code_Status === -1) {
             //result: está siendo utilizado
             console.log('Punto de emisión está siendo utilizado');
@@ -516,6 +517,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
             
             // Cerrar el modal de confirmación
             this.cancelarEliminar();
+            this.mostrarOverlayCarga = false;
           } else if (response.data.code_Status === 0) {
             // Error general
             console.log('Error general al eliminar');
@@ -529,6 +531,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
             
             // Cerrar el modal de confirmación
             this.cancelarEliminar();
+            this.mostrarOverlayCarga = false;
           }
         } else {
           // Respuesta inesperada
@@ -570,7 +573,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
         let modulo = null;
         if (Array.isArray(permisos)) {
           // Buscar por ID de pantalla (ajusta el ID si cambia en el futuro)
-          modulo = permisos.find((m: any) => m.Pant_Id === 14);
+          modulo = permisos.find((m: any) => m.Pant_Id === 40);
         } else if (typeof permisos === 'object' && permisos !== null) {
           // Si es objeto, buscar por clave
           modulo = permisos['Estados Civiles'] || permisos['estados civiles'] || null;

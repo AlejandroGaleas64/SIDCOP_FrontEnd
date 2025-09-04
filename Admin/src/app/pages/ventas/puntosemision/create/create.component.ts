@@ -15,6 +15,11 @@ import { NgSelectModule } from '@ng-select/ng-select';
   styleUrl: './create.component.scss',
 })
 export class CreateComponent {
+  // Valida que el código tenga exactamente 3 dígitos
+  codigoValido(): boolean {
+    return /^[0-9]{3}$/.test(this.puntoEmision.puEm_Codigo);
+  }
+ 
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<PuntoEmision>();
 
@@ -60,6 +65,26 @@ export class CreateComponent {
 
   constructor(private http: HttpClient) {
     this.cargarSucursales();
+  }
+
+   // Solo permite números en el campo Código
+  soloNumeros(event: KeyboardEvent): void {
+    const charCode = event.key.charCodeAt(0);
+    if (charCode < 48 || charCode > 57 || this.puntoEmision.puEm_Codigo.length >= 3) {
+      event.preventDefault();
+    }
+  }
+
+  // Evita pegar en el campo Código
+  evitarPegar(event: ClipboardEvent): void {
+    event.preventDefault();
+  }
+
+  // Valida que el código siempre sean 3 dígitos numéricos
+  validarCodigo(): void {
+    if (!/^[0-9]{0,3}$/.test(this.puntoEmision.puEm_Codigo)) {
+      this.puntoEmision.puEm_Codigo = this.puntoEmision.puEm_Codigo.replace(/[^0-9]/g, '').slice(0, 3);
+    }
   }
 
   puntoEmision: PuntoEmision = {
@@ -120,10 +145,8 @@ export class CreateComponent {
   guardar(): void {
     this.mostrarErrores = true;
 
-    if (
-      this.puntoEmision.puEm_Codigo.trim() &&
-      this.puntoEmision.puEm_Descripcion.trim()
-    ) {
+    if (this.codigoValido() && this.puntoEmision.puEm_Descripcion.trim() &&
+      this.puntoEmision.sucu_Id > 0) {
       // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
@@ -132,7 +155,7 @@ export class CreateComponent {
         puEm_Id: 0,
         puEm_Codigo: this.puntoEmision.puEm_Codigo.trim(),
         puEm_Descripcion: this.puntoEmision.puEm_Descripcion.trim(),
-        usua_Creacion: getUserId(), // varibale global, obtiene el valor del environment, esto por mientras
+        usua_Creacion: getUserId(),
         puEm_FechaCreacion: new Date().toISOString(),
         usua_Modificacion: 0,
         sucu_Id: this.puntoEmision.sucu_Id,
@@ -143,8 +166,6 @@ export class CreateComponent {
         estado: '',
         secuencia: 0,
       };
-
-      console.log('Guardando puntoE:', puntoemisionGuardar);
 
       this.http
         .post<any>(
@@ -160,20 +181,30 @@ export class CreateComponent {
         )
         .subscribe({
           next: (response) => {
-            this.mostrarErrores = false;
-            this.onSave.emit(this.puntoEmision);
-            this.cancelar();
+            if (response.data.code_Status === 1) {
+              this.mostrarErrores = false;
+              this.onSave.emit(this.puntoEmision);
+              this.cancelar();
+            } else {
+              console.error(
+                'Error al guardar PE:'
+              );
+              this.mostrarAlertaError = true;
+              this.mensajeError = response.data.message_Status;
+              this.mostrarAlertaExito = false;
+
+              // Ocultar la alerta de error después de 5 segundos
+              setTimeout(() => {
+                this.mostrarAlertaError = false;
+                this.mensajeError = '';
+              }, 5000);
+            }
           },
           error: (error) => {
-            console.log('Entro esto', puntoemisionGuardar);
-            // console.log('Error al guardar punto de emision:', error);
-            console.error('Error al guardar punto de emision:', error);
             this.mostrarAlertaError = true;
             this.mensajeError =
               'Error al punto de emision. Por favor, intente nuevamente.';
             this.mostrarAlertaExito = false;
-
-            // Ocultar la alerta de error después de 5 segundos
             setTimeout(() => {
               this.mostrarAlertaError = false;
               this.mensajeError = '';
@@ -181,14 +212,12 @@ export class CreateComponent {
           },
         });
     } else {
-      // Mostrar alerta de warning para campos vacíos
+      // Mostrar alerta de warning para campos vacíos o código incorrecto
       this.mostrarAlertaWarning = true;
       this.mensajeWarning =
-        'Por favor complete todos los campos requeridos antes de guardar.';
+        'Por favor complete todos los campos requeridos y asegúrese que el código tenga exactamente 3 dígitos.';
       this.mostrarAlertaError = false;
       this.mostrarAlertaExito = false;
-
-      // Ocultar la alerta de warning después de 4 segundos
       setTimeout(() => {
         this.mostrarAlertaWarning = false;
         this.mensajeWarning = '';
