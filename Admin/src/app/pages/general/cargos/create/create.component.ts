@@ -77,74 +77,83 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
-  guardar(): void {
-    // console.log('Intentando guardar cargo con datos:', this.cargo);
-    this.mostrarErrores = true;
-    
-    if (this.cargo.carg_Descripcion.trim()) {
-      // Limpiar alertas previas
-      this.mostrarAlertaWarning = false;
-      this.mostrarAlertaError = false;
-      
-      const cargoGuardar = {
-        carg_Id: 0,
-        carg_Descripcion: this.cargo.carg_Descripcion,
-        usua_Creacion: getUserId(),// varibale global, obtiene el valor del environment, esto por mientras
-        carg_FechaCreacion: new Date().toISOString(),
-        usua_Modificacion: 0,
-        carg_FechaModificacion : new Date().toISOString(),
-        carg_Estado: true,
-        usuarioCreacion : '',
-        usuarioModificacion : ''
-      };
+guardar(): void {
+  this.mostrarErrores = true;
+  
+  if (this.cargo.carg_Descripcion.trim()) {
+    // Limpiar alertas previas
+    this.mostrarAlertaWarning = false;
+    this.mostrarAlertaError = false;
 
-      // console.log('Guardando cargo:', cargoGuardar);
-      
-      this.http.post<any>(`${environment.apiBaseUrl}/Cargo/Insertar`, cargoGuardar, {
-        headers: { 
-          'X-Api-Key': environment.apiKey,
-          'Content-Type': 'application/json',
-          'accept': '*/*'
-        }
-      }).subscribe({
-        next: (response) => {
-          // console.log('Cargo guardado exitosamente:', response);
+    const cargoGuardar = {
+      carg_Id: 0,
+      carg_Descripcion: this.cargo.carg_Descripcion,
+      usua_Creacion: getUserId(), // variable global
+      carg_FechaCreacion: new Date().toISOString(),
+      usua_Modificacion: 0,
+      carg_FechaModificacion : new Date().toISOString(),
+      carg_Estado: true,
+      usuarioCreacion : '',
+      usuarioModificacion : ''
+    };
+
+    this.http.post<any>(`${environment.apiBaseUrl}/Cargo/Insertar`, cargoGuardar, {
+      headers: { 
+        'X-Api-Key': environment.apiKey,
+        'Content-Type': 'application/json',
+        'accept': '*/*'
+      }
+    }).subscribe({
+      next: (response) => {
+        const status = response?.data?.code_Status;
+
+        if (status === -1) {
+          // Error controlado (ej: duplicado)
+          this.mostrarAlertaError = true;
+          this.mensajeError = response?.data?.message_Status || 'Error en la operación.';
+          this.mostrarAlertaExito = false;
+
+          setTimeout(() => {
+            this.mostrarAlertaError = false;
+            this.mensajeError = '';
+          }, 5000);
+
+        } else {
+          // Éxito
           this.mensajeExito = `Cargo "${this.cargo.carg_Descripcion}" guardado exitosamente`;
           this.mostrarAlertaExito = true;
           this.mostrarErrores = false;
           
-          // Ocultar la alerta después de 3 segundos
           setTimeout(() => {
             this.mostrarAlertaExito = false;
             this.onSave.emit(this.cargo);
             this.cancelar();
           }, 3000);
-        },
-        error: (error) => {
-          // console.error('Error al guardar cargo:', error);
-          this.mostrarAlertaError = true;
-          this.mensajeError = 'Error al guardar el cargo. Por favor, intente nuevamente.';
-          this.mostrarAlertaExito = false;
-          
-          // Ocultar la alerta de error después de 5 segundos
-          setTimeout(() => {
-            this.mostrarAlertaError = false;
-            this.mensajeError = '';
-          }, 5000);
         }
-      });
-    } else {
-      // Mostrar alerta de warning para campos vacíos
-      this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
-      this.mostrarAlertaError = false;
-      this.mostrarAlertaExito = false;
-      
-      // Ocultar la alerta de warning después de 4 segundos
-      setTimeout(() => {
-        this.mostrarAlertaWarning = false;
-        this.mensajeWarning = '';
-      }, 4000);
-    }
+      },
+      error: (error) => {
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error al guardar el cargo. Por favor, intente nuevamente.';
+        this.mostrarAlertaExito = false;
+        
+        setTimeout(() => {
+          this.mostrarAlertaError = false;
+          this.mensajeError = '';
+        }, 5000);
+      }
+    });
+  } else {
+    // Mostrar alerta de warning para campos vacíos
+    this.mostrarAlertaWarning = true;
+    this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
+    this.mostrarAlertaError = false;
+    this.mostrarAlertaExito = false;
+    
+    setTimeout(() => {
+      this.mostrarAlertaWarning = false;
+      this.mensajeWarning = '';
+    }, 4000);
   }
+}
+
 }

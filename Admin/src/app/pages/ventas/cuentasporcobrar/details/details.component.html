@@ -363,8 +363,9 @@
                 <tr class="gridjs-tr" *ngFor="let dato of (tablaPrincipal.paginated$ | async); let i = index">
                   <td class="position-relative" *ngIf="accionPermitida('anular') && !dato.cpCo_Anulado">
                     <button
+                      *ngIf="!dato.cpCo_Anulado && !dato.cpCo_Saldada && accionPermitida('pagar')"
                       type="button"
-                      class="btn btn-primary"
+                      class="btn btn-primary btn-sm"
                       (click)="registrarPago(dato.cpCo_Id)"
                     >
                       <span class="btn-text">Registrar Pago</span>
@@ -414,8 +415,8 @@
       </div>
     </div>
 
-    <!-- Información del cliente
-    <div class="card mb-3">
+    <!-- Información del cliente -->
+    <div class="card mb-3" *ngIf="cuentaPorCobrarDetalle">
       <div class="card-header">
         <h5 class="card-title mb-0">Información del Cliente</h5>
       </div>
@@ -449,8 +450,8 @@
       </div>
     </div>
 
-
-    <div class="card mb-3">
+    <!-- Detalle de la cuenta -->
+    <div class="card mb-3" *ngIf="cuentaPorCobrarDetalle">
       <div class="card-header">
         <h5 class="card-title mb-0">Detalle de la Cuenta</h5>
       </div>
@@ -503,7 +504,65 @@
           </div>
         </div>
       </div>
-    </div> -->
+    </div>
+    
+    <!-- Historial de pagos -->
+    <div class="card mb-3" *ngIf="pagos && pagos.length > 0">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Historial de Pagos</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-radius-container">
+          <div class="table-responsive">
+            <table class="table table-gridjs table-style">
+              <thead>
+                <tr>
+                  <th class="gridjs-th" *ngIf="accionPermitida('anular')">Acciones</th>
+                  <th class="gridjs-th">ID</th>
+                  <th class="gridjs-th">Fecha</th>
+                  <th class="gridjs-th">Monto</th>
+                  <th class="gridjs-th">Forma de Pago</th>
+                  <th class="gridjs-th">Referencia</th>
+                  <th class="gridjs-th">Observaciones</th>
+                  <th class="gridjs-th">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="gridjs-tr" *ngFor="let pago of pagos; let i = index">
+                  <td *ngIf="accionPermitida('anular')" class="position-relative">
+                    <button
+                      *ngIf="!pago.pago_Anulado"
+                      type="button"
+                      class="btn btn-primary red btn-sm"
+                      (click)="abrirModalAnulacion(pago)"
+                    >
+                      <span class="btn-text">Anular</span>
+                      <span class="btn-icon"><i class="ri-delete-bin-line"></i></span>
+                    </button>
+                  </td>
+                  <td><span class="fw-semibold">{{ pago.pago_Id }}</span></td>
+                  <td>{{ formatearFecha(pago.pago_Fecha) }}</td>
+                  <td>{{ formatearMoneda(pago.pago_Monto) }}</td>
+                  <td>{{ pago.foPa_Descripcion }}</td>
+                  <td>{{ pago.pago_NumeroReferencia || 'N/A' }}</td>
+                  <td>{{ pago.pago_Observaciones || 'N/A' }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="pago.pago_Anulado ? 'bg-danger' : 'bg-success'">
+                      {{ pago.pago_Anulado ? 'Anulado' : 'Activo' }}
+                    </span>
+                  </td>
+                </tr>
+                <tr *ngIf="pagos.length === 0">
+                  <td [attr.colspan]="accionPermitida('anular') ? 8 : 7" class="text-center">
+                    No hay pagos registrados
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
 
   <!-- Indicador de carga -->
   <div *ngIf="cargando" class="loading-indicator">

@@ -52,6 +52,11 @@ export class ListComponent implements OnInit {
   resumenSortField: string = '';
   resumenSortDirection: 'asc' | 'desc' = 'asc';
 
+  // Variables para paginación de resumen de antigüedad
+  resumenPaginaActual: number = 1;
+  resumenTamanoPagina: number = 10;
+  resumenTotalItems: number = 0;
+
   // Variables para acciones de fila
   activeActionRow: number | null = null;
   showEdit = true;
@@ -394,22 +399,21 @@ irADetalles(id: number): void {
     }
   }
 
-filtrarResumenAntiguedad(): void {
-  let data = [...this.resumenAntiguedad];
+  filtrarResumenAntiguedad(): void {
+    let data = [...this.resumenAntiguedad];
 
-  if (this.resumenSearchTerm) {
-    const term = this.resumenSearchTerm.toLowerCase().trim();
-data = data.filter(d => 
-  d.cliente?.toLowerCase().includes(term) ||
-  d.total?.toString().includes(term) ||
-  d._1_30?.toString().includes(term)
-);
+    if (this.resumenSearchTerm) {
+      const term = this.resumenSearchTerm.toLowerCase().trim();
+      data = data.filter(d => 
+        d.cliente?.toLowerCase().includes(term) ||
+        d.total?.toString().includes(term) ||
+        d._1_30?.toString().includes(term)
+      );
+    }
 
+    this.resumenAntiguedadFiltrado = this.sortDataResumen(data);
+    this.resumenTotalItems = this.resumenAntiguedadFiltrado.length;
   }
-
-  this.resumenAntiguedadFiltrado = this.sortDataResumen(data);
-}
-
 
   sortResumenBy(field: string): void {
     if (!field) return;
@@ -447,6 +451,18 @@ data = data.filter(d =>
 
   navegar(tabDestino: number) {
     this.activeTab = tabDestino;
+  }
+
+  // Getter para obtener solo los elementos de la página actual para el resumen de antigüedad
+  get resumenAntiguedadPaginado(): any[] {
+    const startItem = (this.resumenPaginaActual - 1) * this.resumenTamanoPagina;
+    const endItem = this.resumenPaginaActual * this.resumenTamanoPagina;
+    return this.resumenAntiguedadFiltrado.slice(startItem, endItem);
+  }
+
+  // Método para cambiar de página en el resumen de antigüedad
+  pageChangedResumen(event: any): void {
+    this.resumenPaginaActual = event.page;
   }
 
   // Métodos para exportación de la tabla principal
