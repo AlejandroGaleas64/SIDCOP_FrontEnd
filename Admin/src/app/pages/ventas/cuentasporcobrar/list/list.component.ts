@@ -527,6 +527,25 @@ irADetalles(id: number): void {
     const usuario = localStorage.getItem('usuario') || 'Usuario';
     const empresa = localStorage.getItem('empresa') || 'SIDCOP';
     
+    // Crear una copia de los datos para la exportación
+    const datosExport = datos.map(item => {
+      // Crear un objeto con las propiedades formateadas para la exportación
+      return {
+        secuencia: item.secuencia,
+        cliente: item.cliente,
+        clie_NombreNegocio: item.clie_NombreNegocio,
+        clie_Telefono: item.clie_Telefono,
+        facturasPendientes: item.facturasPendientes,
+        totalFacturado: typeof item.totalFacturado === 'number' ? 
+          `L ${this.formatearNumero(item.totalFacturado)}` : item.totalFacturado,
+        totalPendiente: typeof item.totalPendiente === 'number' ? 
+          `L ${this.formatearNumero(item.totalPendiente)}` : item.totalPendiente,
+        totalVencido: typeof item.totalVencido === 'number' ? 
+          `L ${this.formatearNumero(item.totalVencido)}` : item.totalVencido,
+        ultimoPago: item.ultimoPago
+      };
+    });
+    
     return {
       title: 'Cuentas por Cobrar',
       filename: 'Cuentas_por_Cobrar',
@@ -545,8 +564,19 @@ irADetalles(id: number): void {
         user: usuario,
         department: empresa
       },
-      data: datos
+      data: datosExport
     };
+  }
+  
+  // Método para formatear números con dos decimales
+  private formatearNumero(numero: number | null | undefined): string {
+    if (numero === null || numero === undefined || isNaN(numero)) {
+      return '0.00';
+    }
+    return numero.toLocaleString('es-HN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   }
 
   private manejarResultadoExport(resultado: any): void {
@@ -623,6 +653,28 @@ irADetalles(id: number): void {
     const usuario = localStorage.getItem('usuario') || 'Usuario';
     const empresa = localStorage.getItem('empresa') || 'SIDCOP';
     
+    // Crear una copia de los datos para la exportación con formato monetario
+    const datosExport = this.resumenAntiguedadFiltrado.map(item => {
+      // Crear un objeto con las propiedades formateadas para la exportación
+      return {
+        secuencia: item.secuencia,
+        cliente: item.cliente,
+        clie_NombreNegocio: item.clie_NombreNegocio,
+        actual: typeof item.actual === 'number' ? 
+          `L ${this.formatearNumero(item.actual)}` : item.actual,
+        _1_30: typeof item._1_30 === 'number' ? 
+          `L ${this.formatearNumero(item._1_30)}` : item._1_30,
+        _31_60: typeof item._31_60 === 'number' ? 
+          `L ${this.formatearNumero(item._31_60)}` : item._31_60,
+        _61_90: typeof item._61_90 === 'number' ? 
+          `L ${this.formatearNumero(item._61_90)}` : item._61_90,
+        mayor90: typeof item.mayor90 === 'number' ? 
+          `L ${this.formatearNumero(item.mayor90)}` : item.mayor90,
+        total: typeof item.total === 'number' ? 
+          `L ${this.formatearNumero(item.total)}` : item.total
+      };
+    });
+    
     return {
       title: 'Resumen de Antigüedad de Cuentas por Cobrar',
       filename: 'Resumen_Antiguedad_CxC',
@@ -637,7 +689,7 @@ irADetalles(id: number): void {
         { header: 'Mayor a 90 días', key: 'mayor90' },
         { header: 'Total', key: 'total' }
       ],
-      data: this.resumenAntiguedadFiltrado,
+      data: datosExport,
       metadata: {
         user: usuario,
         department: empresa
