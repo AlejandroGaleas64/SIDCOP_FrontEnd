@@ -188,10 +188,10 @@ export class ListComponent implements OnInit {
       CAI: this.limpiarTexto(modelo?.nCai_Descripcion),
       'Rango Inicial': this.limpiarTexto(modelo?.regC_RangoInicial),
       'Rango Final': this.limpiarTexto(modelo?.regC_RangoFinal),
-      'Fecha Inicial de Emision': this.limpiarTexto(
+      'Fecha Inicial de Emision': this.formatearFecha(
         modelo?.regC_FechaInicialEmision
       ),
-      'Fecha Final de Emision': this.limpiarTexto(
+      'Fecha Final de Emision': this.formatearFecha(
         modelo?.regC_FechaFinalEmision
       ),
       Estado: this.limpiarTexto(modelo?.estado),
@@ -199,6 +199,20 @@ export class ListComponent implements OnInit {
       // 'Campo': this.limpiarTexto(modelo?.campo),
     }),
   };
+
+   private formatearFecha(fecha: string | Date | null | undefined): string {
+    if (!fecha) return '';
+
+    const dateObj = new Date(fecha);
+
+    if (isNaN(dateObj.getTime())) return '';
+
+    const dia = dateObj.getDate().toString().padStart(2, '0');
+    const mes = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+    const anio = dateObj.getFullYear();
+
+    return `${dia}/${mes}/${anio}`; // <-- formato dd/MM/yyyy
+  }
 
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
@@ -418,8 +432,6 @@ export class ListComponent implements OnInit {
     if (!texto) return '';
 
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }
@@ -605,6 +617,7 @@ export class ListComponent implements OnInit {
 
               this.cargardatos(false);
               this.cancelarEliminar();
+              this.mostrarOverlayCarga = false;
             } else if (response.data.code_Status === -1) {
               //result: está siendo utilizado
               console.log('El Registro CAI está siendo utilizado');
@@ -620,6 +633,7 @@ export class ListComponent implements OnInit {
 
               // Cerrar el modal de confirmación
               this.cancelarEliminar();
+              this.mostrarOverlayCarga = false;
             } else if (response.data.code_Status === 0) {
               // Error general
               console.log('Error general al eliminar');
@@ -635,6 +649,7 @@ export class ListComponent implements OnInit {
 
               // Cerrar el modal de confirmación
               this.cancelarEliminar();
+              this.mostrarOverlayCarga = false;
             }
           } else {
             // Respuesta inesperada
@@ -677,7 +692,7 @@ export class ListComponent implements OnInit {
         let modulo = null;
         if (Array.isArray(permisos)) {
           // Buscar por ID de pantalla (ajusta el ID si cambia en el futuro)
-          modulo = permisos.find((m: any) => m.Pant_Id === 14);
+          modulo = permisos.find((m: any) => m.Pant_Id === 41);
         } else if (typeof permisos === 'object' && permisos !== null) {
           // Si es objeto, buscar por clave
           modulo =

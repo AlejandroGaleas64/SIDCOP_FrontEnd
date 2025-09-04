@@ -14,6 +14,7 @@ import { Pedido } from 'src/app/Modelos/ventas/Pedido.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-edit',
@@ -328,7 +329,7 @@ export class EditComponent implements OnInit, OnChanges {
 
   pedidoEditada: Pedido = {
     pedi_Id: 0,
-     pedi_Codigo: '',
+    pedi_Codigo: '',
     diCl_Id: 0,
     vend_Id: 0,
     pedi_FechaPedido: new Date(),
@@ -336,6 +337,10 @@ export class EditComponent implements OnInit, OnChanges {
     clie_Codigo: '',
     clie_Id: 0,
     clie_NombreNegocio: '',
+    // Propiedades adicionales para la factura
+    regC_Id: 0,
+    pedi_Latitud: 0,
+    pedi_Longitud: 0,
     clie_Nombres: '',
     clie_Apellidos: '',
     colo_Descripcion: '',
@@ -445,6 +450,15 @@ export class EditComponent implements OnInit, OnChanges {
     const dia = String(d.getDate()).padStart(2, '0');
     const anio = d.getFullYear();
     return `${anio}-${mes}-${dia}`; // formato 'yyyy-MM-dd'
+  }
+
+   formatFechaDDMMYYYY(fecha: Date | string | null | undefined): string {
+    if (!fecha) return '';
+    const d = new Date(fecha);
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
   }
 
   get fechaInicioFormato(): string {
@@ -585,6 +599,21 @@ export class EditComponent implements OnInit, OnChanges {
         anterior: formatDireccion(direccionAnterior, clienteAnterior),
         nuevo: formatDireccion(direccionNueva, clienteNuevo),
         label: 'Dirección y Cliente',
+      };
+    }
+
+    const fechaOriginalFormateada = this.formatFechaDDMMYYYY(
+      this.PedidoData?.pedi_FechaEntrega
+    );
+    const fechaActualFormateada = this.formatFechaDDMMYYYY(
+      this.pedidoEditada.pedi_FechaEntrega
+    );
+
+    if (fechaOriginalFormateada !== fechaActualFormateada) {
+      this.cambiosDetectados.fechaEntrega = {
+        anterior: fechaOriginalFormateada,
+        nuevo: fechaActualFormateada,
+        label: 'Fecha de Entrega',
       };
     }
 

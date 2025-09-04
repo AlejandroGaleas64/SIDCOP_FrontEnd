@@ -4,6 +4,17 @@ import { environment } from 'src/environments/environment';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Pedido } from 'src/app/Modelos/ventas/Pedido.Model';
+import { Observable } from 'rxjs';
+
+/**
+ * Interfaz para la respuesta del endpoint /Facturas/Insertar
+ */
+export interface FacturaInsertarResponse {
+  fact_Id?: number;
+  id?: number;
+  mensaje?: string;
+  exito?: boolean;
+}
 
 export interface PedidoInvoiceConfig {
   title: string;
@@ -29,6 +40,8 @@ interface PedidoInvoiceResult {
   success: boolean;
   message: string;
 }
+
+// Esta interfaz ya está definida arriba como export
 
 @Injectable({
   providedIn: 'root'
@@ -450,5 +463,79 @@ export class PedidoInvoiceService {
         faDe_Impuesto: ((p.precio || 0) * (p.cantidad || 0)) * 0.15
       }))
     };
+  }
+  
+  /**
+   * Inserta los datos de la factura en el endpoint /Facturas/Insertar
+   * @returns Observable con la respuesta del servidor
+   */
+  insertarFactura(): Observable<FacturaInsertarResponse> {
+    if (!this.pedidoDetalle) {
+      throw new Error('No hay datos de pedido para insertar');
+    }
+    
+    // Obtener el usuario actual para usarlo como usuario de creación
+    const usuarioActual = this.obtenerUsuarioActualId();
+    
+    // Obtener los datos del pedido
+    const productos = JSON.parse(this.pedidoDetalle.detallesJson || '[]');
+    
+    // Preparar los detalles de la factura (productos)
+    const detallesFacturaInput = productos.map((p: any) => {
+      // Log detallado de cada producto para depuración
+      console.log('Producto original:', p);
+      
+      return {
+        prod_Id: p.prod_Id || p.id || 0,
+        faDe_Cantidad: p.cantidad || 0
+      };
+    });
+    
+    console.log('Productos a insertar:', detallesFacturaInput);
+    
+    // Crear el objeto de factura a insertar
+    const facturaData = {
+      fact_Numero: `P-${this.pedidoDetalle.pedi_Id}`, // Prefijo P para indicar que viene de un pedido
+      fact_TipoDeDocumento: "FACTURA",
+      regC_Id: 21, // Siempre enviamos 21 como se solicitó
+      diCl_Id: this.pedidoDetalle.diCl_Id || 0,
+      vend_Id: this.pedidoDetalle.vend_Id || 0,
+      fact_TipoVenta: "CONTADO", // Por defecto, se puede ajustar según necesidad
+      fact_FechaEmision: new Date().toISOString(),
+      fact_Latitud: this.pedidoDetalle.pedi_Latitud || 0,
+      fact_Longitud: this.pedidoDetalle.pedi_Longitud || 0,
+      fact_Referencia: `Factura generada desde pedido #${this.pedidoDetalle.pedi_Id}`,
+      fact_AutorizadoPor: "", // Se puede ajustar según necesidad
+      usua_Creacion: usuarioActual,
+      fact_EsPedido: true, // Marcamos como true porque viene de un pedido
+      pedi_Id: this.pedidoDetalle.pedi_Id || 0, // ID del pedido del que se genera
+      detallesFacturaInput: detallesFacturaInput // Añadimos los productos
+    };
+    
+    console.log('Datos de factura a insertar:', facturaData);
+    
+    // Realizar la llamada al endpoint
+    return this.http.post<FacturaInsertarResponse>(
+      `${environment.apiBaseUrl}/Facturas/Insertar`,
+      facturaData,
+      { headers: { 'x-api-key': environment.apiKey } }
+    );
+  }
+  
+  /**
+   * Obtiene el ID del usuario actual desde localStorage
+   * @returns ID del usuario o 0 si no se encuentra
+   */
+  private obtenerUsuarioActualId(): number {
+    try {
+      const usuario = localStorage.getItem('currentUser');
+      if (usuario) {
+        const userData = JSON.parse(usuario);
+        return userData.usua_Id || 0;
+      }
+    } catch (e) {
+      console.error('Error obteniendo ID de usuario:', e);
+    }
+    return 0;
   }
 }
