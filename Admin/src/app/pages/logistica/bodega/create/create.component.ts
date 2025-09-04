@@ -30,7 +30,6 @@ export class CreateComponent  {
   constructor(private http: HttpClient) {
     this.listarSucursales();
     this.listarRegistroCai();
-    this.listarVendedores();
     this.listarModelos();
   }
 
@@ -61,9 +60,8 @@ export class CreateComponent  {
     sucursales: any[] = [];
     registroCais: any[] = [];
     vendedores: any[] = [];
+    vendedoresFiltrados: any[] = []; // Nueva propiedad para vendedores filtrados
     modelos: any[] = [];
-
-
 
    // Función para validar VIN
   validarVIN(vin: string): { esValido: boolean, mensaje: string } {
@@ -99,7 +97,7 @@ export class CreateComponent  {
     if (!placa) return { esValido: true, mensaje: '' }; // Si está vacío, no validamos aquí
     
     // Verificar longitud máxima de 7 caracteres
-    if (placa.length > 7 || placa.length < 7) {
+    if (placa.length > 8 || placa.length < 8) {
       return { esValido: false, mensaje: 'Ingrese una Placa Válida' };
     }
 
@@ -126,7 +124,7 @@ export class CreateComponent  {
     if (valor.length > 17) {
       valor = valor.substring(0, 17);
     }
-    
+
     // Convertir a mayúsculas (opcional, ya que los VIN suelen ser en mayúsculas)
     valor = valor.toUpperCase();
     
@@ -143,9 +141,9 @@ export class CreateComponent  {
   onPlacaInput(event: any): void {
     let valor = event.target.value;
 
-    // Limitar a 7 caracteres
-    if (valor.length > 7) {
-      valor = valor.substring(0, 7);
+    // Limitar a 8 caracteres
+    if (valor.length > 8) {
+      valor = valor.substring(0, 8);
     }
     
     // Convertir a mayúsculas (opcional, ya que las Placas suelen ser en mayúsculas)
@@ -201,11 +199,16 @@ export class CreateComponent  {
       }).subscribe((data) => this.registroCais = data);
     };
 
-  listarVendedores(): void {
+  listarVendedores(callback?: () => void): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
-        headers: { 'x-api-key': environment.apiKey }
-      }).subscribe((data) => this.vendedores = data);
-    };
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe((data) => {
+      this.vendedores = data;
+      if (callback) {
+        callback();
+      }
+    });
+  }
 
   listarModelos(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Modelo/Listar`, {
@@ -213,7 +216,26 @@ export class CreateComponent  {
       }).subscribe((data) => this.modelos = data);
     };
 
-  
+  // Nueva función para manejar el cambio de sucursal
+  onSucursalChange(): void {
+    // Resetear el vendedor seleccionado
+    this.bodega.vend_Id = 0;
+    
+    // Si hay una sucursal seleccionada, cargar los vendedores
+    if (this.bodega.sucu_Id && this.bodega.sucu_Id > 0) {
+      this.cargarVendedoresPorSucursal(this.bodega.sucu_Id);
+    } else {
+      // Si no hay sucursal seleccionada, limpiar la lista de vendedores filtrados
+      this.vendedoresFiltrados = [];
+    }
+  }
+
+  // Nueva función para cargar vendedores por sucursal
+  cargarVendedoresPorSucursal(sucursalId: number): void {
+    this.listarVendedores(() => {
+      this.vendedoresFiltrados = this.vendedores.filter(vendedor => vendedor.bodega?.sucu_Id === sucursalId);
+    });
+  }
 
   cancelar(): void {
     this.mostrarErrores = false;
@@ -223,6 +245,7 @@ export class CreateComponent  {
     this.mensajeError = '';
     this.mostrarAlertaWarning = false;
     this.mensajeWarning = '';
+    this.vendedoresFiltrados = []; // Limpiar vendedores filtrados
     this.bodega = {
       bode_Id: 0,
     bode_Descripcion: '',
@@ -272,6 +295,9 @@ export class CreateComponent  {
       // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
+
+      const placa = this.bodega.bode_Placa.trim();
+      const placaMask = placa.length === 7 ? placa.slice(0, 3) + '-' + placa.slice(3, 7) : placa;
       
       const bodegaGuardar = {
         bode_Id: 0,
@@ -281,7 +307,7 @@ export class CreateComponent  {
         vend_Id: this.bodega.vend_Id,
         mode_Id: this.bodega.mode_Id,
         bode_VIN: this.bodega.bode_VIN.trim(),
-        bode_Placa: this.bodega.bode_Placa.trim(),
+        bode_Placa: placaMask,
         bode_TipoCamion: this.bodega.bode_TipoCamion.trim(),
         bode_Capacidad: this.bodega.bode_Capacidad,
         usua_Creacion: getUserId(),// varibale global, obtiene el valor del environment, esto por mientras
