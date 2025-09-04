@@ -1,4 +1,3 @@
-
 <app-breadcrumbs
   [title]="'Metas'"
   [breadcrumbItems]="breadCrumbItems"
@@ -10,7 +9,7 @@
   <div class="col-lg-12">
     <div class="card">
       <div class="card-body">
-        <div class="d-flex justify-content-between mb-3 flex-wrap" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+        <div class="d-flex justify-content-between mb-3 flex-wrap" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm && !mostrarProgresoForm">
           <button *ngIf="accionPermitida('crear')" type="button" class="btn btn-primary me-2 mb-2" (click)="crear()">
             <span class="btn-text">Nuevo</span>
             <span class="btn-icon"><i class="ri-add-line"></i></span>
@@ -51,29 +50,42 @@
         <div class="collapse" [ngClass]="{ 'show': showEditForm }" id="editFormCollapse">
           <div class="card card-body mb-3 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
             <div class="container-fluid flex-grow-1">
-              <!-- <app-edit
+              <app-edit
                 [metaData]="metaEditando"
                 (onCancel)="cerrarFormularioEdicion()"
                 (onSave)="actualizarMeta($event)">
-              </app-edit> -->
+              </app-edit>
             </div>
           </div>
         </div>
 
         <!-- Collapse para el formulario de detalles -->
         <div class="collapse" [ngClass]="{ 'show': showDetailsForm }" id="detailsFormCollapse">
-          <div class="card card-body mb-3 d-flex flex-column" style="min-height: 400px; padding: 0.5rem;">
+          <div class=" mb-3 d-flex flex-column" style="min-height: 400px; padding: 0.5rem;">
             <div class="container-fluid flex-grow-1">
-              <!-- <app-details
+              <app-details
                 [metaData]="metaDetalle"
                 (onClose)="cerrarFormularioDetalles()">
-              </app-details> -->
+              </app-details>
+            </div>
+          </div>
+        </div>
+
+        <!-- Collapse para el formulario de progreso -->
+        <div class="collapse" [ngClass]="{ 'show': mostrarProgresoForm }" id="progresoFormCollapse">
+          <div class="mb-3 d-flex flex-column" style="min-height: 400px; padding: 2rem;">
+            <div class="container-fluid flex-grow-1">
+              <app-progress
+                [metaData]="metaProgreso"
+                (onCancel)="cerrarProgresoForm()"
+                (onSave)="cerrarProgresoForm()">
+              </app-progress>
             </div>
           </div>
         </div>
 
         <div class="table-radius-container">
-          <div class="table-responsive" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+          <div class="table-responsive" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm && !mostrarProgresoForm">
             <table class="table table-gridjs table-style">
               <thead>
                 <tr>
@@ -111,25 +123,16 @@
                       </span>
                     </span>
                   </th>
-                  <th class="gridjs-th" (click)="table.sortBy('meta_Ingresos')" style="cursor:pointer;">
+                  <th class="gridjs-th"
+                      (click)="table.sortBy('meta_Objetivo')"
+                      style="cursor:pointer;">
                     <span class="table-header-flex">
-                      Ingresos
+                      Objetivo
                       <span style="display: flex; flex-direction: column;">
                         <i class="ri-arrow-up-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'meta_Ingresos' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+                          [ngStyle]="table.sortField === 'meta_Objetivo' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
                         <i class="ri-arrow-down-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'meta_Ingresos' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
-                      </span>
-                    </span>
-                  </th>
-                  <th class="gridjs-th" (click)="table.sortBy('meta_Unidades')" style="cursor:pointer;">
-                    <span class="table-header-flex">
-                      Unidades
-                      <span style="display: flex; flex-direction: column;">
-                        <i class="ri-arrow-up-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'meta_Unidades' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
-                        <i class="ri-arrow-down-s-line icon-sort"
-                          [ngStyle]="table.sortField === 'meta_Unidades' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
+                          [ngStyle]="table.sortField === 'meta_Objetivo' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}"></i>
                       </span>
                     </span>
                   </th>
@@ -170,20 +173,36 @@
                       </button>
                     </div>
                   </td>
-                  <td><span class="fw-semibold">{{data.meta_Id}}</span></td>
+                  <td><span class="fw-semibold">{{data.No}}</span></td>
                   <td>{{data.meta_Descripcion}}</td>
                   <td>
-                    {{ data.meta_Tipo == 'IT' ? 'Ingresos y Unidades' : data.meta_Tipo == 'I' ? 'Ingresos' : data.meta_Tipo == 'U' ? 'Unidades' : 'N/A' }}
+                    {{
+                      data.meta_Tipo === 'IT' ? 'Ingresos Totales' :
+                      data.meta_Tipo === 'TP' ? 'Total Productos (Cantidad)' :
+                      data.meta_Tipo === 'CN' ? 'Clientes Nuevos' :
+                      data.meta_Tipo === 'PE' ? 'Producto Específico (Cantidad)' :
+                      data.meta_Tipo === 'IP' ? 'Ingresos de Producto Específico' :
+                      data.meta_Tipo === 'PC' ? 'Productos de Categoría (Ingresos)' :
+                      data.meta_Tipo === 'CM' ? 'Cantidades Administradas Manualmente' :
+                      data.meta_Tipo === 'IM' ? 'Ingresos Administradas Manualmente' :
+                      data.meta_Tipo
+                    }}
                   </td>
-                  <td>{{data.meta_Ingresos | number:'1.0-2'}}</td>
-                  <td>{{data.meta_Unidades | number:'1.0-2'}}</td>
+                   <td>
+                    <ng-container *ngIf="['IT','IP','PC','IM'].includes(data.meta_Tipo); else unidadesBlock">
+                      {{ data.meta_Objetivo | currency:'HNL':'symbol':'1.2-2':'es-HN' }}
+                    </ng-container>
+                    <ng-template #unidadesBlock>
+                      {{ data.meta_Objetivo | number:'1.0-2' }} Unidades
+                    </ng-template>
+                  </td>
                   <td>{{formatearFecha(data.meta_FechaInicio)}}</td>
                   <td>{{formatearFecha(data.meta_FechaFin)}}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div class="row justify-content-md-between align-items-md-center" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+          <div class="row justify-content-md-between align-items-md-center" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm && !mostrarProgresoForm">
             <ng-container *ngIf="(table.paginated$ | async) as paginados">
               <div class="col-sm-12 col-md-5">
                 <div class="dataTables_info mb-2" role="status" aria-live="polite">
@@ -202,5 +221,95 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Floating Dropdown Menu for Actions -->
+<ul
+  *ngIf="floatingMenuService.show"
+  class="dropdown-menu show"
+  [ngStyle]="{
+    position: 'absolute',
+    top: floatingMenuService.top + 'px',
+    left: floatingMenuService.left + 'px',
+  }">
+  <li *ngIf="accionPermitida('editar')">
+    <button type="button" class="dropdown-action-btn" (click)="editar(floatingMenuService.data); floatingMenuService.close()">
+      Editar <i class="ri-edit-line"></i>
+    </button>
+  </li>
+  <li *ngIf="accionPermitida('eliminar')">
+    <button type="button" class="dropdown-action-btn" (click)="confirmarEliminar(floatingMenuService.data); floatingMenuService.close()">
+      Eliminar <i class="ri-delete-bin-line"></i>
+    </button>
+  </li>
+  <li *ngIf="accionPermitida('detalle')">
+    <button type="button" class="dropdown-action-btn" (click)="detalles(floatingMenuService.data); floatingMenuService.close()">
+      Detalles <i class="ri-error-warning-fill"></i>
+    </button>
+  </li>
+  <li *ngIf="(floatingMenuService.data.meta_Tipo === 'CM' || floatingMenuService.data.meta_Tipo === 'IM')">
+    <button type="button" class="dropdown-action-btn" (click)="abrirProgreso(floatingMenuService.data); floatingMenuService.close()">
+      Progreso <i class="ri-bar-chart-line"></i>
+    </button>
+  </li>
+</ul>
+
+<!-- Modal de confirmación para eliminar -->
+<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEliminar }" [style.display]="mostrarConfirmacionEliminar ? 'block' : 'none'" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
+        <span>Confirmación</span>
+        <i class="ri-close-line custom-modal-close" (click)="cancelarEliminar()"></i>
+      </div>
+      <hr class="custom-modal-divider">
+      <div class="modal-body custom-modal-body">
+        <div class="text-center">
+          <p class="mt-2 custom-modal-text">
+            <i class="ri-alert-line me-2 custom-modal-alert-icon" (click)="cancelarEliminar()"></i>¿Está seguro(a) que desea eliminar la meta <strong>{{ metaEliminar?.meta_Descripcion }}</strong>?
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer custom-modal-footer">
+        <button type="button" class="btn btn-primary gray btn-sm btn-minw-5" (click)="cancelarEliminar()"><span class="btn-text">No</span><span class="btn-icon"><i class="ri-close-circle-line"></i></span></button>
+        <button type="button" class="btn btn-primary red btn-sm btn-minw-5" (click)="eliminar()">
+          <span class="btn-text">Si</span>
+          <span class="btn-icon"><i class="ri-delete-bin-line"></i></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEliminar }" *ngIf="mostrarConfirmacionEliminar"></div>
+
+<!-- Floating Alerts -->
+<div class="alert-container">
+  <div *ngIf="mostrarAlertaExito" class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+    <strong>¡Éxito!</strong> {{ mensajeExito }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
+  <div *ngIf="mostrarAlertaWarning" class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+    <strong>¡Atención!</strong> {{ mensajeWarning }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
+  <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+    <strong>¡Error!</strong> {{ mensajeError }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
+</div>
+
+<!-- Overlay de carga animado -->
+<div *ngIf="mostrarOverlayCarga" class="overlay-carga">
+  <div class="typing-indicator">
+    <div class="typing-circle"></div>
+    <div class="typing-circle"></div>
+    <div class="typing-circle"></div>
+    <div class="typing-shadow"></div>
+    <div class="typing-shadow"></div>
+    <div class="typing-shadow"></div>
   </div>
 </div>

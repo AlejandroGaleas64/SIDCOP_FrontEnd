@@ -38,6 +38,9 @@ export class Meta {
   vendedoresXml: string = "";
   vendedoresJson: any = "";
   
+  meta_Objetivo: any = null;
+  No: number = 0; 
+
   usua_Creacion: number = 0;
   meta_FechaCreacion: Date = new Date();
   usua_Modificacion?: number;
