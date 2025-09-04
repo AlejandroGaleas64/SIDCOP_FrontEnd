@@ -2,8 +2,8 @@
     { label: 'Acceso' },
     { label: 'Migraciones', active: true }
   ]">
-  <img class="icon-breadcrumb" style="width: 10vh; height: 10vh"
-      src="assets/images/imagenes/db-copy-svgrepo-com.svg" alt="breadcrumb icon" />
+  <img class="icon-breadcrumb" style="width: 10vh; height: 10vh" src="assets/images/imagenes/db-copy-svgrepo-com.svg"
+    alt="breadcrumb icon" />
 </app-breadcrumbs>
 
 <div class="row">
@@ -12,10 +12,11 @@
       <div class="card-body">
         <div class="d-flex justify-content-between mb-3 flex-wrap"
           *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
-         <button *ngIf="accionPermitida('migrar')" type="button" class="btn btn-primary me-2 mb-2" (click)="migrarGeneral()">
-  <span class="btn-text">Migrar General</span>
-  <span class="btn-icon"><i class="bi-send-fill"></i></span>
-</button>
+          <button *ngIf="accionPermitida('migrar')" type="button" class="btn btn-primary me-2 mb-2"
+            (click)="migrarGeneral()">
+            <span class="btn-text">Migrar General</span>
+            <span class="btn-icon"><i class="bi-send-fill"></i></span>
+          </button>
 
 
           <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -138,7 +139,9 @@
                     </div>
                   </td>
 
-                  <td>{{ data.coMi_Tabla }}</td>
+                  <td>
+                    {{ data.coMi_Tabla === 'CXC' ? 'Cuentas por Cobrar' : data.coMi_Tabla }}
+                  </td>
                   <td>{{ data.coMi_UltimaFechaMigracion | date:'dd/MM/yyyy hh:mm:ss a' }}</td>
 
                 </tr>

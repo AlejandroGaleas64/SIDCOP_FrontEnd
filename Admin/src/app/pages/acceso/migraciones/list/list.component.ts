@@ -10,17 +10,22 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 import { TableModule } from 'src/app/pages/table/table.module';
 import { PaginationModule } from 'ngx-bootstrap/pagination';
 import { Migracion } from 'src/app/Modelos/acceso/migraciones.model';
+import { ConfiguracionFactura } from 'src/app/Modelos/ventas/ConfiguracionFactura.Model';
 
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
 // Importar el servicio de exportación optimizado
-import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
+import {
+  ExportService,
+  ExportConfig,
+  ExportColumn,
+} from 'src/app/shared/export.service';
 
 import {
   trigger,
   state,
   style,
   transition,
-  animate
+  animate,
 } from '@angular/animations';
 import { set } from 'lodash';
 
@@ -34,7 +39,6 @@ import { set } from 'lodash';
     BreadcrumbsComponent,
     TableModule,
     PaginationModule,
-
   ],
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss'],
@@ -45,7 +49,7 @@ import { set } from 'lodash';
           height: '0',
           opacity: 0,
           transform: 'scaleY(0.90)',
-          overflow: 'hidden'
+          overflow: 'hidden',
         }),
         animate(
           '300ms ease-out',
@@ -53,9 +57,9 @@ import { set } from 'lodash';
             height: '*',
             opacity: 1,
             transform: 'scaleY(1)',
-            overflow: 'hidden'
+            overflow: 'hidden',
           })
-        )
+        ),
       ]),
       transition(':leave', [
         style({ overflow: 'hidden' }),
@@ -64,12 +68,12 @@ import { set } from 'lodash';
           style({
             height: '0',
             opacity: 0,
-            transform: 'scaleY(0.95)'
+            transform: 'scaleY(0.95)',
           })
-        )
-      ])
-    ])
-  ]
+        ),
+      ]),
+    ]),
+  ],
   //Animaciones para collapse
 })
 export class ListComponent implements OnInit {
@@ -77,34 +81,43 @@ export class ListComponent implements OnInit {
   // 🔧 PERSONALIZA AQUÍ TU CONFIGURACIÓN DE EXPORTACIÓN 🔧
   private readonly exportConfig = {
     // Configuración básica
-    title: 'Migraciones',                    // Título del reporte
-    filename: 'Migracion de Datos',                           // Nombre base del archivo
-    department: 'Ventas',                         // Departamento
-    additionalInfo: '',         // Información adicional
+    title: 'Migraciones', // Título del reporte
+    filename: 'Migracion de Datos', // Nombre base del archivo
+    department: 'Ventas', // Departamento
+    additionalInfo: '', // Información adicional
 
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
       { key: 'No', header: 'No.', width: 8, align: 'center' as const },
       { key: 'Codigo', header: 'Codigo', width: 25, align: 'left' as const },
-      { key: 'Descripción', header: 'Descripción', width: 50, align: 'left' as const },
-      { key: 'Sucursal', header: 'Sucursal', width: 75, align: 'left' as const },
-      { key: 'Estado', header: 'Estado', width: 75, align: 'left' as const }
+      {
+        key: 'Descripción',
+        header: 'Descripción',
+        width: 50,
+        align: 'left' as const,
+      },
+      {
+        key: 'Sucursal',
+        header: 'Sucursal',
+        width: 75,
+        align: 'left' as const,
+      },
+      { key: 'Estado', header: 'Estado', width: 75, align: 'left' as const },
     ] as ExportColumn[],
 
     // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
     dataMapping: (modelo: Migracion, index: number) => ({
-      'Tabla': this.limpiarTexto(modelo?.coMi_Tabla),
-      'Fecha': this.limpiarTexto(modelo?.coMi_UltimaFechaMigracion),
+      Tabla: this.limpiarTexto(modelo?.coMi_Tabla),
+      Fecha: this.limpiarTexto(modelo?.coMi_UltimaFechaMigracion),
 
       // Agregar más campos aquí según necesites:
       // 'Campo': this.limpiarTexto(modelo?.campo),
-    })
+    }),
   };
 
   // Estado de exportación
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
-
 
   // bread crumb items
   breadCrumbItems!: Array<{}>;
@@ -114,9 +127,10 @@ export class ListComponent implements OnInit {
 
   // Método robusto para validar si una acción está permitida
   accionPermitida(accion: string): boolean {
-    return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
+    return this.accionesDisponibles.some(
+      (a) => a.trim().toLowerCase() === accion.trim().toLowerCase()
+    );
   }
-
 
   ngOnInit(): void {
     /**
@@ -124,7 +138,7 @@ export class ListComponent implements OnInit {
      */
     this.breadCrumbItems = [
       { label: 'Acceso' },
-      { label: 'Migracion', active: true }
+      { label: 'Migracion', active: true },
     ];
 
     // Obtener acciones disponibles del usuario (ejemplo: desde API o localStorage)
@@ -144,51 +158,84 @@ export class ListComponent implements OnInit {
   }
 
   PEEliminar: Migracion | null = null;
+  infoconfiguracion: any[] = [];
 
+  cargarconfiguracion() {
+    this.http
+      .get<any[]>(`${environment.apiBaseUrl}/ConfiguracionFactura/Listar`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe(
+        (data) => {
+          this.infoconfiguracion = data;
 
-migrar(puntodeemision: Migracion): void {
-    console.log('Abriendo formulario de edición para:', puntodeemision);
-    console.log('Datos específicos:', {});
+          console.log(
+            'Datos de configuración recibidos:',
+            this.infoconfiguracion.map((config) => config.coFa_RutaMigracion)
+          );
+          console.log('Configuraciones cargadas:', this.infoconfiguracion);
+        },
+        (error) => {
+          console.error('Error al cargar las configuraciones:', error);
+        }
+      );
+  }
 
+  // ...existing code...
+
+  migrar(migracionesinfo: Migracion): void {
     this.mostrarOverlayCarga = true;
 
-    this.http.post(`${environment.apiBaseUrl}/Migracion/Migrar/${puntodeemision.coMi_Tabla}`, {}, {
-      headers: { 
-        'X-Api-Key': environment.apiKey,
-        'accept': '*/*'
-      }
-    }).subscribe({
-      next: (response: any) => {
-        console.log('Respuesta al migrar:', response);
+    // Buscar la ruta física correspondiente en infoconfiguracion
+    const config = this.infoconfiguracion.map(
+      (config) => config.coFa_RutaMigracion
+    );
+    const rutaFisica = config?.[0] || '';
+    console.log('Ruta física encontrada:', rutaFisica);
+    console.log('Migrando paquete:', migracionesinfo.coMi_Tabla);
+    const paquete = migracionesinfo.coMi_Tabla;
 
-        // Mostrar la carga y manejar la respuesta directamente
-        this.mostrarOverlayCarga = false;
+    const body = {
+    paquete: paquete,
+    rutaFisica: rutaFisica,
+  };
 
-        if (response.success) {
-          this.mostrarAlertaExito = true;
-          this.mensajeExito = `Migración de ${puntodeemision.coMi_Tabla} completada exitosamente.`;
-          
-          // Cerrar alerta después de 3 segundos
-          setTimeout(() => this.cerrarAlerta(), 3000);
-          this.cargardatos(true);
-        } else {
-          this.mostrarAlertaError = true;
-          this.mensajeError = response.message || `Error inesperado al migrar "${puntodeemision.coMi_Tabla}".`;
+  const url = `${environment.apiBaseUrl}/Migracion/Migrar`;
 
-          // Cerrar alerta después de 5 segundos
-          setTimeout(() => this.cerrarAlerta(), 5000);
-        }
-      },
-      error: (error) => {
-        console.error('Error al migrar:', error);
-        this.mostrarOverlayCarga = false;
+  
+  this.http.post(url, body, {
+    headers: {
+      'X-Api-Key': environment.apiKey,
+      accept: '*/*',
+    },
+  }).subscribe({
+    next: (response: any) => {
+      this.mostrarOverlayCarga = false;
+      console.log('Respuesta al migrar :', response);
+      if (response && response.success) {
+        this.mostrarAlertaExito = true;
+        this.mensajeExito = `Migración de ${paquete} completada exitosamente.`;
+
+        setTimeout(() => this.cerrarAlerta(), 3000);
+        this.cargardatos(true);
+      } else {
         this.mostrarAlertaError = true;
-        this.mensajeError = `Error de conexión al intentar migrar "${puntodeemision.coMi_Tabla}".`;
+        this.mensajeError = `Error inesperado al migrar "${paquete}".`;
         setTimeout(() => this.cerrarAlerta(), 5000);
       }
-    });
-}
+    },
+    error: (error) => {
+      this.mostrarOverlayCarga = false;
+      this.mostrarAlertaError = true;
+      console.error(`Error al migrar "${paquete}":`, error);
+      this.mensajeError = `Error de conexión al intentar migrar "${paquete}".`;
+      setTimeout(() => this.cerrarAlerta(), 5000);
+    }
+  });
 
+  }
+
+  // ...existing code...
 
   activeActionRow: number | null = null;
   showEdit = true;
@@ -197,7 +244,6 @@ migrar(puntodeemision: Migracion): void {
   showCreateForm = false; // Control del collapse
   showEditForm = false; // Control del collapse de edición
   showDetailsForm = false; // Control del collapse de detalles
-
 
   // Propiedades para alertas
   mostrarOverlayCarga = false;
@@ -211,8 +257,8 @@ migrar(puntodeemision: Migracion): void {
   // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
 
-
-  constructor(public table: ReactiveTableService<Migracion>,
+  constructor(
+    public table: ReactiveTableService<Migracion>,
     private http: HttpClient,
     private router: Router,
     private route: ActivatedRoute,
@@ -220,8 +266,8 @@ migrar(puntodeemision: Migracion): void {
     private exportService: ExportService
   ) {
     this.cargardatos(true);
+    this.cargarconfiguracion();
   }
-
 
   //Info async para exportar
   async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
@@ -255,10 +301,12 @@ migrar(puntodeemision: Migracion): void {
       }
 
       this.manejarResultadoExport(resultado);
-
     } catch (error) {
       console.error(`Error en exportación ${tipo}:`, error);
-      this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
+      this.mostrarMensaje(
+        'error',
+        `Error al exportar archivo ${tipo.toUpperCase()}`
+      );
     } finally {
       this.exportando = false;
       this.tipoExportacion = null;
@@ -278,8 +326,8 @@ migrar(puntodeemision: Migracion): void {
       columns: this.exportConfig.columns,
       metadata: {
         department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
-      }
+        additionalInfo: this.exportConfig.additionalInfo,
+      },
     };
   }
 
@@ -298,18 +346,19 @@ migrar(puntodeemision: Migracion): void {
       return datos.map((modelo, index) =>
         this.exportConfig.dataMapping.call(this, modelo, index)
       );
-
     } catch (error) {
       console.error('Error obteniendo datos:', error);
       throw error;
     }
   }
 
-
   /**
    * Maneja el resultado de las exportaciones
    */
-  private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
+  private manejarResultadoExport(resultado: {
+    success: boolean;
+    message: string;
+  }): void {
     if (resultado.success) {
       this.mostrarMensaje('success', resultado.message);
     } else {
@@ -331,7 +380,7 @@ migrar(puntodeemision: Migracion): void {
     if (datos.length > 10000) {
       const continuar = confirm(
         `Hay ${datos.length.toLocaleString()} registros. ` +
-        'La exportación puede tomar varios minutos. ¿Desea continuar?'
+          'La exportación puede tomar varios minutos. ¿Desea continuar?'
       );
       if (!continuar) return false;
     }
@@ -355,7 +404,10 @@ migrar(puntodeemision: Migracion): void {
   /**
    * Sistema de mensajes mejorado con tipos adicionales
    */
-  private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
+  private mostrarMensaje(
+    tipo: 'success' | 'error' | 'warning' | 'info',
+    mensaje: string
+  ): void {
     this.cerrarAlerta();
 
     const duracion = tipo === 'error' ? 5000 : 3000;
@@ -364,20 +416,20 @@ migrar(puntodeemision: Migracion): void {
       case 'success':
         this.mostrarAlertaExito = true;
         this.mensajeExito = mensaje;
-        setTimeout(() => this.mostrarAlertaExito = false, duracion);
+        setTimeout(() => (this.mostrarAlertaExito = false), duracion);
         break;
 
       case 'error':
         this.mostrarAlertaError = true;
         this.mensajeError = mensaje;
-        setTimeout(() => this.mostrarAlertaError = false, duracion);
+        setTimeout(() => (this.mostrarAlertaError = false), duracion);
         break;
 
       case 'warning':
       case 'info':
         this.mostrarAlertaWarning = true;
         this.mensajeWarning = mensaje;
-        setTimeout(() => this.mostrarAlertaWarning = false, duracion);
+        setTimeout(() => (this.mostrarAlertaWarning = false), duracion);
         break;
     }
   }
@@ -407,27 +459,21 @@ migrar(puntodeemision: Migracion): void {
     return this.table.data$.value?.length > 0;
   }
 
-
   cerrarFormulario(): void {
     this.showCreateForm = false;
   }
 
-
   cerrarFormularioEdicion(): void {
     this.showEditForm = false;
-
   }
 
   cerrarFormularioDetalles(): void {
     this.showDetailsForm = false;
-
   }
 
-
-
-  confirmarEliminar(puntodeemision: Migracion): void {
-    console.log('Solicitando confirmación para eliminar:', puntodeemision);
-    //this.PEEliminar = puntodeemision;
+  confirmarEliminar(migracionesinfo: Migracion): void {
+    console.log('Solicitando confirmación para eliminar:', migracionesinfo);
+    //this.PEEliminar = migracionesinfo;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones
   }
@@ -436,9 +482,6 @@ migrar(puntodeemision: Migracion): void {
     this.mostrarConfirmacionEliminar = false;
     // this.PEEliminar = null;
   }
-
-
-
 
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
@@ -468,81 +511,90 @@ migrar(puntodeemision: Migracion): void {
         }
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
           // Extraer solo el nombre de la acción
-          accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
+          accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter(
+            (a: any) => typeof a === 'string'
+          );
         }
       } catch (e) {
         console.error('Error al parsear permisosJson:', e);
       }
     }
-    this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
+    this.accionesDisponibles = accionesArray
+      .filter((a) => typeof a === 'string' && a.length > 0)
+      .map((a) => a.trim().toLowerCase());
     console.log('Acciones finales:', this.accionesDisponibles);
   }
 
+  migrarGeneral(): void {
+    this.mostrarOverlayCarga = true;
 
-migrarGeneral(): void {
-  this.mostrarOverlayCarga = true;
-
-  this.http.post(`${environment.apiBaseUrl}/Migracion/Migrar/General`, {}, {
-    headers: {
-      'X-Api-Key': environment.apiKey,
-      'accept': '*/*'
-    }
-  }).subscribe({
-    next: (response: any) => {
-      console.log('Respuesta al migrar General:', response);
-
-      setTimeout(() => {
-        this.mostrarOverlayCarga = false;
-
-        if (response.success) {
-         
-            this.mostrarAlertaExito = true;
-            this.mensajeExito = 'Migración General completada exitosamente.';
-
-            setTimeout(() => this.cerrarAlerta(), 3000);
-            this.cargardatos(false);
-
-        
-        } else {
-          this.mostrarAlertaError = true;
-          this.mensajeError = response.message || 'Error inesperado al migrar "General".';
-
-          setTimeout(() => this.cerrarAlerta(), 5000);
+    this.http
+      .post(
+        `${environment.apiBaseUrl}/Migracion/Migrar/General`,
+        {},
+        {
+          headers: {
+            'X-Api-Key': environment.apiKey,
+            accept: '*/*',
+          },
         }
-      }, 1000);
-    },
-    error: (error) => {
-      console.error('Error al migrar "General":', error);
-      this.mostrarOverlayCarga = false;
-      this.mostrarAlertaError = true;
-      this.mensajeError = 'Error de conexión al intentar migrar "General".';
-      setTimeout(() => this.cerrarAlerta(), 5000);
-    }
-  });
-}
+      )
+      .subscribe({
+        next: (response: any) => {
+          console.log('Respuesta al migrar General:', response);
 
+          setTimeout(() => {
+            this.mostrarOverlayCarga = false;
+
+            if (response.success) {
+              this.mostrarAlertaExito = true;
+              this.mensajeExito = 'Migración General completada exitosamente.';
+
+              setTimeout(() => this.cerrarAlerta(), 3000);
+              this.cargardatos(false);
+            } else {
+              this.mostrarAlertaError = true;
+              this.mensajeError =
+                response.message || 'Error inesperado al migrar "General".';
+
+              setTimeout(() => this.cerrarAlerta(), 5000);
+            }
+          }, 1000);
+        },
+        error: (error) => {
+          console.error('Error al migrar "General":', error);
+          this.mostrarOverlayCarga = false;
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error de conexión al intentar migrar "General".';
+          setTimeout(() => this.cerrarAlerta(), 5000);
+        },
+      });
+  }
 
   private cargardatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
 
-    this.http.get<Migracion[]>(`${environment.apiBaseUrl}/Migracion/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => {
-      const tienePermisoListar = this.accionPermitida('listar');
-      const userId = getUserId();
+    this.http
+      .get<Migracion[]>(`${environment.apiBaseUrl}/Migracion/Listar`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe((data) => {
+        const tienePermisoListar = this.accionPermitida('listar');
+        const userId = getUserId();
 
-      // const datosFiltrados = tienePermisoListar
-      //   ? data
-      //   : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
-      console.log('Datos recibidos del servidor:', data);
-        const datosTransformados = data.map(item => ({
-      ...item,
-      coMi_Tabla: item.coMi_Tabla === 'Bodega' ? 'Bodegas' : item.coMi_Tabla
-    }));
-      setTimeout(() => {
-        this.table.setData(datosTransformados);
-        this.mostrarOverlayCarga = false;
-      }, 500);
-    });
+        // const datosFiltrados = tienePermisoListar
+        //   ? data
+        //   : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
+        console.log('Datos recibidos del servidor:', data);
+        const datosTransformados = data.map((item) => ({
+          ...item,
+          coMi_Tabla:
+            item.coMi_Tabla === 'Bodega' ? 'Bodegas' : item.coMi_Tabla,
+        }));
+        setTimeout(() => {
+          this.table.setData(datosTransformados);
+          this.mostrarOverlayCarga = false;
+        }, 500);
+      });
   }
 }
