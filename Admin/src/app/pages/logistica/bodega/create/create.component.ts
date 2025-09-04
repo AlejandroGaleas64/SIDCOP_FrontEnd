@@ -3,15 +3,17 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Bodega } from 'src/app/Modelos/logistica/Bodega.Model';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 
 @Component({
   selector: 'app-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgxMaskDirective],
   templateUrl: './create.component.html',
-  styleUrl: './create.component.scss'
+  styleUrl: './create.component.scss',
+  providers: [provideNgxMask()]
 })
 export class CreateComponent  {
   @Output() onCancel = new EventEmitter<void>();
@@ -61,6 +63,130 @@ export class CreateComponent  {
     vendedores: any[] = [];
     modelos: any[] = [];
 
+
+
+   // Función para validar VIN
+  validarVIN(vin: string): { esValido: boolean, mensaje: string } {
+    if (!vin) return { esValido: true, mensaje: '' }; // Si está vacío, no validamos aquí
+    
+    // Verificar longitud máxima de 17 caracteres
+    if (vin.length > 17 || vin.length < 17) {
+      return { esValido: false, mensaje: 'Ingrese un VIN Válido' };
+    }
+    
+    // Verificar que no contenga las letras prohibidas O, I, Q (mayúsculas o minúsculas)
+    const letrasProhibidas = /[OIQoiq]/;
+    if (letrasProhibidas.test(vin)) {
+      return { esValido: false, mensaje: 'El VIN no puede contener las letras O, I, Q' };
+    }
+    
+    // Verificar que tenga al menos 3 letras (no solo números)
+    const letras = vin.match(/[A-HJ-NPR-Z]/g); // Excluye O, I, Q
+    if (!letras || letras.length < 3) {
+      return { esValido: false, mensaje: 'El VIN debe contener al menos 3 letras' };
+    }
+
+    // Verificar que tenga al menos 3 números (no solo letras)
+    const numeros = vin.match(/[0-9]/g);
+    if (!numeros || numeros.length < 3) {
+      return { esValido: false, mensaje: 'El VIN debe contener al menos 3 números' };
+    }
+    
+    return { esValido: true, mensaje: '' };
+  }
+
+  validarPlaca(placa: string): { esValido: boolean, mensaje: string } {
+    if (!placa) return { esValido: true, mensaje: '' }; // Si está vacío, no validamos aquí
+    
+    // Verificar longitud máxima de 7 caracteres
+    if (placa.length > 7 || placa.length < 7) {
+      return { esValido: false, mensaje: 'Ingrese una Placa Válida' };
+    }
+
+    return { esValido: true, mensaje: '' };
+  }
+
+  // Función auxiliar para verificar si es válido (para usar en condiciones simples)
+  esVINValido(vin: string): boolean {
+    return this.validarVIN(vin).esValido;
+  }
+
+  esPlacaValido(placa: string): boolean {
+    return this.validarPlaca(placa).esValido;
+  }
+
+  // Función para filtrar caracteres en tiempo real
+  onVINInput(event: any): void {
+    let valor = event.target.value;
+    
+    // Remover caracteres prohibidos O, I, Q
+    valor = valor.replace(/[OIQoiq]/g, '');
+    
+    // Limitar a 17 caracteres
+    if (valor.length > 17) {
+      valor = valor.substring(0, 17);
+    }
+    
+    // Convertir a mayúsculas (opcional, ya que los VIN suelen ser en mayúsculas)
+    valor = valor.toUpperCase();
+    
+    // Actualizar el modelo
+    this.bodega.bode_VIN = valor;
+    
+    // Actualizar el input si fue modificado
+    if (event.target.value !== valor) {
+      event.target.value = valor;
+    }
+  }
+
+  // Función para filtrar caracteres en tiempo real
+  onPlacaInput(event: any): void {
+    let valor = event.target.value;
+
+    // Limitar a 7 caracteres
+    if (valor.length > 7) {
+      valor = valor.substring(0, 7);
+    }
+    
+    // Convertir a mayúsculas (opcional, ya que las Placas suelen ser en mayúsculas)
+    valor = valor.toUpperCase();
+    
+    // Actualizar el modelo
+    this.bodega.bode_Placa = valor;
+
+    // Actualizar el input si fue modificado
+    if (event.target.value !== valor) {
+      event.target.value = valor;
+    }
+  }
+
+  contarLetrasVIN(): number {
+    if (!this.bodega.bode_VIN) return 0;
+    const letras = this.bodega.bode_VIN.match(/[A-HJ-NPR-Z]/g);
+    return letras ? letras.length : 0;
+  }
+
+  contarNumerosVIN(): number {
+    if (!this.bodega.bode_VIN) return 0;
+    const numeros = this.bodega.bode_VIN.match(/[0-9]/g);
+    return numeros ? numeros.length : 0;
+  }
+
+  // Función para obtener el mensaje de error del VIN
+  getMensajeErrorVIN(): string {
+    if (!this.bodega.bode_VIN.trim()) {
+      return 'El campo VIN es requerido';
+    }
+    return this.validarVIN(this.bodega.bode_VIN).mensaje;
+  }
+
+  // Función para obtener el mensaje de error de la Placa
+  getMensajeErrorPlaca(): string {
+    if (!this.bodega.bode_Placa.trim()) {
+      return 'El campo Placa es requerido';
+    }
+    return this.validarPlaca(this.bodega.bode_Placa).mensaje;
+  }
 
   // Métodos para obtener las listas desplegables desde el backend
  listarSucursales(): void {
@@ -137,6 +263,8 @@ export class CreateComponent  {
     if (this.bodega.bode_Descripcion.trim() &&
         this.bodega.bode_Capacidad > 0 && this.bodega.bode_Placa.trim() &&
         this.bodega.bode_TipoCamion.trim() && this.bodega.bode_VIN.trim() &&
+        this.esVINValido(this.bodega.bode_VIN) &&
+        this.esPlacaValido(this.bodega.bode_Placa) &&
         this.bodega.sucu_Id > 0 && this.bodega.regC_Id > 0 && this.bodega.vend_Id > 0 && this.bodega.mode_Id > 0
       
       )

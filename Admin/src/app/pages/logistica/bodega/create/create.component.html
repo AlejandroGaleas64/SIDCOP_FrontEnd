@@ -63,17 +63,26 @@
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
             <input 
-              type="text" 
+              type="text"   
               class="form-control" 
               [class.is-invalid]="!bodega.bode_VIN.trim() && mostrarErrores"
               id="bode_VIN"
               [(ngModel)]="bodega.bode_VIN"
+              (input)="onVINInput($event)"
               placeholder="Ingrese el VIN de la bodega"
+              maxlength="17"
+              pattern="[A-HJ-NPR-Z0-9]*"
+              title="El VIN debe tener exactamente 17 caracteres y no puede contener las letras O, I, Q"
               required>
             <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
-          <div class="text-danger mt-1" *ngIf="!bodega.bode_VIN.trim() && mostrarErrores">
-            <small>El campo VIN es requerido</small>
+          <div class="text-danger mt-1" *ngIf="mostrarErrores && (!bodega.bode_VIN.trim() || !esVINValido(bodega.bode_VIN))">
+            <small>{{ getMensajeErrorVIN() }}</small>
+          </div>
+          
+          <!-- Contador de caracteres y letras -->
+          <div class="d-flex justify-content-between text-muted mt-1">
+            <small>{{ bodega.bode_VIN.length }}/17 caracteres</small>
           </div>
         </div>
       </div>
@@ -93,12 +102,14 @@
               [class.is-invalid]="!bodega.bode_Placa.trim() && mostrarErrores"
               id="bode_Placa"
               [(ngModel)]="bodega.bode_Placa"
+              (input)="onPlacaInput($event)"
               placeholder="Ingrese la placa de la bodega"
+              mask="SSS-0000"
               required>
             <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
-          <div class="text-danger mt-1" *ngIf="!bodega.bode_Placa.trim() && mostrarErrores">
-            <small>El campo placa es requerido</small>
+          <div class="text-danger mt-1" *ngIf="mostrarErrores && !bodega.bode_Placa.trim() || !esPlacaValido(bodega.bode_Placa)">
+            <small>{{ getMensajeErrorPlaca() }}</small>
           </div>
         </div>
       </div>
