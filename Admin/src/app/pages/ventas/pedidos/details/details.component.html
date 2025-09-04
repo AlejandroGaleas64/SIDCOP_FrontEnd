@@ -45,41 +45,45 @@
   <!-- Contenido de detalles -->
   <div *ngIf="!cargando && PedidoDetalle" class="details-content">
     <div class="d-flex justify-content-end mb-3 gap-2">
-      <!-- Botón Vista Previa PDF -->
+      <!-- Botón Venta (Factura + Impresión) -->
       <button
         type="button"
-        class="btn btn-outline-primary"
+        class="btn btn-success"
+        (click)="realizarVenta()"
+        [disabled]="!PedidoDetalle || procesandoVenta"
+      >
+        <span class="btn-text" *ngIf="!procesandoVenta">Venta</span>
+        <span class="btn-text" *ngIf="procesandoVenta">Procesando...</span>
+        <span class="btn-icon">
+          <i class="ri-shopping-cart-line" *ngIf="!procesandoVenta"></i>
+          <span class="spinner-border spinner-border-sm" *ngIf="procesandoVenta" role="status"></span>
+        </span>
+      </button>
+      
+      <!-- Estos botones ya no se muestran aquí, se mostrarán a través del modal -->
+      <!-- Los mantenemos ocultos para conservar la funcionalidad original -->
+      <button
+        type="button"
+        class="btn btn-outline-primary d-none"
         (click)="generarVistaPrevia()"
         [disabled]="!PedidoDetalle"
       >
-        <span class="btn-text">Vista Previa PDF</span>
+        <span class="btn-text">Ver Factura PDF</span>
         <span class="btn-icon"><i class="ri-file-pdf-line"></i></span>
       </button>
       
-      <!-- Botón Imprimir ZPL -->
       <button
         type="button"
-        class="btn btn-primary"
+        class="btn btn-primary d-none"
         (click)="abrirConfiguracionImpresion()"
         [disabled]="!PedidoDetalle || imprimiendo"
       >
-        <span class="btn-text" *ngIf="!imprimiendo">Imprimir ZPL</span>
+        <span class="btn-text" *ngIf="!imprimiendo">Ver Factura ZPL</span>
         <span class="btn-text" *ngIf="imprimiendo">Procesando...</span>
         <span class="btn-icon">
           <i class="ri-printer-line" *ngIf="!imprimiendo"></i>
           <span class="spinner-border spinner-border-sm" *ngIf="imprimiendo" role="status"></span>
         </span>
-      </button>
-      
-      <!-- Botón Imprimir Pedido Original -->
-      <button
-        type="button"
-        class="btn text-white"
-        style="background-color: #141a2f; border-color: #141a2f;"
-        (click)="imprimirPedido()"
-      >
-        <span class="btn-text">Imprimir Pedido</span>
-        <span class="btn-icon"><i class="ri-printer-line"></i></span>
       </button>
     </div>
 
@@ -250,6 +254,89 @@
   <ng-template #sinProductos>
     <p>No hay productos en este pedido.</p>
   </ng-template>
+</div>
+
+<!-- Modal para seleccionar formato de factura -->
+<div class="modal fade modal-factura-formato" 
+     [class.show]="mostrarModalFormatoFactura" 
+     [style.display]="mostrarModalFormatoFactura ? 'block' : 'none'"
+     id="modalFormatoFactura" 
+     tabindex="-1" 
+     aria-labelledby="modalFormatoFacturaLabel" 
+     [attr.aria-hidden]="!mostrarModalFormatoFactura"
+     (click)="onBackdropClickFormato($event)"
+     *ngIf="mostrarModalFormatoFactura">
+
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="modalFormatoFacturaLabel">
+          <i class="ri-file-list-3-line me-2"></i>
+          Opciones de Factura
+        </h5>
+        <button type="button" 
+                class="btn-close btn-close-white" 
+                (click)="cerrarModalFormatoFactura()" 
+                aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="alert alert-info mb-3">
+          <i class="ri-information-line me-2"></i>
+          <strong>¡Factura generada correctamente!</strong> Seleccione una o ambas opciones para ver su factura.
+        </div>
+        
+        <div class="row g-3">
+          <!-- Opción PDF -->
+          <div class="col-md-6">
+            <div class="formato-option" 
+                 [class.selected]="formatoSeleccionado === 'pdf'"
+                 (click)="seleccionarFormato('pdf')">
+              <div class="formato-icon">
+                <i class="ri-file-pdf-line"></i>
+              </div>
+              <div class="formato-title">PDF</div>
+              <div class="formato-desc">Ver factura en formato PDF</div>
+              <button type="button" 
+                      class="btn btn-sm btn-primary mt-2" 
+                      (click)="generarVistaPrevia()" 
+                      *ngIf="formatoSeleccionado === 'pdf'">
+                <i class="ri-eye-line me-1"></i> Ver PDF
+              </button>
+            </div>
+          </div>
+          
+          <!-- Opción ZPL -->
+          <div class="col-md-6">
+            <div class="formato-option" 
+                 [class.selected]="formatoSeleccionado === 'zpl'"
+                 (click)="seleccionarFormato('zpl')">
+              <div class="formato-icon">
+                <i class="ri-printer-line"></i>
+              </div>
+              <div class="formato-title">ZPL</div>
+              <div class="formato-desc">Imprimir factura en formato ZPL</div>
+              <button type="button" 
+                      class="btn btn-sm btn-primary mt-2" 
+                      (click)="abrirConfiguracionImpresion()" 
+                      *ngIf="formatoSeleccionado === 'zpl'">
+                <i class="ri-printer-line me-1"></i> Imprimir ZPL
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" 
+                class="btn btn-secondary" 
+                (click)="cerrarModalFormatoFactura()">
+          <i class="ri-close-line me-1"></i>
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Modal de Configuración de Impresión ZPL -->
@@ -433,8 +520,57 @@
   </div>
 </div>
 
-<!-- Estilos para el modal de impresión -->
+<!-- Estilos para el modal de impresión y formato de factura -->
 <style>
+/* Estilos para el modal de formato de factura */
+.modal-factura-formato .formato-option {
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-factura-formato .formato-option:hover {
+  border-color: #20c997;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modal-factura-formato .formato-option.selected {
+  border-color: #198754;
+  background-color: rgba(25, 135, 84, 0.1);
+  box-shadow: 0 4px 12px rgba(25, 135, 84, 0.2);
+}
+
+.modal-factura-formato .formato-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  color: #495057;
+}
+
+.modal-factura-formato .formato-option.selected .formato-icon {
+  color: #198754;
+}
+
+.modal-factura-formato .formato-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.modal-factura-formato .formato-desc {
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+/* Estilos para el modal de impresión */
 .modal-print-config .printer-list {
   max-height: 200px;
   overflow-y: auto;
@@ -495,7 +631,7 @@
 </style>
 
 <!-- Tabla de auditoría -->
-<!-- <div class="audit-table-container">
+<div class="audit-table-container">
   <div class="audit-table">
     <div class="audit-header">
       <div class="audit-col">Acción</div>
@@ -537,4 +673,4 @@
       </div>
     </div>
   </div>
-</div> -->
+</div>

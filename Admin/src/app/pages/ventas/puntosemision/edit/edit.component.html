@@ -35,7 +35,7 @@
         <div class="mb-3">
           <label for="final-input" class="form-label">Código<span class="text-danger">*</span></label>
           <div class="d-flex align-items-center">
-            <i class="ri-attachment-line"
+            <i class="ri-keyboard-line"
               [ngStyle]="{
                 border: (!puntoEmision.puEm_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
                 backgroundColor: (!puntoEmision.puEm_Codigo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
@@ -44,11 +44,12 @@
             <input type="text" class="form-control" [class.is-invalid]="
                 !puntoEmision.puEm_Codigo.trim() && mostrarErrores
               " id="PECod" [(ngModel)]="puntoEmision.puEm_Codigo" placeholder="Ingrese el Codigo del Punto de Emision"
-              required />
+              required maxlength="3" pattern="^[0-9]{3}$" inputmode="numeric" autocomplete="off" (keypress)="soloNumeros($event)"
+              (ngModelChange)="validarCodigo()" [readonly]="false" />
             <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
-          <div class="text-danger mt-1" *ngIf="!puntoEmision.puEm_Codigo.trim() && mostrarErrores">
-            <small>El campo Codigo del Punto de Emision es requerido</small>
+          <div class="text-danger mt-1" *ngIf="mostrarErrores && !codigoValido()">
+            <small>El campo Código debe tener exactamente 3 dígitos numéricos</small>
           </div>
         </div>
       </div>

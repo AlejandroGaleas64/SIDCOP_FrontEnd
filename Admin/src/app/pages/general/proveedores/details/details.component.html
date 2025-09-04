@@ -46,9 +46,23 @@
                   <i class="ri-file-list-3-line"></i>
                 </div>
                 <div class="detail-content">
-                  <div class="detail-label">Descripción</div>
+                  <div class="detail-label">Empresa</div>
                   <div class="detail-value">
                     {{ proveedorDetalle.prov_NombreEmpresa || 'N/A' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-4">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white">
+                  <i class="ri-file-list-3-line"></i>
+                </div>
+                <div class="detail-content">
+                  <div class="detail-label">Contacto</div>
+                  <div class="detail-value">
+                    {{ proveedorDetalle.prov_NombreContacto || 'N/A' }}
                   </div>
                 </div>
               </div>
@@ -60,7 +74,7 @@
                   <i class="ri-phone-line"></i>
                 </div>
                 <div class="detail-content">
-                  <div class="detail-label">Contacto</div>
+                  <div class="detail-label">Teléfono</div>
                   <div class="detail-value">
                     {{ proveedorDetalle.prov_Telefono || 'N/A' }}
                   </div>
@@ -90,7 +104,7 @@
                   <i class="ri-map-pin-line"></i>
                 </div>
                 <div class="detail-content">
-                  <div class="detail-label">Dirección</div>
+                  <div class="detail-label">Dirección Exacta</div>
                   <div class="detail-value">
                     {{ proveedorDetalle.prov_DireccionExacta|| 'N/A' }}
                   </div>
