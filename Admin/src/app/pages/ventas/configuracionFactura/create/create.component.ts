@@ -7,6 +7,7 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { ImageUploadService } from 'src/app/core/services/image-upload.service';
+import { SvgPreviewComponent } from '../svg-preview/svg-preview.component';
 import Cropper from 'cropperjs';
 
 @Component({
@@ -17,7 +18,8 @@ import Cropper from 'cropperjs';
     FormsModule, 
     HttpClientModule, 
     NgSelectModule,
-    NgxMaskDirective
+    NgxMaskDirective,
+    SvgPreviewComponent
   ],
   templateUrl: './create.component.html',
   styleUrls: ['./create.component.scss'],
@@ -42,6 +44,10 @@ export class CreateComponent {
   cropper: Cropper | null = null;
   selectedFile: File | null = null;
   logoSeleccionado = false;
+  
+  // SVG preview properties
+  isSvgFile = false;
+  svgPreviewUrl: string | null = null;
 
   // Modelo
   configFactura = {
@@ -142,30 +148,65 @@ export class CreateComponent {
     const file = event.target.files[0];
     if (file) {
       this.selectedFile = file;
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.imageCropper.nativeElement.src = e.target.result;
-        this.showCropper = true;
-        setTimeout(() => {
-          if (this.cropper) {
-            this.cropper.destroy();
-          }
-          this.cropper = new Cropper(this.imageCropper.nativeElement, {
-            aspectRatio: 1,
-            viewMode: 1,
-            autoCropArea: 0.8,
-            responsive: true,
-            background: false,
-            guides: true,
-            center: true,
-            highlight: false,
-            cropBoxMovable: true,
-            cropBoxResizable: true,
-            toggleDragModeOnDblclick: false,
-          });
-        }, 100);
-      };
-      reader.readAsDataURL(file);
+      
+      // Check if it's an SVG file
+      this.isSvgFile = file.type === 'image/svg+xml';
+      
+      // Create a preview for SVG files
+      if (this.isSvgFile) {
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.svgPreviewUrl = e.target.result;
+          // For SVG files, we'll still show the cropper but also keep the original SVG for preview
+          this.imageCropper.nativeElement.src = e.target.result;
+          this.showCropper = true;
+          setTimeout(() => {
+            if (this.cropper) {
+              this.cropper.destroy();
+            }
+            this.cropper = new Cropper(this.imageCropper.nativeElement, {
+              aspectRatio: 1,
+              viewMode: 1,
+              autoCropArea: 0.8,
+              responsive: true,
+              background: false,
+              guides: true,
+              center: true,
+              highlight: false,
+              cropBoxMovable: true,
+              cropBoxResizable: true,
+              toggleDragModeOnDblclick: false,
+            });
+          }, 100);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        // For non-SVG files, use the original behavior
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.imageCropper.nativeElement.src = e.target.result;
+          this.showCropper = true;
+          setTimeout(() => {
+            if (this.cropper) {
+              this.cropper.destroy();
+            }
+            this.cropper = new Cropper(this.imageCropper.nativeElement, {
+              aspectRatio: 1,
+              viewMode: 1,
+              autoCropArea: 0.8,
+              responsive: true,
+              background: false,
+              guides: true,
+              center: true,
+              highlight: false,
+              cropBoxMovable: true,
+              cropBoxResizable: true,
+              toggleDragModeOnDblclick: false,
+            });
+          }, 100);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   }
 
@@ -175,7 +216,8 @@ export class CreateComponent {
       this.cropper.destroy();
       this.cropper = null;
     }
-    this.selectedFile = null;
+    // Don't reset selectedFile or svgPreviewUrl when closing the cropper
+    // as we want to keep the preview visible
   }
 
   async cropAndUpload() {
@@ -195,9 +237,12 @@ export class CreateComponent {
               lastModified: Date.now()
             });
             
+            console.log('Iniciando subida de imagen...');
             const imagePath = await this.imageUploadService.uploadImageAsync(croppedFile);
+            console.log('Imagen subida exitosamente. Ruta:', imagePath);
             this.configFactura.coFa_Logo = imagePath;
             this.logoSeleccionado = true;
+            console.log('Logo asignado a configFactura.coFa_Logo:', this.configFactura.coFa_Logo);
             this.cerrarModalCropper();
           }
         }, this.selectedFile.type, 0.9);
