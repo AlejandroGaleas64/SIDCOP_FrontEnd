@@ -35,19 +35,22 @@
         <div class="mb-3">
           <label for="final-input" class="form-label">Código<span class="text-danger">*</span></label>
           <div class="d-flex align-items-center">
-             <i class="ri-attachment-line" [ngStyle]="{
+            <i class="ri-keyboard-line"
+              [ngStyle]="{
                 border: (!puntoEmision.puEm_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
                 backgroundColor: (!puntoEmision.puEm_Codigo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
-            <input type="text" class="form-control" [class.is-invalid]="
-                !puntoEmision.puEm_Codigo.trim() && mostrarErrores
-              " id="PECod" [(ngModel)]="puntoEmision.puEm_Codigo" placeholder="Ingrese el Codigo del Punto de Emision"
-              required />
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+            </i>
+            <input type="text" class="form-control"
+              [class.is-invalid]="mostrarErrores && !codigoValido()" id="PECod"
+              [(ngModel)]="puntoEmision.puEm_Codigo" placeholder="Ingrese el Código del Punto de Emisión" required
+              maxlength="3" pattern="^[0-9]{3}$" inputmode="numeric" autocomplete="off" (keypress)="soloNumeros($event)"
+              (ngModelChange)="validarCodigo()" [readonly]="false" />
+            <span class="text-danger ms-2" *ngIf="mostrarErrores && !codigoValido()">*</span>
+            <span class="text-danger ms-2" *ngIf="mostrarErrores"></span>
           </div>
-          <div class="text-danger mt-1" *ngIf="!puntoEmision.puEm_Codigo.trim() && mostrarErrores">
-            <small>El campo Código del Punto de Emision es requerido</small>
+          <div class="text-danger mt-1" *ngIf="mostrarErrores && !codigoValido()">
+            <small>El campo Código debe tener exactamente 3 dígitos numéricos</small>
           </div>
         </div>
       </div>
@@ -56,11 +59,12 @@
         <div class="mb-3">
           <label for="final-input" class="form-label">Descripción<span class="text-danger">*</span></label>
           <div class="d-flex align-items-center">
-            <i class="ri-attachment-line" [ngStyle]="{
+            <i class="ri-attachment-line"
+              [ngStyle]="{
                 border: (!puntoEmision.puEm_Descripcion.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
                 backgroundColor: (!puntoEmision.puEm_Descripcion.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
+            </i>
             <input type="text" class="form-control" [class.is-invalid]="
                 !puntoEmision.puEm_Descripcion.trim() && mostrarErrores
               " id="PEDescripcion" [(ngModel)]="puntoEmision.puEm_Descripcion"
@@ -77,11 +81,12 @@
         <label class="form-label">Sucursal<span class="text-danger">*</span></label>
         <div class="mb-3">
           <div class="d-flex align-items-center">
-            <i class="ri-building-2-line" [ngStyle]="{
+            <i class="ri-building-2-line"
+              [ngStyle]="{
                 border: (!puntoEmision.sucu_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
                 backgroundColor: (!puntoEmision.sucu_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
+            </i>
             <ng-select class="w-100" [items]="Sucursales" bindLabel="sucu_Descripcion" bindValue="sucu_Id"
               [(ngModel)]="puntoEmision.sucu_Id" [searchable]="true" [clearable]="false"
               [class.is-invalid]="!puntoEmision.sucu_Id && mostrarErrores" placeholder="Seleccione una sucursal"

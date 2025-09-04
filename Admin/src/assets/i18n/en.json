@@ -55,7 +55,8 @@
         "PEDIDOS": "Pedidos",
         "LISTASPRECIOS": "Listas de Precios",
         "DEVOLUCIONES": "Devoluciones",
-        "VENTA": "Ventas"
+        "VENTA": "Ventas",
+        "METAS": "Metas"
       }
     },
     "LOGISTICA": {

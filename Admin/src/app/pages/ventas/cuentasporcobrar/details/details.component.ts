@@ -258,7 +258,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
     if (!this.cuentaPorCobrarDetalle?.cpCo_FechaVencimiento) return 0;
     const fechaActual = new Date();
     const fechaVencimiento = new Date(this.cuentaPorCobrarDetalle.cpCo_FechaVencimiento);
-    const diferencia = fechaVencimiento.getTime() - fechaActual.getTime();
+    const diferencia = fechaActual.getTime() - fechaVencimiento.getTime();
     return Math.ceil(diferencia / (1000 * 3600 * 24));
   }
 
@@ -269,8 +269,8 @@ export class DetailsComponent implements OnInit, OnDestroy {
     // Si ya está marcada como vencida en los datos
     if (this.cuentaPorCobrarDetalle.estaVencido) return true;
     
-    // Calcular basado en la fecha de vencimiento
-    return this.calcularDiasVencimiento() < 0;
+    // Calcular basado en la fecha de vencimiento (ahora días vencidos es positivo si está vencida)
+    return this.calcularDiasVencimiento() > 0;
   }
 
   calcularTotalPagado(): number {

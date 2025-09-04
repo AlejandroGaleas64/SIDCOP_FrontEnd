@@ -113,7 +113,8 @@ export const MENU: MenuItem[] = [
     { id: 40, label: 'MENUITEMS.VENTAS.LIST.PUNTOSEMISION', link: '/ventas/puntosemision', parentId: 5, icon: 'ri-group-line' },
     { id: 41, label: 'MENUITEMS.VENTAS.LIST.REGISTROCAIS', link: '/ventas/registroscais', parentId: 5, icon: 'ri-group-line' },
     { id: 42, label: 'MENUITEMS.VENTAS.LIST.VENDEDORES', link: '/ventas/Vendedores', parentId: 5, icon: 'ri-group-line' },
-    { id: 57, label: 'MENUITEMS.VENTAS.LIST.VENTA', link: '/ventas/ventas', parentId: 5, icon: 'ri-group-line' }
+    { id: 57, label: 'MENUITEMS.VENTAS.LIST.VENTA', link: '/ventas/ventas', parentId: 5, icon: 'ri-group-line' },
+    { id: 82, label: 'MENUITEMS.VENTAS.LIST.METAS', link: '/ventas/metas', parentId: 5, icon: 'ri-group-line' }
   ],
 },
 

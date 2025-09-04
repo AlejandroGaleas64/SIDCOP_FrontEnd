@@ -1,0 +1,192 @@
+<div class="details-container">
+  <!-- Floating Alerts -->
+  <div class="alert-container">
+    <div *ngIf="mostrarAlertaExito" class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+      <strong>¡Éxito!</strong> {{ mensajeExito }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+    <div *ngIf="mostrarAlertaWarning" class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+      <strong>¡Atención!</strong> {{ mensajeWarning }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+    <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+      <strong>¡Error!</strong> {{ mensajeError }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <!-- Regresar Button -->
+  <div class="details-header-button mb-3">
+    <button type="button" class="btn btn-primary" (click)="cancelar()">
+      <span class="btn-text">Regresar</span>
+      <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
+    </button>
+  </div>
+
+  <!-- Main Details Card -->
+  <div *ngIf="meta" class="details-content">
+    <div class="col-md-12">
+      <div class="card h-100 shadow-sm employee-details-card bg-dark-blue">
+        <div class="card-header d-flex align-items-center rounded-top details-header-custom">
+          <i class="ri-flag-2-line me-2 fs-4"></i>
+          <h5 class="mb-0">Editar Progreso de la Meta</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12 col-sm-6">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white"><i class="ri-attachment-line"></i></div>
+                <div class="detail-content">
+                  <div class="detail-label">Descripción</div>
+                  <div class="detail-value">{{ meta.meta_Descripcion }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white"><i class="ri-list-settings-line"></i></div>
+                <div class="detail-content">
+                  <div class="detail-label">Tipo</div>
+                  <div class="detail-value">{{ tipoLabel }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white"><i class="ri-calendar-2-line"></i></div>
+                <div class="detail-content">
+                  <div class="detail-label">Fecha Inicio</div>
+                  <div class="detail-value">{{ formatearFecha(meta.meta_FechaInicio) }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white"><i class="ri-calendar-2-line"></i></div>
+                <div class="detail-content">
+                  <div class="detail-label">Fecha Fin</div>
+                  <div class="detail-value">{{ formatearFecha(meta.meta_FechaFin) }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6" *ngIf="meta.meta_Tipo === 'IM'">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white"><i class="ri-coin-fill"></i></div>
+                <div class="detail-content">
+                  <div class="detail-label">Ingresos Objetivo</div>
+                  <div class="detail-value">{{ meta.meta_Ingresos | number:'1.2-2' }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6" *ngIf="meta.meta_Tipo === 'CM'">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white"><i class="ri-hashtag"></i></div>
+                <div class="detail-content">
+                  <div class="detail-label">Unidades Objetivo</div>
+                  <div class="detail-value">{{ meta.meta_Unidades }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vendedores Card -->
+    <div class="col-md-12 mt-4">
+      <div class="card h-100 shadow-sm employee-details-card bg-dark-blue">
+        <div class="card-header d-flex align-items-center rounded-top details-header-custom">
+          <i class="ri-user-3-line me-2 fs-4"></i>
+          <h5 class="mb-0">Progreso por Vendedor</h5>
+        </div>
+        <div class="card-body">
+          <!-- Filter input -->
+          <div class="row mb-3">
+            <div class="col-12 col-md-12">
+              <input type="text" class="form-control" placeholder="Filtrar vendedor..."
+                [(ngModel)]="vendedorFiltro">
+            </div>
+          </div>
+          <div class="row">
+            <ng-container *ngIf="vendedoresFiltrados.length > 0; else noVendedores">
+              <div class="col-12 col-md-6 mb-3" *ngFor="let vendedor of vendedoresFiltrados">
+                <div class="detail-item">
+                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-user-line"></i></div>
+                  <div class="detail-content">
+                    <div class="detail-label">Vendedor</div>
+                    <div class="detail-value">
+                      {{ vendedor.Vend_NombreCompleto || (vendedor.vend_Nombres + ' ' + vendedor.vend_Apellidos) || vendedor.Vend_Id }}
+                    </div>
+                    <ng-container *ngIf="meta.meta_Tipo === 'CM'">
+                      <div class="detail-label mt-2">Progreso de Unidades</div>
+                      <div class="input-group">
+                        <button class="btn btn-outline-secondary" (click)="decrementUnidades(vendedor.Vend_Id)">
+                          <i class="ri-subtract-line"></i>
+                        </button>
+                        <input type="number" class="form-control"
+                          [(ngModel)]="progreso[vendedor.Vend_Id].unidades"
+                          min="0"
+                          [class.is-invalid]="progreso[vendedor.Vend_Id].unidades < 0 && mostrarErrores"
+                          required>
+                        <button class="btn btn-outline-secondary" (click)="incrementUnidades(vendedor.Vend_Id)">
+                          <i class="ri-add-line"></i>
+                        </button>
+                      </div>
+                    </ng-container>
+                    <ng-container *ngIf="meta.meta_Tipo === 'IM'">
+                      <div class="detail-label mt-2">Progreso en Ingresos</div>
+                      <div class="input-group">
+                        <button class="btn btn-outline-secondary" (click)="decrementIngresos(vendedor.Vend_Id)">
+                          <i class="ri-subtract-line"></i>
+                        </button>
+                        <input type="text" class="form-control"
+                          currencyMask [options]="{ prefix: 'L. ', thousands: ',', decimal: '.', precision: 2 }"
+                          [(ngModel)]="progreso[vendedor.Vend_Id].ingresos"
+                          [class.is-invalid]="progreso[vendedor.Vend_Id].ingresos < 0 && mostrarErrores"
+                          required>
+                        <button class="btn btn-outline-secondary" (click)="incrementIngresos(vendedor.Vend_Id)">
+                          <i class="ri-add-line"></i>
+                        </button>
+                      </div>
+                    </ng-container>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+            <ng-template #noVendedores>
+              <div class="col-12 text-center text-muted py-3">
+                No hay vendedores asignados.
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save/Cancel Buttons -->
+    <div class="row mt-4">
+      <div class="col-12 d-flex justify-content-between gap-2">
+        <button type="button" class="btn btn-primary gold" (click)="cancelar()" [disabled]="cargando">
+          <span class="btn-text">Cancelar</span>
+          <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+        </button>
+        <button type="button" class="btn btn-primary right ms-auto" (click)="guardar()" [disabled]="cargando">
+          <span class="btn-text">Guardar</span>
+          <span class="btn-icon"><i class="ri-save-line"></i></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay de carga animado -->
+  <div *ngIf="cargando" class="overlay-carga">
+    <div class="typing-indicator">
+      <div class="typing-circle"></div>
+      <div class="typing-circle"></div>
+      <div class="typing-circle"></div>
+      <div class="typing-shadow"></div>
+      <div class="typing-shadow"></div>
+      <div class="typing-shadow"></div>

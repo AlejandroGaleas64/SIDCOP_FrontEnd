@@ -17,6 +17,7 @@ import { jsPDF } from 'jspdf';
 import { PedidoInvoiceService } from '../services/pedido-invoice.service';
 import { ZplPrintingService } from 'src/app/core/services/zplprinting.service';
 import ZebraBrowserPrintWrapper from 'zebra-browser-print-wrapper';
+import { Observable, throwError } from 'rxjs';
 
 // Interfaces para la nueva librería
 interface ZebraPrinter {
@@ -52,12 +53,18 @@ export class DetailsComponent implements OnChanges, OnDestroy {
   // Variables para impresión ZPL
   private zebraBrowserPrint: any = null;
   imprimiendo = false;
+  procesandoVenta = false;
   mostrarConfiguracionImpresion = false;
   configuracionImpresion = {
     printerIp: '',
     printerPort: 9101,
     metodoImpresion: 'zebra-wrapper'
   };
+  
+  // Variables para el modal de selección de formato de factura
+  mostrarModalFormatoFactura = false;
+  formatoSeleccionado: 'pdf' | 'zpl' | null = null;
+  facturaInsertada = false;
 
   // Propiedades para Zebra Browser Print Wrapper
   verificandoConexion = false;
@@ -96,6 +103,9 @@ export class DetailsComponent implements OnChanges, OnDestroy {
       try {
         this.PedidoDetalle = { ...data };
         this.productos = JSON.parse(this.PedidoDetalle.detallesJson ?? '[]');
+        
+        // Log para ver la estructura de los productos
+        console.log('Estructura de productos en el pedido:', this.productos);
         
         // Configurar el servicio de invoice con los datos del pedido
         this.pedidoInvoiceService.setPedidoCompleto(this.PedidoDetalle);
@@ -235,126 +245,189 @@ export class DetailsComponent implements OnChanges, OnDestroy {
     });
   }
 
-imprimirPedido(): void {
-  const doc = new jsPDF();
+  imprimirPedido(): void {
+    const doc = new jsPDF();
 
-  this.crearEncabezado(doc).then(() => {
-    const pageWidth = doc.internal.pageSize.width;
-    let y = 40;
+    this.crearEncabezado(doc).then(() => {
+      const pageWidth = doc.internal.pageSize.width;
+      let y = 40;
 
-    doc.setFontSize(10); // Fuente reducida
+      doc.setFontSize(10); // Fuente reducida
 
-    // ==============================
-    // ENCABEZADO DEL PEDIDO
-    // ==============================
-    doc.setFont('helvetica', 'bold');
-    doc.text(`No. Pedido:`, 14, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${this.PedidoDetalle?.pedi_Id}`, 37, y);
-    y += 6;
+      // ==============================
+      // ENCABEZADO DEL PEDIDO
+      // ==============================
+      doc.setFont('helvetica', 'bold');
+      doc.text(`No. Pedido:`, 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${this.PedidoDetalle?.pedi_Id}`, 37, y);
+      y += 6;
 
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Fecha Emisión:`, 14, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${this.formatearFecha(this.PedidoDetalle?.pedi_FechaPedido ?? null)}`, 42, y);
-    y += 5;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Fecha Entrega:`, 14, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${this.formatearFecha(this.PedidoDetalle?.pedi_FechaEntrega ?? null)}`, 42, y);
-    y += 5;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Tipo Documento:`, 14, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Pedido`, 44, y);
-    y += 4;
-
-    doc.line(14, y, 196, y); // Línea horizontal
-    y += 8;
-
-    // ==============================
-    // INFORMACIÓN DEL CLIENTE
-    // ==============================
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Cliente:`, 14, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${this.PedidoDetalle?.clie_Nombres} ${this.PedidoDetalle?.clie_Apellidos}`, 30, y);
-    y += 5;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Dirección:`, 14, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${this.PedidoDetalle?.diCl_DireccionExacta || 'Dirección no especificada'}`, 32, y);
-    y += 5;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Vendedor:`, 14, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${this.PedidoDetalle?.vend_Nombres || 'Vendedor no especificado'}`, 32, y);
-    y += 6;
-
-    doc.line(14, y, 196, y); // Línea horizontal
-    y += 6;
-
-    // ==============================
-    // ENCABEZADO DE PRODUCTOS
-    // ==============================
-    doc.setFont('helvetica', 'bold');
-    doc.text('Producto', 14, y);
-    doc.text('Precio', 120, y);
-    doc.text('Und', 145, y);
-    doc.text('Monto', 170, y);
-    y += 4;
-    doc.setFont('helvetica', 'normal');
-    doc.line(14, y, 196, y); // Línea horizontal
-    y += 5;
-
-    // ==============================
-    // LISTADO DE PRODUCTOS
-    // ==============================
-    let subtotal = 0;
-    this.productos.forEach((p) => {
-      const monto = p.precio * p.cantidad;
-      subtotal += monto;
-
-      doc.text(`${p.descripcion}`, 14, y);
-      doc.text(`L. ${p.precio.toFixed(2)}`, 120, y);
-      doc.text(`${p.cantidad}`, 145, y);
-      doc.text(`L. ${monto.toFixed(2)}`, 170, y);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Fecha Emisión:`, 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${this.formatearFecha(this.PedidoDetalle?.pedi_FechaPedido ?? null)}`, 42, y);
       y += 5;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Fecha Entrega:`, 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${this.formatearFecha(this.PedidoDetalle?.pedi_FechaEntrega ?? null)}`, 42, y);
+      y += 5;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Tipo Documento:`, 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Pedido`, 44, y);
+      y += 4;
+
+      doc.line(14, y, 196, y); // Línea horizontal
+      y += 8;
+
+      // ==============================
+      // INFORMACIÓN DEL CLIENTE
+      // ==============================
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Cliente:`, 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${this.PedidoDetalle?.clie_Nombres} ${this.PedidoDetalle?.clie_Apellidos}`, 30, y);
+      y += 5;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Dirección:`, 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${this.PedidoDetalle?.diCl_DireccionExacta || 'Dirección no especificada'}`, 32, y);
+      y += 5;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Vendedor:`, 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${this.PedidoDetalle?.vend_Nombres || 'Vendedor no especificado'}`, 32, y);
+      y += 6;
+
+      doc.line(14, y, 196, y); // Línea horizontal
+      y += 6;
+
+      // ==============================
+      // ENCABEZADO DE PRODUCTOS
+      // ==============================
+      doc.setFont('helvetica', 'bold');
+      doc.text('Producto', 14, y);
+      doc.text('Precio', 120, y);
+      doc.text('Und', 145, y);
+      doc.text('Monto', 170, y);
+      y += 4;
+      doc.setFont('helvetica', 'normal');
+      doc.line(14, y, 196, y); // Línea horizontal
+      y += 5;
+
+      // ==============================
+      // LISTADO DE PRODUCTOS
+      // ==============================
+      let subtotal = 0;
+      this.productos.forEach((p) => {
+        const monto = p.precio * p.cantidad;
+        subtotal += monto;
+
+        doc.text(`${p.descripcion}`, 14, y);
+        doc.text(`L. ${p.precio.toFixed(2)}`, 120, y);
+        doc.text(`${p.cantidad}`, 145, y);
+        doc.text(`L. ${monto.toFixed(2)}`, 170, y);
+        y += 5;
+      });
+
+      doc.line(14, y, 196, y); // Línea horizontal
+      y += 5;
+
+      // ==============================
+      // TOTALES
+      // ==============================
+      const impuestos = subtotal * 0.15;
+      const total = subtotal + impuestos;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Sub-total:`, 140, y);
+      doc.text(`L. ${subtotal.toFixed(2)}`, 170, y);
+      y += 5;
+
+      doc.text(`Impuestos (15%):`, 140, y);
+      doc.text(`L. ${impuestos.toFixed(2)}`, 170, y);
+      y += 5;
+
+      doc.text(`Total:`, 140, y);
+      doc.text(`L. ${total.toFixed(2)}`, 170, y);
+      y += 5;
+
+      // ==============================
+      // PREVIEW EN NUEVA PESTAÑA
+      // ==============================
+      const blobUrl = doc.output('bloburl');
+      window.open(blobUrl, '_blank');
+      
+      // Insertar datos en el endpoint /Facturas/Insertar
+      this.insertarFactura();
     });
-
-    doc.line(14, y, 196, y); // Línea horizontal
-    y += 5;
-
-    // ==============================
-    // TOTALES
-    // ==============================
-    const impuestos = subtotal * 0.15;
-    const total = subtotal + impuestos;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Sub-total:`, 140, y);
-    doc.text(`L. ${subtotal.toFixed(2)}`, 170, y);
-    y += 5;
-
-    doc.text(`Impuestos (15%):`, 140, y);
-    doc.text(`L. ${impuestos.toFixed(2)}`, 170, y);
-    y += 5;
-
-    doc.text(`Total:`, 140, y);
-    doc.text(`L. ${total.toFixed(2)}`, 170, y);
-    y += 5;
-
-    // ==============================
-    // PREVIEW EN NUEVA PESTAÑA
-    // ==============================
-    const blobUrl = doc.output('bloburl');
-    window.open(blobUrl, '_blank');
-  });
-}
+  }
+  
+  /**
+   * Inserta los datos del pedido como factura en el endpoint /Facturas/Insertar
+   * @returns Observable con la respuesta del servidor
+   */
+  insertarFactura(): Observable<any> {
+    if (!this.PedidoDetalle) {
+      this.mostrarMensajeError('No hay datos de pedido para insertar como factura');
+      return throwError(() => new Error('No hay datos de pedido para insertar como factura'));
+    }
+    
+    // Insertar la factura en el sistema
+    return this.pedidoInvoiceService.insertarFactura();
+  }
+  
+  /**
+   * Realiza el proceso completo de venta: insertar factura y mostrar modal de selección de formato
+   */
+  realizarVenta(): void {
+    if (!this.PedidoDetalle) {
+      this.mostrarMensajeError('No hay datos de pedido para realizar la venta');
+      return;
+    }
+    
+    this.procesandoVenta = true;
+    
+    // Paso 1: Insertar la factura
+    this.insertarFactura().subscribe({
+      next: (response: any) => {
+        console.log('Factura insertada correctamente:', response);
+        const facturaId = response.id || response.fact_Id || 'N/A';
+        this.mostrarMensajeExito(`Factura insertada correctamente.`);
+        
+        // Marcar que la factura se ha insertado correctamente
+        this.facturaInsertada = true;
+        
+        // Mostrar el modal para seleccionar el formato de factura
+        this.abrirModalFormatoFactura();
+        
+        // Opcional: Actualizar el estado del pedido si es necesario
+        // this.actualizarEstadoPedido(this.PedidoDetalle.pedi_Id);
+      },
+      error: (error: any) => {
+        console.error('Error al insertar la factura:', error);
+        let mensajeError = 'Error al insertar la factura: inventario insuficiente';
+        
+        // Intentar obtener más detalles del error
+        if (error.error && error.error.message) {
+          mensajeError += `: ${error.error.message}`;
+        } else if (error.message) {
+          mensajeError += `: ${error.message}`;
+        }
+        
+        this.mostrarMensajeError(mensajeError);
+      },
+      complete: () => {
+        this.procesandoVenta = false;
+      }
+    });
+  }
 
 
 get subtotal(): number {
@@ -577,10 +650,9 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
           }
         }
 
-        this.mostrarMensajeExito(`${this.dispositivosDisponibles.length} impresora(s) encontrada(s)`);
       } else {
         this.dispositivosDisponibles = [];
-        this.mostrarMensajeError('No se encontraron impresoras Zebra');
+
       }
       
     } catch (error) {
@@ -695,45 +767,70 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
   }
 
   /**
-   * Método principal de impresión ZPL
+   * Método principal de impresión ZPL - COPIADO EXACTO DE VENTAS/DETAILS
    */
   async imprimirPedidoZPL(): Promise<void> {
-    if (!this.PedidoDetalle) {
-      this.mostrarMensajeError('No hay datos de pedido para imprimir');
-      return;
-    }
-
-    this.imprimiendo = true;
-    this.mostrarAlertaError = false;
-    this.mostrarAlertaExito = false;
-
-    try {
-      const browserPrint = new ZebraBrowserPrintWrapper();
-      const defaultPrinter = await browserPrint.getDefaultPrinter();
-      browserPrint.setPrinter(defaultPrinter);
-      const printerStatus = await browserPrint.checkPrinterStatus();
-
-      if (printerStatus.isReadyToPrint) {
-        const pedidoData = this.pedidoInvoiceService.prepararDatosParaZPL();
-        const zplCode = this.zplPrintingService.generateInvoiceZPL(pedidoData);
-        await browserPrint.print(zplCode);
-        
-        this.mostrarMensajeExito(`Pedido ${this.PedidoDetalle.pedi_Id} enviado a impresión correctamente`);
-      } else {
-        this.mostrarMensajeError(`Error en la impresora: ${printerStatus.errors}`);
+      if (!this.PedidoDetalle) {
+        this.mostrarMensajeError('No hay datos de pedido para imprimir');
+        return;
       }
 
-    } catch (error: any) {
-      console.error('Error al imprimir pedido:', error);
-      this.mostrarMensajeError('Error al imprimir pedido: ' + error.message);
-    } finally {
-      this.imprimiendo = false;
+      this.imprimiendo = true;
+      this.mostrarAlertaError = false;
+      this.mostrarAlertaExito = false;
+
+      try {
+        // Create a new instance of the object (igual que printBarcode)
+        const browserPrint = new ZebraBrowserPrintWrapper();
+
+        // Select default printer (igual que printBarcode)
+        const defaultPrinter = await browserPrint.getDefaultPrinter();
+      
+        // Set the printer (igual que printBarcode)
+        browserPrint.setPrinter(defaultPrinter);
+
+        // Check printer status (igual que printBarcode)
+        const printerStatus = await browserPrint.checkPrinterStatus();
+
+        // Check if the printer is ready (igual que printBarcode)
+        if(printerStatus.isReadyToPrint) {
+          
+          // Preparar datos de pedido
+          const pedidoData = this.pedidoInvoiceService.prepararDatosParaZPL();
+          
+          // Generar código ZPL del pedido
+          const zplCode = this.zplPrintingService.generateInvoiceZPL(pedidoData);
+
+          // Imprimir el pedido (igual que printBarcode)
+          await browserPrint.print(zplCode);
+          
+          this.mostrarMensajeExito(`Pedido ${this.PedidoDetalle.pedi_Id} enviado a impresión correctamente`);
+          this.cerrarConfiguracionImpresion();
+          
+        } else {
+          console.log("Error/s", printerStatus.errors);
+          this.mostrarMensajeError(`Error en la impresora: ${printerStatus.errors}`);
+        }
+
+      } catch (error: any) {
+        console.error('Error al imprimir pedido:', error);
+        this.mostrarMensajeError('Error al imprimir pedido: ' + error.message);
+      } finally {
+        this.imprimiendo = false;
+      }
     }
-  }
 
   // ===== MÉTODOS DE CONFIGURACIÓN =====
 
-  abrirConfiguracionImpresion(): void {
+  async abrirConfiguracionImpresion(): Promise<void> {
+    // Asegurar que Zebra Browser Print esté inicializado
+    if (!this.zebraBrowserPrint) {
+      await this.inicializarZebraBrowserPrint();
+    }
+    
+    // Refrescar dispositivos disponibles
+    await this.refrescarDispositivos();
+    
     this.mostrarConfiguracionImpresion = true;
   }
 
@@ -748,6 +845,35 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
   onBackdropClick(event: Event): void {
     if (event.target === event.currentTarget) {
       this.cerrarConfiguracionImpresion();
+    }
+  }
+  
+  // Métodos para el modal de selección de formato de factura
+  abrirModalFormatoFactura(): void {
+    this.formatoSeleccionado = null;
+    this.mostrarModalFormatoFactura = true;
+  }
+  
+  cerrarModalFormatoFactura(): void {
+    this.mostrarModalFormatoFactura = false;
+  }
+  
+  seleccionarFormato(formato: 'pdf' | 'zpl'): void {
+    this.formatoSeleccionado = formato;
+  }
+  
+  onBackdropClickFormato(event: Event): void {
+    if (event.target === event.currentTarget) {
+      this.cerrarModalFormatoFactura();
+    }
+  }
+  
+  // Este método ya no es necesario para la acción de los botones,
+  // pero lo mantenemos por si se necesita en el futuro
+  confirmarFormatoFactura(): void {
+    if (!this.formatoSeleccionado) {
+      this.mostrarMensajeError('Debe seleccionar un formato de factura');
+      return;
     }
   }
 
