@@ -438,4 +438,6 @@ export class EditComponent implements OnChanges {
       removeFile(event: any) {
         this.uploadedFiles.splice(this.uploadedFiles.indexOf(event), 1);
       }
+
+      
 }
