@@ -103,10 +103,19 @@ export class CreateComponent {
 
   guardar(): void {
     this.mostrarErrores = true;
+
+    // Validación de correo
+    if (this.proveedor.prov_Correo?.trim() && !this.esCorreoValido(this.proveedor.prov_Correo)) {
+      this.mensajeWarning = 'Ingrese un correo válido.';
+      this.mostrarAlertaWarning = true;
+
+      setTimeout(() => this.cerrarAlerta(), 3000);
+      return; // Bloquea el guardado
+    }
+
     if (this.proveedor.prov_NombreEmpresa.trim() && this.proveedor.prov_Codigo.trim() &&
         this.proveedor.prov_NombreContacto.trim() && this.proveedor.prov_Telefono.trim() &&
-        this.proveedor.colo_Id > 0 && this.proveedor.prov_DireccionExacta.trim() &&
-        this.proveedor.prov_Correo.trim() && this.proveedor.prov_Observaciones.trim()) {
+        this.proveedor.colo_Id > 0 && this.proveedor.prov_DireccionExacta.trim()) {
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
       const proveedorGuardar = {
@@ -156,7 +165,7 @@ export class CreateComponent {
     }
   }
 
-  revisarCorreoValido(correo: string): boolean {
+  esCorreoValido(correo: string): boolean {
     if (!correo) return true;
     // Debe contener "@" y terminar en ".com" y aceptar cualquier dominio
     return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
