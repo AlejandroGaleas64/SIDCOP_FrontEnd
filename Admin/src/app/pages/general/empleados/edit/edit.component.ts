@@ -439,5 +439,104 @@ export class EditComponent implements OnChanges {
         this.uploadedFiles.splice(this.uploadedFiles.indexOf(event), 1);
       }
 
+      // Objeto para rastrear cambios
+      cambiosDetectados: any = {};
+
+      private hayDiferencias(): boolean {
+          if (!this.empleado) return false;
+
+          this.cambiosDetectados = {};
+
+          // Verificar cambio en la descripción del impuesto
+          if (this.empleado.empl_DNI.trim() !== this.empleadoOriginal) {
+            this.cambiosDetectados.descripcion = {
+              anterior: this.empleadoOriginal || 'Sin descripción',
+              nuevo: this.empleado.empl_DNI.trim(),
+              label: 'DNI del Empleado'
+            };
+          }
+
+          // Verificar cambio en la descripción del impuesto
+          if (this.empleado.empl_Codigo.trim() !== this.empleadoOriginal) {
+            this.cambiosDetectados.descripcion = {
+              anterior: this.empleadoOriginal || 'Sin descripción',
+              nuevo: this.empleado.empl_Codigo.trim(),
+              label: 'Codigo del Empleado'
+            };
+          }
+
+          // Verificar cambio en el valor del impuesto
+          if (this.empleado.empl_Nombres !== this.empleadoOriginal) {
+            this.cambiosDetectados.valor = {
+              anterior: this.empleadoOriginal,
+              nuevo: this.empleado.empl_Nombres,
+              label: 'Nombres del empleado'
+            };
+          }
+
+
+          // Verificar cambio en el valor del impuesto
+          if (this.empleado.empl_Apellidos !== this.empleadoOriginal) {
+            this.cambiosDetectados.valor = {
+              anterior: this.empleadoOriginal,
+              nuevo: this.empleado.empl_Apellidos,
+              label: 'Apellidos del empleado'
+            };
+          } 
+
+          // Verificar cambio en el valor del impuesto
+          if (this.empleado.empl_Sexo  !== this.empleadoOriginal) {
+            this.cambiosDetectados.valor = {
+              anterior: this.empleadoOriginal,
+              nuevo: this.empleado.empl_Sexo,
+              label: 'Apellidos del empleado'
+            };
+          } 
+
+          // Verificar cambio en el valor del impuesto
+          if (this.empleado.empl_Sexo  !== this.empleadoOriginal) {
+            this.cambiosDetectados.valor = {
+              anterior: this.empleadoOriginal,
+              nuevo: this.empleado.empl_Sexo,
+              label: 'Apellidos del empleado'
+            };
+          } 
+
+          // Verificar cambio en el valor del impuesto
+          if (this.empleado.empl_Correo  !== this.empleadoOriginal) {
+            this.cambiosDetectados.valor = {
+              anterior: this.empleadoOriginal,
+              nuevo: this.empleado.empl_Correo,
+              label: 'Correo del empleado'
+            };
+          } 
+
+          // Verificar cambio en el valor del impuesto
+          if (this.empleado.empl_Telefono  !== this.empleadoOriginal) {
+            this.cambiosDetectados.valor = {
+              anterior: this.empleadoOriginal,
+              nuevo: this.empleado.empl_Telefono,
+              label: 'Telefono del empleado'
+            };
+          } 
+
+          // Verificar cambio en el valor del impuesto
+          if (this.empleado.empl_Telefono  !== this.empleadoOriginal) {
+            this.cambiosDetectados.valor = {
+              anterior: this.empleadoOriginal,
+              nuevo: this.empleado.empl_Telefono,
+              label: 'Telefono del empleado'
+            };
+          }
+          
+
+          return Object.keys(this.cambiosDetectados).length > 0;
+        }
+
+        // Método para obtener la lista de cambios en formato para mostrar en el modal
+        obtenerListaCambios(): any[] {
+          return Object.values(this.cambiosDetectados);
+        }
+
       
 }
