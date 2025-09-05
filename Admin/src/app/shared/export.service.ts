@@ -431,6 +431,7 @@ export class ExportService {
       img.onload = () => {
         try {
           const canvas = document.createElement('canvas');
+          // Usar un contexto 2d con configuración de alta calidad
           const ctx = canvas.getContext('2d');
           
           if (!ctx) {
@@ -439,29 +440,51 @@ export class ExportService {
             return;
           }
           
-          const maxWidth = 120;
-          const maxHeight = 60;
+          // Aumentar las dimensiones máximas para mejor calidad
+          const maxWidth = 200; // Increased for better quality
+          const maxHeight = 100; // Increased for better quality
           let { width, height } = img;
           
+          // Mantener la relación de aspecto original
+          const aspectRatio = width / height;
+          
+          // Redimensionar manteniendo la relación de aspecto
           if (width > height) {
             if (width > maxWidth) {
-              height = height * (maxWidth / width);
+              height = maxWidth / aspectRatio;
               width = maxWidth;
             }
           } else {
             if (height > maxHeight) {
-              width = width * (maxHeight / height);
+              width = maxHeight * aspectRatio;
               height = maxHeight;
             }
           }
           
+          // Asegurar que las dimensiones sean números enteros para evitar problemas de renderizado
+          width = Math.round(width);
+          height = Math.round(height);
+          
+          // Configurar el canvas con las dimensiones calculadas
           canvas.width = width;
           canvas.height = height;
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0, width, height);
           
-          const dataUrl = canvas.toDataURL('image/png', 0.8);
-          console.log('Logo precargado correctamente');
+          // Activar suavizado de alta calidad (con verificación de tipo)
+          if (ctx) {
+            // Aplicar configuración de alta calidad
+            (ctx as CanvasRenderingContext2D).imageSmoothingEnabled = true;
+            (ctx as CanvasRenderingContext2D).imageSmoothingQuality = 'high';
+            
+            // Limpiar el canvas antes de dibujar
+            ctx.clearRect(0, 0, width, height);
+            
+            // Dibujar la imagen con alta calidad
+            ctx.drawImage(img, 0, 0, width, height);
+          }
+          
+          // Generar la URL de datos con máxima calidad (1.0)
+          const dataUrl = canvas.toDataURL('image/png', 1.0);
+          console.log('Logo precargado correctamente con alta calidad');
           resolve(dataUrl);
         } catch (e) {
           console.error('Error al procesar el logo:', e);
@@ -501,7 +524,16 @@ export class ExportService {
     // Agregar logo si está disponible
     if (this.logoDataUrl) {
       try {
-        doc.addImage(this.logoDataUrl, 'PNG', 20, 5, 30, 25);
+        // Usar mejor calidad de compresión para la imagen en el PDF
+        doc.addImage({
+          imageData: this.logoDataUrl,
+          format: 'PNG',
+          x: 20,
+          y: 5,
+          width: 30,
+          height: 25,
+          alias: 'logo'         // Alias para reutilizar la misma imagen si aparece varias veces
+        });
       } catch (e) {
         console.error('Error al agregar imagen al PDF:', e);
       }
