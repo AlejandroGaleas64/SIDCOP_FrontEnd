@@ -155,7 +155,6 @@ export class EditComponent implements OnChanges {
 
   confirmarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
-    console.log('Confirmar edición de proveedor');
     this.guardar();
   }
 
@@ -245,17 +244,10 @@ export class EditComponent implements OnChanges {
       { key: 'prov_Observaciones', label: 'Observaciones' },
     ];
 
-    console.log('=== COMPARANDO CAMPOS BÁSICOS ===');
     camposBasicos.forEach(campo => {
       const valorOriginal = original[campo.key];
       const valorNuevo = nuevo[campo.key];
       const sonDiferentes = trim(valorOriginal) !== trim(valorNuevo);
-
-      console.log(`Campo: ${campo.key}`, {
-        original: valorOriginal,
-        nuevo: valorNuevo,
-        sonDiferentes
-      });
 
       if (sonDiferentes && (valorOriginal !== '' && valorOriginal != null)) {
         const item = {
@@ -265,7 +257,6 @@ export class EditComponent implements OnChanges {
         };
         this.cambiosDetectados[campo.key] = item as any;
         cambios.push(item);
-        console.log(`Cambio detectado en ${campo.key}:`, item);
       }
     });
 

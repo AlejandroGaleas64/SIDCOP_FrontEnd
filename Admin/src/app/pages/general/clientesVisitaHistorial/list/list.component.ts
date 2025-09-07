@@ -246,7 +246,6 @@ export class ListComponent {
       this.manejarResultadoExport(resultado);
 
     } catch (error) {
-      console.error(`Error en exportación ${tipo}:`, error);
       this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
     } finally {
       this.exportando = false;
@@ -312,7 +311,6 @@ export class ListComponent {
         this.exportConfig.dataMapping.call(this, modelo, index)
       );
     } catch (error) {
-      console.error('Error obteniendo datos:', error);
       throw error;
     }
   }
@@ -432,7 +430,7 @@ export class ListComponent {
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
         }
       } catch (e) {
-        console.error('Error al parsear permisosJson:', e);
+        // console.error('Error al parsear permisosJson:', e);
       }
     }
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLocaleLowerCase());
@@ -458,8 +456,6 @@ export class ListComponent {
           this.showDetailsForm = true;
           this.showCreateForm = false;
           this.activeActionRow = null;
-          console.log('Visitas Detalle cargadas:', this.visitasDetalle);
-          console.log('show:', this.showDetailsForm);
         } else {
           this.visitasDetalle = [];
           this.showDetailsForm = false;
@@ -467,7 +463,6 @@ export class ListComponent {
         }
       },
       error: (err) => {
-        console.error('Error al cargar visitas:', err);
         this.visitasDetalle = [];
         this.showDetailsForm = false;
         this.mostrarMensaje('error', 'No se pudo cargar el historial de visitas.');
@@ -561,7 +556,6 @@ export class ListComponent {
 
 
   guardarVisita(visita: ClientesVisitaHistorial): void {
-    console.log('Visita guardada exitosamente desde create component:', visita);
     this.cargarDatos(false);
     this.cerrarFormulario();
   }

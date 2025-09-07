@@ -61,7 +61,6 @@ export class DetailsComponent implements OnChanges {
         this.cargarAvales();
         this.cargarUltimaVisita();
       } catch (error) {
-        console.error('Error al cargar detalles del cliente:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los detalles del cliente.';
         this.cargando = false;
@@ -215,7 +214,6 @@ export class DetailsComponent implements OnChanges {
         params: { clie_Id: this.clienteDetalle.clie_Id }
       }
     ).subscribe(visitas => {
-      console.log('Visitas recibidas:', visitas);
       if (visitas && visitas.length > 0) {
         this.ultimaVisita = visitas[0].clVi_Fecha; // Ajusta el campo si es necesario
       } else {

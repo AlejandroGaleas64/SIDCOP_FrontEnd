@@ -95,8 +95,6 @@ export class CreateComponent {
         usuarioCreacion: "", 
         usuarioModificacion: "" 
       };
-
-      console.log('Guardando estadoVisita:', estadoVisitaGuardar);
       
       this.http.post<any>(`${environment.apiBaseUrl}/EstadoVisita/Insertar`, estadoVisitaGuardar, {
         headers: { 
@@ -106,7 +104,6 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          console.log('Estado de Visita guardada exitosamente:', response);
           this.mensajeExito = `Estado de Visita "${this.estadoVisita.esVi_Descripcion}" guardada exitosamente`;
           this.mostrarAlertaExito = true;
           this.mostrarErrores = false;
@@ -119,7 +116,6 @@ export class CreateComponent {
           }, 3000);
         },
         error: (error) => {
-          console.error('Error al guardar estadoVisita:', error);
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al guardar la estadoVisita. Por favor, intente nuevamente.';
           this.mostrarAlertaExito = false;
