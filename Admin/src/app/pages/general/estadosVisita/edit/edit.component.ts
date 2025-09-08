@@ -131,7 +131,6 @@ export class EditComponent implements OnChanges {
           }, 3000);
         },
         error: (error) => {
-          console.error('Error al actualizar estadoVisita:', error);
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al actualizar la estadoVisita. Por favor, intente nuevamente.';
           setTimeout(() => this.cerrarAlerta(), 5000);
@@ -163,12 +162,6 @@ export class EditComponent implements OnChanges {
       const valorOriginal = original[campo.key];
       const valorNuevo = nuevo[campo.key];
       const sonDiferentes = trim(valorOriginal) !== trim(valorNuevo);
-
-      console.log(`Campo: ${campo.key}`, {
-        original: valorOriginal,
-        nuevo: valorNuevo,
-        sonDiferentes
-      });
 
       if (sonDiferentes) {
         const item = {

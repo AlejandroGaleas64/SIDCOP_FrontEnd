@@ -347,7 +347,6 @@ export class ListComponent implements OnInit {
         this.manejarResultadoExport(resultado);
         
       } catch (error) {
-        console.error(`Error en exportación ${tipo}:`, error);
         this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
       } finally {
         this.exportando = false;
@@ -385,7 +384,6 @@ export class ListComponent implements OnInit {
         }));
         
       } catch (error) {
-        console.error('Error obteniendo datos:', error);
         throw error;
       }
     }
@@ -480,7 +478,7 @@ export class ListComponent implements OnInit {
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
         }
       } catch (e) {
-        console.error('Error al parsear permisosJson:', e);
+        // console.error('Error al parsear permisosJson:', e);
       }
     } 
     // AQUI FILTRAMOS Y NORMALIZAMOS LAS ACCIONES
