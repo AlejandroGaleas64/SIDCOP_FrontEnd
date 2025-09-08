@@ -101,23 +101,32 @@ export class ListComponent {
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
       { key: 'No', header: 'No.', width: 3, align: 'center' as const },
-      { key: 'Código Vendedor', header: 'Código Vendedor', width: 15, align: 'left' as const },
+      { key: 'Código', header: 'Código', width: 15, align: 'left' as const },
       { key: 'Vendedor', header: 'Vendedor', width: 30, align: 'left' as const },
       { key: 'Tipo', header: 'Tipo', width: 50, align: 'left' as const },
       { key: 'Ruta', header: 'Ruta', width: 50, align: 'left' as const },
-      { key: 'Días de la semana', header: 'Días de la semana', width: 50, align: 'left' as const },
+      { key: 'Días de la semana que visita', header: 'Días de la semana que visita', width: 50, align: 'left' as const },
     ] as ExportColumn[],
 
     // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
     dataMapping: (visita: VisitaClientePorVendedorDto, index: number) => ({
       'No': visita?.No || (index + 1),
       'Código Vendedor': this.limpiarTexto(visita?.vend_Codigo),
-      'Vendedor': this.limpiarTexto(visita?.vend_Nombres + visita.vend_Apellidos),
-      'Tipo': this.limpiarTexto(visita?.vend_Tipo),
-      'Ruta': this.limpiarTexto(visita?.ruta_Descripcion),
-      'Días de la semana': this.limpiarTexto(visita?.veRu_Dias),
+      'Vendedor': this.limpiarTexto(visita?.vend_Nombres + ' ' + visita?.vend_Apellidos),
+      'Tipo': this.obtenerTipoVendedor(visita?.vend_Tipo),
+      'Ruta': this.limpiarTexto(visita.ruta_Descripcion),
+      'Días de la semana que visita': this.limpiarTexto(visita.veRu_Dias),
     })
   };
+
+  private obtenerTipoVendedor(tipo: string): string {
+    switch ((tipo || '').toUpperCase()) {
+      case 'V': return 'Venta Directa';
+      case 'P': return 'Preventista';
+      case 'F': return 'Entregador';
+      default: return this.limpiarTexto(tipo);
+    }
+  }
 
 
   busqueda: string = '';
@@ -299,7 +308,7 @@ export class ListComponent {
   /**
    * Obtiene y prepara los datos para exportación
    */
-   private obtenerDatosExport(): any[] {
+  private obtenerDatosExport(): any[] {
     try {
       const datos = this.vendedores; // Use the array for cards
 
