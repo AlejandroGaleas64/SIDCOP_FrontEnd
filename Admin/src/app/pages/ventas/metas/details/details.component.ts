@@ -1,11 +1,13 @@
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgApexchartsModule } from 'ng-apexcharts';
+import { ApexChart, ApexNonAxisChartSeries, ApexPlotOptions, ApexFill, ApexDataLabels, ApexStroke, ApexGrid } from 'ng-apexcharts';
+import {FormsModule} from '@angular/forms';
 
 @Component({
   selector: 'app-details',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule],
+  imports: [CommonModule, NgApexchartsModule, FormsModule],
   templateUrl: './details.component.html',
   styleUrl: './details.component.scss'
 })
@@ -20,11 +22,21 @@ export class DetailsComponent implements OnChanges {
   mensajeError = '';
 
   vendedoresParsed: any[] = [];
+  vendedorCharts: { [vendId: number]: any } = {};
+  filterVendedor: string = '';
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['metaData'] && changes['metaData'].currentValue) {
       this.cargarDetallesSimulado(changes['metaData'].currentValue);
     }
+  }
+
+  get vendedoresFiltrados(): any[] {
+    if (!this.filterVendedor) return this.vendedoresParsed;
+    const filter = this.filterVendedor.toLowerCase();
+    return this.vendedoresParsed.filter(v =>
+      (v.Vend_NombreCompleto || '').toLowerCase().includes(filter)
+    );
   }
 
   cargarDetallesSimulado(data: any): void {
@@ -43,6 +55,12 @@ export class DetailsComponent implements OnChanges {
         } else {
           this.vendedoresParsed = [];
         }
+
+        this.vendedorCharts = {};
+        for (const v of this.vendedoresParsed) {
+          this.vendedorCharts[v.Vend_Id] = this.getVendedorChartConfig(v);
+        }
+        
       } catch (error) {
         console.error('Error al cargar detalles de la meta:', error);
         this.mostrarAlertaError = true;
@@ -74,7 +92,37 @@ export class DetailsComponent implements OnChanges {
     });
   }
 
+  private getChartColorsArray(colors: any) {
+    colors = JSON.parse(colors);
+    return colors.map(function (value: any) {
+      var newValue = value.replace(" ", "");
+      if (newValue.indexOf(",") === -1) {
+        var color = getComputedStyle(document.documentElement).getPropertyValue(newValue);
+        if (color) {
+          color = color.replace(" ", "");
+          return color;
+        }
+        else return newValue;;
+      } else {
+        var val = value.split(',');
+        if (val.length == 2) {
+          var rgbaColor = getComputedStyle(document.documentElement).getPropertyValue(val[0]);
+          rgbaColor = "rgba(" + rgbaColor + "," + val[1] + ")";
+          return rgbaColor;
+        } else {
+          return newValue;
+        }
+      }
+    });
+  }
+
   getVendedorChartConfig(vendedor: any): any {
+
+
+    const colorsarray = this.getChartColorsArray('["#14192e", "#29142e", "#2e2914", "#192e14", "#2e1c14", "#262e14", "#2e1419", "#142e1c", "#1c142e", "#14262e" ]');
+    const color = colorsarray[Math.floor(Math.random() * colorsarray.length)];
+
+
   // Decide which progress to use based on metaDetalle.meta_Tipo
   let progress = 0;
   if (['CM', 'TP', 'CN', 'PE'].includes(this.metaDetalle.meta_Tipo)) {
@@ -92,7 +140,7 @@ export class DetailsComponent implements OnChanges {
   } else if (['IM', 'IT', 'IP', 'PC'].includes(this.metaDetalle.meta_Tipo)) {
     total = this.metaDetalle.meta_Ingresos || 1;
   }
-  let percent = Math.round((progress / total) * 100);
+  let percent = ((progress / total) * 100);
 
   // Use your _semiCircleChart logic, but return a new object for each vendedor
   return {
@@ -124,8 +172,9 @@ export class DetailsComponent implements OnChanges {
           name: { show: false },
           value: {
             offsetY: -2,
-            fontSize: "18px",
-            formatter: (val: any) => `${val}%`
+            fontSize: "14px",
+            // formatter: (val: any) => `${val}%`
+            formatter: (val: any) => `${parseFloat(val).toFixed(2)}%`
           },
         },
       },
@@ -143,7 +192,8 @@ export class DetailsComponent implements OnChanges {
       },
     },
     labels: ["Progreso"],
-    colors: ["#D6B68A"], // or use your getChartColorsArray if you want dynamic color
+    // colors: ["#D6B68A"], // or use your getChartColorsArray if you want dynamic color
+    colors: [color],
   };
 }
 }
