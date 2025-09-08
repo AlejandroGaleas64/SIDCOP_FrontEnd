@@ -37,7 +37,11 @@ export class CreateComponent {
     mensajeError = '';
     mostrarAlertaWarning = false;
     mensajeWarning = '';
-  
+
+    isDragOver: boolean = false;
+    selectedFile: File | null = null;
+    imagePreview: string | null = null;
+    
     constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {}
 
     ngOnInit(): void {
@@ -83,6 +87,9 @@ export class CreateComponent {
 
       // Limpiar imagen
       this.uploadedFiles = [];
+      this.selectedFile = null;
+    this.imagePreview = null;
+    this.isDragOver = false;
 
       // Recargar lista de empleados para obtener el código actualizado
       this.cargarEmpleados();
@@ -358,18 +365,79 @@ export class CreateComponent {
     imageURL: any;
 
     onFileSelected(event: any) {
-      const file = Array.isArray(event) ? event[0] : event;
-      if (!file) return;
-
-      // Previsualización local inmediata
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.uploadedFiles = [{ ...file, dataURL: e.target.result, name: file.name, file: file }];
-      };
-      reader.readAsDataURL(file);
+      let file: File;
+    
+    // Manejar tanto eventos de input como de dropzone
+    if (event.target && event.target.files) {
+      file = event.target.files[0];
+    } else if (Array.isArray(event)) {
+      file = event[0];
+    } else {
+      file = event;
     }
 
+    if (!file) return;
+
+    // Validar que sea una imagen
+    if (!file.type.startsWith('image/')) {
+      this.mostrarAlertaError = true;
+      this.mensajeError = 'Por favor selecciona una imagen válida';
+      return;
+    }
+
+    // Validar tamaño (50MB como tienes en dropzoneConfig)
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSize) {
+      this.mostrarAlertaError = true;
+      this.mensajeError = 'La imagen es demasiado grande. Máximo 50MB.';
+      return;
+    }
+
+    this.selectedFile = file;
+
+    // Previsualización local inmediata (tu lógica original)
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.imagePreview = e.target.result;
+      this.uploadedFiles = [{ 
+        ...file, 
+        dataURL: e.target.result, 
+        name: file.name, 
+        file: file 
+      }];
+    };
+    reader.readAsDataURL(file);
+    }
+
+    onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = false;
     
+    if (event.dataTransfer?.files && event.dataTransfer.files[0]) {
+      this.onFileSelected(event.dataTransfer.files[0]);
+    }
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
 
       // Método para obtener la URL completa de la imagen para mostrarla
       getImageDisplayUrl(imagePath: string): string {
@@ -378,7 +446,25 @@ export class CreateComponent {
     
       // File Remove
       removeFile(event: any) {
-        this.uploadedFiles.splice(this.uploadedFiles.indexOf(event), 1);
+        if (event && event.stopPropagation) {
+          event.stopPropagation();
+        }
+        
+        // Limpiar las nuevas propiedades
+        this.selectedFile = null;
+        this.imagePreview = null;
+        
+        // Limpiar tu lógica original
+        if (this.uploadedFiles.length > 0) {
+          this.uploadedFiles.splice(this.uploadedFiles.indexOf(event), 1);
+        }
+        this.uploadedFiles = [];
+
+        // Limpiar el input file
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        if (fileInput) {
+          fileInput.value = '';
+        }
       }
 
 
