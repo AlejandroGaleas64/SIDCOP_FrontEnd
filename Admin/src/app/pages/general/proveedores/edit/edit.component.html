@@ -32,7 +32,7 @@
     backgroundColor: (!proveedor.prov_Codigo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
     padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
             <input type="text" class="form-control" [class.is-invalid]="mostrarErrores && !proveedor.prov_Codigo.trim()"
-              [(ngModel)]="proveedor.prov_Codigo" placeholder="Código del proveedor">
+              [(ngModel)]="proveedor.prov_Codigo" maxlength="10" placeholder="Código del proveedor">
             <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="mostrarErrores && !proveedor.prov_Codigo.trim()">
@@ -55,7 +55,7 @@
             <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="mostrarErrores && !proveedor.prov_NombreEmpresa.trim()">
-            <small>El campo empresa es requerido</small>
+            <small>El campo Empresa es requerido</small>
           </div>
         </div>
       </div>
@@ -147,7 +147,7 @@
             <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="mostrarErrores && !proveedor.prov_DireccionExacta.trim()">
-            <small>El campo Dirección es requerido</small>
+            <small>El campo Dirección Exacta es requerido</small>
           </div>
         </div>
       </div>
@@ -178,11 +178,7 @@
       <div class="col-md-12">
         <div class="mb-3">
           <label class="form-label">Observaciones</label>
-          <textarea class="form-control" [(ngModel)]="proveedor.prov_Observaciones" placeholder="Observaciones"
-            [class.is-invalid]="mostrarErrores && !proveedor.prov_Observaciones.trim()"></textarea>
-          <div class="text-danger mt-1" *ngIf="mostrarErrores && !proveedor.prov_Observaciones.trim()">
-            <small>El campo Observaciones es requerido</small>
-          </div>
+          <textarea class="form-control" [(ngModel)]="proveedor.prov_Observaciones" placeholder="Observaciones"></textarea>
         </div>
       </div>
     </div>

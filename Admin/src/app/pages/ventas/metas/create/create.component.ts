@@ -62,12 +62,12 @@ export class CreateComponent implements OnInit {
 
   // Tipo options (updated)
   tiposMeta = [
-    { value: 'IT', label: 'Ingresos Totales' },
-    { value: 'TP', label: 'Total Productos (Cantidad)' },
-    { value: 'CN', label: 'Clientes Nuevos' },
-    { value: 'PE', label: 'Producto Específico (Cantidad)' },
-    { value: 'IP', label: 'Ingresos de Producto Específico' },
-    { value: 'PC', label: 'Productos de Categoría (Ingresos)' },
+    { value: 'IT', label: 'Ingresos Totales - Automatico' },
+    { value: 'TP', label: 'Productos Vendidos Totales (Unidades) - Automatico' },
+    { value: 'CN', label: 'Clientes Nuevos - Automatico' },
+    { value: 'PE', label: 'Producto Específico (Unidades) - Automatico' },
+    { value: 'IP', label: 'Ingresos de Producto Específico - Automatico' },
+    { value: 'PC', label: 'Productos vendidos de Categoría - Automatico' },
     { value: 'CM', label: 'Cantidades Administradas Manualmente' },
     { value: 'IM', label: 'Ingresos Administradas Manualmente' }
   ];

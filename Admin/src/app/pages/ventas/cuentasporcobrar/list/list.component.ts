@@ -52,6 +52,11 @@ export class ListComponent implements OnInit {
   resumenSortField: string = '';
   resumenSortDirection: 'asc' | 'desc' = 'asc';
 
+  // Variables para paginación de resumen de antigüedad
+  resumenPaginaActual: number = 1;
+  resumenTamanoPagina: number = 10;
+  resumenTotalItems: number = 0;
+
   // Variables para acciones de fila
   activeActionRow: number | null = null;
   showEdit = true;
@@ -394,22 +399,21 @@ irADetalles(id: number): void {
     }
   }
 
-filtrarResumenAntiguedad(): void {
-  let data = [...this.resumenAntiguedad];
+  filtrarResumenAntiguedad(): void {
+    let data = [...this.resumenAntiguedad];
 
-  if (this.resumenSearchTerm) {
-    const term = this.resumenSearchTerm.toLowerCase().trim();
-data = data.filter(d => 
-  d.cliente?.toLowerCase().includes(term) ||
-  d.total?.toString().includes(term) ||
-  d._1_30?.toString().includes(term)
-);
+    if (this.resumenSearchTerm) {
+      const term = this.resumenSearchTerm.toLowerCase().trim();
+      data = data.filter(d => 
+        d.cliente?.toLowerCase().includes(term) ||
+        d.total?.toString().includes(term) ||
+        d._1_30?.toString().includes(term)
+      );
+    }
 
+    this.resumenAntiguedadFiltrado = this.sortDataResumen(data);
+    this.resumenTotalItems = this.resumenAntiguedadFiltrado.length;
   }
-
-  this.resumenAntiguedadFiltrado = this.sortDataResumen(data);
-}
-
 
   sortResumenBy(field: string): void {
     if (!field) return;
@@ -447,6 +451,18 @@ data = data.filter(d =>
 
   navegar(tabDestino: number) {
     this.activeTab = tabDestino;
+  }
+
+  // Getter para obtener solo los elementos de la página actual para el resumen de antigüedad
+  get resumenAntiguedadPaginado(): any[] {
+    const startItem = (this.resumenPaginaActual - 1) * this.resumenTamanoPagina;
+    const endItem = this.resumenPaginaActual * this.resumenTamanoPagina;
+    return this.resumenAntiguedadFiltrado.slice(startItem, endItem);
+  }
+
+  // Método para cambiar de página en el resumen de antigüedad
+  pageChangedResumen(event: any): void {
+    this.resumenPaginaActual = event.page;
   }
 
   // Métodos para exportación de la tabla principal
@@ -511,6 +527,25 @@ data = data.filter(d =>
     const usuario = localStorage.getItem('usuario') || 'Usuario';
     const empresa = localStorage.getItem('empresa') || 'SIDCOP';
     
+    // Crear una copia de los datos para la exportación
+    const datosExport = datos.map(item => {
+      // Crear un objeto con las propiedades formateadas para la exportación
+      return {
+        secuencia: item.secuencia,
+        cliente: item.cliente,
+        clie_NombreNegocio: item.clie_NombreNegocio,
+        clie_Telefono: item.clie_Telefono,
+        facturasPendientes: item.facturasPendientes,
+        totalFacturado: typeof item.totalFacturado === 'number' ? 
+          `L ${this.formatearNumero(item.totalFacturado)}` : item.totalFacturado,
+        totalPendiente: typeof item.totalPendiente === 'number' ? 
+          `L ${this.formatearNumero(item.totalPendiente)}` : item.totalPendiente,
+        totalVencido: typeof item.totalVencido === 'number' ? 
+          `L ${this.formatearNumero(item.totalVencido)}` : item.totalVencido,
+        ultimoPago: item.ultimoPago
+      };
+    });
+    
     return {
       title: 'Cuentas por Cobrar',
       filename: 'Cuentas_por_Cobrar',
@@ -529,8 +564,19 @@ data = data.filter(d =>
         user: usuario,
         department: empresa
       },
-      data: datos
+      data: datosExport
     };
+  }
+  
+  // Método para formatear números con dos decimales
+  private formatearNumero(numero: number | null | undefined): string {
+    if (numero === null || numero === undefined || isNaN(numero)) {
+      return '0.00';
+    }
+    return numero.toLocaleString('es-HN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   }
 
   private manejarResultadoExport(resultado: any): void {
@@ -607,6 +653,28 @@ data = data.filter(d =>
     const usuario = localStorage.getItem('usuario') || 'Usuario';
     const empresa = localStorage.getItem('empresa') || 'SIDCOP';
     
+    // Crear una copia de los datos para la exportación con formato monetario
+    const datosExport = this.resumenAntiguedadFiltrado.map(item => {
+      // Crear un objeto con las propiedades formateadas para la exportación
+      return {
+        secuencia: item.secuencia,
+        cliente: item.cliente,
+        clie_NombreNegocio: item.clie_NombreNegocio,
+        actual: typeof item.actual === 'number' ? 
+          `L ${this.formatearNumero(item.actual)}` : item.actual,
+        _1_30: typeof item._1_30 === 'number' ? 
+          `L ${this.formatearNumero(item._1_30)}` : item._1_30,
+        _31_60: typeof item._31_60 === 'number' ? 
+          `L ${this.formatearNumero(item._31_60)}` : item._31_60,
+        _61_90: typeof item._61_90 === 'number' ? 
+          `L ${this.formatearNumero(item._61_90)}` : item._61_90,
+        mayor90: typeof item.mayor90 === 'number' ? 
+          `L ${this.formatearNumero(item.mayor90)}` : item.mayor90,
+        total: typeof item.total === 'number' ? 
+          `L ${this.formatearNumero(item.total)}` : item.total
+      };
+    });
+    
     return {
       title: 'Resumen de Antigüedad de Cuentas por Cobrar',
       filename: 'Resumen_Antiguedad_CxC',
@@ -621,7 +689,7 @@ data = data.filter(d =>
         { header: 'Mayor a 90 días', key: 'mayor90' },
         { header: 'Total', key: 'total' }
       ],
-      data: this.resumenAntiguedadFiltrado,
+      data: datosExport,
       metadata: {
         user: usuario,
         department: empresa

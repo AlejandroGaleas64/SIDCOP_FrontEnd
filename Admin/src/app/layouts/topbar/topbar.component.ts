@@ -145,12 +145,19 @@ export class TopbarComponent {
   }
 
   windowScroll() {
+    const backToTopElement = document.getElementById('back-to-top');
+    const pageTopbar = document.getElementById('page-topbar');
+    
     if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
-      (document.getElementById('back-to-top') as HTMLElement).style.display = "block";
-      document.getElementById('page-topbar')?.classList.add('topbar-shadow')
+      if (backToTopElement) {
+        backToTopElement.style.display = "block";
+      }
+      pageTopbar?.classList.add('topbar-shadow');
     } else {
-      (document.getElementById('back-to-top') as HTMLElement).style.display = "none";
-      document.getElementById('page-topbar')?.classList.remove('topbar-shadow')
+      if (backToTopElement) {
+        backToTopElement.style.display = "none";
+      }
+      pageTopbar?.classList.remove('topbar-shadow');
     }
   }
 

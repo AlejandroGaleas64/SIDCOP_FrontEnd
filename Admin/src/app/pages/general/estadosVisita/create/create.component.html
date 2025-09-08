@@ -1,6 +1,6 @@
 <div class="d-flex flex-column" style="height: 100%; min-height: 250px;">
     <!-- Título del componente -->
-    <h5 class="card-title mb-4">Crear Nuevo Estado de Visita<span class="text-danger">*</span></h5>
+    <h5 class="card-title mb-4">Crear Nuevo Estado de Visita</h5>
     
     <!-- Contenedor de alertas flotantes -->
     <div class="alert-container">
@@ -30,6 +30,8 @@
       <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
+            <label class="form-label">Descripción</label>
+            <span class="text-danger">*</span>
             <div class="d-flex align-items-center">
                          <i class="ri-attachment-line" [ngStyle]="{
                 border: (!estadoVisita.esVi_Descripcion.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
@@ -48,7 +50,7 @@
               <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
             </div>
             <div class="text-danger mt-1" *ngIf="!estadoVisita.esVi_Descripcion.trim() && mostrarErrores">
-              <small>El campo Descripción del estado de Visita es requerido</small>
+              <small>El campo Descripción del Estado de Visita es requerido</small>
             </div>
           </div>
         </div>

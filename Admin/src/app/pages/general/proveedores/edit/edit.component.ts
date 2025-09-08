@@ -13,7 +13,7 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
   selector: 'app-edit',
   standalone: true,
   imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule, NgxMaskDirective],
-  templateUrl:'./edit.component.html',
+  templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss',
   providers: [provideNgxMask()],
 })
@@ -122,9 +122,8 @@ export class EditComponent implements OnChanges {
     this.mostrarErrores = true;
 
     if (this.proveedor.prov_NombreEmpresa.trim() && this.proveedor.prov_Codigo.trim() &&
-        this.proveedor.prov_NombreContacto.trim() && this.proveedor.prov_Telefono.trim() &&
-        this.proveedor.colo_Id > 0 && this.proveedor.prov_DireccionExacta.trim() &&
-        this.proveedor.prov_Correo.trim() && this.proveedor.prov_Observaciones.trim()) {
+      this.proveedor.prov_NombreContacto.trim() && this.proveedor.prov_Telefono.trim() &&
+      this.proveedor.colo_Id > 0 && this.proveedor.prov_DireccionExacta.trim()) {
       if (
         this.proveedor.prov_NombreEmpresa.trim() !== this.proveedorOriginal.prov_NombreEmpresa.trim() ||
         this.proveedor.prov_Codigo.trim() !== this.proveedorOriginal.prov_Codigo.trim() ||
@@ -156,7 +155,6 @@ export class EditComponent implements OnChanges {
 
   confirmarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
-    console.log('Confirmar edición de proveedor');
     this.guardar();
   }
 
@@ -178,9 +176,8 @@ export class EditComponent implements OnChanges {
   guardar(): void {
     this.mostrarErrores = true;
     if (this.proveedor.prov_NombreEmpresa.trim() && this.proveedor.prov_Codigo.trim() &&
-        this.proveedor.prov_NombreContacto.trim() && this.proveedor.prov_Telefono.trim() &&
-        this.proveedor.colo_Id > 0 && this.proveedor.prov_DireccionExacta.trim() &&
-        this.proveedor.prov_Correo.trim() && this.proveedor.prov_Observaciones.trim()) {
+      this.proveedor.prov_NombreContacto.trim() && this.proveedor.prov_Telefono.trim() &&
+      this.proveedor.colo_Id > 0 && this.proveedor.prov_DireccionExacta.trim()) {
       const proveedorActualizar = {
         ...this.proveedor,
         usua_Modificacion: getUserId(),
@@ -224,12 +221,12 @@ export class EditComponent implements OnChanges {
 
 
 
-    // Objeto para almacenar los cambios detectados
+  // Objeto para almacenar los cambios detectados
   cambiosDetectados: any = {};
   proveedorOriginal: any = {};
 
   obtenerListaCambios(): { label: string; anterior: string; nuevo: string }[] {
-   const cambios: { label: string; anterior: string; nuevo: string }[] = [];
+    const cambios: { label: string; anterior: string; nuevo: string }[] = [];
 
     const val = (v: any) => v == null || v === '' ? '—' : String(v);
     const trim = (s: any) => (s ?? '').toString().trim();
@@ -238,37 +235,29 @@ export class EditComponent implements OnChanges {
     this.cambiosDetectados = {};
 
     const camposBasicos = [
-        { key: 'prov_Codigo', label: 'Código' },
-        { key: 'prov_NombreEmpresa', label: 'Empresa' },
-        { key: 'prov_NombreContacto', label: 'Contacto' },
-        { key: 'prov_Telefono', label: 'Teléfono' },
-        { key: 'prov_DireccionExacta', label: 'Dirección Exacta' },
-        { key: 'prov_Correo', label: 'Correo' },
-        { key: 'prov_Observaciones', label: 'Observaciones' },
+      { key: 'prov_Codigo', label: 'Código' },
+      { key: 'prov_NombreEmpresa', label: 'Empresa' },
+      { key: 'prov_NombreContacto', label: 'Contacto' },
+      { key: 'prov_Telefono', label: 'Teléfono' },
+      { key: 'prov_DireccionExacta', label: 'Dirección Exacta' },
+      { key: 'prov_Correo', label: 'Correo' },
+      { key: 'prov_Observaciones', label: 'Observaciones' },
     ];
 
-    console.log('=== COMPARANDO CAMPOS BÁSICOS ===');
     camposBasicos.forEach(campo => {
-        const valorOriginal = original[campo.key];
-        const valorNuevo = nuevo[campo.key];
-        const sonDiferentes = trim(valorOriginal) !== trim(valorNuevo);
-        
-        console.log(`Campo: ${campo.key}`, {
-            original: valorOriginal,
-            nuevo: valorNuevo,
-            sonDiferentes
-        });
+      const valorOriginal = original[campo.key];
+      const valorNuevo = nuevo[campo.key];
+      const sonDiferentes = trim(valorOriginal) !== trim(valorNuevo);
 
-        if (sonDiferentes && (valorOriginal !== '' && valorOriginal != null)) {
-            const item = {
-                anterior: val(valorOriginal),
-                nuevo: val(valorNuevo),
-                label: campo.label
-            };
-            this.cambiosDetectados[campo.key] = item as any;
-            cambios.push(item);
-            console.log(`Cambio detectado en ${campo.key}:`, item);
-        }
+      if (sonDiferentes && (valorOriginal !== '' && valorOriginal != null)) {
+        const item = {
+          anterior: val(valorOriginal),
+          nuevo: val(valorNuevo),
+          label: campo.label
+        };
+        this.cambiosDetectados[campo.key] = item as any;
+        cambios.push(item);
+      }
     });
 
     // Helper para mapeo de colonia
@@ -307,28 +296,20 @@ export class EditComponent implements OnChanges {
       };
     }
 
-     // Verificar colonia
-  //   if (nuevo.colo_Id !== original.colo_Id &&
-  // !(original.colo_Id == null && nuevo.colo_Id === 0)) {
-  //       const item = { anterior: coloNombre(original.colo_Id), nuevo: coloNombre(nuevo.colo_Id), label: 'Colonia' };
-  //       this.cambiosDetectados.colonia = item as any;
-  //       cambios.push(item);
-  //   }
+    if (nuevo.colo_Id !== original.colo_Id) {
+      const coloniaAnterior = this.TodosColonias.find(c => c.colo_Id === original.colo_Id);
+      const coloniaNueva = this.TodosColonias.find(c => c.colo_Id === nuevo.colo_Id);
 
-if (nuevo.colo_Id !== original.colo_Id) {
-  const coloniaAnterior = this.TodosColonias.find(c => c.colo_Id === original.colo_Id);
-  const coloniaNueva = this.TodosColonias.find(c => c.colo_Id === nuevo.colo_Id);
+      const item = {
+        anterior: coloniaAnterior ? `${coloniaAnterior.colo_Descripcion} - ${coloniaAnterior.muni_Descripcion} - ${coloniaAnterior.depa_Descripcion}` : 'No seleccionada',
+        nuevo: coloniaNueva ? `${coloniaNueva.colo_Descripcion} - ${coloniaNueva.muni_Descripcion} - ${coloniaNueva.depa_Descripcion}` : 'No seleccionada',
+        label: 'Colonia'
+      };
+      this.cambiosDetectados.colonia = item;
+      cambios.push(item); // <-- Esto es lo que faltaba
+    }
 
-  const item = {
-    anterior: coloniaAnterior ? `${coloniaAnterior.colo_Descripcion} - ${coloniaAnterior.muni_Descripcion} - ${coloniaAnterior.depa_Descripcion}` : 'No seleccionada',
-    nuevo: coloniaNueva ? `${coloniaNueva.colo_Descripcion} - ${coloniaNueva.muni_Descripcion} - ${coloniaNueva.depa_Descripcion}` : 'No seleccionada',
-    label: 'Colonia'
-  };
-  this.cambiosDetectados.colonia = item;
-  cambios.push(item); // <-- Esto es lo que faltaba
-}
-
-      if (nuevo.prov_DireccionExacta !== original.prov_DireccionExacta) {
+    if (nuevo.prov_DireccionExacta !== original.prov_DireccionExacta) {
       this.cambiosDetectados.direccionExacta = {
         anterior: original.prov_DireccionExacta,
         nuevo: nuevo.prov_DireccionExacta,
@@ -351,16 +332,6 @@ if (nuevo.colo_Id !== original.colo_Id) {
         label: 'Observaciones'
       };
     }
-
-    // if (a.coFa_RutaMigracion !== b.coFa_RutaMigracion) {
-    //   this.cambiosDetectados.rutaMigracion = {
-    //     anterior: b.coFa_RutaMigracion,
-    //     nuevo: a.coFa_RutaMigracion,
-    //     label: 'Ruta de Migración'
-    //   };
-    // }
-
- 
 
     return cambios;
   }

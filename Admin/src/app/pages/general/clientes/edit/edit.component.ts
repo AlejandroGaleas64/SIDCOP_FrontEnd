@@ -276,10 +276,8 @@ export class EditComponent implements OnChanges {
       return;
     }
 
-    if (no === 4) {
-      //console.log('2do',4);      
-      if (this.tieneDatosCredito()) {
-        //console.log('2do',this.tieneDatosCredito());      
+    if (no === 4) {   
+      if (this.tieneDatosCredito()) {   
         this.mostrarErrores = true;
         if (
           this.avales.length > 0 &&
@@ -786,7 +784,6 @@ export class EditComponent implements OnChanges {
           this.isUploading = false;
         })
         .catch(error => {
-          console.error('Error al subir la imagen:', error);
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al subir la imagen. Por favor, intente nuevamente.';
           this.isUploading = false;
@@ -895,8 +892,6 @@ export class EditComponent implements OnChanges {
         usuaC_Nombre: this.cliente.usuaC_Nombre,
         usuaM_Nombre: this.cliente.usuaM_Nombre,
       };
-
-      //console.log('cliente', clienteActualizar );
       this.http
         .put<any>(
           `${environment.apiBaseUrl}/Cliente/Actualizar`,
@@ -934,17 +929,6 @@ export class EditComponent implements OnChanges {
               }, 3000);
               return;
             }
-            // this.actualizarDireccionesYAvales();
-
-            // this.mensajeExito = `Cliente "${this.cliente.clie_Nombres + ' ' + this.cliente.clie_Apellidos}" actualizado exitosamente`;
-            // this.mostrarAlertaExito = true;
-            // this.mostrarErrores = false;
-            // this.onSave.emit(this.cliente);
-
-            // setTimeout(() => {
-            //   this.mostrarAlertaExito = false;
-            //   this.mensajeExito = '';
-            // }, 4000);
           },
           error: (error) => {
             this.mostrarAlertaError = true;

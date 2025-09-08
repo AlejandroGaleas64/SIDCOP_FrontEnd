@@ -85,7 +85,7 @@ export function obtenerSucursalId(): number {
 
 export function obtenerRegCId(): number {
   const usuario = obtenerUsuarioActual();
-  return usuario?.regc_Id || 0;
+  return usuario?.regC_Id || 0;
 }
 /* ========== Información personal ========== */
 

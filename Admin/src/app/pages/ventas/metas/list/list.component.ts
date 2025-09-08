@@ -24,8 +24,10 @@ import { CreateComponent } from '../create/create.component';
 import { EditComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
-// Cambia el modelo a MetaModel si tienes uno, si no, usa any temporalmente
-// import { Meta } from 'src/app/Modelos/inventario/MetaModel';
+
+import { ProgressComponent } from '../progress/progress.component';
+
+import { Meta } from 'src/app/Modelos/ventas/MetaModel';
 import {
   trigger,
   state,
@@ -35,6 +37,10 @@ import {
 } from '@angular/animations';
 import { set } from 'lodash';
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/exportHori.service';
+
+import localeEsHN from '@angular/common/locales/es-HN';
+import { registerLocaleData } from '@angular/common';
+registerLocaleData(localeEsHN, 'es-HN');
 
 @Component({
   selector: 'app-list',
@@ -53,7 +59,8 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
     CurrencyMaskModule,
     CreateComponent,
     EditComponent,
-    DetailsComponent
+    DetailsComponent,
+    ProgressComponent
   ],
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss'],
@@ -109,13 +116,14 @@ export class ListComponent implements OnInit {
       'No': meta?.meta_Id || (index + 1),
       'meta_Descripcion': this.limpiarTexto(meta?.meta_Descripcion),
       'meta_Tipo': this.limpiarTexto(
-        meta?.meta_Tipo === 'IT'
-          ? 'Ingresos y Unidades'
-          : meta?.meta_Tipo === 'I'
-            ? 'Ingresos'
-            : meta?.meta_Tipo === 'U'
-              ? 'Unidades'
-              : 'N/A'
+        meta?.meta_Tipo 
+        // === 'IT'
+          // ? 'Ingresos y Unidades'
+          // : meta?.meta_Tipo === 'I'
+          //   ? 'Ingresos'
+          //   : meta?.meta_Tipo === 'U'
+          //     ? 'Unidades'
+          //     : 'N/A'
       ),
       'meta_Ingresos': meta?.meta_Ingresos ?? '',
       'meta_Unidades': meta?.meta_Unidades ?? '',
@@ -175,6 +183,18 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null;
   }
 
+    abrirProgreso(meta: any): void {
+    this.metaProgreso = {...meta};
+    this.mostrarProgresoForm = true;
+    this.showCreateForm = false;
+    this.showEditForm = false;
+    this.showDetailsForm = false;
+    this.activeActionRow = null;
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 0);
+  }
+
   activeActionRow: number | null = null;
   showEdit = true;
   showDetails = true;
@@ -184,6 +204,9 @@ export class ListComponent implements OnInit {
   showDetailsForm = false;
   metaEditando: any = null;
   metaDetalle: any = null;
+
+  mostrarProgresoForm: boolean = false;
+  metaProgreso: any = null;
 
   mostrarOverlayCarga = false;
   mostrarAlertaExito = false;
@@ -197,7 +220,7 @@ export class ListComponent implements OnInit {
   metaEliminar: any = null;
 
   constructor(
-    public table: ReactiveTableService<any>,
+    public table: ReactiveTableService<Meta>,
     private http: HttpClient,
     private router: Router,
     private route: ActivatedRoute,
@@ -229,6 +252,13 @@ export class ListComponent implements OnInit {
     this.metaDetalle = null;
   }
 
+
+cerrarProgresoForm() {
+  this.metaProgreso = null;
+  this.mostrarProgresoForm = false;
+  this.cargardatos(false);
+}
+
   guardarMeta(meta: any): void {
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
@@ -246,7 +276,7 @@ export class ListComponent implements OnInit {
   actualizarMeta(meta: any): void {
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
-      this.cargardatos(false);
+      this.cargardatos(true);
       this.showEditForm = false;
       this.mensajeExito = `Meta actualizada exitosamente`;
       this.mostrarAlertaExito = true;
@@ -266,12 +296,13 @@ export class ListComponent implements OnInit {
   cancelarEliminar(): void {
     this.mostrarConfirmacionEliminar = false;
     this.metaEliminar = null;
+    this.mostrarOverlayCarga = false;
   }
 
   eliminar(): void {
     if (!this.metaEliminar) return;
     this.mostrarOverlayCarga = true;
-    this.http.post(`${environment.apiBaseUrl}/Metas/Eliminar/${this.metaEliminar.meta_Id}`, {}, {
+    this.http.put(`${environment.apiBaseUrl}/Metas/Eliminar/${this.metaEliminar.meta_Id}`, {}, {
       headers: {
         'X-Api-Key': environment.apiKey,
         'accept': '*/*'
@@ -355,18 +386,27 @@ export class ListComponent implements OnInit {
 
   private cargardatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Metas/ListarCompleto`, {
+    this.http.get<Meta[]>(`${environment.apiBaseUrl}/Metas/ListarCompleto`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
       const tienePermisoListar = this.accionPermitida('listar');
       const userId = getUserId();
 
       console.log('Datos recibidos api metas:', data);
-      const datosFiltrados = data
+      const datosFiltrados = data;
         // : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
+      
+      const finalData = datosFiltrados.map((meta, index) => ({
+        ...meta,
+        No: index + 1,
+        meta_Objetivo: (['IT','IP','PC','IM'].includes(meta.meta_Tipo) ? meta.meta_Ingresos : meta.meta_Unidades),
+        // meta_Ingresos: meta.meta_Ingresos?.toLocaleString('es-HN', { style: 'currency', currency: 'HNL', minimumFractionDigits: 2 }),
 
+        
+      }));
+      
       setTimeout(() => {
-        this.table.setData(datosFiltrados);
+        this.table.setData(finalData);
         this.mostrarOverlayCarga = false;
       }, 500);
     });
