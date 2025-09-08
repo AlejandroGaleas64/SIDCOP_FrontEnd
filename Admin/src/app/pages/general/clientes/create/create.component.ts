@@ -674,7 +674,6 @@ export class CreateComponent {
           this.imagePreview = '';
         })
         .catch(error => {
-          console.error('Error al subir la imagen:', error);
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al subir la imagen. Por favor, intente nuevamente.';
           this.isUploading = false;
@@ -975,8 +974,6 @@ export class CreateComponent {
   guardarAvales(clie_Id: number): void {
     // Solo guardar si el cliente tiene crédito y hay avales válidos
     if (this.tieneDatosCredito() && this.avales.length > 0 && this.avales.every(aval => this.esAvalValido(aval))) {
-      console.log('Avales:', this.avales);
-      console.log('¿Todos válidos?', this.avales.every(aval => this.esAvalValido(aval)));
       for (const aval of this.avales) {
         const avalGuardar = {
           Aval_Id: aval.aval_Id,
@@ -1021,7 +1018,6 @@ export class CreateComponent {
             }, 3000);
           }
         });
-        console.log('Enviando aval:', avalGuardar);
       }
     }
   }
