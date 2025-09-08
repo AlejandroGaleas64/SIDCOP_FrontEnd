@@ -96,7 +96,6 @@ export class CreateComponent {
         usuarioModificacion: "" 
       };
 
-      console.log('Guardando departamento:', departamentoGuardar);
       this.http.post<any>(`${environment.apiBaseUrl}/Departamentos/Insertar`, departamentoGuardar, {
         headers: { 
           'X-Api-Key': environment.apiKey,
@@ -107,7 +106,6 @@ export class CreateComponent {
         next: (response) => {
           if (response.data.code_Status === 1) 
           {
-            console.log('Departamento guardado exitosamente:', response);
             this.mensajeExito = `Departamento "${this.departamento.depa_Descripcion}" guardado exitosamente`;
             this.mostrarAlertaExito = true;
             this.mostrarErrores = false;
@@ -121,7 +119,6 @@ export class CreateComponent {
           }
           else 
           {
-            console.error('Error al guardar departamento:' + response.data.message_Status);
             this.mostrarAlertaError = true;
             this.mensajeError = 'Error al guardar el departamento, ' + response.data.message_Status;
             this.mostrarAlertaExito = false;
@@ -135,7 +132,6 @@ export class CreateComponent {
           
         },
         error: (error) => {
-          console.error('Error al guardar departamento:', error);
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al guardar el departamento. Por favor, intente nuevamente.';
           this.mostrarAlertaExito = false;
