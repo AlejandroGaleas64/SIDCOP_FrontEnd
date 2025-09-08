@@ -152,7 +152,6 @@ export class EditComponent {
           }
           else
           {
-            console.error('Error al actualizar departamento:', response.data.message_Status);
             this.mostrarAlertaError = true;
             this.mensajeError = 'Error al actualizar el departamento, ', response.data.message_Status;
             setTimeout(() => this.cerrarAlerta(), 5000);
@@ -160,7 +159,6 @@ export class EditComponent {
           
         },
         error: (error) => {
-          console.error('Error al actualizar departamento:', error);
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al actualizar el departamento. Por favor, intente nuevamente.';
           setTimeout(() => this.cerrarAlerta(), 5000);
