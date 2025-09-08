@@ -424,28 +424,28 @@ export class InvoiceService {
     doc.setTextColor(this.COLORES.azulOscuro);
     doc.setFont('Satoshi', 'bold');
     doc.setFontSize(12);
-    doc.text(this.facturaDetalle.coFa_NombreEmpresa, centerX - 90, yPos + 5); // Reducido de +8 a +5
+    doc.text(this.facturaDetalle.coFa_NombreEmpresa, centerX - 80, yPos + 5); // Reducido de +8 a +5
 
     doc.setFont('Satoshi', 'normal');
     doc.setFontSize(9);
     
     // RTN de la empresa (si existe)
     if (this.facturaDetalle.coFa_RTN) {
-      doc.text(`RTN: ${this.facturaDetalle.coFa_RTN}`, centerX - 90, yPos + 8);
+      doc.text(`RTN: ${this.facturaDetalle.coFa_RTN}`, centerX - 80, yPos + 8);
       //yPos += 5; // Agregar espacio adicional si se muestra el RTN
     }
     
-    doc.text(this.facturaDetalle.coFa_DireccionEmpresa, centerX - 90, yPos + 12); // Reducido de +16 a +12
+    doc.text(this.facturaDetalle.coFa_DireccionEmpresa, centerX - 80, yPos + 12); // Reducido de +16 a +12
     
     // Teléfonos de la empresa (mostrar ambos si existen)
     let telefonoEmpresaTexto = `Tel: ${this.facturaDetalle.coFa_Telefono1}`;
     if (this.facturaDetalle.coFa_Telefono2 && this.facturaDetalle.coFa_Telefono2.trim() !== '') {
       telefonoEmpresaTexto += ` / ${this.facturaDetalle.coFa_Telefono2}`;
     }
-    doc.text(telefonoEmpresaTexto, centerX-90, yPos + 16);
+    doc.text(telefonoEmpresaTexto, centerX-80, yPos + 16);
     
     // Email
-    doc.text(`Email: ${this.facturaDetalle.coFa_Correo}`, centerX-90, yPos + 20);
+    doc.text(`Email: ${this.facturaDetalle.coFa_Correo}`, centerX-80, yPos + 20);
 
     // Información de la factura (centrada)
     doc.setFont('Satoshi', 'normal');
@@ -457,24 +457,24 @@ export class InvoiceService {
     doc.setTextColor(this.COLORES.azulOscuro);
     doc.setFont('Satoshi', 'bold');
     doc.setFontSize(12);
-    doc.text(`No. ${this.facturaDetalle.fact_Numero}`, centerX+30, yPos+5, );
+    doc.text(`No. ${this.facturaDetalle.fact_Numero}`, centerX+20, yPos+5, );
     
     // Fecha de emisión
     doc.setFont('Satoshi', 'normal');
     doc.setFontSize(9);
-    doc.text(`Fecha: ${this.formatearFecha(this.facturaDetalle.fact_FechaEmision)}`, centerX+30, yPos+10, );
+    doc.text(`Fecha: ${this.formatearFecha(this.facturaDetalle.fact_FechaEmision)}`, centerX+20, yPos+10, );
     
     // Tipo de venta con formato condicional
     const tipoVenta = this.formatearTipoVenta(this.facturaDetalle.fact_TipoVenta);
-    doc.text(`Tipo: ${tipoVenta}`, centerX+30, yPos+15, );
+    doc.text(`Tipo: ${tipoVenta}`, centerX+20, yPos+15, );
     
     // CAI
-    doc.text(`CAI: ${this.facturaDetalle.regC_Descripcion}`, centerX+30, yPos + 20, );
+    doc.text(`CAI: ${this.facturaDetalle.regC_Descripcion}`, centerX+20, yPos + 20, );
     
     // Sucursal (si existe)
     if (this.facturaDetalle.sucu_Descripcion) {
       //yPos += 5; // Agregar espacio adicional
-      doc.text(`Sucursal: ${this.facturaDetalle.sucu_Descripcion}`, centerX+30, yPos + 25, );
+      doc.text(`Sucursal: ${this.facturaDetalle.sucu_Descripcion}`, centerX+20, yPos + 25, );
     }
 
     yPos += 30; // Reducido de 45 a 30
@@ -482,7 +482,7 @@ export class InvoiceService {
     // Línea separadora
     doc.setDrawColor(this.COLORES.dorado);
     doc.setLineWidth(1);
-    doc.line(50, yPos, pageWidth - 58, yPos);
+    doc.line(15, yPos, pageWidth - 15, yPos);
     yPos += 5; // Reducido de 10 a 5
 
     // Información del cliente
@@ -492,10 +492,8 @@ export class InvoiceService {
     doc.setFontSize(10);
     
     // Cliente
-    doc.setFont('Satoshi', 'bold');
-    doc.text('Cliente:', 54, yPos + 8);
     doc.setFont('Satoshi', 'normal');
-    doc.text(`${this.facturaDetalle.cliente}`, 90, yPos + 8);
+    doc.text(`Cliente: ${this.facturaDetalle.cliente}`, centerX -80, yPos + 8);
     
     // RTN del cliente (si existe)
     if (this.facturaDetalle.clie_RTN && this.facturaDetalle.clie_RTN.trim() !== '') {
@@ -532,7 +530,7 @@ export class InvoiceService {
     yPos += 35; // Reducido de 50 a 35
 
     // Línea separadora
-    doc.line(50, yPos, pageWidth - 58, yPos);
+    //doc.line(15, yPos, pageWidth - 15, yPos);
     yPos += 5; // Reducido de 10 a 5 para disminuir el espacio entre la línea y la tabla
 
     return yPos;
@@ -608,7 +606,7 @@ export class InvoiceService {
           // Línea separadora
           doc.setDrawColor(this.COLORES.dorado);
           doc.setLineWidth(1);
-          doc.line(50, 35, pageWidth - 58, 35);
+          doc.line(15, 35, pageWidth - 15, 35);
         }
         
         // Pie de página estático (en todas las páginas)
@@ -621,7 +619,7 @@ export class InvoiceService {
           // Línea separadora para el pie de página
           doc.setDrawColor(this.COLORES.dorado);
           doc.setLineWidth(0.5);
-          doc.line(50, pageHeight - pieHeight, pageWidth - 58, pageHeight - pieHeight);
+          doc.line(15, pageHeight - pieHeight, pageWidth - 15, pageHeight - pieHeight);
           
           // Información del pie de página
           doc.setFont('helvetica', 'normal');
@@ -642,7 +640,7 @@ export class InvoiceService {
     doc.setFont('helvetica', 'italic');
     doc.setFontSize(8);
     doc.setTextColor(this.COLORES.grisTexto);
-    doc.text('* Producto gravado con impuesto', 50, finalY + 5);
+    doc.text('* Producto gravado con impuesto', 15, finalY + 5);
     
     // Actualizar la posición final
     finalY += 8;
