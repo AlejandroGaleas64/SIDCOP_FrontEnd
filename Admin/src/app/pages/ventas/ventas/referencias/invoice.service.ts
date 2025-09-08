@@ -354,8 +354,8 @@ export class InvoiceService {
     }
 
     try {
-      const doc = new jsPDF('portrait');
-
+      const doc = new jsPDF('p', 'mm', 'a4');
+ 
       // Crear encabezado de factura (primera página)
       const startY = await this.crearEncabezadoFactura(doc);
 
@@ -404,7 +404,7 @@ export class InvoiceService {
   private async crearEncabezadoFactura(doc: jsPDF): Promise<number> {
     if (!this.facturaDetalle) return 30;
 
-    let yPos = 25; // Reducido de 38 a 25 para subir todo el contenido
+    let yPos = 34; // Reducido de 38 a 25 para subir todo el contenido
     const pageWidth = doc.internal.pageSize.width;
     const centerX = pageWidth / 2;
 
@@ -418,55 +418,63 @@ export class InvoiceService {
       }
     }
 
+    
     // Información de la empresa (centrada)
+
     doc.setTextColor(this.COLORES.azulOscuro);
     doc.setFont('Satoshi', 'bold');
-    doc.setFontSize(16);
-    doc.text(this.facturaDetalle.coFa_NombreEmpresa, centerX, yPos + 5, { align: 'center' }); // Reducido de +8 a +5
+    doc.setFontSize(12);
+    doc.text(this.facturaDetalle.coFa_NombreEmpresa, centerX - 90, yPos + 5); // Reducido de +8 a +5
 
     doc.setFont('Satoshi', 'normal');
-    doc.setFontSize(10);
-    doc.text(this.facturaDetalle.coFa_DireccionEmpresa, centerX, yPos + 12, { align: 'center' }); // Reducido de +16 a +12
+    doc.setFontSize(9);
     
     // RTN de la empresa (si existe)
     if (this.facturaDetalle.coFa_RTN) {
-      doc.text(`RTN: ${this.facturaDetalle.coFa_RTN}`, centerX, yPos + 17, { align: 'center' });
-      yPos += 5; // Agregar espacio adicional si se muestra el RTN
+      doc.text(`RTN: ${this.facturaDetalle.coFa_RTN}`, centerX - 90, yPos + 8);
+      //yPos += 5; // Agregar espacio adicional si se muestra el RTN
     }
+    
+    doc.text(this.facturaDetalle.coFa_DireccionEmpresa, centerX - 90, yPos + 12); // Reducido de +16 a +12
     
     // Teléfonos de la empresa (mostrar ambos si existen)
     let telefonoEmpresaTexto = `Tel: ${this.facturaDetalle.coFa_Telefono1}`;
     if (this.facturaDetalle.coFa_Telefono2 && this.facturaDetalle.coFa_Telefono2.trim() !== '') {
       telefonoEmpresaTexto += ` / ${this.facturaDetalle.coFa_Telefono2}`;
     }
-    doc.text(telefonoEmpresaTexto, centerX, yPos + 17, { align: 'center' });
+    doc.text(telefonoEmpresaTexto, centerX-90, yPos + 16);
     
     // Email
-    doc.text(`Email: ${this.facturaDetalle.coFa_Correo}`, centerX, yPos + 22, { align: 'center' });
+    doc.text(`Email: ${this.facturaDetalle.coFa_Correo}`, centerX-90, yPos + 20);
 
     // Información de la factura (centrada)
     doc.setFont('Satoshi', 'normal');
     doc.setFontSize(10);
 
-    yPos += 25; // Reducido de 30 a 25
+    //yPos; // Reducido de 30 a 25
 
     // Número de factura
-    doc.text(`No. ${this.facturaDetalle.fact_Numero}`, centerX, yPos + 8, { align: 'center' });
+    doc.setTextColor(this.COLORES.azulOscuro);
+    doc.setFont('Satoshi', 'bold');
+    doc.setFontSize(12);
+    doc.text(`No. ${this.facturaDetalle.fact_Numero}`, centerX+30, yPos+5, );
     
     // Fecha de emisión
-    doc.text(`Fecha: ${this.formatearFecha(this.facturaDetalle.fact_FechaEmision)}`, centerX, yPos + 13, { align: 'center' });
+    doc.setFont('Satoshi', 'normal');
+    doc.setFontSize(9);
+    doc.text(`Fecha: ${this.formatearFecha(this.facturaDetalle.fact_FechaEmision)}`, centerX+30, yPos+10, );
     
     // Tipo de venta con formato condicional
     const tipoVenta = this.formatearTipoVenta(this.facturaDetalle.fact_TipoVenta);
-    doc.text(`Tipo: ${tipoVenta}`, centerX, yPos + 18, { align: 'center' });
+    doc.text(`Tipo: ${tipoVenta}`, centerX+30, yPos+15, );
     
     // CAI
-    doc.text(`CAI: ${this.facturaDetalle.regC_Descripcion}`, centerX, yPos + 23, { align: 'center' });
+    doc.text(`CAI: ${this.facturaDetalle.regC_Descripcion}`, centerX+30, yPos + 20, );
     
     // Sucursal (si existe)
     if (this.facturaDetalle.sucu_Descripcion) {
-      yPos += 5; // Agregar espacio adicional
-      doc.text(`Sucursal: ${this.facturaDetalle.sucu_Descripcion}`, centerX, yPos + 23, { align: 'center' });
+      //yPos += 5; // Agregar espacio adicional
+      doc.text(`Sucursal: ${this.facturaDetalle.sucu_Descripcion}`, centerX+30, yPos + 25, );
     }
 
     yPos += 30; // Reducido de 45 a 30
