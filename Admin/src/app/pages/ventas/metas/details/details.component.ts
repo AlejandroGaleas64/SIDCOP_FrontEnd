@@ -1,10 +1,11 @@
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NgApexchartsModule } from 'ng-apexcharts';
 
 @Component({
   selector: 'app-details',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgApexchartsModule],
   templateUrl: './details.component.html',
   styleUrl: './details.component.scss'
 })
@@ -72,4 +73,77 @@ export class DetailsComponent implements OnChanges {
       minute: '2-digit'
     });
   }
+
+  getVendedorChartConfig(vendedor: any): any {
+  // Decide which progress to use based on metaDetalle.meta_Tipo
+  let progress = 0;
+  if (['CM', 'TP', 'CN', 'PE'].includes(this.metaDetalle.meta_Tipo)) {
+    progress = vendedor.MeEm_ProgresoUnidades || 0;
+    // If you want percentage, calculate it here (e.g., progress / metaDetalle.meta_Unidades * 100)
+  } else if (['IM', 'IT', 'IP', 'PC'].includes(this.metaDetalle.meta_Tipo)) {
+    progress = vendedor.MeEm_ProgresoIngresos || 0;
+    // If you want percentage, calculate it here (e.g., progress / metaDetalle.meta_Ingresos * 100)
+  }
+
+  // Calculate percentage if you want a percent chart
+  let total = 100;
+  if (['CM', 'TP', 'CN', 'PE'].includes(this.metaDetalle.meta_Tipo)) {
+    total = this.metaDetalle.meta_Unidades || 1;
+  } else if (['IM', 'IT', 'IP', 'PC'].includes(this.metaDetalle.meta_Tipo)) {
+    total = this.metaDetalle.meta_Ingresos || 1;
+  }
+  let percent = Math.round((progress / total) * 100);
+
+  // Use your _semiCircleChart logic, but return a new object for each vendedor
+  return {
+    series: [percent],
+    chart: {
+      type: "radialBar",
+      height: 180,
+      offsetY: -10,
+      sparkline: { enabled: true }
+    },
+    plotOptions: {
+      radialBar: {
+        startAngle: -90,
+        endAngle: 90,
+        track: {
+          background: "#e7e7e7",
+          strokeWidth: "97%",
+          margin: 5,
+          dropShadow: {
+            enabled: true,
+            top: 2,
+            left: 0,
+            color: "#999",
+            opacity: 1,
+            blur: 2,
+          },
+        },
+        dataLabels: {
+          name: { show: false },
+          value: {
+            offsetY: -2,
+            fontSize: "18px",
+            formatter: (val: any) => `${val}%`
+          },
+        },
+      },
+    },
+    grid: { padding: { top: -10 } },
+    fill: {
+      type: "gradient",
+      gradient: {
+        shade: "light",
+        shadeIntensity: 0.4,
+        inverseColors: false,
+        opacityFrom: 1,
+        opacityTo: 1,
+        stops: [0, 50, 53, 91],
+      },
+    },
+    labels: ["Progreso"],
+    colors: ["#D6B68A"], // or use your getChartColorsArray if you want dynamic color
+  };
+}
 }
