@@ -112,7 +112,6 @@ export class EditComponent {
 
   private guardar(): void {
     this.mostrarErrores = true;
-    console.log(this.municipio);
 
     try {
     if (this.municipio.muni_Descripcion.trim()) {
@@ -151,7 +150,6 @@ export class EditComponent {
           }
           else
           {
-            console.error('Error al actualizar municipio:', response.data.message_Status);
             this.mostrarAlertaError = true;
             this.mensajeError = 'Error al actualizar el municipio, ', response.data.message_Status;
             setTimeout(() => this.cerrarAlerta(), 5000);
@@ -159,7 +157,6 @@ export class EditComponent {
           
         },
         error: (error) => {
-          console.error('Error al actualizar municipio:', error);
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al actualizar el municipio. Por favor, intente nuevamente.';
           setTimeout(() => this.cerrarAlerta(), 5000);
@@ -172,7 +169,6 @@ export class EditComponent {
     }
     }
     catch (error) {
-      console.error('Error al actualizar municipio:', error);
       this.mostrarAlertaError = true;
       this.mensajeError = 'Error al actualizar el municipio. Por favor, intente nuevamente.';
       setTimeout(() => this.cerrarAlerta(), 5000);

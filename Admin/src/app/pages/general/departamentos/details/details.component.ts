@@ -49,7 +49,6 @@ export class DetailsComponent implements OnChanges {
         this.departamentoDetalle = { ...data };
         this.cargando = false;
       } catch (error) {
-        console.error('Error al cargar detalles del departamento:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los detalles del departamento.';
         this.cargando = false;

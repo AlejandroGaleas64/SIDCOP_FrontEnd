@@ -250,7 +250,6 @@ export class ListComponent implements OnInit {
 
   confirmarEliminar(proveedor: Proveedor): void {
     this.proveedorAEliminar = proveedor;
-    console.log('Proveedor a eliminar:', this.proveedorAEliminar);
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null;
   }
@@ -262,7 +261,6 @@ export class ListComponent implements OnInit {
 
 eliminar(): void {
   if (!this.proveedorAEliminar) return;
-  console.log('Eliminando proveedor:', this.proveedorAEliminar);
   this.http.post(`${environment.apiBaseUrl}/Proveedor/Eliminar?id=${this.proveedorAEliminar.prov_Id}`,{}, {
     headers: { 
       'X-Api-Key': environment.apiKey,

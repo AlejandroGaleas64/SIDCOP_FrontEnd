@@ -38,7 +38,6 @@ export class DetailsComponent implements OnChanges {
         this.estadoVisitaDetalle = { ...data };
         this.cargando = false;
       } catch (error) {
-        console.error('Error al cargar detalles de el estado de visita:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los detalles de el estado de visita.';
         this.cargando = false;

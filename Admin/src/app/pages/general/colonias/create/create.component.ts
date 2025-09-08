@@ -66,14 +66,12 @@ export class CreateComponent implements OnInit {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (data) => this.Departamentos = data,
-      error: (error) => console.error('Error cargando departamentos:', error)
     });
 
     this.http.get<any>(`${environment.apiBaseUrl}/Municipios/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (data) => this.TodosMunicipios = data,
-      error: (error) => console.error('Error cargando municipios:', error)
     });
   }
 
@@ -102,7 +100,6 @@ export class CreateComponent implements OnInit {
         usuarioModificacion: "" 
       };
 
-      console.log('Guardando colonia:', coloniaGuardar);
       
       this.http.post<any>(`${environment.apiBaseUrl}/Colonia/Insertar`, coloniaGuardar, {
         headers: { 
@@ -114,7 +111,6 @@ export class CreateComponent implements OnInit {
         next: (response) => {
           if (response.data.code_Status === 1) 
           {
-            console.log('Colonia guardada exitosamente:', response);
             this.mensajeExito = `Colonia "${this.nuevaColonia.colo_Descripcion}" guardada exitosamente`;
             this.mostrarAlertaExito = true;
             this.mostrarErrores = false;
@@ -128,7 +124,6 @@ export class CreateComponent implements OnInit {
           }
           else 
           {
-            console.error('Error al guardar colonia:' + response.data.message_Status);
             this.mostrarAlertaError = true;
             this.mensajeError = 'Error al guardar la colonia, ' + response.data.message_Status;
             this.mostrarAlertaExito = false;
@@ -142,7 +137,6 @@ export class CreateComponent implements OnInit {
           
         },
         error: (error) => {
-          console.error('Error al guardar colonia:', error);
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al guardar la colonia. Por favor, intente nuevamente.';
           this.mostrarAlertaExito = false;

@@ -64,7 +64,6 @@ export class DetailsComponent implements OnChanges {
     setTimeout(() => {
       try {
         this.visitasDetalle = Array.isArray(data) ? data : [data];
-        console.log(this.visitasDetalle);
 
         // Cargar imágenes para cada visita
         this.visitasDetalle.forEach(visita => {
@@ -73,7 +72,6 @@ export class DetailsComponent implements OnChanges {
 
         this.cargando = false;
       } catch (error) {
-        console.error('Error al cargar detalles de la visita:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los detalles de la visita.';
         this.cargando = false;
@@ -93,7 +91,6 @@ export class DetailsComponent implements OnChanges {
           this.cargandoImagenes[visitaId] = false;
         },
         error: (error) => {
-          console.error(`Error al cargar imágenes para la visita ${visitaId}:`, error);
           this.imagenesVisita[visitaId] = [];
           this.cargandoImagenes[visitaId] = false;
         }
