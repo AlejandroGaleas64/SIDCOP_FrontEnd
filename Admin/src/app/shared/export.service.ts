@@ -93,7 +93,6 @@ export class ExportService {
       
       // Asegurar que el logo esté cargado antes de generar el PDF
       if (this.configuracionEmpresa?.coFa_Logo && !this.logoDataUrl) {
-        console.log('🖼️ Iniciando carga de logo para PDF...');
         await this.precargarLogo();
       }
 
@@ -484,7 +483,6 @@ export class ExportService {
           
           // Generar la URL de datos con máxima calidad (1.0)
           const dataUrl = canvas.toDataURL('image/png', 1.0);
-          console.log('Logo precargado correctamente con alta calidad');
           resolve(dataUrl);
         } catch (e) {
           console.error('Error al procesar el logo:', e);
@@ -499,13 +497,9 @@ export class ExportService {
       
       try {
         const logoPath = this.configuracionEmpresa.coFa_Logo;
-        console.log('Intentando precargar logo desde:', logoPath);
         
         // Usar exactamente la misma lógica que configuración de factura details
         const logoUrl = this.imageUploadService.getImageUrl(logoPath);
-        
-        console.log('📍 URL construida para el logo:', logoUrl);
-        console.log('📁 Ruta original del logo:', logoPath);
         
         img.src = logoUrl;
       } catch (e) {
