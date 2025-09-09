@@ -109,7 +109,6 @@ export class ListComponent implements OnInit {
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -117,12 +116,6 @@ export class ListComponent implements OnInit {
   }
 
   editar(municipio: Municipio): void {
-    console.log('Abriendo formulario de edición para:', municipio);
-    console.log('Datos específicos:', {
-      codigo: municipio.muni_Codigo,
-      descripcion: municipio.muni_Descripcion,
-      completo: municipio
-    });
     this.municipioEditando = { ...municipio }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -131,7 +124,6 @@ export class ListComponent implements OnInit {
   }
 
    detalles(municipio: Municipio): void {
-    console.log('Abriendo detalles para:', municipio);
     const depto = this.departamentos.find(d => d.depa_Codigo === municipio.depa_Codigo);
     this.municipioDetalle = { 
       ...municipio, 
@@ -235,7 +227,6 @@ export class ListComponent implements OnInit {
       }
       this.manejarResultadoExport(resultado);
     } catch (error) {
-      console.error(`Error en exportación ${tipo}:`, error);
       this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
     } finally {
       this.exportando = false;
@@ -271,7 +262,6 @@ export class ListComponent implements OnInit {
       }
       return datos.map((muni, index) => this.exportConfig.dataMapping.call(this, muni, index));
     } catch (error) {
-      console.error('Error obteniendo datos:', error);
       throw error;
     }
   }
@@ -364,11 +354,9 @@ export class ListComponent implements OnInit {
             .filter((a: string) => a.length > 0);
         }
       } catch (e) {
-        console.error('Error al parsear permisosJson:', e);
       }
     }
     this.accionesDisponibles = accionesArray;
-    console.log('Acciones disponibles para municipios:', this.accionesDisponibles);
   }
 
   // Inicializar componente
@@ -388,7 +376,6 @@ export class ListComponent implements OnInit {
     }).subscribe(data => {
       this.departamentos = data;
     }, error => {
-      console.error('Error al cargar los departamentos', error);
     });
   }
 
@@ -435,7 +422,6 @@ export class ListComponent implements OnInit {
   }
 
   confirmarEliminar(municipio: Municipio): void {
-    console.log('Solicitando confirmación para eliminar:', municipio);
     this.municipioAEliminar = municipio;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones

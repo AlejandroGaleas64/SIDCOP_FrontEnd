@@ -93,7 +93,6 @@ export class CreateComponent implements OnInit {
       if (regCId > 0) {
         this.venta.regC_Id = regCId; // Asignar regC_Id correctamente desde obtenerRegCId()
         this.venta.regC_Id_Vendedor = regCId;
-        console.log('regC_Id asignado:', regCId);
       }
       
       // Asignar el ID de persona como vendedor
@@ -175,7 +174,6 @@ private inicializar(): void {
             key.toLowerCase().includes('sucur') || 
             key.toLowerCase().includes('regc'));
           
-          console.log('Propiedades de sucursal encontradas en vendedores:', propiedadesSucursal);
         }
       },
       error: (error) => {
@@ -214,7 +212,6 @@ private inicializar(): void {
           }
         },
         error: (error) => {
-          console.error('Error al cargar vendedores por sucursal:', error);
         }
       });
   }
@@ -315,7 +312,6 @@ private inicializar(): void {
     const vendedorSeleccionado = this.vendedores.find(v => Number(v.vend_Id) === Number(this.venta.vend_Id));
     
     if (!vendedorSeleccionado) {
-      console.warn('Vendedor no encontrado con ID:', this.venta.vend_Id);
       return;
     }
     
@@ -338,18 +334,14 @@ private inicializar(): void {
     // Asignar el registro CAI del vendedor a regC_Id_Vendedor
     if (registroCAI !== undefined) {
       this.venta.regC_Id_Vendedor = registroCAI;
-      console.log('regC_Id_Vendedor asignado:', registroCAI);
       
       // Solo actualizar regC_Id si es administrador
       // Si no es administrador, el regC_Id debe ser inmutable y venir de la sesión
       if (this.esAdmin) {
         this.venta.regC_Id = registroCAI;
-        console.log('regC_Id asignado desde vendedor:', registroCAI);
       } else {
-        console.log('Usuario no es administrador, manteniendo regC_Id de la sesión:', this.venta.regC_Id);
       }
     } else {
-      console.warn('No se encontró regC_Id para el vendedor seleccionado');
     }
     
     // Actualizar estado de navegación
@@ -408,7 +400,6 @@ private inicializar(): void {
           this.cargandoInventario = false;
         },
         error: (error) => {
-          console.error('Error al cargar inventario de sucursal:', error);
           this.mostrarError('Error al cargar el inventario de la sucursal');
           this.cargandoInventario = false;
           this.limpiarInventario();
@@ -852,7 +843,7 @@ private inicializar(): void {
     
     // Buscar y guardar la información completa del cliente seleccionado
     this.clienteActual = this.clientes.find(c => c.clie_Id === clienteId);
-    console.log('Cliente seleccionado:', this.clienteActual);
+
     
     const headers = this.obtenerHeaders(); 
     
@@ -1156,7 +1147,6 @@ private crearVenta(): void {
     return;
   }
 
-  console.log(datosEnviar);
 
   this.http
     .post<any>(`${environment.apiBaseUrl}/Facturas/InsertarEnSucursal`, datosEnviar, {
@@ -1189,41 +1179,13 @@ private crearVenta(): void {
         this.guardando = false;
         
         // DEBUGGING DETALLADO - Analizar estructura completa del error
-        console.group('🔍 ANÁLISIS DETALLADO DEL ERROR');
-        console.log('1. Error completo:', err);
         this.mostrarError(err);
-        console.log('2. Tipo de err:', typeof err);
-        console.log('3. err.error:', err.error);
-        console.log('4. Tipo de err.error:', typeof err.error);
-        console.log('5. err.status:', err.status);
-        console.log('6. err.statusText:', err.statusText);
-        console.log('8. err.name:', err.name);
-        
-        // Si err.error es string, intentar parsearlo como JSON
-        if (typeof err.error === 'string') {
-          console.log('9. err.error es string, intentando parsear JSON...');
-          try {
-            const parsedError = JSON.parse(err.error);
-            console.log('10. JSON parseado exitosamente:', parsedError);
-          } catch (parseError) {
-            console.log('10. Error al parsear JSON:', parseError);
-          }
-        }
-        
-        // Verificar todas las propiedades del objeto error
-        console.log('11. Propiedades de err:', Object.keys(err));
-        if (err.error && typeof err.error === 'object') {
-          console.log('12. Propiedades de err.error:', Object.keys(err.error));
-        }
-        console.groupEnd();
-        
         // Intentar extraer el mensaje de error de diferentes formas
         let errorMessage = err;
         
         // Método 1: err.error como objeto con message
         if (err.error && typeof err.error === 'object' && err.error.message) {
           errorMessage = err.error.message;
-          console.log('✅ Mensaje extraído de err.error.message:', errorMessage);
         }
         // Método 2: err.error como string JSON
         else if (typeof err.error === 'string') {
@@ -1231,16 +1193,13 @@ private crearVenta(): void {
             const parsedError = JSON.parse(err.error);
             if (parsedError.message) {
               errorMessage = parsedError.message;
-              console.log('✅ Mensaje extraído de JSON parseado:', errorMessage);
             }
           } catch (e) {
-            console.log('❌ No se pudo parsear err.error como JSON');
           }
         }
         // Método 3: err.message directo
         else if (err.message) {
           errorMessage = err.message;
-          console.log('✅ Mensaje extraído de err.message:', errorMessage);
         }
         
         this.mostrarError(errorMessage);

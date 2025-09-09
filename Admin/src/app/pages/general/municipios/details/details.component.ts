@@ -34,7 +34,6 @@ export class DetailsComponent implements OnChanges {
         this.municipioDetalle = { ...data };
         this.cargando = false;
       } catch (error) {
-        console.error('Error al cargar detalles del municipio:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los detalles del municipio.';
         this.cargando = false;
