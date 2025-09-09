@@ -162,22 +162,6 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null; // Cerrar menú de acciones
   }
 
-  // editar(factura: Factura): void {
-  //   console.log('Abriendo formulario de edición para:', factura);
-  //   console.log('Datos específicos:', {
-  //     id: factura.fact_Id,
-  //     origen: factura.origen,
-  //     destino: factura.destino,
-  //     fecha: factura.fact_Fecha,
-  //     observaciones: factura.fact_Observaciones,
-  //     completo: factura
-  //   });
-  //   this.facturaEditando = { ...factura }; // Hacer copia profunda
-  //   this.showEditForm = true;
-  //   this.showCreateForm = false; // Cerrar create si está abierto
-  //   this.showDetailsForm = false; // Cerrar details si está abierto
-  //   this.activeActionRow = null; // Cerrar menú de acciones
-  // }
 
   detalles(factura: Factura): void {
 
@@ -368,8 +352,6 @@ export class ListComponent implements OnInit {
     if (!texto) return '';
 
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }

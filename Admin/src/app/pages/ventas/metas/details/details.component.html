@@ -82,8 +82,8 @@
               <div class="detail-item">
                 <div class="detail-icon bg-dark-blue text-white"><i class="ri-coin-fill"></i></div>
                 <div class="detail-content">
-                  <div class="detail-label">Ingresos</div>
-                  <div class="detail-value">{{ metaDetalle.meta_Ingresos | number:'1.2-2' }}</div>
+                  <div class="detail-label">Objetivo de Ingresos</div>
+                  <div class="detail-value">{{ metaDetalle.meta_Ingresos | currency:'HNL':'symbol':'1.2-2':'es-HN' }}</div>
                 </div>
               </div>
             </div>
@@ -94,7 +94,7 @@
               <div class="detail-item">
                 <div class="detail-icon bg-dark-blue text-white"><i class="ri-hashtag"></i></div>
                 <div class="detail-content">
-                  <div class="detail-label">Unidades</div>
+                  <div class="detail-label">Objetivo de Unidades</div>
                   <div class="detail-value">{{ metaDetalle.meta_Unidades }}</div>
                 </div>
               </div>
@@ -153,25 +153,58 @@
       <h5 class="mb-0">Vendedores Asignados</h5>
     </div>
     <div class="card-body">
+      
+      <div class="input-group input-group-sm mb-3">
+        <span class="input-group-text">
+          <i class="ri-search-line"></i>
+        </span>
+        <input type="text" class="form-control" [(ngModel)]="filterVendedor" placeholder="Buscar vendedor...">
+        <button class="btn btn-outline-secondary" type="button" (click)="filterVendedor = ''" [disabled]="!filterVendedor">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+
       <div class="row">
         <ng-container *ngIf="vendedoresParsed.length > 0; else noVendedores">
-          <div class="col-12 col-md-6" *ngFor="let vendedor of vendedoresParsed">
+          <div class="col-12 col-md-6" *ngFor="let vendedor of vendedoresFiltrados">
             <div class="detail-item">
-              <div class="detail-icon bg-dark-blue text-white"><i class="ri-user-line"></i></div>
+              <!-- <div class="detail-icon bg-dark-blue text-white"><i class="ri-user-line"></i></div> -->
+               <div class="ms-auto " style="width: 120px; min-width: 120px;">
+                  <!-- <apx-chart
+                    [series]="getVendedorChartConfig(vendedor).series"
+                    [chart]="getVendedorChartConfig(vendedor).chart"
+                    [plotOptions]="getVendedorChartConfig(vendedor).plotOptions"
+                    [grid]="getVendedorChartConfig(vendedor).grid"
+                    [fill]="getVendedorChartConfig(vendedor).fill"
+                    [labels]="getVendedorChartConfig(vendedor).labels"
+                    [colors]="getVendedorChartConfig(vendedor).colors"
+                    dir="ltr">
+                  </apx-chart> -->
+                  <apx-chart
+                    [series]="vendedorCharts[vendedor.Vend_Id]?.series"
+                    [chart]="vendedorCharts[vendedor.Vend_Id]?.chart"
+                    [plotOptions]="vendedorCharts[vendedor.Vend_Id]?.plotOptions"
+                    [grid]="vendedorCharts[vendedor.Vend_Id]?.grid"
+                    [fill]="vendedorCharts[vendedor.Vend_Id]?.fill"
+                    [labels]="vendedorCharts[vendedor.Vend_Id]?.labels"
+                    [colors]="vendedorCharts[vendedor.Vend_Id]?.colors"
+                    dir="ltr">
+                  </apx-chart>
+                </div>
               <div class="detail-content">
                 <div class="detail-label">Vendedor</div>
                 <div class="detail-value">
                   Nombre Completo: {{ vendedor.Vend_NombreCompleto }}
                 </div>
                 <!-- Only show Progreso Unidades for CM -->
-                <ng-container *ngIf="metaDetalle.meta_Tipo === 'CM'">
-                  <div class="detail-label mt-2">Progreso Unidades</div>
+                <ng-container *ngIf="metaDetalle.meta_Tipo === 'CM' || metaDetalle.meta_Tipo === 'TP' || metaDetalle.meta_Tipo === 'CN' || metaDetalle.meta_Tipo === 'PE'">
+                  <div class="detail-label mt-2">Progreso Actual de Unidades</div>
                   <div class="detail-value">{{ vendedor.MeEm_ProgresoUnidades || 0 }}</div>
                 </ng-container>
                 <!-- Only show Progreso Ingresos for IM -->
-                <ng-container *ngIf="metaDetalle.meta_Tipo === 'IM'">
-                  <div class="detail-label mt-2">Progreso Ingresos</div>
-                  <div class="detail-value">{{ vendedor.MeEm_ProgresoIngresos || 0 }}</div>
+                <ng-container *ngIf="metaDetalle.meta_Tipo === 'IM' || metaDetalle.meta_Tipo === 'IT' || metaDetalle.meta_Tipo === 'IP' || metaDetalle.meta_Tipo === 'PC'">
+                  <div class="detail-label mt-2">Progreso Actual de Ingresos</div>
+                  <div class="detail-value">{{ vendedor.MeEm_ProgresoIngresos  || 0 | currency:'HNL':'symbol':'1.2-2':'es-HN'}}</div>
                 </ng-container>
                 
               </div>

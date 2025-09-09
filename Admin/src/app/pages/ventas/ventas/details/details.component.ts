@@ -322,7 +322,6 @@ export class DetailsComponent implements OnChanges, OnDestroy {
         this.cargando = false;
       },
       error: (error) => {
-        console.error('Error al cargar detalles del factura:', error);
         if (error.status === 401 || error.status === 403) {
           this.mensajeError = 'No tiene permisos para ver este factura o su sesión ha expirado.';
         } else {
@@ -530,7 +529,6 @@ export class DetailsComponent implements OnChanges, OnDestroy {
     try {
       this.invoiceService.generarFacturaPDF();
     } catch(error) {
-      console.log("error", error);
     }
   }
 
