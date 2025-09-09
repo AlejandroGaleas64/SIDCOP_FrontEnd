@@ -8,6 +8,7 @@ import { DropzoneModule, DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
 import { Router } from '@angular/router';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { Usuario } from 'src/app/Modelos/acceso/usuarios.Model';
+import { Factura } from 'src/app/Modelos/ventas/Facturas.model';
 
 @Component({
   selector: 'app-create',
@@ -212,8 +213,8 @@ export class CreateComponent implements OnInit {
 
     console.log('Cargando facturas para vendedor:', this.vendedorSeleccionado.vend_Id);
     
-    this.cargando = true;
-    this.http.get<any>(`${environment.apiBaseUrl}/Facturas/ListarPorVendedor/${this.vendedorSeleccionado.vend_Id}`, {
+    this.cargando = true;//${this.vendedorSeleccionado.vend_Id}
+    this.http.get<any>(`${environment.apiBaseUrl}/Facturas/ListarConLimiteDevolucion`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (res) => {
@@ -221,7 +222,7 @@ export class CreateComponent implements OnInit {
         const todasFacturas = res?.data || res || []; // Intentar ambas estructuras
 
         // Obtener la fecha actual en formato YYYY-MM-DD
-        const fechaActual = new Date().toISOString().split('T')[0];
+        //const fechaActual = new Date().toISOString().split('T')[0];
 
         // Obtener los IDs de las direcciones
         const direccionesIds = this.direcciones.map(d => d.diCl_Id);
@@ -239,19 +240,19 @@ export class CreateComponent implements OnInit {
           // Intentar diferentes nombres de campo que podrían contener el ID de dirección
           const direccionId = factura.dicl_Id || factura.diCl_Id || factura.direccion_Id || factura.cliente_direccion_Id;
           const coincideDireccion = direccionesIds.includes(direccionId);
-          
+          const vendedor = factura.vend_Id === this.vendedorSeleccionado.vend_Id;
           // Convertir fact_FechaEmision a formato YYYY-MM-DD para comparar
           const fechaEmision = new Date(factura.fact_FechaEmision).toISOString().split('T')[0];
-          const coincideFecha = fechaEmision === fechaActual;
+          //const coincideFecha = fechaEmision === fechaActual;
           
           // Validar que la factura no esté anulada
           const noAnulada = factura.fact_Anulado === false;
           
-          if (coincideDireccion && coincideFecha && noAnulada) {
+          if (coincideDireccion && noAnulada) {
             console.log(`Factura ${factura.fact_Numero || factura.numero} coincide con dirección ${direccionId}, fecha actual y no está anulada`);
           }
           
-          return coincideDireccion && coincideFecha && noAnulada;
+          return coincideDireccion && noAnulada && vendedor;
         });
 
         console.log('Facturas filtradas final:', this.facturasFiltradas);

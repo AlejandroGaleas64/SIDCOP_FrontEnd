@@ -619,6 +619,8 @@ tieneAyudante: boolean = false;
     this.mensajeWarning = '';
   }
 
+  mostrarOverlayCarga = false;
+
   guardar(): void {
   this.mostrarErrores = true;
 
@@ -630,7 +632,7 @@ tieneAyudante: boolean = false;
     this.mostrarAlertaWarning = false;
     this.mostrarAlertaError = false;
 
-
+    this.mostrarOverlayCarga = true;
   
 
     // Construir el objeto para guardar
@@ -674,13 +676,13 @@ tieneAyudante: boolean = false;
       }
     }).subscribe({
       next: (response) => {
-        console.log('Vendedor guardado exitosamente:', response);
+        
         if(response?.data?.code_Status <= 0)
         {
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al guardar el Descuento. Por favor, intente nuevamente.';
           this.mostrarAlertaExito = false;
-
+          this.mostrarOverlayCarga = false;
           setTimeout(() => {
             this.mostrarAlertaError = false;
             this.mensajeError = '';
@@ -701,6 +703,7 @@ tieneAyudante: boolean = false;
             this.seleccionados = [];
             this.escalas = [];
             this.activeTab = 1;
+            this.mostrarOverlayCarga = false;
             this.cancelar();
           }, 3000);
 
@@ -709,7 +712,7 @@ tieneAyudante: boolean = false;
 
       } ,     
       error: (error) => {
-        console.error('Error al guardar Vendedor:', error);
+        this.mostrarOverlayCarga = false;
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al guardar el Descuento. Por favor, intente nuevamente.';
         this.mostrarAlertaExito = false;
