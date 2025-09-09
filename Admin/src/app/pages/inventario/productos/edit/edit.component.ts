@@ -20,7 +20,7 @@ export class EditComponent implements OnChanges {
   @Input() productoData: Producto | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Producto>();
-  imagenPreview: string = '';
+  environment = environment;
   subcategorias: Categoria[] = [];
   categorias: any[] = [];
   subcategoriasFiltradas: Categoria[] = [];
@@ -108,6 +108,12 @@ export class EditComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['productoData'] && changes['productoData'].currentValue) {
       this.producto = { ...changes['productoData'].currentValue };
+      
+      // Limpiar la concatenación de URL de la imagen si existe
+      if (this.producto.prod_Imagen && this.producto.prod_Imagen.includes(environment.apiBaseUrl)) {
+        this.producto.prod_Imagen = this.producto.prod_Imagen.replace(environment.apiBaseUrl, '');
+      }
+      
       // Obtener descripción de marca a partir del id al cargar producto
       const marcaActual = this.marcas.find(m => m.marc_Id === this.producto.marc_Id);
       this.producto.marc_Descripcion = marcaActual ? marcaActual.marc_Descripcion : '';
@@ -124,7 +130,6 @@ export class EditComponent implements OnChanges {
       this.producto.prod_EsPromo = this.producto.prod_EsPromo || 'N';
       this.producto.prod_PagaImpuesto = this.producto.prod_PagaImpuesto || 'N';
       this.producto.impu_Id = this.producto.impu_Id || 0;
-      this.imagenPreview = this.producto.prod_Imagen!;
       this.cargarCategorias();
     }
   }
@@ -618,7 +623,6 @@ export class EditComponent implements OnChanges {
       this.imageUploadService.uploadImageAsync(file)
         .then(imagePath => {
           this.producto.prod_Imagen = imagePath;
-          this.imagenPreview = environment.apiBaseUrl + imagePath;
           console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
           this.mostrarOverlayCarga = false;
         })

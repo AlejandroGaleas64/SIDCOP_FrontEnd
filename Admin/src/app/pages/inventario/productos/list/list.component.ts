@@ -605,7 +605,7 @@ export class ListComponent implements OnInit {
         const tienePermisoListar = this.accionPermitida('listar');
         const userId = getUserId();
         data.forEach((item: any) => {
-          item.prod_Imagen = item.prod_Imagen.includes("https") ? item.prod_Imagen : environment.apiBaseUrl + item.prod_Imagen;
+          item.prod_Imagen = item.prod_Imagen.includes("http") ? item.prod_Imagen : environment.apiBaseUrl + item.prod_Imagen;
         });
 
         const datosFiltrados = tienePermisoListar
