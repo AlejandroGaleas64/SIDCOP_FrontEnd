@@ -88,7 +88,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('Error al cargar formas de pago:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar las formas de pago. Por favor intente nuevamente.';
       }

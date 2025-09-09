@@ -363,9 +363,7 @@ export class CreateComponent implements OnInit {
   async uploadImage(file: File): Promise<string> {
     try {
       const imagePath = await this.imageUploadService.uploadImageAsync(file);
-      // Construir la URL completa para mostrar la imagen
-      const baseUrl = environment.apiBaseUrl.replace('/api', '');
-      return `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
+      return imagePath;
     } catch (error) {
       throw new Error('No se pudo subir la imagen');
     }

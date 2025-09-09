@@ -192,7 +192,6 @@ export class ListComponent implements OnInit {
           this.procesarRespuestaEliminacion(response);
         },
         error: (error) => {
-          console.error('Error al eliminar:', error);
           this.mostrarAlerta({
             tipo: 'error',
             mensaje: 'Error al comunicarse con el servidor. Por favor, inténtelo de nuevo más tarde.'
@@ -263,7 +262,6 @@ export class ListComponent implements OnInit {
         this.accionesDisponibles = [];
       }
     } catch (error) {
-      console.error('Error al cargar acciones del usuario:', error);
       this.accionesDisponibles = [];
     }
   }
@@ -337,7 +335,6 @@ irADetalles(id: number): void {
         this.procesarResumenAntiguedad(results.resumen);
       },
       error: (error) => {
-        console.error('Error al cargar datos:', error);
         this.mostrarAlerta({
           tipo: 'error',
           mensaje: 'Error al cargar los datos. Por favor, recargue la página.'
@@ -499,7 +496,6 @@ irADetalles(id: number): void {
       }
       this.manejarResultadoExport(resultado);
     } catch (error) {
-      console.error(`Error en exportación ${tipo}:`, error);
       this.mostrarAlerta({
         tipo: 'error',
         mensaje: `Error al exportar archivo ${tipo.toUpperCase()}`
@@ -627,7 +623,6 @@ irADetalles(id: number): void {
       }
       this.manejarResultadoExportResumen(resultado);
     } catch (error) {
-      console.error(`Error en exportación ${tipo}:`, error);
       this.mostrarAlerta({
         tipo: 'error',
         mensaje: `Error al exportar archivo ${tipo.toUpperCase()}`

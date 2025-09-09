@@ -189,7 +189,6 @@ export class EditComponent implements OnInit, OnChanges {
           }
           else
           {
-            console.error('Error al actualizar colonia:', response.data.message_Status);
             this.mostrarAlertaError = true;
             this.mensajeError = 'Error al actualizar la colonia, ', response.data.message_Status;
             setTimeout(() => this.cerrarAlerta(), 5000);
@@ -197,7 +196,6 @@ export class EditComponent implements OnInit, OnChanges {
           
         },
         error: (error) => {
-          console.error('Error al actualizar colonia:', error);
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al actualizar la colonia. Por favor, intente nuevamente.';
           setTimeout(() => this.cerrarAlerta(), 5000);
