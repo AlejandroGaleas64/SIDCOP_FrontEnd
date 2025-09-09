@@ -32,7 +32,7 @@
           
           <div style="position: relative; margin-top: 10px;">
             <img
-              [src]="producto.prod_Imagen"
+              [src]="imagenPreview"
               alt="Foto de producto"
               class="rounded"
               style="width: 100%; height: 10%; object-fit: cover; border: 3px solid #d6b68a; background: #f5f5f5;"
@@ -531,7 +531,7 @@
             <div class="text-center">
               <small class="text-muted d-block">Nuevo</small>
               <img *ngIf="producto.prod_Imagen" 
-                   [src]="producto.prod_Imagen" 
+                   [src]="imagenPreview" 
                    alt="Imagen nueva"
                    style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6;">
               <div *ngIf="!producto.prod_Imagen" 

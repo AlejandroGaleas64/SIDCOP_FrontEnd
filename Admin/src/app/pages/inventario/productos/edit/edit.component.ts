@@ -20,7 +20,7 @@ export class EditComponent implements OnChanges {
   @Input() productoData: Producto | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Producto>();
-
+  imagenPreview: string = '';
   subcategorias: Categoria[] = [];
   categorias: any[] = [];
   subcategoriasFiltradas: Categoria[] = [];
@@ -124,6 +124,7 @@ export class EditComponent implements OnChanges {
       this.producto.prod_EsPromo = this.producto.prod_EsPromo || 'N';
       this.producto.prod_PagaImpuesto = this.producto.prod_PagaImpuesto || 'N';
       this.producto.impu_Id = this.producto.impu_Id || 0;
+      this.imagenPreview = this.producto.prod_Imagen!;
       this.cargarCategorias();
     }
   }
@@ -607,19 +608,17 @@ export class EditComponent implements OnChanges {
     // Obtenemos el archivo seleccionado desde el input tipo file
     const file = event.target.files[0];
 
-    if (file) {
-      // Crear una URL temporal para mostrar la imagen inmediatamente
-      const tempImageUrl = URL.createObjectURL(file);
-      this.producto.prod_Imagen = tempImageUrl;
 
+    if (file) {
       // Mostrar indicador de carga
+      
       this.mostrarOverlayCarga = true;
       
       // Usar el servicio de carga de imágenes
       this.imageUploadService.uploadImageAsync(file)
         .then(imagePath => {
-          const baseUrl = environment.apiBaseUrl.replace('/api', '');
-          this.producto.prod_Imagen = `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
+          this.producto.prod_Imagen = imagePath;
+          this.imagenPreview = environment.apiBaseUrl + imagePath;
           console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
           this.mostrarOverlayCarga = false;
         })
