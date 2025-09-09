@@ -423,7 +423,7 @@ export class InvoiceService {
 
     doc.setTextColor(this.COLORES.azulOscuro);
     doc.setFont('Satoshi', 'bold');
-    doc.setFontSize(12);
+    doc.setFontSize(14);
     doc.text(this.facturaDetalle.coFa_NombreEmpresa, centerX - 80, yPos + 5); // Reducido de +8 a +5
 
     doc.setFont('Satoshi', 'normal');
@@ -456,33 +456,46 @@ export class InvoiceService {
     // Número de factura
     doc.setTextColor(this.COLORES.azulOscuro);
     doc.setFont('Satoshi', 'bold');
-    doc.setFontSize(12);
-    doc.text(`No. ${this.facturaDetalle.fact_Numero}`, centerX+20, yPos+5, );
+    doc.setFontSize(16);
+    doc.text(`Factura Comercial`, centerX+25, yPos-16, );
+    //doc.setFontSize(12);
+    doc.text(`No. ${this.facturaDetalle.fact_Numero}`, centerX+15, yPos-10, );
     
     // Fecha de emisión
     doc.setFont('Satoshi', 'normal');
     doc.setFontSize(9);
-    doc.text(`Fecha: ${this.formatearFecha(this.facturaDetalle.fact_FechaEmision)}`, centerX+20, yPos+10, );
+
+   //rango autorizado
+    const rangoInicial = this.formatearRangoAutorizado(this.facturaDetalle.fact_RangoInicialAutorizado, this.facturaDetalle.fact_Numero);
+    const rangoFinal = this.formatearRangoAutorizado(this.facturaDetalle.fact_RangoFinalAutorizado, this.facturaDetalle.fact_Numero);
+
+    doc.text(`Rango Autorizado ${rangoInicial} - ${rangoFinal}`, centerX+15, yPos, );
+
+    //fecha limite
+    doc.text(`Fecha límite de emisión: ${this.formatearFecha(this.facturaDetalle.fact_FechaLimiteEmision)}`, centerX+15, yPos+4,); 
+    
+    //fecha 
+    doc.text(`Fecha: ${this.formatearFecha(this.facturaDetalle.fact_FechaEmision)}`, centerX+15, yPos+8, );
     
     // Tipo de venta con formato condicional
     const tipoVenta = this.formatearTipoVenta(this.facturaDetalle.fact_TipoVenta);
-    doc.text(`Tipo: ${tipoVenta}`, centerX+20, yPos+15, );
+    doc.text(`Tipo: ${tipoVenta}`, centerX+15, yPos+12, );
     
     // CAI
-    doc.text(`CAI: ${this.facturaDetalle.regC_Descripcion}`, centerX+20, yPos + 20, );
+    doc.text(`CAI: ${this.facturaDetalle.regC_Descripcion}`, centerX+15, yPos + 16, );
     
     // Sucursal (si existe)
     if (this.facturaDetalle.sucu_Descripcion) {
       //yPos += 5; // Agregar espacio adicional
-      doc.text(`Sucursal: ${this.facturaDetalle.sucu_Descripcion}`, centerX+20, yPos + 25, );
+      doc.text(`Sucursal: ${this.facturaDetalle.sucu_Descripcion}`, centerX+15, yPos + 20, );
     }
 
-    yPos += 30; // Reducido de 45 a 30
+    yPos += 22; // Reducido de 45 a 30
 
     // Línea separadora
     doc.setDrawColor(this.COLORES.dorado);
     doc.setLineWidth(1);
-    doc.line(15, yPos, pageWidth - 15, yPos);
+    doc.line(25, yPos, pageWidth - 20, yPos);
     yPos += 5; // Reducido de 10 a 5
 
     // Información del cliente
@@ -493,39 +506,27 @@ export class InvoiceService {
     
     // Cliente
     doc.setFont('Satoshi', 'normal');
-    doc.text(`Cliente: ${this.facturaDetalle.cliente}`, centerX -80, yPos + 8);
+    doc.text(`Cliente: ${this.facturaDetalle.cliente}`, centerX -80, yPos);
     
     // RTN del cliente (si existe)
     if (this.facturaDetalle.clie_RTN && this.facturaDetalle.clie_RTN.trim() !== '') {
-      yPos += 5;
-      doc.setFont('Satoshi', 'bold');
-      doc.text('RTN:', 54, yPos + 8);
       doc.setFont('Satoshi', 'normal');
-      doc.text(`${this.facturaDetalle.clie_RTN}`, 90, yPos + 8);
+      doc.text(`RTN: ${this.facturaDetalle.clie_RTN}`, centerX -80, yPos + 4);
     }
     
     // Dirección
-    doc.setFont('Satoshi', 'bold');
-    doc.text('Dirección:', 54, yPos + 13);
     doc.setFont('Satoshi', 'normal');
-    doc.text(`${this.facturaDetalle.diCl_DireccionExacta}`, 90, yPos + 13);
+    doc.text(`Dirección: ${this.facturaDetalle.diCl_DireccionExacta}`, centerX -80, yPos + 8);
     
     // Teléfono
-    doc.setFont('Satoshi', 'bold');
-    doc.text('Teléfono:', 54, yPos + 18);
     doc.setFont('Satoshi', 'normal');
-    doc.text(`${this.facturaDetalle.clie_Telefono}`, 90, yPos + 18);
+    doc.text(`Teléfono: ${this.facturaDetalle.clie_Telefono}`, centerX +15 , yPos);
 
     // Información del vendedor
-    doc.setFont('Satoshi', 'bold');
-    doc.text('Vendedor:', 54, yPos + 23);
     doc.setFont('Satoshi', 'normal');
-    doc.text(`${this.facturaDetalle.vendedor}`, 90, yPos + 23);
+    doc.text(`Vendedor: ${this.facturaDetalle.vendedor}`, centerX +15 , yPos + 4);
     
-    doc.setFont('Satoshi', 'bold');
-    doc.text('Tel:', 54, yPos + 28);
-    doc.setFont('Satoshi', 'normal');
-    doc.text(`${this.facturaDetalle.vend_Telefono}`, 90, yPos + 28);
+    doc.text(`Teléfono: ${this.facturaDetalle.vend_Telefono}`, centerX +15, yPos + 8);
 
     yPos += 35; // Reducido de 50 a 35
 
@@ -539,7 +540,7 @@ export class InvoiceService {
   private async crearTablaProductos(doc: jsPDF, startY: number) {
     if (!this.facturaDetalle || !this.facturaDetalle.detalleFactura.length) return startY;
 
-    const headers = ['Descripción', 'Cant.', 'Precio.', 'Total'];
+    const headers = ['Descripción', 'Cant.', 'Precio.','Desc.','ISV.','Total'];
     const rows = this.facturaDetalle.detalleFactura.map(item => {
       // Agregar un asterisco (*) al nombre del producto si tiene impuesto
       const tieneImpuesto = item.prod_PagaImpuesto === 'S';
@@ -549,13 +550,15 @@ export class InvoiceService {
         descripcion,
         item.faDe_Cantidad.toString(),
         `L.${item.faDe_PrecioUnitario.toFixed(2)}`,
+        `L.${item.faDe_Descuento.toFixed(2)}`,
+        `L.${item.faDe_Impuesto.toFixed(2)}`,
         `L.${item.faDe_Subtotal.toFixed(2)}`
       ];
     });
 
     // Configurar la tabla con paginación automática
     autoTable(doc, {
-      startY: startY,
+      startY: startY-24,
       head: [headers],
       body: rows,
       styles: {
@@ -572,10 +575,12 @@ export class InvoiceService {
         fontSize: 10,
       },
       columnStyles: {
-        0: { halign: 'left' as any, cellWidth: 'auto' },   // Descripción
-        1: { halign: 'right' as any, cellWidth: 'auto' },   // Cantidad
-        2: { halign: 'right' as any, cellWidth: 'auto' },   // Precio
-        3: { halign: 'right' as any, cellWidth: 'auto' }    // Total
+        0: { halign: 'left' as any, cellWidth: 50 },   // Descripción
+        1: { halign: 'right' as any, cellWidth: 15 },   // Cantidad
+        2: { halign: 'right' as any, cellWidth: 25 },   // Precio
+        3: { halign: 'right' as any, cellWidth: 25 },   // Descuento
+        4: { halign: 'right' as any, cellWidth: 25 },   // ISV
+        5: { halign: 'right' as any, cellWidth: 25 }    // Total
       },
       alternateRowStyles: {
         fillColor: [248, 249, 250],
@@ -583,7 +588,7 @@ export class InvoiceService {
       tableWidth: 'auto',
       pageBreak: 'auto' as any,
       showHead: 'everyPage' as any,
-      margin: { top: 40, bottom: 60, left: 50, right: 58 },
+      margin: { top: 40, bottom: 60, left: 25, right: 58 },
       didDrawPage: (data) => {
         // Agregar encabezado en páginas adicionales
         if (data.pageNumber > 1 && this.facturaDetalle) {
@@ -618,8 +623,9 @@ export class InvoiceService {
           
           // Línea separadora para el pie de página
           doc.setDrawColor(this.COLORES.dorado);
-          doc.setLineWidth(0.5);
-          doc.line(15, pageHeight - pieHeight, pageWidth - 15, pageHeight - pieHeight);
+          doc.setLineWidth(1);
+          doc.line(15+5, pageHeight - pieHeight, pageWidth - 15-5, pageHeight - pieHeight);
+          
           
           // Información del pie de página
           doc.setFont('helvetica', 'normal');
@@ -640,7 +646,7 @@ export class InvoiceService {
     doc.setFont('helvetica', 'italic');
     doc.setFontSize(8);
     doc.setTextColor(this.COLORES.grisTexto);
-    doc.text('* Producto gravado con impuesto', 15, finalY + 5);
+    doc.text('* Producto gravado con impuesto', 25, finalY + 5);
     
     // Actualizar la posición final
     finalY += 8;
@@ -653,129 +659,83 @@ export class InvoiceService {
 
     const pageHeight = doc.internal.pageSize.height;
     const pageWidth = doc.internal.pageSize.width;
-    yPos += 5; // Espacio entre la tabla y el pie
+    yPos += 80; // Espacio entre la tabla y el pie
 
     // Línea separadora
     doc.setDrawColor(this.COLORES.dorado);
     doc.setLineWidth(1);
-    doc.line(50, yPos, pageWidth - 58, yPos);
-    yPos += 8;
+    doc.line(20, yPos, pageWidth - 20, yPos);
+    yPos += 4;
 
     // Totales (alineados a la derecha)
-    const valueX = pageWidth - 58; // Posición para los valores monetarios (ajustado para no sobrepasar el borde)
+    const valueX = pageWidth - 38; // Posición para los valores monetarios (ajustado para no sobrepasar el borde)
     const labelX = pageWidth - 100; // Posición para las etiquetas (ajustado para mejor alineación)
     
     // Establecer estilo para totales
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
+    doc.setFont('Satoshi', 'normal');
+    doc.setFontSize(9);
     doc.setTextColor(this.COLORES.azulOscuro);
+
     
     // Subtotal
-    doc.text('Subtotal:', labelX, yPos, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.text(`L. ${this.facturaDetalle.fact_Subtotal.toFixed(2)}`, valueX, yPos, { align: 'right' });
+    doc.text('Subtotal:', labelX, yPos, );
+    doc.text(`L. ${this.facturaDetalle.fact_Subtotal.toFixed(2)}`, valueX, yPos, );
     yPos += 5;
     
     // Descuento
-    doc.setFont('helvetica', 'bold');
-    doc.text('Descuento:', labelX, yPos, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.text(`L. ${this.facturaDetalle.fact_TotalDescuento.toFixed(2)}`, valueX, yPos, { align: 'right' });
+    doc.text('Descuento:', labelX, yPos, );
+    doc.text(`L. ${this.facturaDetalle.fact_TotalDescuento.toFixed(2)}`, valueX, yPos, );
     yPos += 5;
     
     // Importe Exento (siempre mostrar)
-    doc.setFont('helvetica', 'bold');
-    doc.text('Importe Exento:', labelX, yPos, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
+    doc.text('Importe Exento:', labelX, yPos, );
     const importeExento = this.facturaDetalle.fact_ImporteExento || 0;
-    doc.text(`L. ${importeExento.toFixed(2)}`, valueX, yPos, { align: 'right' });
+    doc.text(`L. ${importeExento.toFixed(2)}`, valueX, yPos, );
     yPos += 5;
     
     // Importe Gravado 15% (siempre mostrar)
-    doc.setFont('helvetica', 'bold');
-    doc.text('Importe Gravado 15%:', labelX, yPos, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
+    doc.text('Importe Gravado 15%:', labelX, yPos, );
     const importeGravado15 = this.facturaDetalle.fact_ImporteGravado15 || 0;
-    doc.text(`L. ${importeGravado15.toFixed(2)}`, valueX, yPos, { align: 'right' });
+    doc.text(`L. ${importeGravado15.toFixed(2)}`, valueX, yPos, );
     yPos += 5;
     
     // Importe Gravado 18% (siempre mostrar)
-    doc.setFont('helvetica', 'bold');
-    doc.text('Importe Gravado 18%:', labelX, yPos, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
+    doc.text('Importe Gravado 18%:', labelX, yPos, );
     const importeGravado18 = this.facturaDetalle.fact_ImporteGravado18 || 0;
-    doc.text(`L. ${importeGravado18.toFixed(2)}`, valueX, yPos, { align: 'right' });
+    doc.text(`L. ${importeGravado18.toFixed(2)}`, valueX, yPos, );
     yPos += 5;
     
     // Importe Exonerado (siempre mostrar)
-    doc.setFont('helvetica', 'bold');
-    doc.text('Importe Exonerado:', labelX, yPos, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
+    doc.text('Importe Exonerado:', labelX, yPos, );
     const importeExonerado = this.facturaDetalle.fact_ImporteExonerado || 0;
-    doc.text(`L. ${importeExonerado.toFixed(2)}`, valueX, yPos, { align: 'right' });
+    doc.text(`L. ${importeExonerado.toFixed(2)}`, valueX, yPos, );
     yPos += 5;
     
     // Impuesto 15% (siempre mostrar)
-    doc.setFont('helvetica', 'bold');
-    doc.text('Impuesto 15%:', labelX, yPos, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.text(`L. ${this.facturaDetalle.fact_TotalImpuesto15.toFixed(2)}`, valueX, yPos, { align: 'right' });
+    doc.text('Impuesto 15%:', labelX, yPos, );
+    doc.text(`L. ${this.facturaDetalle.fact_TotalImpuesto15.toFixed(2)}`, valueX, yPos, );
     yPos += 5;
     
     // Impuesto 18% (siempre mostrar)
-    doc.setFont('helvetica', 'bold');
-    doc.text('Impuesto 18%:', labelX, yPos, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.text(`L. ${this.facturaDetalle.fact_TotalImpuesto18.toFixed(2)}`, valueX, yPos, { align: 'right' });
+    doc.text('Impuesto 18%:', labelX, yPos, );
+    doc.text(`L. ${this.facturaDetalle.fact_TotalImpuesto18.toFixed(2)}`, valueX, yPos, );
     yPos += 5;
     
     // Espacio antes del total final
     yPos += 3;
     
     // Total final
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.text('TOTAL:', labelX, yPos, { align: 'right' });
-    doc.text(`L. ${this.facturaDetalle.fact_Total.toFixed(2)}`, valueX, yPos, { align: 'right' });
+    doc.setFont('Satoshi', 'bold');
+    doc.setFontSize(10);
+    doc.text('TOTAL:', labelX, yPos, );
+    doc.text(`L. ${this.facturaDetalle.fact_Total.toFixed(2)}`, valueX, yPos, );
     
     // Agregar espacio antes de la información adicional
     yPos += 15;
     
-    // Formatear rangos autorizados con prefijo y 8 dígitos
-    const rangoInicial = this.formatearRangoAutorizado(this.facturaDetalle.fact_RangoInicialAutorizado, this.facturaDetalle.fact_Numero);
-    const rangoFinal = this.formatearRangoAutorizado(this.facturaDetalle.fact_RangoFinalAutorizado, this.facturaDetalle.fact_Numero);
-    
     // Información adicional
     // Definimos una nueva posición para las etiquetas de la información adicional
     const infoLabelX = pageWidth - 120; // Posición para etiquetas de información adicional
-    
-    // Rango Autorizado (centrado)
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.text('Rango Autorizado', pageWidth / 2, yPos, { align: 'center' });
-    yPos += 5;
-    
-    // Desde (alineado como los totales)
-    doc.setFont('helvetica', 'bold');
-    doc.text('Desde:', infoLabelX, yPos, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${rangoInicial}`, valueX, yPos, { align: 'right' });
-    yPos += 5;
-    
-    // Hasta (alineado como los totales)
-    doc.setFont('helvetica', 'bold');
-    doc.text('Hasta:', infoLabelX, yPos, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${rangoFinal}`, valueX, yPos, { align: 'right' });
-    yPos += 8;
-    
-    // Fecha límite (alineado como los totales)
-    doc.setFont('helvetica', 'bold');
-    doc.text('Fecha límite de emisión:', infoLabelX, yPos, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${this.formatearFecha(this.facturaDetalle.fact_FechaLimiteEmision)}`, valueX, yPos, { align: 'right' });
-    yPos += 8;
-    
     
     // Autorizado por (alineado como los totales)
     if (this.facturaDetalle.fact_AutorizadoPor) {
