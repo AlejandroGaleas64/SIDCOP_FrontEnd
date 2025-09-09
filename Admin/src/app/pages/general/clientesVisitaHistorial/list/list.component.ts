@@ -101,23 +101,32 @@ export class ListComponent {
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
       { key: 'No', header: 'No.', width: 3, align: 'center' as const },
-      { key: 'Código Vendedor', header: 'Código Vendedor', width: 15, align: 'left' as const },
+      { key: 'Código', header: 'Código', width: 15, align: 'left' as const },
       { key: 'Vendedor', header: 'Vendedor', width: 30, align: 'left' as const },
       { key: 'Tipo', header: 'Tipo', width: 50, align: 'left' as const },
       { key: 'Ruta', header: 'Ruta', width: 50, align: 'left' as const },
-      { key: 'Días de la semana', header: 'Días de la semana', width: 50, align: 'left' as const },
+      { key: 'Días de la semana que visita', header: 'Días de la semana que visita', width: 50, align: 'left' as const },
     ] as ExportColumn[],
 
     // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
     dataMapping: (visita: VisitaClientePorVendedorDto, index: number) => ({
       'No': visita?.No || (index + 1),
       'Código Vendedor': this.limpiarTexto(visita?.vend_Codigo),
-      'Vendedor': this.limpiarTexto(visita?.vend_Nombres + visita.vend_Apellidos),
-      'Tipo': this.limpiarTexto(visita?.vend_Tipo),
-      'Ruta': this.limpiarTexto(visita?.ruta_Descripcion),
-      'Días de la semana': this.limpiarTexto(visita?.veRu_Dias),
+      'Vendedor': this.limpiarTexto(visita?.vend_Nombres + ' ' + visita?.vend_Apellidos),
+      'Tipo': this.obtenerTipoVendedor(visita?.vend_Tipo),
+      'Ruta': this.limpiarTexto(visita.ruta_Descripcion),
+      'Días de la semana que visita': this.limpiarTexto(visita.veRu_Dias),
     })
   };
+
+  private obtenerTipoVendedor(tipo: string): string {
+    switch ((tipo || '').toUpperCase()) {
+      case 'V': return 'Venta Directa';
+      case 'P': return 'Preventista';
+      case 'F': return 'Entregador';
+      default: return this.limpiarTexto(tipo);
+    }
+  }
 
 
   busqueda: string = '';
@@ -246,7 +255,6 @@ export class ListComponent {
       this.manejarResultadoExport(resultado);
 
     } catch (error) {
-      console.error(`Error en exportación ${tipo}:`, error);
       this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
     } finally {
       this.exportando = false;
@@ -300,7 +308,7 @@ export class ListComponent {
   /**
    * Obtiene y prepara los datos para exportación
    */
-   private obtenerDatosExport(): any[] {
+  private obtenerDatosExport(): any[] {
     try {
       const datos = this.vendedores; // Use the array for cards
 
@@ -312,7 +320,6 @@ export class ListComponent {
         this.exportConfig.dataMapping.call(this, modelo, index)
       );
     } catch (error) {
-      console.error('Error obteniendo datos:', error);
       throw error;
     }
   }
@@ -432,7 +439,7 @@ export class ListComponent {
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
         }
       } catch (e) {
-        console.error('Error al parsear permisosJson:', e);
+        // console.error('Error al parsear permisosJson:', e);
       }
     }
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLocaleLowerCase());
@@ -458,8 +465,6 @@ export class ListComponent {
           this.showDetailsForm = true;
           this.showCreateForm = false;
           this.activeActionRow = null;
-          console.log('Visitas Detalle cargadas:', this.visitasDetalle);
-          console.log('show:', this.showDetailsForm);
         } else {
           this.visitasDetalle = [];
           this.showDetailsForm = false;
@@ -467,7 +472,6 @@ export class ListComponent {
         }
       },
       error: (err) => {
-        console.error('Error al cargar visitas:', err);
         this.visitasDetalle = [];
         this.showDetailsForm = false;
         this.mostrarMensaje('error', 'No se pudo cargar el historial de visitas.');
@@ -561,7 +565,6 @@ export class ListComponent {
 
 
   guardarVisita(visita: ClientesVisitaHistorial): void {
-    console.log('Visita guardada exitosamente desde create component:', visita);
     this.cargarDatos(false);
     this.cerrarFormulario();
   }
