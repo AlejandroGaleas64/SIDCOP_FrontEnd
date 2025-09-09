@@ -187,9 +187,9 @@
                   <td>{{ data.fact_FechaEmision | date : "dd/MM/yyyy" }}</td>
                   <td>
                     {{
-                      data.fact_TipoVenta === "CR"
+                      data.fact_TipoVenta.toLowerCase() === "cr"
                         ? "Crédito"
-                        : data.fact_TipoVenta === "CO"
+                        : data.fact_TipoVenta.toLowerCase() === "co"
                         ? "Contado"
                         : data.fact_TipoVenta
                     }}
