@@ -580,12 +580,27 @@ export class ListComponent implements OnInit {
     if (!termino) {
       this.productosFiltrados = this.productos;
     } else {
-      this.productosFiltrados = this.productos.filter((producto: any) =>
+      this.productosFiltrados = this.productoGrid.filter((producto: any) =>
         (producto.prod_DescripcionCorta || '').toLowerCase().includes(termino) ||
         (producto.prod_CodigoBarra || '').toLowerCase().includes(termino) ||
-        (producto.prod_Descripcion || '').toLowerCase().includes(termino)
+        (producto.prod_Descripcion || '').toLowerCase().includes(termino) ||
+        (producto.marc_Descripcion || '').toLowerCase().includes(termino) ||
+        (producto.cate_Descripcion || '').toLowerCase().includes(termino) ||
+        (producto.subc_Descripcion || '').toLowerCase().includes(termino) ||
+        (producto.prod_Codigo || '').toLowerCase().includes(termino) ||
+        (producto.prod_PrecioUnitario || '').toString().toLowerCase().includes(termino)
       );
     }
+     // Resetear la página actual a 1 cuando se filtra
+    this.currentPage = 1;
+    
+    // Actualizar los productos visibles basados en la paginación
+    this.actualizarProductosVisibles();
+  }
+  private actualizarProductosVisibles(): void {
+    const startItem = (this.currentPage - 1) * this.itemsPerPage;
+    const endItem = this.currentPage * this.itemsPerPage;
+    this.productos = this.productosFiltrados.slice(startItem, endItem);
   }
 
   private cargardatos(state: boolean): void {
