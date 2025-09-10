@@ -435,7 +435,7 @@ export class InvoiceService {
       //yPos += 5; // Agregar espacio adicional si se muestra el RTN
     }
     
-    doc.text(this.facturaDetalle.coFa_DireccionEmpresa, centerX - 80, yPos + 12); // Reducido de +16 a +12
+    doc.text(this.facturaDetalle.coFa_DireccionEmpresa, centerX - 80, yPos + 12, ); // Reducido de +16 a +12
     
     // Teléfonos de la empresa (mostrar ambos si existen)
     let telefonoEmpresaTexto = `Tel: ${this.facturaDetalle.coFa_Telefono1}`;
@@ -516,7 +516,7 @@ export class InvoiceService {
     
     // Dirección
     doc.setFont('Satoshi', 'normal');
-    doc.text(`Dirección: ${this.facturaDetalle.diCl_DireccionExacta}`, centerX -80, yPos + 8);
+    doc.text(`Dirección: ${this.facturaDetalle.diCl_DireccionExacta}`, centerX -80, yPos + 8, {maxWidth: 85});
     
     // Teléfono
     doc.setFont('Satoshi', 'normal');
@@ -624,7 +624,7 @@ export class InvoiceService {
           // Línea separadora para el pie de página
           doc.setDrawColor(this.COLORES.dorado);
           doc.setLineWidth(1);
-          doc.line(15+5, pageHeight - pieHeight, pageWidth - 15-5, pageHeight - pieHeight);
+          doc.line(15+5, pageHeight - pieHeight-25, pageWidth - 15-5, pageHeight - pieHeight-25);
           
           
           // Información del pie de página
@@ -636,6 +636,7 @@ export class InvoiceService {
           doc.text('Gracias por su compra', centerX, pageHeight - pieHeight + 10, { align: 'center' });
           doc.text('Conserve su factura para cualquier reclamo', centerX, pageHeight - pieHeight + 15, { align: 'center' });
           
+          doc.text('Original-cliente / Copia-emisor', centerX+40, pageHeight - pieHeight +15,);
         }
       },
     });
@@ -672,10 +673,13 @@ export class InvoiceService {
     const labelX = pageWidth - 100; // Posición para las etiquetas (ajustado para mejor alineación)
     
     // Establecer estilo para totales
+    doc.setFont('Satoshi', 'bold');
+    doc.setTextColor(this.COLORES.azulOscuro);
+    doc.setFontSize(10);
+    doc.text('Observaciones', labelX-60, yPos, );
+
     doc.setFont('Satoshi', 'normal');
     doc.setFontSize(9);
-    doc.setTextColor(this.COLORES.azulOscuro);
-
     
     // Subtotal
     doc.text('Subtotal:', labelX, yPos, );
@@ -739,10 +743,9 @@ export class InvoiceService {
     
     // Autorizado por (alineado como los totales)
     if (this.facturaDetalle.fact_AutorizadoPor) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('Autorizado por:', infoLabelX, yPos, { align: 'right' });
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${this.facturaDetalle.fact_AutorizadoPor}`, valueX, yPos, { align: 'right' });
+      doc.setFont('satoshi', 'normal');
+      doc.setTextColor(this.COLORES.grisTexto);
+      doc.text(`Impreso por: ${this.facturaDetalle.fact_AutorizadoPor}`, infoLabelX-70, yPos+28,);
     }
     
     // La numeración de páginas se manejará en el método generarFacturaPDF
