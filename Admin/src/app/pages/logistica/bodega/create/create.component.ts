@@ -66,7 +66,7 @@ export class CreateComponent  {
     modelosFiltrados: any[] = []; // Nueva propiedad para modelos filtrados
     marcaSeleccionada: number = 0; // Nueva propiedad para la marca seleccionada
 
-   // Función para validar VIN
+  // Función para validar VIN
   validarVIN(vin: string): { esValido: boolean, mensaje: string } {
     if (!vin) return { esValido: true, mensaje: '' }; 
     
