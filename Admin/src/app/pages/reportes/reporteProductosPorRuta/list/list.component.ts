@@ -85,17 +85,17 @@ export class ReporteProductosPorRutaComponent implements OnInit {
   // Ordenar los datos para agrupar por DNI, Vendedor y Ruta
   private ordenarDatos(productos: any[]): any[] {
     return productos.sort((a, b) => {
-      // Primero por DNI
+      // Primero por Ruta
+      if (a.ruta_Descripcion !== b.ruta_Descripcion) {
+        return a.ruta_Descripcion.localeCompare(b.ruta_Descripcion);
+      }
+      // Luego por DNI
       if (a.vend_DNI !== b.vend_DNI) {
         return a.vend_DNI.localeCompare(b.vend_DNI);
       }
-      // Luego por Vendedor
+      // Después por Vendedor
       if (a.nombreCompleto !== b.nombreCompleto) {
         return a.nombreCompleto.localeCompare(b.nombreCompleto);
-      }
-      // Finalmente por Ruta
-      if (a.ruta_Descripcion !== b.ruta_Descripcion) {
-        return a.ruta_Descripcion.localeCompare(b.ruta_Descripcion);
       }
       // Por último por Producto
       return a.prod_DescripcionCorta.localeCompare(b.prod_DescripcionCorta);
@@ -105,24 +105,34 @@ export class ReporteProductosPorRutaComponent implements OnInit {
   // Generar las filas con rowSpan para celdas combinadas
   private generarFilasConRowSpan(): FilaTabla[][] {
     const filas: FilaTabla[][] = [];
-    let contadorVendedores = 0;
+    let contadorRutas = 0;
     
     for (let i = 0; i < this.productos.length; i++) {
       const producto = this.productos[i];
       const fila: FilaTabla[] = [];
 
-    // Columna # (solo se muestra cuando es un nuevo vendedor)
-    const rowSpanDNI = this.calcularRowSpan(i, 'vend_DNI');
-    if (rowSpanDNI > 0) {
-      contadorVendedores++;
-      fila.push({
-        content: contadorVendedores.toString(),
-        rowSpan: rowSpanDNI,
-        styles: { halign: 'center', valign: 'middle' }
-      });
-    }
+      // Columna # (solo se muestra cuando es una nueva ruta)
+      const rowSpanRuta = this.calcularRowSpan(i, 'ruta_Descripcion');
+      if (rowSpanRuta > 0) {
+        contadorRutas++;
+        fila.push({
+          content: contadorRutas.toString(),
+          rowSpan: rowSpanRuta,
+          styles: { halign: 'center', valign: 'middle' }
+        });
+      }
+
+      // Columna Ruta
+      if (rowSpanRuta > 0) {
+        fila.push({
+          content: producto.ruta_Descripcion || 'N/A',
+          rowSpan: rowSpanRuta,
+          styles: { halign: 'center', valign: 'middle' }
+        });
+      }
 
       // Columna DNI
+      const rowSpanDNI = this.calcularRowSpan(i, 'vend_DNI', 'ruta_Descripcion');
       if (rowSpanDNI > 0) {
         fila.push({
           content: producto.vend_DNI || 'N/A',
@@ -132,21 +142,11 @@ export class ReporteProductosPorRutaComponent implements OnInit {
       }
 
       // Columna Vendedor
-      const rowSpanVendedor = this.calcularRowSpan(i, 'nombreCompleto', 'vend_DNI');
+      const rowSpanVendedor = this.calcularRowSpan(i, 'nombreCompleto', 'ruta_Descripcion', 'vend_DNI');
       if (rowSpanVendedor > 0) {
         fila.push({
           content: producto.nombreCompleto || 'N/A',
           rowSpan: rowSpanVendedor,
-          styles: { halign: 'center', valign: 'middle' }
-        });
-      }
-
-      // Columna Ruta
-      const rowSpanRuta = this.calcularRowSpan(i, 'ruta_Descripcion', 'vend_DNI', 'nombreCompleto');
-      if (rowSpanRuta > 0) {
-        fila.push({
-          content: producto.ruta_Descripcion || 'N/A',
-          rowSpan: rowSpanRuta,
           styles: { halign: 'center', valign: 'middle' }
         });
       }
@@ -235,9 +235,9 @@ export class ReporteProductosPorRutaComponent implements OnInit {
       head: [
         [
           { content: '#', styles: { halign: 'center', cellWidth: 20 } },
+          { content: 'Ruta', styles: { cellWidth: 50, halign: 'center' } },
           { content: 'DNI', styles: { cellWidth: 50, halign: 'center' } },
           { content: 'Vendedor', styles: { cellWidth: 65, halign: 'center' } },
-          { content: 'Ruta', styles: { cellWidth: 50, halign: 'center' } },
           { content: 'Producto', styles: { cellWidth: 60, halign: 'center' } },
           { content: 'Cantidad', styles: { cellWidth: 20, halign: 'center' } }
         ]
