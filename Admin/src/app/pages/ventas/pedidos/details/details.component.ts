@@ -399,7 +399,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
       next: (response: any) => {
         console.log('Factura insertada correctamente:', response);
         const facturaId = response.id || response.fact_Id || 'N/A';
-        this.mostrarMensajeExito(`Factura insertada correctamente.`);
+
         
         // Marcar que la factura se ha insertado correctamente
         this.facturaInsertada = true;
