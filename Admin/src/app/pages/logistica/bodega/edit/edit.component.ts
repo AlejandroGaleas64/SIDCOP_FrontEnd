@@ -5,13 +5,15 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Bodega } from 'src/app/Modelos/logistica/Bodega.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 
 @Component({
   selector: 'app-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgxMaskDirective],
   templateUrl: './edit.component.html',
-  styleUrl: './edit.component.scss'
+  styleUrl: './edit.component.scss',
+  providers: [provideNgxMask()]
 })
 export class EditComponent implements OnChanges {
   @Input() bodegaData: Bodega | null = null;
@@ -55,8 +57,113 @@ export class EditComponent implements OnChanges {
   constructor(private http: HttpClient) {
     this.listarSucursales();
     this.listarRegistroCai();
-    this.listarVendedores();
-    this.listarModelos();
+    this.listarMarcas();
+    this.listarVendedores(); // Cargar todos los vendedores
+    this.listarModelos();   // Cargar todos los modelos
+  }
+
+  // Función para validar VIN
+  validarVIN(vin: string): { esValido: boolean, mensaje: string } {
+    if (!vin) return { esValido: true, mensaje: '' }; 
+    
+    if (vin.length > 17 || vin.length < 17) {
+      return { esValido: false, mensaje: 'Ingrese un VIN Válido' };
+    }
+    
+    const letrasProhibidas = /[OIQoiq]/;
+    if (letrasProhibidas.test(vin)) {
+      return { esValido: false, mensaje: 'El VIN no puede contener las letras O, I, Q' };
+    }
+    
+    const letras = vin.match(/[A-HJ-NPR-Z]/g);
+    if (!letras || letras.length < 3) {
+      return { esValido: false, mensaje: 'El VIN debe contener al menos 3 letras' };
+    }
+
+    const numeros = vin.match(/[0-9]/g);
+    if (!numeros || numeros.length < 3) {
+      return { esValido: false, mensaje: 'El VIN debe contener al menos 3 números' };
+    }
+    
+    return { esValido: true, mensaje: '' };
+  }
+
+  validarPlaca(placa: string): { esValido: boolean, mensaje: string } {
+    if (!placa) return { esValido: true, mensaje: '' };
+    
+    if (placa.length > 8 || placa.length < 8) {
+      return { esValido: false, mensaje: 'Ingrese una Placa Válida' };
+    }
+
+    return { esValido: true, mensaje: '' };
+  }
+
+  esVINValido(vin: string): boolean {
+    return this.validarVIN(vin).esValido;
+  }
+
+  esPlacaValido(placa: string): boolean {
+    return this.validarPlaca(placa).esValido;
+  }
+
+  onVINInput(event: any): void {
+    let valor = event.target.value;
+    
+    valor = valor.replace(/[OIQoiq]/g, '');
+    
+    if (valor.length > 17) {
+      valor = valor.substring(0, 17);
+    }
+
+    valor = valor.toUpperCase();
+    
+    this.bodega.bode_VIN = valor;
+    
+    if (event.target.value !== valor) {
+      event.target.value = valor;
+    }
+  }
+
+  onPlacaInput(event: any): void {
+    let valor = event.target.value;
+
+    if (valor.length > 8) {
+      valor = valor.substring(0, 8);
+    }
+    
+    valor = valor.toUpperCase();
+    
+    this.bodega.bode_Placa = valor;
+
+    if (event.target.value !== valor) {
+      event.target.value = valor;
+    }
+  }
+
+  contarLetrasVIN(): number {
+    if (!this.bodega.bode_VIN) return 0;
+    const letras = this.bodega.bode_VIN.match(/[A-HJ-NPR-Z]/g);
+    return letras ? letras.length : 0;
+  }
+
+  contarNumerosVIN(): number {
+    if (!this.bodega.bode_VIN) return 0;
+    const numeros = this.bodega.bode_VIN.match(/[0-9]/g);
+    return numeros ? numeros.length : 0;
+  }
+
+  getMensajeErrorVIN(): string {
+    if (!this.bodega.bode_VIN.trim()) {
+      return 'El campo VIN es requerido';
+    }
+    return this.validarVIN(this.bodega.bode_VIN).mensaje;
+  }
+
+  getMensajeErrorPlaca(): string {
+    if (!this.bodega.bode_Placa.trim()) {
+      return 'El campo Placa es requerido';
+    }
+    return this.validarPlaca(this.bodega.bode_Placa).mensaje;
   }
 
   // Helpers genéricos de mapeo y formato
@@ -217,46 +324,137 @@ export class EditComponent implements OnChanges {
 
 
   // Variables para las listas desplegables
-   sucursales: any[] = [];
-    registroCais: any[] = [];
-    vendedores: any[] = [];
-    modelos: any[] = [];
-
-
-    // Métodos para obtener las listas desplegables desde el backend
-
-
-  listarSucursales(): void {
+  sucursales: any[] = [];
+  registroCais: any[] = [];
+  vendedores: any[] = [];
+  vendedoresFiltrados: any[] = []; 
+  marcas: any[] = []; // Nueva propiedad para marcas
+  modelos: any[] = [];
+  modelosFiltrados: any[] = []; // Nueva propiedad para modelos filtrados
+  marcaSeleccionada: number = 0; // Nueva propiedad para la marca seleccionada
+    
+  // Métodos para obtener las listas desplegables desde el backend
+   listarSucursales(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Sucursales/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe((data) => this.sucursales = data);
-  };
+        headers: { 'x-api-key': environment.apiKey }
+      }).subscribe((data) => this.sucursales = data);
+    };
 
   listarRegistroCai(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/RegistrosCaiS/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe((data) => this.registroCais = data);
-  };
+        headers: { 'x-api-key': environment.apiKey }
+      }).subscribe((data) => this.registroCais = data);
+    };
 
-  listarVendedores(): void {
+  listarVendedores(callback?: () => void): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
-    }).subscribe((data) => this.vendedores = data);
+    }).subscribe((data) => {
+      this.vendedores = data;
+      if (callback) {
+        callback();
+      }
+    });
+  }
+
+  // Nuevo método para listar marcas de vehículos
+  listarMarcas(): void {
+    this.http.get<any>(`${environment.apiBaseUrl}/MarcasVehiculos/Listar`, {
+        headers: { 'x-api-key': environment.apiKey }
+      }).subscribe((data) => this.marcas = data);
   };
 
-  listarModelos(): void {
+  // Método modificado para listar modelos (ahora carga todos)
+  listarModelos(callback?: () => void): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Modelo/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe((data) => this.modelos = data);
+        headers: { 'x-api-key': environment.apiKey }
+      }).subscribe((data) => {
+        this.modelos = data;
+        if (callback) {
+          callback();
+        }
+      });
   };
 
+  onSucursalChange(): void {
+    console.log('Sucursal cambiada a:', this.bodega.sucu_Id, typeof this.bodega.sucu_Id);
+    
+    this.bodega.vend_Id = 0;
+    
+    if (this.bodega.sucu_Id && Number(this.bodega.sucu_Id) > 0) {
+      this.cargarVendedoresPorSucursal(Number(this.bodega.sucu_Id));
+    } else {
+      this.vendedoresFiltrados = [];
+    }
+  }
 
+  cargarVendedoresPorSucursal(sucursalId: number): void {
+    this.listarVendedores(() => {
+      this.vendedoresFiltrados = this.vendedores.filter(vendedor => 
+        Number(vendedor.sucu_Id) === Number(sucursalId)
+      );
+    });
+  }
+
+  // Nueva función para manejar el cambio de marca
+  onMarcaChange(): void {
+    console.log('Marca cambiada a:', this.marcaSeleccionada);
+    
+    // Resetear el modelo seleccionado
+    this.bodega.mode_Id = 0;
+    
+    // Si hay una marca seleccionada, cargar los modelos
+    if (this.marcaSeleccionada && Number(this.marcaSeleccionada) > 0) {
+      this.cargarModelosPorMarca(Number(this.marcaSeleccionada));
+    } else {
+      // Si no hay marca seleccionada, limpiar la lista de modelos filtrados
+      this.modelosFiltrados = [];
+    }
+  }
+
+  // Nueva función para cargar modelos por marca
+  cargarModelosPorMarca(marcaId: number): void {
+    this.listarModelos(() => {
+      this.modelosFiltrados = this.modelos.filter(modelo => 
+        Number(modelo.maVe_Id) === Number(marcaId)
+      );
+    });
+  }
+
+  // En el método ngOnChanges, modifica así:
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['bodegaData'] && changes['bodegaData'].currentValue) {
       this.bodega = { ...changes['bodegaData'].currentValue };
       this.bodegaOriginal = this.bodega.bode_Descripcion || '';
       this.mostrarErrores = false;
       this.cerrarAlerta();
+      
+      // Cargar datos relacionados cuando se recibe la bodega
+      this.inicializarDatosEdicion();
+    }
+  }
+
+  // Agrega este nuevo método:
+  private inicializarDatosEdicion(): void {
+    // Cargar vendedores filtrados por la sucursal actual
+    if (this.bodega.sucu_Id && Number(this.bodega.sucu_Id) > 0) {
+      this.cargarVendedoresPorSucursal(Number(this.bodega.sucu_Id));
+    }
+
+    // Encontrar la marca del modelo actual y cargar modelos filtrados
+    if (this.bodega.mode_Id && Number(this.bodega.mode_Id) > 0) {
+      this.listarModelos(() => {
+        // Buscar el modelo actual para obtener su marca
+        const modeloActual = this.modelos.find(m => Number(m.mode_Id) === Number(this.bodega.mode_Id));
+        if (modeloActual && modeloActual.maVe_Id) {
+          // Establecer la marca seleccionada
+          this.marcaSeleccionada = Number(modeloActual.maVe_Id);
+          // Filtrar los modelos por esa marca
+          this.modelosFiltrados = this.modelos.filter(modelo => 
+            Number(modelo.maVe_Id) === Number(this.marcaSeleccionada)
+          );
+        }
+      });
     }
   }
 
