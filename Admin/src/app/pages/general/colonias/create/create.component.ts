@@ -76,6 +76,8 @@ export class CreateComponent implements OnInit {
   }
 
   cargarMunicipios(codigoDepa: string): void {
+    this.selectedMuni = '';
+    this.nuevaColonia.muni_Codigo = '';
     this.Municipios = this.TodosMunicipios.filter(m => m.depa_Codigo === codigoDepa);
     this.selectedMuni = '';
   }
