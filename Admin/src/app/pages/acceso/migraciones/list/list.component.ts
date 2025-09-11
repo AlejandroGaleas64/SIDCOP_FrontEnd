@@ -610,8 +610,9 @@ export class ListComponent implements OnInit {
           console.error('Error al migrar "General":', error);
           this.mostrarOverlayCarga = false;
           this.mostrarAlertaError = true;
-          if (error?.error?.message) {
-            this.descargarLogMigracion(error.error.message, 'General');
+
+          if (error) {
+            this.descargarLogMigracion(error, 'General');
           }
 
           this.mensajeError = 'Error de conexión al intentar migrar "General".';
