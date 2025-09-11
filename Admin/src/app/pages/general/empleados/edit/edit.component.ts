@@ -394,7 +394,7 @@ export class EditComponent implements OnInit, OnChanges {
         empl_Estado: true,
         usua_Creacion: getUserId(), // variable global
         empl_FechaCreacion: new Date().toISOString(),
-        usua_Modificacion: 1,
+        usua_Modificacion: getUserId(), // variable global
         empl_FechaModificacion: new Date().toISOString(),
       };
 
