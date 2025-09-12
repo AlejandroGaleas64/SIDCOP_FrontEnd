@@ -160,6 +160,10 @@ export class ListComponent implements OnInit {
   PEEliminar: Migracion | null = null;
   infoconfiguracion: any[] = [];
 
+mostrarConfirmacionMigrar = false;
+migracionPendiente: Migracion | null = null;
+
+
   cargarconfiguracion() {
     this.http
       .get<any[]>(`${environment.apiBaseUrl}/ConfiguracionFactura/Listar`, {
@@ -205,6 +209,41 @@ export class ListComponent implements OnInit {
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   }
+
+  confirmarMigracion(migracionesinfo: Migracion): void {
+  console.log('Solicitando confirmación para migrar:', migracionesinfo);
+  this.migracionPendiente = migracionesinfo;
+  this.mostrarConfirmacionMigrar = true;
+  this.activeActionRow = null; // Cerrar menú de acciones
+}
+
+cancelarMigrar(): void {
+  this.mostrarConfirmacionMigrar = false;
+  this.migracionPendiente = null;
+}
+
+confirmarMigrar(): void {
+  if (this.migracionPendiente) {
+    this.mostrarConfirmacionMigrar = false;
+    this.migrar(this.migracionPendiente);
+    this.migracionPendiente = null;
+  }
+}
+
+mostrarConfirmacionMigrarGeneral = false;
+
+confirmarMigracionGeneral(): void {
+  this.mostrarConfirmacionMigrarGeneral = true;
+}
+
+cancelarMigrarGeneral(): void {
+  this.mostrarConfirmacionMigrarGeneral = false;
+}
+
+confirmarMigrarGeneral(): void {
+  this.mostrarConfirmacionMigrarGeneral = false;
+  this.migrarGeneral();
+}
 
   migrar(migracionesinfo: Migracion): void {
     this.mostrarOverlayCarga = true;
@@ -615,7 +654,7 @@ export class ListComponent implements OnInit {
             this.descargarLogMigracion(error, 'General');
           }
 
-          this.mensajeError = 'Error de conexión al intentar migrar "General".';
+          this.mensajeError = 'Error al intentar migrar "General".';
           setTimeout(() => this.cerrarAlerta(), 5000);
         },
       });
