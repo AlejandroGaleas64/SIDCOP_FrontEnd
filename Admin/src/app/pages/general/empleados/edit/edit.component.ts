@@ -239,6 +239,17 @@ export class EditComponent implements OnInit, OnChanges {
   validarEdicion(): void {
     this.mostrarErrores = true;
 
+    // Verificar si hay imagen (ya sea la original o una nueva)
+    const tieneImagen = this.uploadedFiles.length > 0;
+    
+    // Si no hay imagen, mostrar error y salir
+    if (!tieneImagen) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'La imagen del empleado es obligatoria.';
+      setTimeout(() => this.cerrarAlerta(), 4000);
+      return;
+    }
+
     // Validar que empleadoData existe
     if (!this.empleadoData) {
       this.mostrarAlertaError = true;
@@ -290,8 +301,6 @@ export class EditComponent implements OnInit, OnChanges {
       (original?.empl_DireccionExacta?.trim() || '') !== (actual.empl_DireccionExacta?.trim() || '') ||
       (original?.empl_Imagen || '') !== (actual.empl_Imagen || '');
 
-    // Valida campos requeridos
-    const tieneImagen = this.uploadedFiles.length > 0 || actual.empl_Imagen;
     const camposRequeridos = [
       actual.empl_DNI,
       actual.empl_Codigo,
@@ -311,12 +320,6 @@ export class EditComponent implements OnInit, OnChanges {
     // Verifica si todos los campos están llenos y si hay una imagen
     const todosLlenos = camposRequeridos.every(c => c && c.toString().trim() !== '') && tieneImagen;
 
-    if (!tieneImagen) {
-      this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'La imagen del empleado es obligatoria.';
-      setTimeout(() => this.cerrarAlerta(), 4000);
-      return;
-    }
 
     if (todosLlenos) {
       if (haCambiado) {
@@ -681,127 +684,131 @@ export class EditComponent implements OnInit, OnChanges {
       cambiosDetectados: any = {};
 
       private hayDiferencias(): boolean {
-    if (!this.empleado || !this.empleadoData) return false;
+        if (!this.empleado || !this.empleadoData) return false;
 
-    this.cambiosDetectados = {};
+        this.cambiosDetectados = {};
 
-    // Verificar si hay un nuevo archivo seleccionado
-    if (this.selectedFile || (this.uploadedFiles.length > 0 && this.uploadedFiles[0].file)) {
-      this.cambiosDetectados.imagen = {
-        anterior: this.empleadoData.empl_Imagen ? 'Imagen anterior' : 'Sin imagen',
-        nuevo: 'Nueva imagen seleccionada',
-        label: 'Imagen del empleado'
-      };
-      return true; // Si hay una nueva imagen, hay cambios
+        // Verificar primero si hay imagen
+        if (this.uploadedFiles.length === 0) {
+          return false; // No continuar con la validación si no hay imagen
+        }
+
+        // Verificar si hay un nuevo archivo seleccionado
+        if (this.selectedFile || (this.uploadedFiles.length > 0 && this.uploadedFiles[0].file)) {
+            this.cambiosDetectados.imagen = {
+                anterior: this.empleadoData.empl_Imagen ? 'Imagen actual' : 'Sin imagen',
+                nuevo: 'Nueva imagen seleccionada',
+                label: 'Imagen del empleado'
+            };
+        }
+
+        // Verificar cambios en cada campo
+        if (this.empleado?.empl_DNI !== this.empleadoData?.empl_DNI) {
+            this.cambiosDetectados.dni = {
+                anterior: this.empleadoData?.empl_DNI || 'Sin DNI',
+                nuevo: this.empleado?.empl_DNI || '',
+                label: 'DNI del Empleado'
+            };
+        }
+
+        if (this.empleado?.empl_Nombres !== this.empleadoData?.empl_Nombres) {
+            this.cambiosDetectados.nombres = {
+                anterior: this.empleadoData?.empl_Nombres || 'Sin nombres',
+                nuevo: this.empleado?.empl_Nombres || '',
+                label: 'Nombres del empleado'
+            };
+        }
+
+        if (this.empleado?.empl_Apellidos !== this.empleadoData?.empl_Apellidos) {
+            this.cambiosDetectados.apellidos = {
+                anterior: this.empleadoData?.empl_Apellidos || 'Sin apellidos',
+                nuevo: this.empleado?.empl_Apellidos || '',
+                label: 'Apellidos del empleado'
+            };
+        }
+
+        if (this.empleado?.empl_Sexo !== this.empleadoData?.empl_Sexo) {
+            this.cambiosDetectados.sexo = {
+                anterior: this.empleadoData?.empl_Sexo || 'Sin especificar',
+                nuevo: this.empleado?.empl_Sexo || '',
+                label: 'Sexo del empleado'
+            };
+        }
+
+        if (this.empleado?.empl_FechaNacimiento?.toString() !== this.empleadoData?.empl_FechaNacimiento?.toString()) {
+            this.cambiosDetectados.fechaNacimiento = {
+                anterior: this.empleadoData?.empl_FechaNacimiento?.toString() || 'Sin fecha',
+                nuevo: this.empleado?.empl_FechaNacimiento?.toString() || '',
+                label: 'Fecha de nacimiento'
+            };
+        }
+
+        if (this.empleado?.empl_Correo !== this.empleadoData?.empl_Correo) {
+            this.cambiosDetectados.correo = {
+                anterior: this.empleadoData?.empl_Correo || 'Sin correo',
+                nuevo: this.empleado?.empl_Correo || '',
+                label: 'Correo del empleado'
+            };
+        }
+
+        if (this.empleado?.empl_Telefono !== this.empleadoData?.empl_Telefono) {
+            this.cambiosDetectados.telefono = {
+                anterior: this.empleadoData?.empl_Telefono || 'Sin teléfono',
+                nuevo: this.empleado?.empl_Telefono || '',
+                label: 'Teléfono del empleado'
+            };
+        }
+
+        if (this.empleado?.sucu_Id !== this.empleadoData?.sucu_Id) {
+            const sucursalAnterior = this.sucursales?.find(s => s.sucu_Id === this.empleadoData?.sucu_Id);
+            const sucursalNueva = this.sucursales?.find(s => s.sucu_Id === this.empleado?.sucu_Id);
+            this.cambiosDetectados.sucursal = {
+                anterior: sucursalAnterior?.sucu_Descripcion || 'Sin sucursal',
+                nuevo: sucursalNueva?.sucu_Descripcion || 'Sin sucursal',
+                label: 'Sucursal'
+            };
+        }
+
+        if (this.empleado?.esCv_Id !== this.empleadoData?.esCv_Id) {
+            const estadoCivilAnterior = this.estadosCiviles?.find(e => e.esCv_Id === this.empleadoData?.esCv_Id);
+            const estadoCivilNuevo = this.estadosCiviles?.find(e => e.esCv_Id === this.empleado?.esCv_Id);
+            this.cambiosDetectados.estadoCivil = {
+                anterior: estadoCivilAnterior?.esCv_Descripcion || 'Sin estado civil',
+                nuevo: estadoCivilNuevo?.esCv_Descripcion || 'Sin estado civil',
+                label: 'Estado Civil'
+            };
+        }
+
+        if (this.empleado?.carg_Id !== this.empleadoData?.carg_Id) {
+            const cargoAnterior = this.cargos?.find(c => c.carg_Id === this.empleadoData?.carg_Id);
+            const cargoNuevo = this.cargos?.find(c => c.carg_Id === this.empleado?.carg_Id);
+            this.cambiosDetectados.cargo = {
+                anterior: cargoAnterior?.carg_Descripcion || 'Sin cargo',
+                nuevo: cargoNuevo?.carg_Descripcion || 'Sin cargo',
+                label: 'Cargo'
+            };
+        }
+
+        if (this.empleado?.colo_Id !== this.empleadoData?.colo_Id) {
+            const coloniaAnterior = this.colonia?.find(c => c.colo_Id === this.empleadoData?.colo_Id);
+            const coloniaNueva = this.colonia?.find(c => c.colo_Id === this.empleado?.colo_Id);
+            this.cambiosDetectados.colonia = {
+                anterior: coloniaAnterior?.colo_Descripcion || 'Sin colonia',
+                nuevo: coloniaNueva?.colo_Descripcion || 'Sin colonia',
+                label: 'Colonia'
+            };
+        }
+
+        if (this.empleado.empl_DireccionExacta !== this.empleadoData.empl_DireccionExacta) {
+            this.cambiosDetectados.direccion = {
+                anterior: this.empleadoData.empl_DireccionExacta || 'Sin dirección',
+                nuevo: this.empleado.empl_DireccionExacta,
+                label: 'Dirección exacta'
+            };
+        }
+
+        return Object.keys(this.cambiosDetectados).length > 0;
     }
-
-    // Verificar cambios en cada campo
-    if (this.empleado?.empl_DNI !== this.empleadoData?.empl_DNI) {
-        this.cambiosDetectados.dni = {
-            anterior: this.empleadoData?.empl_DNI || 'Sin DNI',
-            nuevo: this.empleado?.empl_DNI || '',
-            label: 'DNI del Empleado'
-        };
-    }
-
-    if (this.empleado?.empl_Nombres !== this.empleadoData?.empl_Nombres) {
-        this.cambiosDetectados.nombres = {
-            anterior: this.empleadoData?.empl_Nombres || 'Sin nombres',
-            nuevo: this.empleado?.empl_Nombres || '',
-            label: 'Nombres del empleado'
-        };
-    }
-
-    if (this.empleado?.empl_Apellidos !== this.empleadoData?.empl_Apellidos) {
-        this.cambiosDetectados.apellidos = {
-            anterior: this.empleadoData?.empl_Apellidos || 'Sin apellidos',
-            nuevo: this.empleado?.empl_Apellidos || '',
-            label: 'Apellidos del empleado'
-        };
-    }
-
-    if (this.empleado?.empl_Sexo !== this.empleadoData?.empl_Sexo) {
-        this.cambiosDetectados.sexo = {
-            anterior: this.empleadoData?.empl_Sexo || 'Sin especificar',
-            nuevo: this.empleado?.empl_Sexo || '',
-            label: 'Sexo del empleado'
-        };
-    }
-
-    if (this.empleado?.empl_FechaNacimiento?.toString() !== this.empleadoData?.empl_FechaNacimiento?.toString()) {
-        this.cambiosDetectados.fechaNacimiento = {
-            anterior: this.empleadoData?.empl_FechaNacimiento?.toString() || 'Sin fecha',
-            nuevo: this.empleado?.empl_FechaNacimiento?.toString() || '',
-            label: 'Fecha de nacimiento'
-        };
-    }
-
-    if (this.empleado?.empl_Correo !== this.empleadoData?.empl_Correo) {
-        this.cambiosDetectados.correo = {
-            anterior: this.empleadoData?.empl_Correo || 'Sin correo',
-            nuevo: this.empleado?.empl_Correo || '',
-            label: 'Correo del empleado'
-        };
-    }
-
-    if (this.empleado?.empl_Telefono !== this.empleadoData?.empl_Telefono) {
-        this.cambiosDetectados.telefono = {
-            anterior: this.empleadoData?.empl_Telefono || 'Sin teléfono',
-            nuevo: this.empleado?.empl_Telefono || '',
-            label: 'Teléfono del empleado'
-        };
-    }
-
-    if (this.empleado?.sucu_Id !== this.empleadoData?.sucu_Id) {
-        const sucursalAnterior = this.sucursales?.find(s => s.sucu_Id === this.empleadoData?.sucu_Id);
-        const sucursalNueva = this.sucursales?.find(s => s.sucu_Id === this.empleado?.sucu_Id);
-        this.cambiosDetectados.sucursal = {
-            anterior: sucursalAnterior?.sucu_Descripcion || 'Sin sucursal',
-            nuevo: sucursalNueva?.sucu_Descripcion || 'Sin sucursal',
-            label: 'Sucursal'
-        };
-    }
-
-    if (this.empleado?.esCv_Id !== this.empleadoData?.esCv_Id) {
-        const estadoCivilAnterior = this.estadosCiviles?.find(e => e.esCv_Id === this.empleadoData?.esCv_Id);
-        const estadoCivilNuevo = this.estadosCiviles?.find(e => e.esCv_Id === this.empleado?.esCv_Id);
-        this.cambiosDetectados.estadoCivil = {
-            anterior: estadoCivilAnterior?.esCv_Descripcion || 'Sin estado civil',
-            nuevo: estadoCivilNuevo?.esCv_Descripcion || 'Sin estado civil',
-            label: 'Estado Civil'
-        };
-    }
-
-    if (this.empleado?.carg_Id !== this.empleadoData?.carg_Id) {
-        const cargoAnterior = this.cargos?.find(c => c.carg_Id === this.empleadoData?.carg_Id);
-        const cargoNuevo = this.cargos?.find(c => c.carg_Id === this.empleado?.carg_Id);
-        this.cambiosDetectados.cargo = {
-            anterior: cargoAnterior?.carg_Descripcion || 'Sin cargo',
-            nuevo: cargoNuevo?.carg_Descripcion || 'Sin cargo',
-            label: 'Cargo'
-        };
-    }
-
-    if (this.empleado?.colo_Id !== this.empleadoData?.colo_Id) {
-        const coloniaAnterior = this.colonia?.find(c => c.colo_Id === this.empleadoData?.colo_Id);
-        const coloniaNueva = this.colonia?.find(c => c.colo_Id === this.empleado?.colo_Id);
-        this.cambiosDetectados.colonia = {
-            anterior: coloniaAnterior?.colo_Descripcion || 'Sin colonia',
-            nuevo: coloniaNueva?.colo_Descripcion || 'Sin colonia',
-            label: 'Colonia'
-        };
-    }
-
-    if (this.empleado.empl_DireccionExacta !== this.empleadoData.empl_DireccionExacta) {
-        this.cambiosDetectados.direccion = {
-            anterior: this.empleadoData.empl_DireccionExacta || 'Sin dirección',
-            nuevo: this.empleado.empl_DireccionExacta,
-            label: 'Dirección exacta'
-        };
-    }
-
-    return Object.keys(this.cambiosDetectados).length > 0;
-}
 
         // Método para obtener la lista de cambios en formato para mostrar en el modal
         obtenerListaCambios(): any[] {
