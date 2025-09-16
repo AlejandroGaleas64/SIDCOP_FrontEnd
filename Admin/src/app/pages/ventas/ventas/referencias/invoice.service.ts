@@ -621,11 +621,6 @@ export class InvoiceService {
           const centerX = pageWidth / 2;
           const pieHeight = 40; // Altura reservada para el pie de página
           
-          // Línea separadora para el pie de página
-          doc.setDrawColor(this.COLORES.dorado);
-          doc.setLineWidth(1);
-          doc.line(15+5, pageHeight - pieHeight-25, pageWidth - 15-5, pageHeight - pieHeight-25);
-          
           
           // Información del pie de página
           doc.setFont('helvetica', 'normal');
@@ -633,6 +628,12 @@ export class InvoiceService {
           doc.setTextColor(this.COLORES.grisTexto);
           
           // Texto del pie de página
+          if (this.facturaDetalle.fact_AutorizadoPor) {
+            doc.setFont('satoshi', 'normal');
+            doc.setTextColor(this.COLORES.grisTexto);
+            doc.text(`Impreso por: ${this.facturaDetalle.fact_AutorizadoPor}`, centerX-80 , pageHeight - pieHeight +15,);
+          }
+          
           doc.text('Gracias por su compra', centerX, pageHeight - pieHeight + 10, { align: 'center' });
           doc.text('Conserve su factura para cualquier reclamo', centerX, pageHeight - pieHeight + 15, { align: 'center' });
           
@@ -660,7 +661,7 @@ export class InvoiceService {
 
     const pageHeight = doc.internal.pageSize.height;
     const pageWidth = doc.internal.pageSize.width;
-    yPos += 80; // Espacio entre la tabla y el pie
+    yPos += 8; // Espacio entre la tabla y el pie
 
     // Línea separadora
     doc.setDrawColor(this.COLORES.dorado);
@@ -733,6 +734,12 @@ export class InvoiceService {
     doc.setFontSize(10);
     doc.text('TOTAL:', labelX, yPos, );
     doc.text(`L. ${this.facturaDetalle.fact_Total.toFixed(2)}`, valueX, yPos, );
+
+    yPos+=2;
+    doc.setDrawColor(this.COLORES.dorado);
+    doc.setLineWidth(1);
+    doc.line(20, yPos, pageWidth - 20, yPos);
+    yPos += 4;
     
     // Agregar espacio antes de la información adicional
     yPos += 15;
@@ -742,11 +749,7 @@ export class InvoiceService {
     const infoLabelX = pageWidth - 120; // Posición para etiquetas de información adicional
     
     // Autorizado por (alineado como los totales)
-    if (this.facturaDetalle.fact_AutorizadoPor) {
-      doc.setFont('satoshi', 'normal');
-      doc.setTextColor(this.COLORES.grisTexto);
-      doc.text(`Impreso por: ${this.facturaDetalle.fact_AutorizadoPor}`, infoLabelX-70, yPos+28,);
-    }
+    
     
     // La numeración de páginas se manejará en el método generarFacturaPDF
   }

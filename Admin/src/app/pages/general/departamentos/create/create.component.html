@@ -49,7 +49,6 @@
               placeholder="Ingrese el codigo del departamento"
               required
               mask="00">
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!departamento.depa_Codigo.trim() && mostrarErrores">
             <small>El campo codigo del Departamento es requerido</small>
@@ -76,7 +75,6 @@
               [(ngModel)]="departamento.depa_Descripcion"
               placeholder="Ingrese la descripción del departamento"
               required>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!departamento.depa_Descripcion.trim() && mostrarErrores">
             <small>El campo Descripción del Departamento es requerido</small>
