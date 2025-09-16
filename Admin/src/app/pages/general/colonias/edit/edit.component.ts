@@ -238,6 +238,8 @@ export class EditComponent implements OnInit, OnChanges {
     }
 
   cargarMunicipios(codigoDepa: string): void {
+    this.selectedMuni = '';
+    this.coloniaEditada.muni_Codigo = '';
     this.Municipios = this.TodosMunicipios.filter((m: any) => m.depa_Codigo === codigoDepa);
     this.selectedMuni = '';
   }

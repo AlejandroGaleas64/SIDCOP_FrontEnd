@@ -54,7 +54,6 @@
                             {{ Depa.depa_Descripcion }}
                     </option>
             </select>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!municipio.depa_Codigo.trim() && mostrarErrores">
             <small>El campo departamento es requerido</small>
@@ -81,7 +80,6 @@
               placeholder="Ingrese el codigo del municipio"
               required
               mask="0000">
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!municipio.muni_Codigo.trim() && mostrarErrores">
             <small>El campo codigo del municipio es requerido</small>
@@ -108,7 +106,6 @@
               [(ngModel)]="municipio.muni_Descripcion"
               placeholder="Ingrese la descripción del municipio"
               required>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!municipio.muni_Descripcion.trim() && mostrarErrores">
             <small>El campo Descripción del municipio es requerido</small>

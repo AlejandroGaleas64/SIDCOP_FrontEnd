@@ -35,10 +35,20 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
   animations: [
     trigger('fadeExpand', [
       transition(':enter', [
-        style({  height: '0',  opacity: 0,  transform: 'scaleY(0.90)',  overflow: 'hidden'}),
+        style({
+          height: '0',
+          opacity: 0,
+          transform: 'scaleY(0.90)',
+          overflow: 'hidden'
+        }),
         animate(
           '300ms ease-out',
-          style({   height: '*',   opacity: 1,   transform: 'scaleY(1)',   overflow: 'hidden' })
+          style({
+            height: '*',
+            opacity: 1,
+            transform: 'scaleY(1)',
+            overflow: 'hidden'
+          })
         )
       ]),
       transition(':leave', [
@@ -66,16 +76,16 @@ export class ListComponent implements OnInit {
       columns: [
         { key: 'No', header: 'No.', width: 8, align: 'center' as const },
         { key: 'Descripción', header: 'Descripción', width: 25, align: 'left' as const },
+        { key: 'Abreviatura', header: 'Abreviatura', width: 25, align: 'left' as const },
       ] as ExportColumn[],
-      
+            
       // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
       dataMapping: (modelo: UnidadDePeso, index: number) => ({
         'No': modelo?.secuencia || (index + 1),
-        'Descripción': this.limpiarTexto(modelo?.unPe_Descripcion)
-        // Agregar más campos aquí según necesites:
-        // 'Campo': this.limpiarTexto(modelo?.campo),
+        'Descripción': this.limpiarTexto(modelo?.unPe_Descripcion),
+        'Abreviatura': this.limpiarTexto(modelo?.unPe_Abreviatura),
       })
-    };
+    };              
   // Overlay de carga animado
   mostrarOverlayCarga = false;
   // bread crumb items
@@ -100,14 +110,11 @@ export class ListComponent implements OnInit {
 
     // OBTENER ACCIONES DISPONIBLES DEL USUARIO
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
 // ===== MÉTODOS DE EXPORTACIÓN OPTIMIZADOS =====
 
-  /**
-   * Método unificado para todas las exportaciones
-   */
+
   async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
     if (this.exportando) {
       this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
@@ -141,7 +148,6 @@ export class ListComponent implements OnInit {
       this.manejarResultadoExport(resultado);
       
     } catch (error) {
-      console.error(`Error en exportación ${tipo}:`, error);
       this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
     } finally {
       this.exportando = false;
@@ -174,10 +180,7 @@ export class ListComponent implements OnInit {
     return this.table.data$.value?.length > 0;
   }
 
-  // ===== MÉTODOS PRIVADOS DE EXPORTACIÓN =====
-
-   //Crea la configuración de exportación de forma dinámica
- 
+  // ===== MÉTODOS PRIVADOS DE EXPORTACIÓN ===== 
   private crearConfiguracionExport(): ExportConfig {
     return {
       title: this.exportConfig.title,
@@ -200,20 +203,16 @@ export class ListComponent implements OnInit {
         throw new Error('No hay datos disponibles para exportar');
       }
       
-      // Usar el mapeo configurado
       return datos.map((modelo, index) => 
         this.exportConfig.dataMapping.call(this, modelo, index)
       );
       
     } catch (error) {
-      console.error('Error obteniendo datos:', error);
       throw error;
     }
   }
 
-  /**
-   * Maneja el resultado de las exportaciones
-   */
+
   private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
     if (resultado.success) {
       this.mostrarMensaje('success', resultado.message);
@@ -289,7 +288,6 @@ export class ListComponent implements OnInit {
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -297,12 +295,7 @@ export class ListComponent implements OnInit {
   }
 
   editar(UnidadDePeso: UnidadDePeso): void {
-    console.log('Abriendo formulario de edición para:', UnidadDePeso);
-    console.log('Datos específicos:', {
-      id: UnidadDePeso.unPe_Id,
-      descripcion: UnidadDePeso.unPe_Descripcion,
-      completo: UnidadDePeso
-    });
+  
     this.UnidadDePesoEditando = { ...UnidadDePeso }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -311,7 +304,7 @@ export class ListComponent implements OnInit {
   }
 
   detalles(UnidadDePeso: UnidadDePeso): void {
-    console.log('Abriendo detalles para:', UnidadDePeso);
+
     this.UnidadDePesoDetalle = { ...UnidadDePeso }; // Hacer copia profunda
     this.showDetailsForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -372,21 +365,18 @@ export class ListComponent implements OnInit {
   }
 
   guardarUnidadDePeso(UnidadDePeso: UnidadDePeso): void {
-    console.log('Unidad de Peso guardada exitosamente desde create component:', UnidadDePeso);
     // Recargar los datos de la tabla sin overlay
     this.cargardatos(false);
     this.cerrarFormulario();
   }
 
   actualizarUnidadDePeso(UnidadDePeso: UnidadDePeso): void {
-    console.log('Unidad de Peso actualizada exitosamente desde edit component:', UnidadDePeso);
     // Recargar los datos de la tabla sin overlay
     this.cargardatos(false);
     this.cerrarFormularioEdicion();
   }
 
   confirmarEliminar(UnidadDePeso: UnidadDePeso): void {
-    console.log('Solicitando confirmación para eliminar:', UnidadDePeso);
     this.UnidadDePesoAEliminar = UnidadDePeso;
     this.mostrarConfirmacionEliminar = true;
   }
@@ -399,7 +389,6 @@ export class ListComponent implements OnInit {
   eliminar(): void {
     if (!this.UnidadDePesoAEliminar) return;
     
-    console.log('Eliminando Unidad de Peso:', this.UnidadDePesoAEliminar);
     
     this.http.post(`${environment.apiBaseUrl}/UnidadDePeso/Eliminar/${this.UnidadDePesoAEliminar.unPe_Id}`, {}, {
       headers: { 
@@ -408,13 +397,11 @@ export class ListComponent implements OnInit {
       }
     }).subscribe({
       next: (response: any) => {
-        console.log('Respuesta del servidor:', response);
         
         // Verificar el código de estado en la respuesta
         if (response.success && response.data) {
           if (response.data.code_Status === 1) {
             // Éxito: eliminado correctamente
-            console.log('Unidad de Peso eliminada exitosamente');
             this.mensajeExito = `Unidad de Peso "${this.UnidadDePesoAEliminar!.unPe_Descripcion}" eliminada exitosamente`;
             this.mostrarAlertaExito = true;
             
@@ -428,9 +415,8 @@ export class ListComponent implements OnInit {
             this.cancelarEliminar();
           } else if (response.data.code_Status === -1) {
             // Resultado: está siendo utilizado
-            console.log('Unidad de Peso está siendo utilizada');
             this.mostrarAlertaError = true;
-            this.mensajeError = response.data.message_Status || 'No se puede eliminar: la Unidad de Peso está siendo utilizada.';
+            this.mensajeError = `No se puede eliminar la unidad de peso "${this.UnidadDePesoAEliminar!.unPe_Descripcion}" porque está siendo utilizada en otros registros del sistema.`;
             
             setTimeout(() => {
               this.mostrarAlertaError = false;
@@ -441,7 +427,6 @@ export class ListComponent implements OnInit {
             this.cancelarEliminar();
           } else if (response.data.code_Status === 0) {
             // Error general
-            console.log('Error general al eliminar');
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'Error al eliminar la Unidad de Peso.';
             
@@ -455,7 +440,6 @@ export class ListComponent implements OnInit {
           }
         } else {
           // Respuesta inesperada
-          console.log('Respuesta inesperada del servidor');
           this.mostrarAlertaError = true;
           this.mensajeError = response.message || 'Error inesperado al eliminar la Unidad de Peso.';
           
@@ -484,7 +468,6 @@ export class ListComponent implements OnInit {
   private cargarAccionesUsuario(): void {
     // OBTENEMOS PERMISOSJSON DEL LOCALSTORAGE
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -502,15 +485,12 @@ export class ListComponent implements OnInit {
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
           // AQUI SACAMOS SOLO EL NOMBRE DE LA ACCIÓN
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
-          console.log('Acciones del módulo:', accionesArray);
         }
       } catch (e) {
-        console.error('Error al parsear permisosJson:', e);
       }
     } 
     // AQUI FILTRAMOS Y NORMALIZAMOS LAS ACCIONES
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   private cargardatos(state: boolean): void {
