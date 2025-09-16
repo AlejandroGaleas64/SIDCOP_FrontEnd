@@ -383,11 +383,11 @@ confirmarGuardarCambios() {
     valid = false;
   }
   if ( this.newLista.inicioEscala! <= 0) {
-    this.inputErrors.inicioEscala = 'Inicio escala debe ser mayor a 1.';
+    this.inputErrors.inicioEscala = 'Inicio escala debe ser mayor a 0.';
     valid = false;
   }
   if ((this.newLista.finEscala ?? null) === null || this.newLista.finEscala! < (this.newLista.inicioEscala ?? 0)) {
-    this.inputErrors.finEscala = 'Fin escala debe ser mayor o igual a inicio escala.';
+    this.inputErrors.finEscala = 'Fin de escala debe ser mayor o igual al inicio de escala.';
     valid = false;
   }
   if (!this.newLista.clientesChecked.length) {

@@ -4,6 +4,8 @@ import { RouterModule, Routes } from '@angular/router';
 // Component
 import { IndexComponent } from './index/index.component';
 import { DashbComponent } from './dashb/dashb.component';
+import { MetasPorVendedorComponent } from './metasPorVendedor/metas-por-vendedor/metas-por-vendedor.component';
+import { MetasDashboardComponent } from './metasDashboard/metas-dashboard/metas-dashboard.component';
 
 // No importamos el PermisoGuard aquí para asegurar que estas rutas siempre sean accesibles
 
@@ -15,6 +17,14 @@ const routes: Routes = [
   {
     path: "dashboard0",
     component: DashbComponent
+  },
+  {
+    path: "metasporvendedor",
+    component: MetasPorVendedorComponent
+  },
+  {
+    path: "metasdashboard",
+    component: MetasDashboardComponent
   }
 
 
