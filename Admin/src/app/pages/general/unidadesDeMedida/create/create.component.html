@@ -45,12 +45,12 @@
               [class.is-invalid]="!UnidadDePeso.unPe_Descripcion.trim() && mostrarErrores"
               id="UnidadDePesoDescripcion"
               [(ngModel)]="UnidadDePeso.unPe_Descripcion"
-              placeholder="Ingrese la descripción de la unidad de medida"
+              placeholder="Ingrese la descripción de la unidad de peso"
               required />
             <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!UnidadDePeso.unPe_Descripcion.trim() && mostrarErrores">
-            <small>El campo Descripción de la Unidad de Medida es requerido</small>
+            <small>El campo Descripción de la Unidad de Peso es requerido</small>
           </div>
         </div>
       </div>
@@ -74,12 +74,12 @@
               (input)="onAbreviaturaInput($event)"
               maxlength="2"
            
-              placeholder="Ingrese la abreviatura de la unidad de medida"
+              placeholder="Ingrese la abreviatura de la unidad de peso"
               required />
             <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
           <div class="text-danger mt-1" *ngIf="!UnidadDePeso.unPe_Abreviatura.trim() && mostrarErrores">
-            <small>El campo Abreviatura de la Unidad de Medida es requerido</small>
+            <small>El campo Abreviatura de la Unidad de Peso es requerido</small>
           </div>
         </div>
       </div>

@@ -35,7 +35,6 @@ export class DetailsComponent implements OnChanges {
         this.UnidadDePesoDetalle = { ...data };
         this.cargando = false;
       } catch (error) {
-        console.error('Error al cargar detalles de la Unidad De Peso:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los detalles de la Unidad De Peso.';
         this.cargando = false;
