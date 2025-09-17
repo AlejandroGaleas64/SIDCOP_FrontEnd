@@ -96,7 +96,7 @@ export class CreateComponent {
         usuarioModificacion: "" 
       };
 
-      console.log('Guardando estado civil:', estadoCivilGuardar);
+      
       
       this.http.post<any>(`${environment.apiBaseUrl}/EstadosCiviles/Insertar`, estadoCivilGuardar, {
         headers: { 
@@ -106,7 +106,6 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          console.log('Estado civil guardado exitosamente:', response);
           this.mostrarErrores = false;
           setTimeout(() => {
             this.onOverlayChange.emit(false);

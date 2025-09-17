@@ -104,7 +104,6 @@ export class EditComponent implements OnChanges {
 
   confirmarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
-    console.log('Confirmar edición de canal');
     this.guardar();
   }
 
@@ -136,7 +135,6 @@ export class EditComponent implements OnChanges {
         }
       }).subscribe({
         next: (resp) => {
-          console.log('Respuesta del PUT /Canal/Actualizar:', resp);
           this.mostrarErrores = false;
           setTimeout(() => {
             this.onOverlayChange.emit(false);
