@@ -205,7 +205,6 @@ aplicarmascaracodigo(valor: string): string {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['sucursalData'] && changes['sucursalData'].currentValue) {
-      console.log('ngOnChanges sucursalData:', changes['sucursalData'].currentValue);
       // Normalizar los campos para evitar null/undefined
       const data = { ...changes['sucursalData'].currentValue };
       this.sucursal = {
