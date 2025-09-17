@@ -134,7 +134,6 @@ export class CreateComponent {
       Secuencia: ""
     };
 
-    console.log('Enviando payload:', JSON.stringify(payload, null, 2));
 
     this.http.post<any>(`${environment.apiBaseUrl}/UnidadDePeso/Insertar`, payload, {
       headers: {
@@ -144,32 +143,34 @@ export class CreateComponent {
       observe: 'response'
     }).subscribe({
       next: (response) => {
-        console.log('Respuesta del servidor:', response);
-        if (response.status === 200 && response.body?.success) {
-          this.mostrarAlertaExito = true;
-          this.mensajeExito = response.body?.message || 'Unidad de peso creada correctamente';
-          // Emitir el evento para actualizar la lista
-          this.onSave.emit(response.body?.data || payload);
-          
-          // Reset form
-          this.UnidadDePeso.unPe_Descripcion = '';
-          this.mostrarErrores = false;
-          
-          // Cerrar el modal después de 2 segundos
-          setTimeout(() => {
-            this.cancelar();
-          }, 2000);
-        } else {
-          this.mostrarAlertaError = true;
-          this.mensajeError = response.body?.message || 'Error al crear la unidad de peso';
-          this.onOverlayChange.emit(false);
-        }
+        this.mensajeExito = `Unidad de peso "${this.UnidadDePeso.unPe_Descripcion}" creada exitosamente`;
+        this.mostrarAlertaExito = true;
+        this.mostrarErrores = false;
+        this.onOverlayChange.emit(false);
+        
+        // Emitir el evento para actualizar la lista
+        this.onSave.emit(response.body?.data || this.UnidadDePeso);
+        
+        // Reset form
+        this.UnidadDePeso.unPe_Descripcion = '';
+        this.UnidadDePeso.unPe_Abreviatura = '';
+
+        setTimeout(() => {
+          this.mostrarAlertaExito = false;
+          this.cancelar();
+        }, 3000);
       },
       error: (error) => {
-        console.error('Error al guardar:', error);
         this.mostrarAlertaError = true;
-        this.mensajeError = error.error?.message || 'Error al conectar con el servidor';
+        
+        // Verificar si es un error de duplicado
+        if (error.status === 400 || error.status === 409) {
+          this.mensajeError = 'Ya existe una unidad de peso con esta descripción o abreviatura. No se realizaron cambios.';
+        } else {
+          this.mensajeError = 'Error al crear la unidad de peso. Por favor, intente nuevamente.';
+        }
         this.onOverlayChange.emit(false);
+        setTimeout(() => this.cerrarAlerta(), 5000);
       },
       complete: () => {
         // No necesitamos hacer nada aquí ya que manejamos el overlay en next y error

@@ -11,7 +11,7 @@ import { getUserId } from 'src/app/core/utils/user-utils';
   standalone: true,
   imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './edit.component.html',
-  styleUrl: './edit.component.scss'
+  styleUrls: ['./edit.component.scss']
 })
 export class EditComponent implements OnChanges {
   // Devuelve la lista de cambios detectados para el modal de confirmación
@@ -22,6 +22,13 @@ export class EditComponent implements OnChanges {
         label: 'Descripción',
         anterior: this.UnidadDePesoOriginal,
         nuevo: this.UnidadDePeso.unPe_Descripcion
+      });
+    }
+    if (this.UnidadDePeso.unPe_Abreviatura?.trim() !== this.UnidadDePesoAbreviaturaOriginal?.trim()) {
+      cambios.push({
+        label: 'Abreviatura',
+        anterior: this.UnidadDePesoAbreviaturaOriginal,
+        nuevo: this.UnidadDePeso.unPe_Abreviatura
       });
     }
     return cambios;
@@ -48,6 +55,7 @@ export class EditComponent implements OnChanges {
   };
 
   UnidadDePesoOriginal = '';
+  UnidadDePesoAbreviaturaOriginal = '';
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -63,6 +71,7 @@ export class EditComponent implements OnChanges {
     if (changes['UnidadDePesoData'] && changes['UnidadDePesoData'].currentValue) {
       this.UnidadDePeso = { ...changes['UnidadDePesoData'].currentValue };
       this.UnidadDePesoOriginal = this.UnidadDePeso.unPe_Descripcion || '';
+      this.UnidadDePesoAbreviaturaOriginal = this.UnidadDePeso.unPe_Abreviatura || '';
       this.mostrarErrores = false;
       this.cerrarAlerta();
     }
@@ -96,7 +105,11 @@ export class EditComponent implements OnChanges {
     }
 
     if (this.UnidadDePeso.unPe_Descripcion.trim()) {
-      if (this.UnidadDePeso.unPe_Descripcion.trim() !== this.UnidadDePesoOriginal) {
+      // Verificar si hay cambios en descripción o abreviatura
+      const hayDescripcionCambiada = this.UnidadDePeso.unPe_Descripcion.trim() !== this.UnidadDePesoOriginal;
+      const hayAbreviaturaCambiada = this.UnidadDePeso.unPe_Abreviatura.trim() !== this.UnidadDePesoAbreviaturaOriginal;
+      
+      if (hayDescripcionCambiada || hayAbreviaturaCambiada) {
         this.mostrarConfirmacionEditar = true;
       } else {
         this.mostrarAlertaWarning = true;
@@ -119,7 +132,7 @@ export class EditComponent implements OnChanges {
     this.guardar();
   }
 
-  guardar(): void {
+   guardar(): void {
     this.mostrarErrores = true;
     this.onOverlayChange.emit(true);
     this.cerrarAlerta();
@@ -158,7 +171,6 @@ export class EditComponent implements OnChanges {
       UnPe_FechaModificacion: new Date().toISOString()
     };
 
-    console.log('Enviando payload de actualización:', JSON.stringify(payload, null, 2));
 
     this.http.put<any>(`${environment.apiBaseUrl}/UnidadDePeso/Actualizar`, payload, {
       headers: {
@@ -168,26 +180,22 @@ export class EditComponent implements OnChanges {
       observe: 'response'
     }).subscribe({
       next: (response) => {
-        console.log('Respuesta del servidor:', response);
-        if (response.status === 200 && response.body?.success) {
-          this.mostrarAlertaExito = true;
-          this.mensajeExito = response.body?.message || 'Unidad de peso actualizada correctamente';
-          this.onSave.emit(response.body?.data || this.UnidadDePeso);
-          
-          setTimeout(() => {
-            this.cancelar();
-          }, 2000);
-        } else {
-          this.mostrarAlertaError = true;
-          this.mensajeError = response.body?.message || 'Error al actualizar la unidad de peso';
-          this.onOverlayChange.emit(false);
-        }
+        this.mensajeExito = `Unidad de peso "${this.UnidadDePeso.unPe_Descripcion}" actualizada exitosamente`;
+        this.mostrarAlertaExito = true;
+        this.mostrarErrores = false;
+        this.onOverlayChange.emit(false);
+
+        setTimeout(() => {
+          this.mostrarAlertaExito = false;
+          this.onSave.emit(this.UnidadDePeso);
+          this.cancelar();
+        }, 3000);
       },
       error: (error) => {
-        console.error('Error al actualizar:', error);
         this.mostrarAlertaError = true;
-        this.mensajeError = error.error?.message || 'Error al conectar con el servidor';
+        this.mensajeError = 'Error al actualizar la unidad de peso. Por favor, intente nuevamente.';
         this.onOverlayChange.emit(false);
+        setTimeout(() => this.cerrarAlerta(), 5000);
       },
       complete: () => {
         this.mostrarConfirmacionEditar = false;
