@@ -81,7 +81,7 @@
 
       <div class="col-lg-6 ">
         <div class="mb-1">
-          <label for="empl_DNI" class="form-label">DNI<span cl0.0....00.0000000000000000000000000............0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.000000000000000000000000000000000000000000.0...ass="text-danger">*</span></label>
+          <label for="empl_DNI" class="form-label">DNI<span class="text-danger">*</span></label>
           <div class="d-flex align-items-center">
             <i class="ri-polaroid-2-line"
                 [ngStyle]="{
@@ -405,25 +405,6 @@
         </div>
         </div>
     </div>
-</div>
-
-<!-- Modal de confirmación de edición -->
-<div class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.3);" *ngIf="mostrarConfirmacionEditar">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Confirmar edición</h5>
-        <button type="button" class="btn-close" (click)="cancelarEdicion()" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p>¿Estás seguro de que deseas guardar los cambios realizados al empleado?</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cancelarEdicion()">Cancelar</button>
-        <button type="button" class="btn btn-primary" (click)="confirmarEdicion()">Confirmar</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }" [style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">

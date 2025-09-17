@@ -636,22 +636,11 @@ $color-borde: #e9ecef;
 
 // Header del resumen
 .resumen-header {
-  @include gradiente-gris;
+  background: #141a2f;
   border: none;
   padding: 16px 24px;
   position: relative;
 
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 20px 20px;
-    opacity: 0.8;
-  }
 }
 
 .resumen-title {
@@ -742,7 +731,7 @@ $color-borde: #e9ecef;
 }
 
 .resumen-table-header {
-  @include gradiente-gris;
+  background: #141a2f;
 
   th {
     color: $color-dorado;
