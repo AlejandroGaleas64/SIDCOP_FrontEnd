@@ -28,7 +28,7 @@ export class EditComponent implements OnChanges {
       cambios.push({
         label: 'Observaciones',
         anterior: this.canalOriginalObservaciones,
-        nuevo: this.canal.cana_Observaciones
+        nuevo: this.canal.cana_Observaciones || ''
       });
     }
     return cambios;
