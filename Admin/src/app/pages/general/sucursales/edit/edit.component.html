@@ -55,6 +55,10 @@
                 [searchable]="true"
                 [clearable]="false"
                 [class.is-invalid]="!sucursal.colo_Id && mostrarErrores"
+                [ngStyle]="{
+                  border: (!sucursal.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  borderRadius: '8px'
+                }"
                 placeholder="Seleccione una colonia"
                 required
                 [searchFn]="searchColonias"
