@@ -117,7 +117,6 @@ export class ListComponent implements OnInit {
 
     // OBTENER ACCIONES DISPONIBLES DEL USUARIO
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
 // ===== MÉTODOS DE EXPORTACIÓN OPTIMIZADOS =====
@@ -309,7 +308,6 @@ export class ListComponent implements OnInit {
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -317,12 +315,6 @@ export class ListComponent implements OnInit {
   }
 
   editar(estadoCivil: EstadoCivil): void {
-    console.log('Abriendo formulario de edición para:', estadoCivil);
-    console.log('Datos específicos:', {
-      id: estadoCivil.esCv_Id,
-      descripcion: estadoCivil.esCv_Descripcion,
-      completo: estadoCivil
-    });
     this.estadoCivilEditando = { ...estadoCivil }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -331,7 +323,6 @@ export class ListComponent implements OnInit {
   }
 
   detalles(estadoCivil: EstadoCivil): void {
-    console.log('Abriendo detalles para:', estadoCivil);
     this.estadoCivilDetalle = { ...estadoCivil }; // Hacer copia profunda
     this.showDetailsForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -391,21 +382,18 @@ export class ListComponent implements OnInit {
   }
 
   guardarEstadoCivil(estadoCivil: EstadoCivil): void {
-    console.log('Estado civil guardado exitosamente desde create component:', estadoCivil);
     // Recargar los datos de la tabla sin overlay
     this.cargardatos(false);
     this.cerrarFormulario();
   }
 
   actualizarEstadoCivil(estadoCivil: EstadoCivil): void {
-    console.log('Estado civil actualizado exitosamente desde edit component:', estadoCivil);
     // Recargar los datos de la tabla sin overlay
     this.cargardatos(false);
     this.cerrarFormularioEdicion();
   }
 
   confirmarEliminar(estadoCivil: EstadoCivil): void {
-    console.log('Solicitando confirmación para eliminar:', estadoCivil);
     this.estadoCivilAEliminar = estadoCivil;
     this.mostrarConfirmacionEliminar = true;
   }
@@ -418,8 +406,6 @@ export class ListComponent implements OnInit {
   eliminar(): void {
     if (!this.estadoCivilAEliminar) return;
     
-    console.log('Eliminando estado civil:', this.estadoCivilAEliminar);
-    
     this.http.post(`${environment.apiBaseUrl}/EstadosCiviles/Eliminar/${this.estadoCivilAEliminar.esCv_Id}`, {}, {
       headers: { 
         'X-Api-Key': environment.apiKey,
@@ -427,13 +413,11 @@ export class ListComponent implements OnInit {
       }
     }).subscribe({
       next: (response: any) => {
-        console.log('Respuesta del servidor:', response);
         
         // Verificar el código de estado en la respuesta
         if (response.success && response.data) {
           if (response.data.code_Status === 1) {
             // Éxito: eliminado correctamente
-            console.log('Estado civil eliminado exitosamente');
             this.mensajeExito = `Estado civil "${this.estadoCivilAEliminar!.esCv_Descripcion}" eliminado exitosamente`;
             this.mostrarAlertaExito = true;
             
@@ -448,7 +432,6 @@ export class ListComponent implements OnInit {
             this.cancelarEliminar();
           } else if (response.data.code_Status === -1) {
             //result: está siendo utilizado
-            console.log('Estado civil está siendo utilizado');
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'No se puede eliminar: el estado civil está siendo utilizado.';
             
@@ -461,7 +444,6 @@ export class ListComponent implements OnInit {
             this.cancelarEliminar();
           } else if (response.data.code_Status === 0) {
             // Error general
-            console.log('Error general al eliminar');
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'Error al eliminar el estado civil.';
             
@@ -475,7 +457,6 @@ export class ListComponent implements OnInit {
           }
         } else {
           // Respuesta inesperada
-          console.log('Respuesta inesperada del servidor');
           this.mostrarAlertaError = true;
           this.mensajeError = response.message || 'Error inesperado al eliminar el estado civil.';
           
@@ -504,7 +485,6 @@ export class ListComponent implements OnInit {
   private cargarAccionesUsuario(): void {
     // OBTENEMOS PERMISOSJSON DEL LOCALSTORAGE
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -521,7 +501,6 @@ export class ListComponent implements OnInit {
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
           // AQUI SACAMOS SOLO EL NOMBRE DE LA ACCIÓN
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
-          console.log('Acciones del módulo:', accionesArray);
         }
       } catch (e) {
         console.error('Error al parsear permisosJson:', e);
@@ -529,7 +508,6 @@ export class ListComponent implements OnInit {
     } 
     // AQUI FILTRAMOS Y NORMALIZAMOS LAS ACCIONES
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   private cargardatos(state: boolean): void {
