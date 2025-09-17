@@ -371,7 +371,6 @@
                   [ngModel]="table.page"
                   [itemsPerPage]="table.pageSizeValue"
                   [maxSize]="5"
-                  [boundaryLinks]="true"
                   [rotate]="true"
                   (ngModelChange)="table.setPage($event)"
                   (pageChanged)="table.setPage($event.page)"
