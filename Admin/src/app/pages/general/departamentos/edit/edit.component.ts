@@ -21,11 +21,9 @@ export class EditComponent {
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Departamento>();
 
-  // Devuelve la lista de cambios detectados para el modal de confirmación
   obtenerListaCambios() {
     const cambios = [];
     
-    // Comparar descripción
     if (this.departamento.depa_Descripcion?.trim() !== this.departamentoOriginal?.trim()) {
       cambios.push({
         label: 'Descripción',

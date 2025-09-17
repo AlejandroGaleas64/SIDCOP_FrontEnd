@@ -77,22 +77,17 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
   ]
 })
 export class ListComponent implements OnInit {
-  // ===== CONFIGURACIÓN FÁCIL DE EXPORTACIÓN =====
-  // 🔧 PERSONALIZA AQUÍ TU CONFIGURACIÓN DE EXPORTACIÓN 🔧
   private readonly exportConfig = {
-    // Configuración básica
     title: 'Listado de Colonias',                    
     filename: 'Colonias',                          
     department: 'General',                         
     additionalInfo: '',         
     
-    // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
       { key: 'No', header: 'No.', width: 8, align: 'center' as const },
       { key: 'Descripción', header: 'Descripción', width: 50, align: 'left' as const }
     ] as ExportColumn[],
     
-    // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
     dataMapping: (colonia: Colonias, index: number) => ({
       'No': colonia?.secuencia || (index + 1),
       'Descripción': this.limpiarTexto(colonia?.colo_Descripcion)
@@ -101,14 +96,12 @@ export class ListComponent implements OnInit {
     })
   };
 
-  // Estado de exportación
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
 
   mostrarOverlayCarga: boolean = false;
 
   activeActionRow: number | null = null;
-  // Variables para control de alertas
   mostrarAlertaExito = false;
   mensajeExito = '';
   mostrarAlertaError = false;
@@ -116,19 +109,16 @@ export class ListComponent implements OnInit {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
   
-  // Acciones disponibles para el usuario
   accionesDisponibles: string[] = [];
-  showCreateForm = false; // Control del collapse
-  showEditForm = false; // Control del collapse de edición
-  showDetailsForm = false; // Control del collapse de detalles
+  showCreateForm = false; 
+  showEditForm = false; 
+  showDetailsForm = false; 
   coloniaEditando: Colonias | null = null;
   coloniaDetalle: Colonias | null = null;
   municipios: Municipio[] = [];
 
-  // Cierra el dropdown si se hace click fuera
   onDocumentClick(event: MouseEvent, rowIndex: number) {
     const target = event.target as HTMLElement;
-    // Busca el dropdown abierto
     const dropdowns = document.querySelectorAll('.dropdown-action-list');
     let clickedInside = false;
     dropdowns.forEach((dropdown, idx) => {
@@ -141,24 +131,22 @@ export class ListComponent implements OnInit {
     }
   }
 
-  // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
     this.showCreateForm = !this.showCreateForm;
-    this.showEditForm = false; // Cerrar edit si está abierto
-    this.showDetailsForm = false; // Cerrar details si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showEditForm = false; 
+    this.showDetailsForm = false; 
+    this.activeActionRow = null; 
   }
 
   editar(colonia: Colonias): void {
-    this.coloniaEditando = { ...colonia }; // Hacer copia profunda
+    this.coloniaEditando = { ...colonia }; 
     this.showEditForm = true;
-    this.showCreateForm = false; // Cerrar create si está abierto
-    this.showDetailsForm = false; // Cerrar details si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showCreateForm = false; 
+    this.showDetailsForm = false; 
+    this.activeActionRow = null; 
   }
 
    detalles(colonia: Colonias): void {
-    // Validar campos esperados
     const camposEsperados = [
       'colo_Descripcion', 'muni_Descripcion', 'depa_Descripcion',
       'secuencia', 'muni_Codigo', 'depa_Codigo',
@@ -180,9 +168,6 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null;
   }
 
-  // Propiedades para alertas (ya definidas al inicio de la clase)
-  
-  // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
   coloniaAEliminar: Colonias | null = null;
 
@@ -223,11 +208,6 @@ export class ListComponent implements OnInit {
       this.cargardatos(true);
     }
 
-  // ===== MÉTODOS DE EXPORTACIÓN OPTIMIZADOS =====
-
-  /**
-   * Método unificado para todas las exportaciones
-   */
   async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
     if (this.exportando) {
       this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
@@ -268,9 +248,6 @@ export class ListComponent implements OnInit {
     }
   }
 
-  /**
-   * Métodos específicos para cada tipo (para usar en templates)
-   */
   async exportarExcel(): Promise<void> {
     await this.exportar('excel');
   }
@@ -283,9 +260,6 @@ export class ListComponent implements OnInit {
     await this.exportar('csv');
   }
 
-  /**
-   * Verifica si se puede exportar un tipo específico
-   */
   puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
     if (this.exportando) {
       return tipo ? this.tipoExportacion !== tipo : false;
@@ -293,11 +267,6 @@ export class ListComponent implements OnInit {
     return this.table.data$.value?.length > 0;
   }
 
-  // ===== MÉTODOS PRIVADOS DE EXPORTACIÓN =====
-
-  /**
-   * Crea la configuración de exportación de forma dinámica
-   */
   private crearConfiguracionExport(): ExportConfig {
     return {
       title: this.exportConfig.title,
@@ -311,9 +280,6 @@ export class ListComponent implements OnInit {
     };
   }
 
-  /**
-   * Obtiene y prepara los datos para exportación
-   */
   private obtenerDatosExport(): any[] {
     try {
       const datos = this.table.data$.value;
@@ -322,7 +288,6 @@ export class ListComponent implements OnInit {
         throw new Error('No hay datos disponibles para exportar');
       }
       
-      // Usar el mapeo configurado
       return datos.map((colonia, index) => 
         this.exportConfig.dataMapping.call(this, colonia, index)
       );
@@ -332,9 +297,6 @@ export class ListComponent implements OnInit {
     }
   }
 
-  /**
-   * Maneja el resultado de las exportaciones
-   */
   private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
     if (resultado.success) {
       this.mostrarMensaje('success', resultado.message);
@@ -343,9 +305,6 @@ export class ListComponent implements OnInit {
     }
   }
 
-  /**
-   * Valida datos antes de exportar
-   */
   private validarDatosParaExport(): boolean {
     const datos = this.table.data$.value;
     
@@ -365,9 +324,6 @@ export class ListComponent implements OnInit {
     return true;
   }
 
-  /**
-   * Limpia texto para exportación de manera más eficiente
-   */
   private limpiarTexto(texto: any): string {
     if (!texto) return '';
     
@@ -378,9 +334,6 @@ export class ListComponent implements OnInit {
       .substring(0, 150);
   }
 
-  /**
-   * Sistema de mensajes mejorado con tipos adicionales
-   */
   private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
     this.cerrarAlerta();
     
@@ -408,7 +361,6 @@ export class ListComponent implements OnInit {
     }
   }
 
-  // ===== MÉTODOS EXISTENTES (SIN CAMBIOS) =====
 
   // Verificar si una acción está permitida
   accionPermitida(accion: string): boolean {
@@ -421,7 +373,6 @@ export class ListComponent implements OnInit {
     return this.accionesDisponibles.some(a => a === accionReal);
   }
 
-  // Cargar acciones disponibles del usuario
   cargarAccionesUsuario() {
     let accionesArray: string[] = [];
     let modulo: any = null;
@@ -445,7 +396,7 @@ export class ListComponent implements OnInit {
             .filter((a: string) => a.length > 0);
         }
       } catch (e) {
-        //console.error('Error al parsear permisosJson:', e);
+        
       }
     }
     this.accionesDisponibles = accionesArray;
@@ -468,13 +419,10 @@ export class ListComponent implements OnInit {
     }).subscribe(data => {
       this.municipios = data;
     }, error => {
-      //console.error('Error al cargar los municipios', error);
+
     });
   }
 
-  // (navigateToCreate eliminado, lógica movida a crear)
-
-  // (navigateToEdit y navigateToDetails eliminados, lógica movida a editar y detalles)
 
   cerrarFormulario(): void {
     this.showCreateForm = false;
@@ -517,7 +465,7 @@ export class ListComponent implements OnInit {
   confirmarEliminar(  colonia: Colonias): void {
     this.coloniaAEliminar = colonia;
     this.mostrarConfirmacionEliminar = true;
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.activeActionRow = null; 
   }
 
   cancelarEliminar(): void {

@@ -86,14 +86,13 @@ export class CreateComponent implements OnInit {
     this.mostrarErrores = true;
     
     if ((this.nuevaColonia.colo_Descripcion ?? '').trim() && (this.nuevaColonia.muni_Codigo ?? '').trim()) {
-      // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
       
       const coloniaGuardar = {
         colo_Descripcion: (this.nuevaColonia.colo_Descripcion ?? '').trim(),
         muni_Codigo: (this.nuevaColonia.muni_Codigo ?? '').trim(),
-        usua_Creacion: getUserId(),// varibale global, obtiene el valor del environment, esto por mientras
+        usua_Creacion: getUserId(),
         colo_FechaCreacion: new Date().toISOString(),
         usua_Modificacion: 0,
         numero: "", 
@@ -117,7 +116,6 @@ export class CreateComponent implements OnInit {
             this.mostrarAlertaExito = true;
             this.mostrarErrores = false;
             
-            // Ocultar la alerta después de 3 segundos
             setTimeout(() => {
               this.mostrarAlertaExito = false;
               this.onSave.emit(this.nuevaColonia);
@@ -130,7 +128,6 @@ export class CreateComponent implements OnInit {
             this.mensajeError = 'Error al guardar la colonia, ' + response.data.message_Status;
             this.mostrarAlertaExito = false;
             
-            // Ocultar la alerta de error después de 5 segundos
             setTimeout(() => {
               this.mostrarAlertaError = false;
               this.mensajeError = '';
@@ -143,7 +140,6 @@ export class CreateComponent implements OnInit {
           this.mensajeError = 'Error al guardar la colonia. Por favor, intente nuevamente.';
           this.mostrarAlertaExito = false;
           
-          // Ocultar la alerta de error después de 5 segundos
           setTimeout(() => {
             this.mostrarAlertaError = false;
             this.mensajeError = '';
@@ -151,13 +147,11 @@ export class CreateComponent implements OnInit {
         }
       });
     } else {
-      // Mostrar alerta de warning para campos vacíos
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
       this.mostrarAlertaError = false;
       this.mostrarAlertaExito = false;
       
-      // Ocultar la alerta de warning después de 4 segundos
       setTimeout(() => {
         this.mostrarAlertaWarning = false;
         this.mensajeWarning = '';

@@ -72,7 +72,6 @@ import { trigger, transition, style, animate } from '@angular/animations';
 export class ListComponent implements OnInit {
 
   activeActionRow: number | null = null;
-  // Variables para control de alertas
   mostrarAlertaExito = false;
   mensajeExito = '';
   mostrarAlertaError = false;
@@ -82,19 +81,16 @@ export class ListComponent implements OnInit {
 
   mostrarOverlayCarga = false;
   
-  // Acciones disponibles para el usuario
   accionesDisponibles: string[] = [];
-  showCreateForm = false; // Control del collapse
-  showEditForm = false; // Control del collapse de edición
-  showDetailsForm = false; // Control del collapse de detalles
+  showCreateForm = false; 
+  showEditForm = false; 
+  showDetailsForm = false; 
   municipioEditando: Municipio | null = null;
   municipioDetalle: Municipio | null = null;
   departamentos: Departamento[] = [];
 
-  // Cierra el dropdown si se hace click fuera
   onDocumentClick(event: MouseEvent, rowIndex: number) {
     const target = event.target as HTMLElement;
-    // Busca el dropdown abierto
     const dropdowns = document.querySelectorAll('.dropdown-action-list');
     let clickedInside = false;
     dropdowns.forEach((dropdown, idx) => {
@@ -107,20 +103,19 @@ export class ListComponent implements OnInit {
     }
   }
 
-  // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
     this.showCreateForm = !this.showCreateForm;
-    this.showEditForm = false; // Cerrar edit si está abierto
-    this.showDetailsForm = false; // Cerrar details si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showEditForm = false; 
+    this.showDetailsForm = false; 
+    this.activeActionRow = null; 
   }
 
   editar(municipio: Municipio): void {
-    this.municipioEditando = { ...municipio }; // Hacer copia profunda
+    this.municipioEditando = { ...municipio }; 
     this.showEditForm = true;
-    this.showCreateForm = false; // Cerrar create si está abierto
-    this.showDetailsForm = false; // Cerrar details si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showCreateForm = false; 
+    this.showDetailsForm = false; 
+    this.activeActionRow = null; 
   }
 
    detalles(municipio: Municipio): void {
@@ -130,14 +125,11 @@ export class ListComponent implements OnInit {
       depa_Descripcion: depto ? depto.depa_Descripcion : 'N/A' 
     };
     this.showDetailsForm = true;
-    this.showCreateForm = false; // Cerrar create si está abierto
-    this.showEditForm = false; // Cerrar edit si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showCreateForm = false; 
+    this.showEditForm = false; 
+    this.activeActionRow = null; 
   }
 
-  // Propiedades para alertas (ya definidas al inicio de la clase)
-  
-  // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
   municipioAEliminar: Municipio | null = null;
 
@@ -179,7 +171,6 @@ export class ListComponent implements OnInit {
       this.cargardatos(true);
     }
 
-  // ===== CONFIGURACIÓN FÁCIL DE EXPORTACIÓN =====
   private readonly exportConfig = {
     title: 'Listado de Municipios',
     filename: 'Municipios',
@@ -318,8 +309,6 @@ export class ListComponent implements OnInit {
     }
   }
 
-
-  // Verificar si una acción está permitida
   accionPermitida(accion: string): boolean {
     const accionBuscada = accion.toLowerCase();
     const accionesMapeadas: {[key: string]: string} = {
@@ -330,7 +319,6 @@ export class ListComponent implements OnInit {
     return this.accionesDisponibles.some(a => a === accionReal);
   }
 
-  // Cargar acciones disponibles del usuario
   cargarAccionesUsuario() {
     let accionesArray: string[] = [];
     let modulo: any = null;
@@ -359,7 +347,6 @@ export class ListComponent implements OnInit {
     this.accionesDisponibles = accionesArray;
   }
 
-  // Inicializar componente
   ngOnInit() {
     this.cargarAccionesUsuario();
     this.cargardatos();
@@ -378,10 +365,6 @@ export class ListComponent implements OnInit {
     }, error => {
     });
   }
-
-  // (navigateToCreate eliminado, lógica movida a crear)
-
-  // (navigateToEdit y navigateToDetails eliminados, lógica movida a editar y detalles)
 
   cerrarFormulario(): void {
     this.showCreateForm = false;
@@ -424,7 +407,7 @@ export class ListComponent implements OnInit {
   confirmarEliminar(municipio: Municipio): void {
     this.municipioAEliminar = municipio;
     this.mostrarConfirmacionEliminar = true;
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.activeActionRow = null; 
   }
 
   cancelarEliminar(): void {

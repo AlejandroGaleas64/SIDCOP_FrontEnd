@@ -26,7 +26,7 @@ export class CreateComponent {
   mensajeError = '';
   mostrarAlertaWarning = false;
   mensajeWarning = '';
-  Departamentos: any[] = []; // Lista de departamentos, se puede llenar con un servicio si es necesario
+  Departamentos: any[] = []; 
 
   constructor(private http: HttpClient) {
     this.cargarDepartamentos();
@@ -89,7 +89,6 @@ export class CreateComponent {
     this.mostrarErrores = true;
     
     if (this.municipio.muni_Descripcion.trim() && this.municipio.muni_Codigo.trim()) {
-      // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
       
@@ -97,7 +96,7 @@ export class CreateComponent {
         muni_Codigo: this.municipio.muni_Codigo.trim(),
         muni_Descripcion: this.municipio.muni_Descripcion.trim(),
         depa_Codigo: this.municipio.depa_Codigo.trim(),
-        usua_Creacion: getUserId(),// varibale global, obtiene el valor del environment, esto por mientras
+        usua_Creacion: getUserId(),
         muni_FechaCreacion: new Date().toISOString(),
         usua_Modificacion: 0,
         numero: "", 
@@ -120,7 +119,6 @@ export class CreateComponent {
             this.mostrarAlertaExito = true;
             this.mostrarErrores = false;
             
-            // Ocultar la alerta después de 3 segundos
             setTimeout(() => {
               this.mostrarAlertaExito = false;
               this.onSave.emit(this.municipio);
@@ -133,7 +131,6 @@ export class CreateComponent {
             this.mensajeError = 'Error al guardar el municipio, ' + response.data.message_Status;
             this.mostrarAlertaExito = false;
             
-            // Ocultar la alerta de error después de 5 segundos
             setTimeout(() => {
               this.mostrarAlertaError = false;
               this.mensajeError = '';
@@ -146,7 +143,6 @@ export class CreateComponent {
           this.mensajeError = 'Error al guardar el municipio. Por favor, intente nuevamente.';
           this.mostrarAlertaExito = false;
           
-          // Ocultar la alerta de error después de 5 segundos
           setTimeout(() => {
             this.mostrarAlertaError = false;
             this.mensajeError = '';
@@ -154,13 +150,11 @@ export class CreateComponent {
         }
       });
     } else {
-      // Mostrar alerta de warning para campos vacíos
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
       this.mostrarAlertaError = false;
       this.mostrarAlertaExito = false;
       
-      // Ocultar la alerta de warning después de 4 segundos
       setTimeout(() => {
         this.mostrarAlertaWarning = false;
         this.mensajeWarning = '';
