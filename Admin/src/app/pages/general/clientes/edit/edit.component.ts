@@ -110,14 +110,25 @@ export class EditComponent implements OnChanges {
         this.uploadedFiles = [];
       }
 
-      const formatoCodigo = /^CLIE-RT-\d{3}-\d{6}$/;
-
-      if (!formatoCodigo.test(this.cliente.clie_Codigo)) {
-        this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
+      if (this.rutas.length === 0) {
+        this.cargarRutas().then(() => {
+          this.asignarRutaDescripcionYCodigo();
+        });
+      } else {
+        this.asignarRutaDescripcionYCodigo();
       }
 
       this.cargarDireccionesExistentes();
       this.cargarAvalesExistentes();
+    }
+  }
+
+  asignarRutaDescripcionYCodigo() {
+    const rutaActual = this.rutas.find(ruta => ruta.ruta_Id === this.cliente.ruta_Id);
+    this.cliente.ruta_Descripcion = rutaActual ? rutaActual.ruta_Descripcion : '';
+    const formatoCodigo = /^CLIE-RT-\d{3}-\d{6}$/;
+    if (!formatoCodigo.test(this.cliente.clie_Codigo)) {
+      this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
     }
   }
 
@@ -558,12 +569,22 @@ export class EditComponent implements OnChanges {
       .subscribe((data) => (this.canales = data));
   }
 
-  cargarRutas() {
-    this.http
-      .get<any[]>(`${environment.apiBaseUrl}/Rutas/Listar`, {
-        headers: { 'x-api-key': environment.apiKey },
-      })
-      .subscribe((data) => (this.rutas = data));
+  cargarRutas(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.http
+        .get<any[]>(`${environment.apiBaseUrl}/Rutas/Listar`, {
+          headers: { 'x-api-key': environment.apiKey },
+        })
+        .subscribe({
+          next: (data) => {
+            this.rutas = data;
+            resolve();
+          },
+          error: (err) => {
+            reject(err);
+          }
+        });
+    });
   }
 
   cargarParentescos() {
