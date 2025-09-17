@@ -57,9 +57,7 @@ export class CreateComponent {
 
     if (
       this.canal.cana_Descripcion &&
-      this.canal.cana_Descripcion.trim() &&
-      this.canal.cana_Observaciones &&
-      this.canal.cana_Observaciones.trim()
+      this.canal.cana_Descripcion.trim()
     ) {
       // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
@@ -69,7 +67,7 @@ export class CreateComponent {
         ...this.canal,
         cana_Id: 0,
         cana_Descripcion: this.canal.cana_Descripcion.trim(),
-        cana_Observaciones: this.canal.cana_Observaciones.trim(),
+        cana_Observaciones: this.canal.cana_Observaciones?.trim() || '',
         usua_Creacion: getUserId(),
         cana_FechaCreacion: new Date().toISOString(),
         usua_Modificacion: 0,

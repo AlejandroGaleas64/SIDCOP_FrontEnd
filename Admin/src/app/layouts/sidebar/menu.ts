@@ -104,7 +104,7 @@ export const MENU: MenuItem[] = [
   icon: 'ri-shopping-cart-2-line',
   subItems: [
     { id: 32, label: 'MENUITEMS.VENTAS.LIST.CAIS', link: '/ventas/CAIs', parentId: 5, icon: 'ri-group-line' },
-    { id: 33, label: 'MENUITEMS.VENTAS.LIST.CONFIGURACIONFACTURA', link: '/ventas/configuracion-factura', parentId: 5, icon: 'ri-group-line' },
+//    { id: 33, label: 'MENUITEMS.VENTAS.LIST.CONFIGURACIONFACTURA', link: '/ventas/configuracion-factura', parentId: 5, icon: 'ri-group-line' },
     { id: 43, label: 'MENUITEMS.VENTAS.LIST.CUENTASPORCOBRAR', link: '/ventas/cuentasporcobrar', parentId: 5, icon: 'ri-money-dollar-circle-line' },
     { id: 35, label: 'MENUITEMS.VENTAS.LIST.DEVOLUCIONES', link: '/ventas/devoluciones', parentId: 5, icon: 'ri-group-line'},
     { id: 37, label: 'MENUITEMS.VENTAS.LIST.IMPUESTOS', link: '/ventas/impuestos', parentId: 5, icon: 'ri-group-line' },
