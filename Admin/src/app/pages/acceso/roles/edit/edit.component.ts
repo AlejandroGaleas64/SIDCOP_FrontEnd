@@ -133,7 +133,7 @@ export class EditComponent implements OnChanges {
         this.cargarPermisos();
       },
       error: (err) => {
-        console.error('Error cargando acciones por pantalla:', err);
+        // console.error('Error cargando acciones por pantalla:', err);
         this.accionesPorPantalla = [];
         this.cargarPermisos();
       }
@@ -206,10 +206,10 @@ export class EditComponent implements OnChanges {
           this.updateSelectedItems();
 
         } catch (e) {
-          console.error('No se pudo parsear:', e);
+          // console.error('No se pudo parsear:', e);
         }
       },
-      error: err => console.error('Error al cargar pantallas:', err)
+      // error: err => console.error('Error al cargar pantallas:', err)
     });
   }
 
@@ -245,7 +245,7 @@ export class EditComponent implements OnChanges {
         this.hayCambiosPermisos = false;
       },
       error: (err) => {
-        console.error('Error al cargar permisos del rol:', err);
+        // console.error('Error al cargar permisos del rol:', err);
         this.cargarPantallas();
       }
     });
@@ -594,14 +594,14 @@ export class EditComponent implements OnChanges {
             }, 3000);
           })
           .catch(error => {
-            console.error('Error al actualizar permisos:', error);
+            // console.error('Error al actualizar permisos:', error);
             this.mostrarAlertaError = true;
             this.mensajeError = 'Error al actualizar los permisos. Por favor intente nuevamente.';
             setTimeout(() => this.cerrarAlerta(), 5000);
           });
       },
       error: (error) => {
-        console.error('Error al actualizar rol:', error);
+        // console.error('Error al actualizar rol:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al actualizar el rol. Por favor, intente nuevamente.';
         setTimeout(() => this.cerrarAlerta(), 5000);
