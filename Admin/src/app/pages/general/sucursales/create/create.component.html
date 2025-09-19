@@ -27,12 +27,18 @@
         <div class="col-md-6">
           <!-- Colonia -->
           <div class="mb-3">
-            <label for="coloniaUnificada" class="form-label">Colonia<span class="text-danger">*</span></label>
+            <label for="coloniaUnificada" class="form-label">Colonia<span class="text-danger" *ngIf="mostrarErrores">*</span></label>
             <div class="d-flex align-items-center">
               <i class="ri-home-2-line" [ngStyle]="{
                 border: (!sucursal.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
                 backgroundColor: (!sucursal.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
+                padding: '0.4rem 0.525rem',
+                position: 'relative',
+                left: '7px',
+                borderTopLeftRadius: '8px',
+                borderBottomLeftRadius: '8px',
+                zIndex: 1
+              }"></i>
               <ng-select
                 class="w-100"
                 [items]="colonias"
@@ -44,6 +50,10 @@
                 [searchable]="true"
                 [clearable]="false"
                 [class.is-invalid]="!sucursal.colo_Id && mostrarErrores"
+                [ngStyle]="{
+                  border: (!sucursal.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  borderRadius: '8px'
+                }"
                 placeholder="Seleccione una colonia"
                 required
                 [searchFn]="searchColonias"
@@ -55,7 +65,6 @@
                   {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
                 </ng-template>
               </ng-select>
-              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
             </div>
             <div class="text-danger mt-1" *ngIf="!sucursal.colo_Id && mostrarErrores">
               <small>El campo Colonia es requerido</small>
@@ -63,7 +72,7 @@
           </div>
           <!-- Descripción (ahora antes que correo) -->
           <div class="mb-3">
-            <label for="sucu_Descripcion" class="form-label">Descripción<span class="text-danger">*</span></label>
+            <label for="sucu_Descripcion" class="form-label">Descripción<span class="text-danger" *ngIf="mostrarErrores">*</span></label>
             <div class="d-flex align-items-center">
               <i class="ri-building-line" [ngStyle]="{
                 border: (!sucursal.sucu_Descripcion.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
@@ -78,7 +87,6 @@
                 name="sucu_Descripcion"
                 placeholder="Ingrese la descripción de la sucursal"
                 required />
-              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
             </div>
             <div class="text-danger mt-1" *ngIf="!sucursal.sucu_Descripcion.trim() && mostrarErrores">
               <small>El campo Descripción es requerido</small>
@@ -86,7 +94,7 @@
           </div>
           <!-- Teléfono 1 -->
           <div class="mb-3">
-            <label for="sucu_Telefono1" class="form-label">Teléfono 1<span class="text-danger">*</span></label>
+            <label for="sucu_Telefono1" class="form-label">Teléfono 1<span class="text-danger" *ngIf="mostrarErrores">*</span></label>
             <div class="d-flex align-items-center">
               <i class="ri-phone-line" [ngStyle]="{
                 border: (!sucursal.sucu_Telefono1.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
@@ -103,7 +111,6 @@
                 maxlength="9"
                 required
                 (input)="onTelefonoInput($event, 'sucu_Telefono1')" />
-              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
             </div>
             <div class="text-danger mt-1" *ngIf="!sucursal.sucu_Telefono1.trim() && mostrarErrores">
               <small>El campo Teléfono 1 es requerido</small>
@@ -130,7 +137,7 @@
         <div class="col-md-6">
           <!-- Dirección Exacta -->
           <div class="mb-3">
-            <label for="sucu_DireccionExacta" class="form-label">Dirección Exacta<span class="text-danger">*</span></label>
+            <label for="sucu_DireccionExacta" class="form-label">Dirección Exacta<span class="text-danger" *ngIf="mostrarErrores">*</span></label>
             <div class="d-flex align-items-center">
               <i class="ri-map-pin-2-line" [ngStyle]="{
                 border: (!sucursal.sucu_DireccionExacta.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
@@ -145,7 +152,6 @@
                 name="sucu_DireccionExacta"
                 placeholder="Ingrese la dirección exacta"
                 required />
-              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
             </div>
             <div class="text-danger mt-1" *ngIf="!sucursal.sucu_DireccionExacta.trim() && mostrarErrores">
               <small>El campo Dirección es requerido</small>
@@ -153,7 +159,7 @@
           </div>
           <!-- Código Sucursal (misma posición que en editar) -->
           <div class="mb-3">
-            <label for="sucu_Codigo" class="form-label">Código Sucursal<span class="text-danger">*</span></label>
+            <label for="sucu_Codigo" class="form-label">Código Sucursal</label>
             <div class="d-flex align-items-center">
               <i class="ri-barcode-line" [ngStyle]="{
                 border: (!sucursal.sucu_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
@@ -169,7 +175,6 @@
                 placeholder="Código de la sucursal"
                 required
                 [disabled]="true" />
-              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
             </div>
             <div class="text-danger mt-1" *ngIf="!sucursal.sucu_Codigo.trim() && mostrarErrores">
               <small>El campo Código Sucursal es requerido</small>
@@ -178,7 +183,7 @@
           <!-- Código Sucursal -->
         
           <div class="mb-3">
-            <label for="sucu_Correo" class="form-label">Correo<span class="text-danger">*</span></label>
+            <label for="sucu_Correo" class="form-label">Correo<span class="text-danger" *ngIf="mostrarErrores">*</span></label>
             <div class="d-flex align-items-center">
               <i class="ri-mail-line" [ngStyle]="{
                 border: (!sucursal.sucu_Correo.trim() || (sucursal.sucu_Correo && !validarCorreo(sucursal.sucu_Correo))) && mostrarErrores ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
@@ -193,7 +198,6 @@
                 name="sucu_Correo"
                 placeholder="Ingrese el correo"
                 required />
-              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
             </div>
             <div *ngIf="mostrarErrores">
               <div class="text-danger mt-1" *ngIf="!sucursal.sucu_Correo.trim()">

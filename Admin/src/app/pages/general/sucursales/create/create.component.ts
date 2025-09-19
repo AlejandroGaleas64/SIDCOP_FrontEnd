@@ -131,7 +131,7 @@ colonias: any[] = [];
     
     this.departamentos = data;
   }, error => {
-    console.error('Error al cargar los departamentos', error);
+
   });
 
     // Obtener municipios (todos)
@@ -150,7 +150,6 @@ colonias: any[] = [];
         : [];
       // No asignar valor por defecto, el usuario debe seleccionar una colonia
       this.sucursal.colo_Id = 0;
-      console.log('Colonias array:', this.colonias);
     });
   }
 
@@ -212,8 +211,6 @@ colonias: any[] = [];
 
   guardar(): void {
   this.sucursal.colo_Id = Number(this.sucursal.colo_Id);
-  console.log('Colonia seleccionada (colo_Id):', this.sucursal.colo_Id);
-    console.log('Colonias array:', this.colonias);
     this.mostrarErrores = true;
     this.onOverlayChange.emit(true);
     if (
@@ -233,7 +230,6 @@ colonias: any[] = [];
         usua_Creacion: getUserId(),
         sucu_FechaCreacion: new Date().toISOString()
       };
-
       this.http.post<any>(`${environment.apiBaseUrl}/Sucursales/Insertar`, sucursalGuardar, {
         headers: {
           'X-Api-Key': environment.apiKey,
@@ -262,7 +258,6 @@ colonias: any[] = [];
               this.onOverlayChange.emit(false);
               this.mostrarAlertaError = true;
               this.mensajeError = response?.data?.message_Status || 'ya existe una sucursal con estos datos.';
-              console.error('Error al guardar la sucursal:', this.mensajeError);
               this.mostrarAlertaExito = false;
               setTimeout(() => {
                 this.mostrarAlertaError = false;
@@ -274,7 +269,6 @@ colonias: any[] = [];
         error: (error) => {
           setTimeout(() => {
             this.onOverlayChange.emit(false);
-            console.error('Error al guardar sucursal:', error);
             const codeStatus = error?.error?.data?.code_Status;
             const messageStatus = error?.error?.data?.message_Status;
             this.mostrarAlertaError = true;
