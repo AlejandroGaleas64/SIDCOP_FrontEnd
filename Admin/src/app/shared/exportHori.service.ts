@@ -460,7 +460,6 @@ export class ExportService {
           ctx.drawImage(img, 0, 0, width, height);
           
           const dataUrl = canvas.toDataURL('image/png', 0.8);
-          console.log('Logo precargado correctamente');
           resolve(dataUrl);
         } catch (e) {
           console.error('Error al procesar el logo:', e);
@@ -475,11 +474,9 @@ export class ExportService {
       
       try {
         const logoUrl = this.configuracionEmpresa.coFa_Logo;
-        console.log('Intentando precargar logo desde:', logoUrl);
         
         // Usar el servicio ImageUploadService para construir la URL correcta
         const fullLogoUrl = this.imageUploadService.getImageUrl(logoUrl);
-        console.log('URL completa del logo:', fullLogoUrl);
         
         img.src = fullLogoUrl;
       } catch (e) {

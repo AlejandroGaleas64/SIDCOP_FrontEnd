@@ -31,7 +31,7 @@
 
       <div class="col-lg-12">
         <div class="mb-3">
-          <label class="form-label fw-bold">Imagen del empleado<span class="text-danger">*</span></label>
+         
           
           <!-- Dropzone Circular -->
           <div class="circular-dropzone" 
@@ -81,9 +81,14 @@
 
       <div class="col-lg-6 ">
         <div class="mb-1">
-          <label for="empl_DNI" class="form-label">DNI<span cl0.0....00.0000000000000000000000000............0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.000000000000000000000000000000000000000000.0...ass="text-danger">*</span></label>
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-credit-card-2-front"></i></span>
+          <label for="empl_DNI" class="form-label">DNI<span class="text-danger">*</span></label>
+          <div class="d-flex align-items-center">
+            <i class="ri-polaroid-2-line"
+                [ngStyle]="{
+                border: (!empleado.empl_DNI.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!empleado.empl_DNI.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
             <input 
               type="text" 
               class="form-control" 
@@ -94,7 +99,8 @@
               [class.is-invalid]="!empleado.empl_DNI.trim() && mostrarErrores"
               [(ngModel)]="empleado.empl_DNI"
               placeholder="0000-0000-00000"
-              required>
+              required
+              autocomplete="off">
           </div>
           <div class="text-danger" *ngIf="!empleado.empl_DNI.trim() && mostrarErrores">
             <small>El campo DNI es requerido</small>
@@ -106,8 +112,13 @@
       <div class="col-lg-6">
             <div class="mb-3">
                 <label for="codigo-input" class="form-label">Código<span class="text-danger">*</span></label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="bi bi-upc"></i></span>
+                <div class="d-flex align-items-center">
+                  <i class="ri-road-map-line" [ngStyle]="{
+                border: (!empleado.empl_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!empleado.empl_Codigo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
                   <input type="text" id="codigo-input" [(ngModel)]="empleado.empl_Codigo" class="form-control" [class.is-invalid]="!empleado.empl_Codigo.trim() && mostrarErrores" placeholder="Ingrese el código" required>
                 </div>
                 <div class="text-danger" *ngIf="!empleado.empl_Codigo.trim() && mostrarErrores">
@@ -121,8 +132,13 @@
       <div class="col-lg-6">
             <div class="mb-3">
                 <label for="nombres-input" class="form-label">Nombres<span class="text-danger">*</span></label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <div class="d-flex align-items-center">
+                  <i class="ri-user-4-line"
+                [ngStyle]="{
+                border: (!empleado.empl_Nombres.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!empleado.empl_Nombres.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
                   <input type="text" id="nombres-input" [(ngModel)]="empleado.empl_Nombres" class="form-control" [class.is-invalid]="!empleado.empl_Nombres.trim() && mostrarErrores" placeholder="Ingrese los nombres del empleado" required>
                 </div>
                 <div class="text-danger" *ngIf="!empleado.empl_Nombres.trim() && mostrarErrores">
@@ -135,8 +151,13 @@
       <div class="col-lg-6">
             <div class="mb-3">
                 <label for="apellidos-input" class="form-label">Apellidos<span class="text-danger">*</span></label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                <div class="d-flex align-items-center">
+                  <i class="ri-user-4-line"
+                  [ngStyle]="{
+                  border: (!empleado.empl_Apellidos.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!empleado.empl_Apellidos.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
                   <input type="text" id="apellidos-input" [(ngModel)]="empleado.empl_Apellidos" class="form-control" [class.is-invalid]="!empleado.empl_Apellidos.trim() && mostrarErrores" placeholder="Ingrese los apellidos del empleado" required>
                 </div>
                 <div class="text-danger" *ngIf="!empleado.empl_Apellidos.trim() && mostrarErrores">
@@ -173,8 +194,13 @@
       <div class="col-lg-6">
             <div class="mb-3">
                 <label for="nacimiento-input" class="form-label">Fecha de nacimiento<span class="text-danger">*</span></label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                <div class="d-flex align-items-center">
+                  <i class="ri-calendar-todo-line"
+                  [ngStyle]="{
+                  border: (!empleado.empl_FechaNacimiento && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!empleado.empl_FechaNacimiento && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
                   <input type="date" id="nacimiento-input" [(ngModel)]="fechaInicioFormato" class="form-control" [class.is-invalid]="!empleado.empl_FechaNacimiento && mostrarErrores" placeholder="Seleccione la fecha de nacimiento del empleado" required>
                 </div>
                 <div class="text-danger" *ngIf="!empleado.empl_FechaNacimiento && mostrarErrores">
@@ -187,8 +213,13 @@
       <div class="col-lg-6">
             <div class="mb-3">
                 <label for="correo-input" class="form-label">Correo electrónico<span class="text-danger">*</span></label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <div class="d-flex d-align-items-center">
+                  <i class="ri-mail-line"
+                  [ngStyle]="{
+                  border: (!empleado.empl_Correo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!empleado.empl_Correo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
                   <input type="email" id="correo-input" [(ngModel)]="empleado.empl_Correo" class="form-control" [class.is-invalid]="!empleado.empl_Correo.trim() && mostrarErrores" placeholder="Ingrese el correo del empleado" required>
                 </div>
                 <div class="text-danger" *ngIf="!empleado.empl_Correo.trim() && mostrarErrores">
@@ -201,8 +232,13 @@
       <div class="col-lg-6">
             <div class="mb-3">
                 <label for="telefono-input" class="form-label">Teléfono<span class="text-danger">*</span></label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                <div class="d-flex d-align-items-center">
+                  <i class="ri-phone-line"
+                  [ngStyle]="{
+                  border: (!empleado.empl_Telefono.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!empleado.empl_Telefono.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
                   <input type="text" id="telefono-input" [(ngModel)]="empleado.empl_Telefono" class="form-control" [class.is-invalid]="!empleado.empl_Telefono.trim() && mostrarErrores" placeholder="Ingrese el telefono del empleado" required>
                 </div>
                 <div class="text-danger" *ngIf="!empleado.empl_Telefono.trim() && mostrarErrores">
@@ -217,12 +253,21 @@
             <div class="mb-3">
                 <label for="sucursal-input" class="form-label">Sucursal<span class="text-danger">*</span></label>
                 <!-- <input type="number" formControlName="carg_Id"  [ngClass]="{'is-invalid': submit && form['carg_Id'].errors}" id="bedroom-input" class="form-control" placeholder="Enter Bedroom" required> -->
-                <ng-select  [class.is-invalid]="!empleado.sucu_Id && mostrarErrores" [(ngModel)]="empleado.sucu_Id" [items]="sucursales" 
+                <div class="d-flex align-items-center">
+                  <i class="ri-building-4-line"
+                  [ngStyle]="{
+                  border: (!empleado.sucu_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!empleado.sucu_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.425rem 0.425rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px',
+                  zIndex: 1}">
+                </i>
+                <ng-select   class="flex-grow-1" style="min-width: 0; width: 100%;"[class.is-invalid]="!empleado.sucu_Id && mostrarErrores" [(ngModel)]="empleado.sucu_Id" [items]="sucursales" 
                 bindLabel="sucu_Descripcion" 
                 bindValue="sucu_Id"
                 placeholder="Seleccione una sucursal"
                 >
                 </ng-select>
+                </div>
                 <div class="text-danger" *ngIf="!empleado.sucu_Id && mostrarErrores">
                     <small>La sucursal es requerida</small>
                 </div>
@@ -234,12 +279,20 @@
             <div class="mb-3">
                 <label for="estadocivil-input" class="form-label">Estado civil<span class="text-danger">*</span></label>
                 <!-- <input type="number" formControlName="carg_Id"  [ngClass]="{'is-invalid': submit && form['carg_Id'].errors}" id="bedroom-input" class="form-control" placeholder="Enter Bedroom" required> -->
-                <ng-select  [class.is-invalid]="!empleado.esCv_Id && mostrarErrores" [(ngModel)]="empleado.esCv_Id" [items]="estadosCiviles" 
+                <div class="d-flex align-items-center">
+                 <i class="ri-hand-heart-line"
+                  [ngStyle]="{
+                  border: (!empleado.esCv_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!empleado.esCv_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.425rem 0.425rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px', zIndex: 1}">
+                </i>
+                <ng-select  class="flex-grow-1" style="min-width: 0; width: 100%;" [class.is-invalid]="!empleado.esCv_Id && mostrarErrores" [(ngModel)]="empleado.esCv_Id" [items]="estadosCiviles" 
                 bindLabel="esCv_Descripcion" 
                 bindValue="esCv_Id"
                 placeholder="Seleccione un estado civil"
                 >
                 </ng-select>
+                </div>
                 <div class="text-danger" *ngIf="!empleado.esCv_Id && mostrarErrores">
                     <small>El estado civil es requerido</small>
                 </div>
@@ -251,12 +304,20 @@
             <div class="mb-3">
                 <label for="sucursal-input" class="form-label">Cargo<span class="text-danger">*</span></label>
                 <!-- <input type="number" formControlName="carg_Id"  [ngClass]="{'is-invalid': submit && form['carg_Id'].errors}" id="bedroom-input" class="form-control" placeholder="Enter Bedroom" required> -->
-                <ng-select  [class.is-invalid]="!empleado.carg_Id && mostrarErrores" [(ngModel)]="empleado.carg_Id" [items]="cargos" 
+                <div class="d-flex align-items-center">
+                <i class="ri-briefcase-4-line"
+                  [ngStyle]="{
+                  border: (!empleado.carg_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!empleado.carg_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.425rem 0.425rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px', zIndex: 1}">
+                </i>
+                <ng-select class="flex-grow-1" style="min-width: 0; width: 100%;"  [class.is-invalid]="!empleado.carg_Id && mostrarErrores" [(ngModel)]="empleado.carg_Id" [items]="cargos" 
                 bindLabel="carg_Descripcion" 
                 bindValue="carg_Id"
                 placeholder="Seleccione un cargo"
                 >
                 </ng-select>
+                </div>
                 <div class="text-danger" *ngIf="!empleado.carg_Id && mostrarErrores">
                     <small>El cargo es requerido</small>
                 </div>
@@ -272,7 +333,7 @@
             <i class="ri-route-line" [ngStyle]="{
                 border: (!empleado.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
                 backgroundColor: (!empleado.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                padding: '0.425rem 0.425rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px', zIndex:1}">
             </i>
            <ng-select
               class="w-100"
@@ -306,8 +367,13 @@
       <div class="col-lg-12">
             <div class="mb-3">
                 <label for="direccion-input" class="form-label">Dirección exacta<span class="text-danger">*</span></label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                <div class="d-flex align-items-center">
+                  <i class="ri-direction-line" [ngStyle]="{
+                border: (!empleado.empl_DireccionExacta.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!empleado.empl_DireccionExacta.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                </i>
                   <input type="text" id="direccion-input" [(ngModel)]="empleado.empl_DireccionExacta" class="form-control" [class.is-invalid]="!empleado.empl_DireccionExacta.trim() && mostrarErrores" placeholder="Ingrese la dirección exacta del empleado" required>
                 </div>
                 <div class="text-danger" *ngIf="!empleado.empl_DireccionExacta.trim() && mostrarErrores">
@@ -339,25 +405,6 @@
         </div>
         </div>
     </div>
-</div>
-
-<!-- Modal de confirmación de edición -->
-<div class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.3);" *ngIf="mostrarConfirmacionEditar">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Confirmar edición</h5>
-        <button type="button" class="btn-close" (click)="cancelarEdicion()" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p>¿Estás seguro de que deseas guardar los cambios realizados al empleado?</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cancelarEdicion()">Cancelar</button>
-        <button type="button" class="btn btn-primary" (click)="confirmarEdicion()">Confirmar</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }" [style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">

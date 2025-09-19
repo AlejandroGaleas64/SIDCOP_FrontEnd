@@ -50,10 +50,10 @@ export class DetailsComponent implements OnChanges {
       try {
         this.coloniaDetalle = { ...data };
         this.cargando = false;
-        console.log('DetailsComponent -> cargando:', this.cargando, 'coloniaDetalle:', this.coloniaDetalle);
+        //console.log('DetailsComponent -> cargando:', this.cargando, 'coloniaDetalle:', this.coloniaDetalle);
         this.cdr.detectChanges(); // Forzar actualización del template
       } catch (error) {
-        console.error('Error al cargar detalles de la colonia:', error);
+        //console.error('Error al cargar detalles de la colonia:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los detalles de la colonia.';
         this.cargando = false;

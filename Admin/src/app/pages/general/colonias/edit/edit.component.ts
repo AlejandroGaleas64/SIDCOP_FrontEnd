@@ -189,7 +189,6 @@ export class EditComponent implements OnInit, OnChanges {
           }
           else
           {
-            console.error('Error al actualizar colonia:', response.data.message_Status);
             this.mostrarAlertaError = true;
             this.mensajeError = 'Error al actualizar la colonia, ', response.data.message_Status;
             setTimeout(() => this.cerrarAlerta(), 5000);
@@ -197,7 +196,6 @@ export class EditComponent implements OnInit, OnChanges {
           
         },
         error: (error) => {
-          console.error('Error al actualizar colonia:', error);
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al actualizar la colonia. Por favor, intente nuevamente.';
           setTimeout(() => this.cerrarAlerta(), 5000);
@@ -240,6 +238,8 @@ export class EditComponent implements OnInit, OnChanges {
     }
 
   cargarMunicipios(codigoDepa: string): void {
+    this.selectedMuni = '';
+    this.coloniaEditada.muni_Codigo = '';
     this.Municipios = this.TodosMunicipios.filter((m: any) => m.depa_Codigo === codigoDepa);
     this.selectedMuni = '';
   }

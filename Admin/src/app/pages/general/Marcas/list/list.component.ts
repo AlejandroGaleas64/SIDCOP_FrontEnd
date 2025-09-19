@@ -246,8 +246,6 @@ export class ListComponent implements OnInit {
   guardarMarca(marca: Marcas): void {
     console.log('Marca guardada exitosamente desde create component:', marca);
     // Mostrar mensaje de éxito
-    this.mensajeExito = `Marca "${marca.marc_Descripcion}" creada exitosamente`;
-    this.mostrarAlertaExito = true;
     
     // Ocultar la alerta después de 3 segundos
     setTimeout(() => {
@@ -263,8 +261,6 @@ export class ListComponent implements OnInit {
   actualizarMarca(marca: Marcas): void {
     console.log('Marca actualizada exitosamente desde edit component:', marca);
     // Mostrar mensaje de éxito
-    this.mensajeExito = `Marca "${marca.marc_Descripcion}" actualizada exitosamente`;
-    this.mostrarAlertaExito = true;
     
     // Ocultar la alerta después de 3 segundos
     setTimeout(() => {

@@ -301,7 +301,8 @@
                       class="btn btn-sm btn-primary mt-2" 
                       (click)="generarVistaPrevia()" 
                       *ngIf="formatoSeleccionado === 'pdf'">
-                <i class="ri-eye-line me-1"></i> Ver PDF
+                <span class="btn-text">Ver PDF</span>
+                <span class="btn-icon"><i class="ri-eye-line"></i></span>
               </button>
             </div>
           </div>
@@ -320,7 +321,8 @@
                       class="btn btn-sm btn-primary mt-2" 
                       (click)="abrirConfiguracionImpresion()" 
                       *ngIf="formatoSeleccionado === 'zpl'">
-                <i class="ri-printer-line me-1"></i> Imprimir ZPL
+                <span class="btn-text">Imprimir ZPL</span>
+                <span class="btn-icon"><i class="ri-printer-line"></i></span>
               </button>
             </div>
           </div>

@@ -160,6 +160,10 @@ export class ListComponent implements OnInit {
   PEEliminar: Migracion | null = null;
   infoconfiguracion: any[] = [];
 
+mostrarConfirmacionMigrar = false;
+migracionPendiente: Migracion | null = null;
+
+
   cargarconfiguracion() {
     this.http
       .get<any[]>(`${environment.apiBaseUrl}/ConfiguracionFactura/Listar`, {
@@ -181,21 +185,64 @@ export class ListComponent implements OnInit {
       );
   }
 
- private descargarLogMigracion(message: string, tabla: string): void {
-  const fecha = new Date();
-  const fechaStr = `${fecha.getFullYear()}${(fecha.getMonth()+1).toString().padStart(2,'0')}${fecha.getDate().toString().padStart(2,'0')}_${fecha.getHours().toString().padStart(2,'0')}${fecha.getMinutes().toString().padStart(2,'0')}${fecha.getSeconds().toString().padStart(2,'0')}`;
-  const nombreArchivo = `Log_Migracion_${tabla}_${fechaStr}.txt`;
+  private descargarLogMigracion(message: string, tabla: string): void {
+    const fecha = new Date();
+    const fechaStr = `${fecha.getFullYear()}${(fecha.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}${fecha.getDate().toString().padStart(2, '0')}_${fecha
+      .getHours()
+      .toString()
+      .padStart(2, '0')}${fecha.getMinutes().toString().padStart(2, '0')}${fecha
+      .getSeconds()
+      .toString()
+      .padStart(2, '0')}`;
+    const nombreArchivo = `Log_Migracion_${tabla}_${fechaStr}.txt`;
 
-  const blob = new Blob([message], { type: 'text/plain' });
-  const url = window.URL.createObjectURL(blob);
+    const blob = new Blob([message], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
 
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = nombreArchivo;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  window.URL.revokeObjectURL(url);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombreArchivo;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }
+
+  confirmarMigracion(migracionesinfo: Migracion): void {
+  console.log('Solicitando confirmación para migrar:', migracionesinfo);
+  this.migracionPendiente = migracionesinfo;
+  this.mostrarConfirmacionMigrar = true;
+  this.activeActionRow = null; // Cerrar menú de acciones
+}
+
+cancelarMigrar(): void {
+  this.mostrarConfirmacionMigrar = false;
+  this.migracionPendiente = null;
+}
+
+confirmarMigrar(): void {
+  if (this.migracionPendiente) {
+    this.mostrarConfirmacionMigrar = false;
+    this.migrar(this.migracionPendiente);
+    this.migracionPendiente = null;
+  }
+}
+
+mostrarConfirmacionMigrarGeneral = false;
+
+confirmarMigracionGeneral(): void {
+  this.mostrarConfirmacionMigrarGeneral = true;
+}
+
+cancelarMigrarGeneral(): void {
+  this.mostrarConfirmacionMigrarGeneral = false;
+}
+
+confirmarMigrarGeneral(): void {
+  this.mostrarConfirmacionMigrarGeneral = false;
+  this.migrarGeneral();
 }
 
   migrar(migracionesinfo: Migracion): void {
@@ -211,53 +258,55 @@ export class ListComponent implements OnInit {
     const paquete = migracionesinfo.coMi_Tabla;
 
     const body = {
-    paquete: paquete,
-    rutaFisica: rutaFisica,
-  };
+      paquete: paquete,
+      rutaFisica: rutaFisica,
+    };
 
-  const url = `${environment.apiBaseUrl}/Migracion/Migrar`;
+    const url = `${environment.apiBaseUrl}/Migracion/Migrar`;
 
-  
-  this.http.post(url, body, {
-    headers: {
-      'X-Api-Key': environment.apiKey,
-      accept: '*/*',
-    },
-  }).subscribe({
-    next: (response: any) => {
-      this.mostrarOverlayCarga = false;
-      console.log('Respuesta al migrar :', response);
+    this.http
+      .post(url, body, {
+        headers: {
+          'X-Api-Key': environment.apiKey,
+          accept: '*/*',
+        },
+      })
+      .subscribe({
+        next: (response: any) => {
+          this.mostrarOverlayCarga = false;
+          console.log('Respuesta al migrar :', response);
 
-       if (response?.message) {
-    this.descargarLogMigracion(response.message, paquete);
-  }
+          if (response?.message) {
+            this.descargarLogMigracion(response.message, paquete);
+          }
 
-      if (response && response.success) {
-        this.mostrarAlertaExito = true;
-        this.mensajeExito = `Migración de ${paquete} completada exitosamente.`;
+          if (response && response.success) {
+            this.mostrarAlertaExito = true;
+            this.mensajeExito = `Migración de ${paquete} completada exitosamente.`;
 
-        setTimeout(() => this.cerrarAlerta(), 3000);
-        this.cargardatos(true);
-      } else {
-        this.mostrarAlertaError = true;
-        this.mensajeError = `Error inesperado al migrar "${paquete}".`;
-        setTimeout(() => this.cerrarAlerta(), 5000);
-      }
-    },
-    error: (error) => {
-      this.mostrarOverlayCarga = false;
-      this.mostrarAlertaError = true;
-      console.error(`Error al migrar "${paquete}":`, error);
+            setTimeout(() => this.cerrarAlerta(), 3000);
+            this.cargardatos(true);
+          } else {
+            this.mostrarAlertaError = true;
+            this.mensajeError = `Error inesperado al migrar "${paquete}".`;
+            setTimeout(() => this.cerrarAlerta(), 5000);
+          }
+        },
+        error: (error) => {
+          this.mostrarOverlayCarga = false;
+          this.mostrarAlertaError = true;
+          console.error(`Error al migrar "${paquete}":`, error);
 
-       if (error?.error?.message) {
-    this.descargarLogMigracion(error.error.message, paquete);
-  }
+          if (error) {
+            this.descargarLogMigracion(error, paquete);
+          }
 
-      this.mensajeError = `Error de conexión al intentar migrar "${paquete}".`;
-      setTimeout(() => this.cerrarAlerta(), 5000);
-    }
-  });
+          console.log('Error', error);
 
+          this.mensajeError = `Error al intentar migrar "${paquete}".`;
+          setTimeout(() => this.cerrarAlerta(), 5000);
+        },
+      });
   }
 
   // ...existing code...
@@ -553,27 +602,23 @@ export class ListComponent implements OnInit {
   migrarGeneral(): void {
     this.mostrarOverlayCarga = true;
 
-     const config = this.infoconfiguracion.map(
+    const config = this.infoconfiguracion.map(
       (config) => config.coFa_RutaMigracion
     );
     const rutaFisica = config?.[0] || '';
 
-      const body = {
-    paquete: 'General',
-    rutaFisica: rutaFisica,
-  };
+    const body = {
+      paquete: 'General',
+      rutaFisica: rutaFisica,
+    };
 
     this.http
-      .post(
-        `${environment.apiBaseUrl}/Migracion/Migrar`,
-        body,
-        {
-          headers: {
-            'X-Api-Key': environment.apiKey,
-            accept: '*/*',
-          },
-        }
-      )
+      .post(`${environment.apiBaseUrl}/Migracion/Migrar`, body, {
+        headers: {
+          'X-Api-Key': environment.apiKey,
+          accept: '*/*',
+        },
+      })
       .subscribe({
         next: (response: any) => {
           console.log('Respuesta al migrar General:', response);
@@ -581,9 +626,9 @@ export class ListComponent implements OnInit {
           setTimeout(() => {
             this.mostrarOverlayCarga = false;
 
-             if (response?.message) {
-    this.descargarLogMigracion(response.message, 'General');
-  }
+            if (response?.message) {
+              this.descargarLogMigracion(response.message, 'General');
+            }
 
             if (response.success) {
               this.mostrarAlertaExito = true;
@@ -604,11 +649,12 @@ export class ListComponent implements OnInit {
           console.error('Error al migrar "General":', error);
           this.mostrarOverlayCarga = false;
           this.mostrarAlertaError = true;
-          if (error?.error?.message) {
-            this.descargarLogMigracion(error.error.message, 'General');
+
+          if (error) {
+            this.descargarLogMigracion(error, 'General');
           }
 
-          this.mensajeError = 'Error de conexión al intentar migrar "General".';
+          this.mensajeError = 'Error al intentar migrar "General".';
           setTimeout(() => this.cerrarAlerta(), 5000);
         },
       });

@@ -24,7 +24,7 @@
       <div class="card h-100 shadow-sm employee-details-card bg-dark-blue">
         <div class="card-header d-flex align-items-center rounded-top details-header-custom">
           <i class="ri-ruler-line me-2 fs-4"></i>
-          <h4 class="mb-0" style="color: #303d7d">Detalles de Unidad de Medida</h4>
+          <h4 class="mb-0" style="color: #303d7d">Detalles de Unidad de Peso</h4>
         </div>
         <div class="card-body">
           <div class="row g-3">
@@ -39,7 +39,15 @@
                     {{ UnidadDePesoDetalle.unPe_Descripcion || 'N/A' }}
                   </div>
                 </div>
-                    <div class="detail-content">
+
+              </div>
+            </div>
+              <div class="col-12 col-sm-4">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white">
+                  <i class="ri-file-list-3-line"></i>
+                </div>
+                <div class="detail-content">
                   <div class="detail-label">Abreviatura</div>
                   <div class="detail-value">
                     {{ UnidadDePesoDetalle.unPe_Abreviatura || 'N/A' }}
@@ -79,7 +87,7 @@
           <div class="audit-col">
             <span class="audit-action">Modificación</span>
           </div>
-          <div class="audit-col">
+          <div class="audit-col">s
             <span class="audit-user">{{ UnidadDePesoDetalle.usuarioModificacion || 'N/A' }}</span>
           </div>
           <div class="audit-col">

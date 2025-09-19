@@ -88,9 +88,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('Error al cargar formas de pago:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar las formas de pago. Por favor intente nuevamente.';
+        setTimeout(() => this.cerrarAlerta(), 5000);
       }
     });
     
@@ -139,6 +139,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los datos de la cuenta por cobrar.';
         this.cargando = false;
+        setTimeout(() => this.cerrarAlerta(), 5000);
       }
     });
     
@@ -204,6 +205,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al registrar el pago. Por favor intente nuevamente.';
         this.enviando = false;
+        setTimeout(() => this.cerrarAlerta(), 5000);
       }
     });
     
@@ -214,15 +216,22 @@ export class PaymentComponent implements OnInit, OnDestroy {
     this.router.navigate(['/ventas/cuentasporcobrar/list']);
   }
 
-  cerrarAlertaError(): void {
-    this.mostrarAlertaError = false;
-    this.mensajeError = '';
-  }
+cerrarAlertaError(): void {
+  this.mostrarAlertaError = false;
+  this.mensajeError = '';
+}
 
-  cerrarAlertaExito(): void {
-    this.mostrarAlertaExito = false;
-    this.mensajeExito = '';
-  }
+cerrarAlertaExito(): void {
+  this.mostrarAlertaExito = false;
+  this.mensajeExito = '';
+}
+
+cerrarAlerta(): void {
+  this.mostrarAlertaExito = false;
+  this.mensajeExito = '';
+  this.mostrarAlertaError = false;
+  this.mensajeError = '';
+}
 
   formatearFecha(fecha: Date | string | null): string {
     if (!fecha) return 'N/A';
@@ -233,4 +242,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
     if (valor === null || valor === undefined) return 'L 0.00';
     return new Intl.NumberFormat('es-HN', { style: 'currency', currency: 'HNL' }).format(valor);
   }
+
+
 }
+

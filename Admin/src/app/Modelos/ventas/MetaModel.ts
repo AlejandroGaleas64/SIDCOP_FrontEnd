@@ -41,6 +41,9 @@ export class Meta {
   meta_Objetivo: any = null;
   No: number = 0; 
 
+  usuarioCreacion: string = '';
+  usuarioModificacion?: string;
+
   usua_Creacion: number = 0;
   meta_FechaCreacion: Date = new Date();
   usua_Modificacion?: number;

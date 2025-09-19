@@ -434,8 +434,8 @@
                   required
                 >
                   <option value="" disabled selected>Seleccione tipo</option>
-                  <option value="Contado">Contado</option>
-                  <option value="Crédito" [disabled]="!puedeUsarCredito()">Crédito</option>
+                  <option value="CO">Contado</option>
+                  <option value="CR" [disabled]="!puedeUsarCredito()">Crédito</option>
                 </select>
                 <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
               </div>

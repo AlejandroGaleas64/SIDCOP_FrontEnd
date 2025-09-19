@@ -14,11 +14,14 @@ import { ImageUploadService } from 'src/app/core/services/image-upload.service';
   standalone: true,
   imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './create.component.html',
-  styleUrl: './create.component.scss'
+  styleUrls: ['./create.component.scss']
 })
 export class CreateComponent {
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<any>();
+
+  // Variable separada para la previsualización de la imagen
+  imagenPreview: string = '';
 
   mostrarOverlayCarga = false;
   mostrarErrores = false;
@@ -400,7 +403,7 @@ export class CreateComponent {
     if (file) {
       // Crear una URL temporal para mostrar la imagen inmediatamente
       const tempImageUrl = URL.createObjectURL(file);
-      this.producto.prod_Imagen = tempImageUrl;
+      this.imagenPreview = tempImageUrl;
       
       // Mostrar indicador de carga si es necesario
       this.mostrarOverlayCarga = true;
@@ -408,9 +411,10 @@ export class CreateComponent {
       // Usar el servicio de carga de imágenes
       this.imageUploadService.uploadImageAsync(file)
         .then(imagePath => {
-          // Construir la URL completa para mostrar la imagen
-          const baseUrl = environment.apiBaseUrl.replace('/api', '');
-          this.producto.prod_Imagen = `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
+          // Guardar solo la ruta relativa en prod_Imagen
+          this.producto.prod_Imagen = imagePath;
+          // Actualizar la previsualización con la URL completa
+          this.imagenPreview = imagePath.includes('https') ? imagePath : environment.apiBaseUrl + imagePath;
           console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
           this.mostrarOverlayCarga = false;
         })
