@@ -331,11 +331,11 @@ export class ListComponent implements OnInit {
     ];
 
      this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
+  
   }
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
+
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -343,11 +343,7 @@ export class ListComponent implements OnInit {
   }
 
   editar(descuento: Descuento): void {
-    console.log('Abriendo formulario de edición para:', descuento);
-    console.log('Datos específicos:', {
-      id: descuento.desc_Id,
-      completo: descuento
-    });
+ 
     this.descuentoEditando = { ...descuento }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -356,7 +352,7 @@ export class ListComponent implements OnInit {
   }
 
   detalles(descuento: Descuento): void {
-    console.log('Abriendo detalles para:', descuento);
+ 
     this.descuentoDetalle = { ...descuento }; // Hacer copia profunda
     this.showDetailsForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -421,7 +417,7 @@ export class ListComponent implements OnInit {
   }
 
   guardarDescuento(descuento: Descuento): void {
-    console.log('Descuento guardado exitosamente desde create component:', descuento);
+
      this.mostrarOverlayCarga = true;
     setTimeout(()=> {
     // Recargar los datos de la tabla
@@ -439,7 +435,7 @@ export class ListComponent implements OnInit {
 
   actualizarDescuento(descuento: Descuento): void {
      this.mostrarOverlayCarga = true;
-    console.log('Descuento actualizado exitosamente desde edit component:', descuento);
+
     setTimeout(() => {
     // Recargar los datos de la tabla
     this.cargardatos(false);
@@ -454,7 +450,7 @@ export class ListComponent implements OnInit {
   }
 
   confirmarEliminar(descuento: Descuento): void {
-    console.log('Solicitando confirmación para eliminar:', descuento);
+
     this.descuentoEliminar = descuento;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones
@@ -468,7 +464,7 @@ export class ListComponent implements OnInit {
   eliminar(): void {
     if (!this.descuentoEliminar) return;
     
-    console.log('Eliminando Descuento:', this.descuentoEliminar);
+
     this.mostrarOverlayCarga = true;
     this.http.post(`${environment.apiBaseUrl}/Descuentos/Eliminar/${this.descuentoEliminar.desc_Id}`, {}, {
       headers: { 
@@ -479,13 +475,13 @@ export class ListComponent implements OnInit {
       next: (response: any) => {
         setTimeout(() => {
           this.mostrarOverlayCarga = false;
-        console.log('Respuesta del servidor:', response);
+
         
         // Verificar el código de estado en la respuesta
         if (response.success && response.data) {
           if (response.data.code_Status === 1) {
             // Éxito: eliminado correctamente
-            console.log('Descuento eliminada exitosamente');
+
             this.mensajeExito = `Descuento "${this.descuentoEliminar!.desc_Descripcion}" eliminada exitosamente`;
             this.mostrarAlertaExito = true;
             
@@ -500,7 +496,7 @@ export class ListComponent implements OnInit {
             this.cancelarEliminar();
           } else if (response.data.code_Status === -1) {
             //result: está siendo utilizado
-            console.log('el Descuento está siendo utilizada');
+         
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'No se puede eliminar: la Descuento está siendo utilizada.';
             
@@ -513,7 +509,7 @@ export class ListComponent implements OnInit {
             this.cancelarEliminar();
           } else if (response.data.code_Status === 0) {
             // Error general
-            console.log('Error general al eliminar');
+      
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'Error al eliminar el Descuento.';
             
@@ -527,7 +523,7 @@ export class ListComponent implements OnInit {
           }
         } else {
           // Respuesta inesperada
-          console.log('Respuesta inesperada del servidor');
+    
           this.mostrarAlertaError = true;
           this.mensajeError = response.message || 'Error inesperado al eliminar la Descuento.';
           
@@ -556,7 +552,7 @@ export class ListComponent implements OnInit {
    private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+ 
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -579,7 +575,7 @@ export class ListComponent implements OnInit {
       }
     }
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
+
   }
 
   private cargardatos(state: boolean): void {

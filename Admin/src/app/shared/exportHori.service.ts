@@ -111,7 +111,7 @@ export class ExportService {
           fontSize: 8,
           cellPadding: 3,
           overflow: 'linebreak' as any,
-          halign: 'left' as any,
+          halign: 'center' as any,
           valign: 'middle' as any,
           lineColor: false,
           lineWidth: 0,

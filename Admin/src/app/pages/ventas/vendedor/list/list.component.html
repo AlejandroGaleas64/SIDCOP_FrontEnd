@@ -161,15 +161,17 @@
             <ng-container *ngIf="(table.paginated$ | async) as paginados">
               <div class="col-sm-12 col-md-5">
                 <div class="dataTables_info mb-2" role="status" aria-live="polite">
-                  Mostrando
-                  {{ (table.page - 1) * table.pageSizeValue + paginados.length }} de {{ table. total$ | async }}
-                  registros
+                 Mostrando del <span>{{startIndex}}</span> - <span>{{endIndex}}</span> de
+                    <span>{{vendedoresFiltrados?.length}}</span> registros
                 </div>
               </div>
               <div class="col-sm-12 col-md-5">
                 <div class="text-md-right float-md-end gridjs-pagination">
-                  <pagination [totalItems]="(table.total$ | async) || 0" [(ngModel)]="table.page"
-                    [itemsPerPage]="table.pageSizeValue" (pageChanged)="table.setPage($event.page)"></pagination>
+                  <pagination [totalItems]="(table.total$ | async) || 0"
+                    [(ngModel)]="currentPage"
+                    [itemsPerPage]="itemsPerPage"
+                    (pageChanged)="onPageChanged($event)">
+                  </pagination>
                 </div>
               </div>
             </ng-container>
