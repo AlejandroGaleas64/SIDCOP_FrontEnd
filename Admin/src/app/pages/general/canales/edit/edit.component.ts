@@ -79,12 +79,14 @@ export class EditComponent implements OnChanges {
 
   validarEdicion(): void {
     this.mostrarErrores = true;
+    // Ahora solo la descripción es requerida; observaciones puede estar vacía
+    if (this.canal.cana_Descripcion.trim()) {
+      const descripcionCambio = this.canal.cana_Descripcion.trim() !== this.canalOriginalDescripcion;
+      const observacionesActual = (this.canal.cana_Observaciones || '').trim();
+      const observacionesOriginal = (this.canalOriginalObservaciones || '').trim();
+      const observacionesCambio = observacionesActual !== observacionesOriginal;
 
-    if (this.canal.cana_Descripcion.trim() && this.canal.cana_Observaciones.trim()) {
-      if (
-        this.canal.cana_Descripcion.trim() !== this.canalOriginalDescripcion ||
-        this.canal.cana_Observaciones.trim() !== this.canalOriginalObservaciones
-      ) {
+      if (descripcionCambio || observacionesCambio) {
         this.mostrarConfirmacionEditar = true;
       } else {
         this.mostrarAlertaWarning = true;
@@ -93,7 +95,7 @@ export class EditComponent implements OnChanges {
       }
     } else {
       this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
+      this.mensajeWarning = 'Por favor complete la descripción antes de guardar.';
       setTimeout(() => this.cerrarAlerta(), 4000);
     }
   }
@@ -126,7 +128,8 @@ export class EditComponent implements OnChanges {
       UsuarioModificacion: this.canal.usuarioModificacion || ''
     };
 
-    if (canal.cana_Descripcion && canal.cana_Observaciones) {
+  // Solo se requiere la descripción para actualizar; observaciones puede quedar vacía
+  if (canal.cana_Descripcion) {
       this.http.put<any>(`${environment.apiBaseUrl}/Canal/Actualizar`, canal, {
         headers: {
           'X-Api-Key': environment.apiKey,
