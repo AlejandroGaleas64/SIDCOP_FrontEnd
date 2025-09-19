@@ -30,6 +30,8 @@
       <div class="row">
         <div class="col-md-6">
           <div class="mb-3">
+            <label for="marcaMarca" class="form-label">Descripción</label>
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
             <div class="d-flex align-items-center">
                                        <i class="ri-attachment-line" [ngStyle]="{
                 border: (!marcasVehiculos.maVe_Marca.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
