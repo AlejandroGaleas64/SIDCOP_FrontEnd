@@ -68,6 +68,8 @@ export class EditComponent implements OnChanges {
       this.usuario.role_Descripcion = rolActual ? rolActual.role_Descripcion : '';
       const empleadoActual = this.empleados.find(m => m.empl_Id === this.usuario.usua_IdPersona);
       this.usuario.nombreCompleto = empleadoActual ? empleadoActual.empl_Nombres + ' ' + empleadoActual.empl_Apellidos : '';
+      const vendedorActual = this.vendedores.find(m => m.vend_Id === this.usuario.usua_IdPersona);
+      this.usuario.nombreCompleto = vendedorActual ? vendedorActual.vend_Nombres + ' ' + vendedorActual.vend_Apellidos : '';
       this.usuarioOriginal = { ...changes['usuarioData'].currentValue };
       this.mostrarErrores = false;
       this.cerrarAlerta();
@@ -89,6 +91,16 @@ export class EditComponent implements OnChanges {
     const empleadoSeleccionado = this.empleados.find(emp => emp.empl_Id === selectedId);
     if (empleadoSeleccionado) {
       this.usuario.nombreCompleto = empleadoSeleccionado.empl_Nombres + ' ' + empleadoSeleccionado.empl_Apellidos;
+    } else {
+      this.usuario.nombreCompleto = '';
+    }
+  }
+
+  onVendedorChange(event: any) {
+    const selectedId = +event.target.value;
+    const vendedorSeleccionado = this.vendedores.find(emp => emp.vend_Id === selectedId);
+    if (vendedorSeleccionado) {      
+      this.usuario.nombreCompleto = vendedorSeleccionado.vend_Nombres + ' ' + vendedorSeleccionado.vend_Apellidos;
     } else {
       this.usuario.nombreCompleto = '';
     }
@@ -213,7 +225,39 @@ export class EditComponent implements OnChanges {
         this.cambiosDetectados.empleado = {
           anterior: b.nombreCompleto = this.empleados.find(emp => emp.empl_Id === b.usua_IdPersona)?.empl_Nombres + ' ' + this.empleados.find(emp => emp.empl_Id === b.usua_IdPersona)?.empl_Apellidos || '',
           nuevo: a.nombreCompleto,
-          label: 'Empleado'
+          label: 'Empleado o Vendedor'
+        }
+      }
+    }
+    
+    if(!a.usua_EsAdmin)
+    {
+      if(!a.usua_EsVendedor){
+        if(a.usua_IdPersona !== b.usua_IdPersona){
+          this.cambiosDetectados.empleado = {
+            anterior: b.nombreCompleto = this.empleados.find(emp => emp.empl_Id === b.usua_IdPersona)?.empl_Nombres + ' ' + this.empleados.find(emp => emp.empl_Id === b.usua_IdPersona)?.empl_Apellidos || '',
+            nuevo: a.nombreCompleto,
+            label: 'Empleado o Vendedor'
+          }
+        }
+      }
+      if(a.usua_EsVendedor){
+        if(a.usua_IdPersona !== b.usua_IdPersona){
+          const vendedorAnterior = this.vendedores.find(vend => vend.vend_Id === b.usua_IdPersona);
+          if (vendedorAnterior !== undefined) {
+            this.cambiosDetectados.vendedor = {
+              anterior: b.nombreCompleto = this.vendedores.find(vend => vend.vend_Id === b.usua_IdPersona)?.vend_Nombres + ' ' + this.vendedores.find(vend => vend.vend_Id === b.usua_IdPersona)?.vend_Apellidos || '',
+              nuevo: a.nombreCompleto,
+              label: 'Empleado o Vendedor'
+            }
+          }
+          else{
+            this.cambiosDetectados.empleado = {
+              anterior: b.nombreCompleto = this.empleados.find(emp => emp.empl_Id === b.usua_IdPersona)?.empl_Nombres + ' ' + this.empleados.find(emp => emp.empl_Id === b.usua_IdPersona)?.empl_Apellidos || '',
+              nuevo: a.nombreCompleto,
+              label: 'Empleado o Vendedor'
+            }
+          }
         }
       }
     }
@@ -223,12 +267,14 @@ export class EditComponent implements OnChanges {
 
   validarEdicion(): void {
     this.mostrarErrores = true;
-    if (this.hayDiferencias()) {
-      this.mostrarConfirmacionEditar = true;
-    } else {
-      this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'No se han detectado cambios.';
-      setTimeout(() => this.cerrarAlerta(), 4000);
+    if (this.usuario.usua_Usuario.trim() && this.usuario.role_Id && this.usuario.usua_IdPersona) {
+      if (this.hayDiferencias()) {
+        this.mostrarConfirmacionEditar = true;
+      } else {
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = 'No se han detectado cambios.';
+        setTimeout(() => this.cerrarAlerta(), 4000);
+      }
     }
   }
 

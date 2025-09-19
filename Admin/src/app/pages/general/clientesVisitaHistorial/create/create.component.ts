@@ -222,7 +222,7 @@ export class CreateComponent implements OnInit {
     const userId = getUserId();
     const fechaActual = new Date();
     const fechaVisita = new Date(this.visita.clVi_Fecha);
-    fechaVisita.setHours(0, 0, 0, 0);
+    // fechaVisita.setHours(0, 0, 0, 0);
 
     const visitaData = {
       clVi_Id: 0,
@@ -329,7 +329,7 @@ export class CreateComponent implements OnInit {
                     this.cargandoImagen = false;
                     // Construir la URL completa para mostrar la imagen
                     const baseUrl = environment.apiBaseUrl.replace('/api', '');
-                    const fullImagePath = `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
+                    const fullImagePath =  imagePath;
                     if (imagePath) subirImagen(fullImagePath);
                     else this.mostrarMensaje('No se pudo obtener la ruta de la imagen', 'error');
                   })

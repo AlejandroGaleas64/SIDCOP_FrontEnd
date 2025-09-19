@@ -44,7 +44,7 @@
             <input type="text" class="form-control" [class.is-invalid]="
                 !registroCai.regC_Descripcion.trim() && mostrarErrores
               " id="PECod" [(ngModel)]="registroCai.regC_Descripcion" placeholder="Ingrese la Descripcion" required />
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+            
           </div>
           <div class="text-danger mt-1" *ngIf="!registroCai.regC_Descripcion.trim() && mostrarErrores">
             <small>El campo Codigo es requerido</small>
@@ -65,9 +65,9 @@
             <ng-select class="w-100" [items]="Sucursales" bindLabel="sucu_Descripcion" bindValue="sucu_Id"
               [(ngModel)]="registroCai.sucu_Id" [searchable]="true" [clearable]="false"
               [class.is-invalid]="!registroCai.sucu_Id && mostrarErrores" placeholder="Seleccione una sucursal" required
-              [searchFn]="searchSucursal">
+              [searchFn]="searchSucursal" (ngModelChange)="onSucursalChange()">
               <ng-template ng-label-tmp let-item="item">
-                {{ item.sucu_Descripcion }} - {{ item.muni_Descripcion }} -
+                 {{ item.sucu_Codigo }} - {{ item.sucu_Descripcion }} - {{ item.muni_Descripcion }} -
                 {{ item.depa_Descripcion }}
               </ng-template>
               <ng-template ng-option-tmp let-item="item">
@@ -75,7 +75,7 @@
                 {{ item.depa_Descripcion }}
               </ng-template>
             </ng-select>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+            
           </div>
           <div class="text-danger mt-1" *ngIf="!registroCai.sucu_Id && mostrarErrores">
             <small>El campo sucursal es requerido</small>
@@ -106,10 +106,10 @@
                 {{ item.nCai_Codigo }} - {{ item.nCai_Descripcion }}
               </ng-template>
             </ng-select>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+            
           </div>
           <div class="text-danger mt-1" *ngIf="!registroCai.nCai_Id && mostrarErrores">
-            <small>El campo punto CAI es requerido</small>
+            <small>El campo CAI es requerido</small>
           </div>
         </div>
       </div>
@@ -129,7 +129,7 @@
             <ng-select class="w-100" [items]="PE" bindLabel="puEm_Descripcion" bindValue="puEm_Id"
               [(ngModel)]="registroCai.puEm_Id" [searchable]="true" [clearable]="false"
               [class.is-invalid]="!registroCai.puEm_Id && mostrarErrores" placeholder="Seleccione un punto de emisión"
-              required [searchFn]="searchPuntoEmision">
+              required [searchFn]="searchPuntoEmision" (ngModelChange)="onPuntoEmisionChange()">
               <ng-template ng-label-tmp let-item="item">
                 {{ item.puEm_Codigo }} - {{ item.puEm_Descripcion }} -
                 {{ item.sucu_Descripcion }}
@@ -139,7 +139,7 @@
                 {{ item.sucu_Descripcion }}
               </ng-template>
             </ng-select>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+            
           </div>
           <div class="text-danger mt-1" *ngIf="!registroCai.puEm_Id && mostrarErrores">
             <small>El campo punto de emisión es requerido</small>
@@ -159,9 +159,12 @@
             </i>
             <input type="text" class="form-control" [class.is-invalid]="
                 !registroCai.regC_RangoInicial.trim() && mostrarErrores
-              " id="RInicial" [(ngModel)]="registroCai.regC_RangoInicial" placeholder="Ingrese el Rango Inicial"
-              required />
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              " id="RInicial" [(ngModel)]="registroCai.regC_RangoInicial" 
+              mask="00000000" 
+              [dropSpecialCharacters]="false"
+              placeholder="00000000" 
+              required (ngModelChange)="onRangoChange()" />
+            
           </div>
           <div class="text-danger mt-1" *ngIf="!registroCai.regC_RangoInicial.trim() && mostrarErrores">
             <small>El campo rango inicial es requerido</small>
@@ -175,15 +178,18 @@
           <div class="d-flex align-items-center">
             <i class=" ri-sort-asc"
               [ngStyle]="{
-                border: (!registroCai.regC_RangoInicial.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!registroCai.regC_RangoInicial.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: (!registroCai.regC_RangoFinal.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!registroCai.regC_RangoFinal.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
             </i>
             <input type="text" class="form-control" [class.is-invalid]="
                 !registroCai.regC_RangoFinal.trim() && mostrarErrores
-              " id="RInicial" [(ngModel)]="registroCai.regC_RangoFinal" placeholder="Ingrese el Rango Final"
-              required />
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              " id="RFinal" [(ngModel)]="registroCai.regC_RangoFinal" 
+              mask="00000000" 
+              [dropSpecialCharacters]="false"
+              placeholder="00000000" 
+              required (ngModelChange)="onRangoChange()" />
+            
           </div>
           <div class="text-danger mt-1" *ngIf="!registroCai.regC_RangoFinal.trim() && mostrarErrores">
             <small>El campo rango final es requerido</small>
@@ -235,6 +241,21 @@
         </div>
       </div>
 
+      <!-- Mostrar número de factura formateado -->
+      <div class="col-12" *ngIf="numeroFacturaFormateado">
+        <div class="mb-3">
+          <div class="alert alert-info alert-border-left d-flex align-items-center" style="background-color: #e7f3ff; border-left: 4px solid #0dcaf0;">
+            <i class="ri-information-line me-3 fs-lg" style="color: #0dcaf0;"></i>
+            <div>
+              <strong>Vista previa del número de factura:</strong>
+              <br>
+              <span class="fw-bold" style="font-family: 'Courier New', monospace; font-size: 1.1em; color: #0a58ca;">
+                {{ numeroFacturaFormateado }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

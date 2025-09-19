@@ -841,6 +841,10 @@ export class ListComponent {
           const tienePermisoListar = this.accionPermitida('listar');
           const userId = getUserId();
 
+          data.forEach((item: any) => {
+            item.usua_Imagen = item.usua_Imagen.includes("http") ? item.usua_Imagen : environment.apiBaseUrl + item.usua_Imagen;
+          });
+
           const datosFiltrados = tienePermisoListar
             ? data
             : data.filter(u => u.usua_Creacion?.toString() === userId?.toString());

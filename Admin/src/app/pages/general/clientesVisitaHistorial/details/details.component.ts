@@ -85,7 +85,14 @@ export class DetailsComponent implements OnChanges {
     this.http.post<any[]>(`${environment.apiBaseUrl}/ImagenVisita/ListarPorVisita/${visitaId}`, {}, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
+      
         next: (imagenes) => {
+          
+
+          imagenes.forEach((imagen: any) => {
+            imagen.imVi_Imagen = imagen.imVi_Imagen.includes("http") ? imagen.imVi_Imagen : environment.apiBaseUrl + imagen.imVi_Imagen;
+          });
+
           this.imagenesVisita[visitaId] = imagenes || [];
           this.currentSlideIndex[visitaId] = 0;
           this.cargandoImagenes[visitaId] = false;

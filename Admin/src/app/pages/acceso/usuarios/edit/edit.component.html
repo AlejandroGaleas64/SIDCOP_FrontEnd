@@ -119,7 +119,7 @@
                       backgroundColor: (!usuario.usua_IdPersona && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                       padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                     </i>
-                    <select id="usua_IdPersona" class="form-select" [(ngModel)]="usuario.usua_IdPersona"
+                    <select id="usua_IdPersona" class="form-select" [(ngModel)]="usuario.usua_IdPersona" (change)="onEmpleadoChange($event)"
                       [class.is-invalid]="!usuario.usua_IdPersona && mostrarErrores" required>
                       <option value=0 disabled>Seleccione un empleado</option>
                       <option *ngFor="let emp of empleados" [value]="emp.empl_Id">{{ emp.empl_Nombres }} {{ emp.empl_Apellidos }} </option>
@@ -138,7 +138,7 @@
                       backgroundColor: (!usuario.usua_IdPersona && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                       padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                     </i>
-                    <select id="usua_IdPersona" class="form-select" [(ngModel)]="usuario.usua_IdPersona"
+                    <select id="usua_IdPersona" class="form-select" [(ngModel)]="usuario.usua_IdPersona" (change)="onVendedorChange($event)"
                       [class.is-invalid]="!usuario.usua_IdPersona && mostrarErrores" required>
                       <option value=0 disabled>Seleccione un vendedor</option>
                       <option *ngFor="let ven of vendedores" [value]="ven.vend_Id">{{ ven.vend_Nombres }} {{ ven.vend_Apellidos }}</option>

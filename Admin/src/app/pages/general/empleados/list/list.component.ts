@@ -155,7 +155,7 @@ export class ListComponent {
   }
 
 
-  term: any;
+  term: string = '';
   // bread crumb items
   breadCrumbItems!: Array<{}>;
   instuctoractivity: any;
@@ -241,11 +241,22 @@ export class ListComponent {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Empleado/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
-      this.instructorGrid = data || [];
       this.usuarioGrid = data || [];
-      this.instructors = cloneDeep(this.instructorGrid.slice(0, 10));
+      this.instructorGrid = [...this.usuarioGrid];
+      this.updateInstructors();
       this.isLoading = false;
     });
+  }
+
+  private updateInstructors(): void {
+    if (!this.instructorGrid || this.instructorGrid.length === 0) {
+      this.instructors = [];
+      return;
+    }
+    
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    this.instructors = [...this.instructorGrid.slice(start, end)];
   }
 
   // File Upload
@@ -301,22 +312,37 @@ export class ListComponent {
   }
 
   // filterdata
-  filterdata() {
-    if (this.term && this.term.trim() !== '') {
-      const termLower = this.term.toLowerCase();
-      this.instructors = this.instructorGrid.filter((el: any) =>
-        (el.empl_Nombres && el.empl_Nombres.toLowerCase().includes(termLower)) ||
-        (el.empl_Apellidos && el.empl_Apellidos.toLowerCase().includes(termLower)) ||
-        (el.empl_Correo && el.empl_Correo.toLowerCase().includes(termLower)) ||
-        (el.empl_Codigo && el.empl_Codigo.toLowerCase().includes(termLower))
-      );
+  filterdata(): void {
+    if (!this.term || this.term.trim() === '') {
+      // Si no hay término de búsqueda, mostramos todos los datos
+      this.instructorGrid = [...this.usuarioGrid];
+      this.currentPage = 1; // Reset to first page when clearing search
     } else {
-      // Mostrar la página actual completa si no hay término de búsqueda
-      const startItem = (this.currentPage - 1) * this.itemsPerPage;
-      const endItem = this.currentPage * this.itemsPerPage;
-      this.instructors = this.instructorGrid.slice(startItem, endItem);
+      const termLower = this.term.trim().toLowerCase();
+      // Filtramos los resultados sin modificar usuarioGrid
+      this.instructorGrid = this.usuarioGrid.filter((empleado: any) => {
+        return (
+          (empleado.empl_Nombres && empleado.empl_Nombres.toLowerCase().includes(termLower)) ||
+          (empleado.empl_Apellidos && empleado.empl_Apellidos.toLowerCase().includes(termLower)) ||
+          (empleado.empl_Correo && empleado.empl_Correo.toLowerCase().includes(termLower)) ||
+          (empleado.empl_Codigo && empleado.empl_Codigo.toString().toLowerCase().includes(termLower))
+        );
+      });
+      this.currentPage = 1; // Always go to first page on new search
     }
+    
+    // Forzar la actualización de la vista
+    this.updateInstructors();
     this.updateNoResultDisplay();
+    
+    // Disparar un evento de cambio de página para actualizar la paginación
+    setTimeout(() => {
+      const paginationEvent = {
+        page: this.currentPage,
+        itemsPerPage: this.itemsPerPage
+      };
+      this.pageChanged(paginationEvent);
+    });
   }
 
   // no result 
@@ -336,9 +362,26 @@ export class ListComponent {
 
   // Page Changed
   pageChanged(event: any): void {
-    const startItem = (event.page - 1) * event.itemsPerPage;
-    const endItem = event.page * event.itemsPerPage;
-    this.instructors = this.instructorGrid.slice(startItem, endItem);
+    if (event && event.page) {
+      this.currentPage = event.page;
+    } else if (event && event.itemsPerPage) {
+      this.itemsPerPage = event.itemsPerPage;
+    }
+    
+    // Asegurarse de que la página actual sea válida
+    const totalPages = Math.ceil(this.instructorGrid.length / this.itemsPerPage);
+    if (this.currentPage > totalPages && totalPages > 0) {
+      this.currentPage = totalPages;
+    } else if (this.currentPage < 1) {
+      this.currentPage = 1;
+    }
+    
+    this.updateInstructors();
+    // Desplazamiento suave a la parte superior de la tabla
+    const tableElement = document.getElementById('pagination-element');
+    if (tableElement) {
+      tableElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   // Abre/cierra el menú de acciones para la fila seleccionada

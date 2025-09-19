@@ -51,7 +51,7 @@ export class DetailsComponent implements OnChanges {
 
         this.cargarClientes();
       } catch (error) {
-        console.error('Error al cargar detalles de la ruta:', error);
+        //console.error('Error al cargar detalles de la ruta:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los detalles de la ruta.';
         this.cargando = false;
@@ -69,7 +69,7 @@ export class DetailsComponent implements OnChanges {
 
       if (rutaIdActual !== undefined) {
         this.clientesFiltrados = this.cliente.filter(c => c.ruta_Id === rutaIdActual);
-        console.log('Clientes con ruta_Id =', rutaIdActual, this.clientesFiltrados);
+        //console.log('Clientes con ruta_Id =', rutaIdActual, this.clientesFiltrados);
 
         const observablesDirecciones = this.clientesFiltrados.map(cliente => 
           this.http.get<DireccionPorCliente[]>(`${environment.apiBaseUrl}/DireccionesPorCliente/Buscar/${cliente.clie_Id}`, {
@@ -95,16 +95,16 @@ export class DetailsComponent implements OnChanges {
           });
 
           this.puntosVista = todosPuntos;
-          console.log('PuntosVista completos:', this.puntosVista);
+          //console.log('PuntosVista completos:', this.puntosVista);
         }, err => {
-          console.error('Error al cargar direcciones de clientes:', err);
+          //console.error('Error al cargar direcciones de clientes:', err);
         });
 
       } else {
-        console.warn('No hay rutaDetalle.id para filtrar clientes.');
+        //console.warn('No hay rutaDetalle.id para filtrar clientes.');
       }
     }, error => {
-      console.error('Error al cargar clientes:', error);
+      //console.error('Error al cargar clientes:', error);
     });
   }
 

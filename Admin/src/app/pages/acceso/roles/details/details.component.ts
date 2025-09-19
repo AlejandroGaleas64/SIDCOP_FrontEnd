@@ -79,12 +79,12 @@ export class DetailsComponent implements OnChanges {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (permisos) => {
-        console.log('Permisos cargados:', permisos);
+        // console.log('Permisos cargados:', permisos);
         this.organizarPermisosPorPantalla(permisos);
         this.cargando = false;
       },
       error: (error) => {
-        console.error('Error al cargar permisos:', error);
+        // console.error('Error al cargar permisos:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los permisos del rol.';
         this.cargando = false;
@@ -113,7 +113,7 @@ export class DetailsComponent implements OnChanges {
     });
 
     this.permisosPorPantalla = new Map([...mapa.entries()].sort((a, b) => a[0] - b[0]));
-    console.log('Permisos organizados por pantalla:', this.permisosPorPantalla);
+    // console.log('Permisos organizados por pantalla:', this.permisosPorPantalla);
   }
 
   toggleExpand(): void {
