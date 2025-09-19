@@ -153,7 +153,7 @@
           </h6>
 
           <!-- Buscador -->
-          <div class="row mb-3">
+          <div class="row mb-3" *ngIf="pedidoEditada.clie_Id">
             <div class="col-md-6">
               <div class="search-container">
                 <div class="input-group">
@@ -187,7 +187,14 @@
 
           <!-- Contenedor de productos -->
           <div class="productos-container">
-            <div class="row g-3">
+            <!-- Mensaje cuando no hay cliente seleccionado -->
+            <div class="text-center py-5" *ngIf="!pedidoEditada.clie_Id">
+              <i class="ri-user-3-line display-4 text-muted mb-3"></i>
+              <h5 class="text-muted mb-2">Seleccione un cliente</h5>
+              <p class="text-muted">Debe seleccionar un cliente para poder ver y agregar productos al pedido</p>
+            </div>
+
+            <div class="row g-3" *ngIf="pedidoEditada.clie_Id">
               <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12" *ngFor="
                   let producto of getProductosPaginados();
                   trackBy: trackByProducto
@@ -264,7 +271,7 @@
             </div>
 
             <!-- Mensaje si no hay productos -->
-            <div class="text-center py-5" *ngIf="productosFiltrados.length === 0 && busquedaProducto">
+            <div class="text-center py-5" *ngIf="productosFiltrados.length === 0 && busquedaProducto && pedidoEditada.clie_Id">
               <i class="ri-search-line display-4 text-muted mb-3"></i>
               <h6 class="text-muted">
                 No se encontraron productos que coincidan con "{{
@@ -275,7 +282,7 @@
           </div>
 
           <!-- Paginación -->
-          <div class="d-flex justify-content-between align-items-center mt-4" *ngIf="getTotalPaginas() > 1">
+          <div class="d-flex justify-content-between align-items-center mt-4" *ngIf="getTotalPaginas() > 1 && pedidoEditada.clie_Id">
             <div class="pagination-info">
               <span class="text-muted">
                 Página {{ paginaActual }} de {{ getTotalPaginas() }}

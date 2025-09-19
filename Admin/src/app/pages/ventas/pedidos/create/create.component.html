@@ -171,42 +171,47 @@
             Seleccionar Productos
           </h6>
 
-          <!-- Buscador -->
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <div class="search-container">
-                <div class="input-group">
-                  <span class="input-group-text search-icon">
-                    <i class="ri-search-line"></i>
-                  </span>
-                  <input type="text" class="form-control search-input" placeholder="Buscar productos por nombre..."
-                    [(ngModel)]="busquedaProducto" (keyup)="buscarProductos()" />
-                  <button class="btn btn-outline-secondary" type="button" *ngIf="busquedaProducto"
-                    (click)="limpiarBusqueda()">
-                    <i class="ri-close-line"></i>
-                  </button>
+            <!-- Buscador -->
+            <div class="row mb-3" *ngIf="pedido.clie_Id">
+              <div class="col-md-6">
+                <div class="search-container">
+                  <div class="input-group">
+                    <span class="input-group-text search-icon">
+                      <i class="ri-search-line"></i>
+                    </span>
+                    <input type="text" class="form-control search-input" placeholder="Buscar productos por nombre..."
+                      [(ngModel)]="busquedaProducto" (keyup)="buscarProductos()" />
+                    <button class="btn btn-outline-secondary" type="button" *ngIf="busquedaProducto"
+                      (click)="limpiarBusqueda()">
+                      <i class="ri-close-line"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div class="col-md-6 d-flex align-items-center justify-content-end gap-3">
-              <span class="text-muted">
-                <i class="ri-information-line me-1"></i>
-                Mostrando {{ getInicioRegistro() }} - {{ getFinRegistro() }} de
-                {{ productosFiltrados.length }}
-                productos
-                <span *ngIf="busquedaProducto">
-                  para "{{ busquedaProducto }}"</span>
-              </span>
-              <span class="badge bg-primary" *ngIf="getTotalProductosSeleccionados() > 0">
-                {{ getTotalProductosSeleccionados() }} seleccionado(s)
-              </span>
-            </div>
-          </div>
-
-          <!-- Contenedor de productos -->
+              <div class="col-md-6 d-flex align-items-center justify-content-end gap-3">
+                <span class="text-muted">
+                  <i class="ri-information-line me-1"></i>
+                  Mostrando {{ getInicioRegistro() }} - {{ getFinRegistro() }} de
+                  {{ productosFiltrados.length }}
+                  productos
+                  <span *ngIf="busquedaProducto">
+                    para "{{ busquedaProducto }}"</span>
+                </span>
+                <span class="badge bg-primary" *ngIf="getTotalProductosSeleccionados() > 0">
+                  {{ getTotalProductosSeleccionados() }} seleccionado(s)
+                </span>
+              </div>
+            </div>          <!-- Contenedor de productos -->
           <div class="productos-container">
-            <div class="row g-3">
+            <!-- Mensaje cuando no hay cliente seleccionado -->
+            <div class="text-center py-5" *ngIf="!pedido.clie_Id">
+              <i class="ri-user-3-line display-4 text-muted mb-3"></i>
+              <h5 class="text-muted mb-2">Seleccione un cliente</h5>
+              <p class="text-muted">Debe seleccionar un cliente para poder ver y agregar productos al pedido</p>
+            </div>
+
+            <div class="row g-3" *ngIf="pedido.clie_Id">
               <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12" *ngFor="
                   let producto of getProductosPaginados();
                   trackBy: trackByProducto
@@ -287,7 +292,7 @@
             </div>
 
             <!-- Mensaje si no hay productos -->
-            <div class="text-center py-5" *ngIf="productosFiltrados.length === 0 && busquedaProducto">
+            <div class="text-center py-5" *ngIf="productosFiltrados.length === 0 && busquedaProducto && pedido.clie_Id">
               <i class="ri-search-line display-4 text-muted mb-3"></i>
               <h6 class="text-muted">
                 No se encontraron productos que coincidan con "{{
@@ -298,7 +303,7 @@
           </div>
 
           <!-- Paginación -->
-          <div class="d-flex justify-content-between align-items-center mt-4" *ngIf="getTotalPaginas() > 1">
+          <div class="d-flex justify-content-between align-items-center mt-4" *ngIf="getTotalPaginas() > 1 && pedido.clie_Id">
             <div class="pagination-info">
               <span class="text-muted">
                 Página {{ paginaActual }} de {{ getTotalPaginas() }}
