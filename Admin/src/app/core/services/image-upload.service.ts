@@ -104,7 +104,8 @@ export class ImageUploadService {
     if (!imagePath) return '';
     
     // Si la ruta ya incluye el dominio, devolverla tal como está
-    if (imagePath.startsWith('http')) {
+    if (imagePath.startsWith('http') || imagePath.startsWith('https') ||
+        imagePath.startsWith('assets/') || imagePath.startsWith('/assets/')) {
       return imagePath;
     }
     
