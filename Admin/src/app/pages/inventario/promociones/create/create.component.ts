@@ -142,7 +142,7 @@ export class CreateComponent {
       this.producto.subc_Id = 0;
       return;
     }
-    console.log('Filtrando subcategorías para categoría:', categoriaId);
+    //console.log('Filtrando subcategorías para categoría:', categoriaId);
     this.filtrarSubcategoriasPorCategoria(categoriaId);
   }
 
@@ -198,7 +198,7 @@ export class CreateComponent {
   isCargandoSubcategorias: boolean = false;
 
   filtrarSubcategoriasPorCategoria(categoriaId: number) {
-    console.log('Filtrando subcategorías para categoría:', categoriaId);
+    //console.log('Filtrando subcategorías para categoría:', categoriaId);
     if (!categoriaId) {
       this.subcategoriasFiltradas = [];
       this.producto.subc_Id = 0;
@@ -228,9 +228,9 @@ export class CreateComponent {
           'accept': '*/*'
         }
     }).subscribe(response  => {
-      console.log('Subcategorías recibidas:', response);
+      //console.log('Subcategorías recibidas:', response);
       this.subcategoriasFiltradas = response.data;
-      console.log('Subcategorías filtradas:', this.subcategoriasFiltradas);
+      //console.log('Subcategorías filtradas:', this.subcategoriasFiltradas);
       this.producto.subc_Id = 0; // Reset subcategory selection
       this.isCargandoSubcategorias = false; // terminó carga
     }, error => {
@@ -298,7 +298,7 @@ export class CreateComponent {
   }
 
       guardar(): void {
-        console.log('guardar() llamado');
+        //console.log('guardar() llamado');
         this.mostrarErrores = true;
         if (this.producto.prod_Codigo.trim() && this.producto.prod_Descripcion.trim() && this.producto.prod_DescripcionCorta.trim() 
           && (this.producto.prod_PrecioUnitario != null && this.producto.prod_PrecioUnitario >= 0) )
@@ -341,11 +341,11 @@ export class CreateComponent {
             clientes: '',
             productos_Json: productosSeleccionados,
           };
-          console.log(promocionGuardar);
+          //console.log(promocionGuardar);
           if (this.producto.prod_PagaImpuesto) {
             promocionGuardar.impu_Id = Number(this.producto.impu_Id);
           }
-          console.log('Datos a enviar:', promocionGuardar);
+          //console.log('Datos a enviar:', promocionGuardar);
           this.http.post<any>(`${environment.apiBaseUrl}/Promociones/Insertar`, promocionGuardar, {
             headers: { 
               'X-Api-Key': environment.apiKey,
@@ -440,7 +440,7 @@ export class CreateComponent {
           const baseUrl = environment.apiBaseUrl.replace('/api', '');
           this.producto.prod_Imagen = `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
           this.mostrarOverlayCarga = false;
-          console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
+          //console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
         })
         .catch(error => {
           console.error('Error al subir la imagen:', error);
@@ -472,7 +472,7 @@ export class CreateComponent {
 
 validarPasoInformacionGeneral(): boolean {
   const d = this.producto;
-    console.log('Validando paso de Información General:', d);
+    //console.log('Validando paso de Información General:', d);
   const isv = d.prod_PagaImpuesto? 'S' : 'N';
   return !!d.prod_Codigo?.trim()
     && !!d.prod_Descripcion?.trim()

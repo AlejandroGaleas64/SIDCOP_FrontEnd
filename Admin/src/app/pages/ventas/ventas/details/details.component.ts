@@ -374,7 +374,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
           this.mostrarMensajeExito(`Factura ${facturaData.fact_Numero || 'N/A'} enviada a impresión correctamente`);
           
         } else {
-          console.log("Error/s", printerStatus.errors);
+          //console.log("Error/s", printerStatus.errors);
           this.mostrarMensajeError(`Error en la impresora: ${printerStatus.errors}`);
         }
 
@@ -642,7 +642,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
 
             browserPrint.print(zpl);
         } else {
-        console.log("Error/s", printerStatus.errors);
+        //console.log("Error/s", printerStatus.errors);
         }
 
     } catch (error: any) {

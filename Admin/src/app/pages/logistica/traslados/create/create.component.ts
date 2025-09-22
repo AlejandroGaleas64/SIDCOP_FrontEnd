@@ -88,7 +88,7 @@ export class CreateComponent implements OnInit {
         this.cargandoRecargas = false;
         
         // Log para verificar la estructura de los datos
-        console.log('Recargas cargadas:', this.recargas);
+        //console.log('Recargas cargadas:', this.recargas);
       },
       error: (error) => {
         this.mostrarError('Error al cargar datos iniciales');
@@ -119,7 +119,7 @@ onEsRecargaChange(): void {
  onRecargaChange(): void {
   if (this.traslado.reca_Id && this.traslado.reca_Id > 0) {
     this.recargaSeleccionada = this.recargas.find(r => r.reca_Id == this.traslado.reca_Id);
-    console.log('Recarga seleccionada:', this.recargaSeleccionada);
+    //console.log('Recarga seleccionada:', this.recargaSeleccionada);
     
     // Si es una recarga y se seleccionó una, establecer automáticamente el destino
     if (this.traslado.tras_EsRecarga && this.recargaSeleccionada && this.recargaSeleccionada.bode_Id) {

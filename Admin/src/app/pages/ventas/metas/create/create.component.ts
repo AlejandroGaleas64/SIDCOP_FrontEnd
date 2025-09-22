@@ -311,7 +311,7 @@ export class CreateComponent implements OnInit {
       vendedoresJson: '' 
     };
 
-    console.log('Payload to be sent:', payload);
+    //console.log('Payload to be sent:', payload);
 
     this.http.post<any>(`${environment.apiBaseUrl}/Metas/InsertarCompleto`, payload, {
       headers: {
