@@ -87,7 +87,9 @@
         "ECOMMERCE": "Ecommerce",
         "LEARNING": "Learning",
         "REALESTATE": "Real Estate",
-        "DASHBOARD": "Dashboard"
+        "DASHBOARD": "Dashboard",
+        "METAS": "Metas",
+        "METASVENDEDOR": "Metas de Vendedor"
       }
     },
     "APPS": {

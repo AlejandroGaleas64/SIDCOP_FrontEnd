@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, Input, OnInit } from '@angular/core';
+import { Component, Output, EventEmitter, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -17,7 +17,7 @@ import { ChangeDetectorRef } from '@angular/core';
   templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss'
 })
-export class EditComponent implements OnInit {
+export class EditComponent implements OnInit, OnChanges {
   mostrarOverlayCarga = false;
   @Input() productoData: Promocion | null = null;
   @Output() onCancel = new EventEmitter<void>();
@@ -105,6 +105,8 @@ export class EditComponent implements OnInit {
     this.cargarImpuestos();
     this.listarClientes();
     this.listarProductos();
+    console.log(this.productoData);
+    console.log(this.producto);
   }
 
   precioFormatoValido: boolean = true;
@@ -128,9 +130,10 @@ export class EditComponent implements OnInit {
     }
   }
 
-  ngOnInit(): void {
-    if (this.productoData) {
-      this.producto = { ...this.productoData };
+  inicializarProducto(data: Promocion) {
+    if (data) {
+      
+      this.producto = { ...data };
       // Obtener descripción de marca a partir del id al cargar producto
       const marcaActual = this.marcas.find(m => m.marc_Id === this.producto.marc_Id);
       this.producto.marc_Descripcion = marcaActual ? marcaActual.marc_Descripcion : '';
@@ -144,15 +147,14 @@ export class EditComponent implements OnInit {
       this.producto.prod_EsPromo = this.producto.prod_EsPromo || 'N';
       this.producto.prod_PagaImpuesto = this.producto.prod_PagaImpuesto || 'N';
       this.producto.impu_Id = this.producto.impu_Id || 0;
-      //console.log('Productos cargados:', this.producto);
+
       // Parseo seguro de clientes
       let clientesLista: any[] = [];
       try {
         const jsonRaw = this.producto.clientes?.replace(/\\"/g, '"').replace(/^"|"$/g, '') ?? '[]';
         clientesLista = JSON.parse(jsonRaw);
       } catch (error) {
-        console.warn('Error parsing clientes JSON:', error);
-        //console.log('Raw clientes data:', this.producto.clientes);
+
         clientesLista = [];
       }
 
@@ -161,7 +163,6 @@ export class EditComponent implements OnInit {
       try {
      
         let productosRaw = this.producto.productos ?? '[]';
-        //console.log('Raw productos data:', productosRaw);
         
        
          if (typeof productosRaw === 'string') {
@@ -177,8 +178,10 @@ export class EditComponent implements OnInit {
         productosLista = JSON.parse(productosRaw);
         
       } catch (error) {
+
         console.warn('Error parsing productos JSON:', error);
-        //console.log('Raw productos data:', this.producto.productos);
+        console.log('Raw productos data:', this.producto.productos);
+
         productosLista = [];
       }
 
@@ -186,7 +189,7 @@ export class EditComponent implements OnInit {
       const clientesIds = clientesLista.map((c: any) => c.id);
       // Importante: crear copias para evitar referencias compartidas que impidan detectar cambios
       this.producto.idClientes = [...clientesIds];
-      //console.log('Productos lista:', productosLista);
+
       // Transformar y aplicar las cantidades de productos seleccionados
       if (productosLista.length > 0) {
   // Normaliza los IDs si vienen como 'id' en vez de 'prod_Id'
@@ -216,15 +219,32 @@ export class EditComponent implements OnInit {
     prDe_Cantidad: item.cantidad
   }));
 
-  //console.log('Cantidades aplicadas a productos:', cantidadesPorProducto);
+
+
+  console.log('Cantidades aplicadas a productos:', cantidadesPorProducto);
+
 }
       
       // Copia independiente para que las mutaciones del UI no modifiquen el arreglo original por referencia
       this.clientesSeleccionados = [...clientesIds];
       
-      //console.log('Clientes seleccionados cargados:', this.clientesSeleccionados);
-      //console.log('Productos cargados:', this.productos);
 
+      console.log('Clientes seleccionados cargados:', this.clientesSeleccionados);
+      console.log('Productos cargados:', this.productos);
+
+
+  }}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['productoData'] && changes['productoData'].currentValue) {
+      this.inicializarProducto(changes['productoData'].currentValue);
+    }
+  }
+
+  ngOnInit(): void {
+    // Puedes dejar la lógica aquí para el primer render
+    if (this.productoData) {
+      this.inicializarProducto(this.productoData);
     }
   }
 
@@ -294,7 +314,7 @@ export class EditComponent implements OnInit {
           const baseUrl = environment.apiBaseUrl.replace('/api', '');
           this.producto.prod_Imagen = `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
           this.mostrarOverlayCarga = false;
-          //console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
+
         })
         .catch(error => {
           console.error('Error al subir la imagen:', error);
@@ -551,7 +571,7 @@ if (serializeProductos(productosOriginal) !== serializeProductos(productosActual
         setTimeout(() => this.cerrarAlerta(), 4000);
         return;
       }
-      //console.log('Datos a actualizar:', promocionActualizar);
+
       this.mostrarOverlayCarga = true;
       this.http.put<any>(`${environment.apiBaseUrl}/Promociones/Actualizar`, promocionActualizar, {
         headers: {
