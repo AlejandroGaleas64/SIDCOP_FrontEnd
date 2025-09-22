@@ -23,6 +23,18 @@ export const MENU: MenuItem[] = [
         link: '/dashboard0',
         parentId: 2,
       },
+      {
+        id: 5,
+        label: 'MENUITEMS.DASHBOARD.LIST.METAS',
+        link: '/metasdashboard',
+        parentId: 2,
+      },
+      {
+        id: 5,
+        label: 'MENUITEMS.DASHBOARD.LIST.METASVENDEDOR',
+        link: '/metasporvendedor',
+        parentId: 2,
+      },
     ],
   },
   {
