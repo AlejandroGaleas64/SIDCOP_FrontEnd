@@ -1,103 +1,134 @@
 <app-breadcrumbs
-  [title]="'Metas'"
-  [breadcrumbItems]="breadCrumbItems">
-  <img class="breadcrumbs-icon ms-2 icon-breadcrumb" src="assets/images/imagenes/goal.svg" alt="icono breadcrumb" width="48" />
+  [title]="'Dashboard de Metas'"
+  [breadcrumbItems]="breadCrumbItems"
+>
+  <img class="breadcrumbs-icon ms-2 icon-breadcrumb" src="assets/images/imagenes/goal.svg" alt="icono breadcrumb" width="70"/>
 </app-breadcrumbs>
 
 <div class="row">
   <div class="col-12">
-    <div class="card shadow-sm">
+    <div class="card">
       <div class="card-body">
-        <div class="row mb-3">
+        <!-- Meta Selector -->
+        <div class="row mb-4">
           <div class="col-12">
-            <label class="form-label mb-2 fw-semibold">Seleccionar Meta</label>
-            <ng-select
+            <label class="form-label mb-2" [style.color]="'#14192e'">
+              <i class="ri-flag-line me-1"></i>
+              Seleccione una Meta
+            </label>
+            <ng-select 
               [items]="metas"
               bindLabel="meta_Descripcion"
               [(ngModel)]="selectedMeta"
               [clearable]="true"
               [searchable]="true"
               (change)="onMetaChange()"
-              placeholder="Selecciona una meta"
+              placeholder="Buscar y seleccionar meta..."
               class="w-100">
               <ng-template ng-option-tmp let-item="item">
-                <i [class]="getMetaTipoIcon(item.meta_Tipo)" [style.color]="getMetaTipoColor(item.meta_Tipo)" class="me-2"></i>
+                <i [class]="getMetaTipo(item.meta_Tipo).icon" [style.color]="'#14192e'" class="me-2"></i>
                 <strong>{{ item.meta_Descripcion }}</strong>
-                <div class="small text-muted">{{ item.meta_FechaInicio | date:'shortDate':'':'es-HN' }} - {{ item.meta_FechaFin | date:'shortDate':'':'es-HN' }}</div>
-              </ng-template>
-              <ng-template ng-label-tmp let-item="item">
-                <i [class]="getMetaTipoIcon(item.meta_Tipo)" [style.color]="getMetaTipoColor(item.meta_Tipo)" class="me-1"></i>
-                {{ item.meta_Descripcion }}
+                <small class="text-muted d-block">
+                  {{ formatDate(item.meta_FechaInicio) }} — {{ formatDate(item.meta_FechaFin) }}
+                </small>
               </ng-template>
             </ng-select>
           </div>
         </div>
 
-        <div *ngIf="selectedMeta" class="mb-3">
-          <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-2">
-            <div>
-              <span class="badge me-2" [ngStyle]="{'background-color': getMetaTipoColor(selectedMeta.meta_Tipo), 'color':'#fff', 'font-weight':'600', 'padding':'0.5rem 0.9rem'}">
-                <i [class]="getMetaTipoIcon(selectedMeta.meta_Tipo)"></i>
-                &nbsp; {{ getMetaTipoText(selectedMeta.meta_Tipo) }}
-              </span>
-              <div class="mt-2">
-                <h5 class="mb-0 fw-bold">{{ selectedMeta.meta_Descripcion }}</h5>
-                <small class="text-muted">ID: {{ selectedMeta.meta_Id }}</small>
+        <!-- Selected Meta Content -->
+        <ng-container *ngIf="selectedMeta">
+          <div class="card shadow-sm" [style.border-color]="'#14192e'">
+            <!-- Meta Header with subtle background -->
+            <div class="card-header border-bottom-0" 
+              style="background: linear-gradient(to bottom, rgba(20,25,46,0.03), transparent); padding: 1.5rem;">
+              <!-- Meta Info -->
+              <div class="d-flex flex-wrap gap-3">
+                <div class="flex-grow-1">
+                  <span class="badge mb-2" [style.background-color]="'#14192e'">
+                    <i [class]="getMetaTipo(selectedMeta.meta_Tipo).icon" class="me-1"></i>
+                    {{ getMetaTipo(selectedMeta.meta_Tipo).text }}
+                  </span>
+                  <h5 class="mb-1">{{ selectedMeta.meta_Descripcion }}</h5>
+                  <div class="text-muted">
+                    <i class="ri-calendar-line me-1"></i>
+                    {{ formatDate(selectedMeta.meta_FechaInicio) }} — {{ formatDate(selectedMeta.meta_FechaFin) }}
+                  </div>
+                  <!-- Product/Category info -->
+                  <div class="mt-2" *ngIf="selectedMeta.prod_Id || selectedMeta.cate_Id">
+                    <small class="text-muted me-3" *ngIf="selectedMeta.prod_Id">
+                      <i class="ri-price-tag-3-line me-1"></i>
+                      Producto: {{ selectedMeta.prod_Id }}
+                    </small>
+                    <small class="text-muted" *ngIf="selectedMeta.cate_Id">
+                      <i class="ri-folder-3-line me-1"></i>
+                      Categoría: {{ selectedMeta.cate_Id }}
+                    </small>
+                  </div>
+                </div>
+                <div class="text-end">
+                  <div class="text-muted mb-1">Objetivo</div>
+                  <h4 class="mb-0" [style.color]="'#14192e'">
+                    <ng-container *ngIf="['IM','IT','IP','PC'].includes(selectedMeta.meta_Tipo)">
+                      {{ selectedMeta.meta_Ingresos | currency:'HNL':'symbol':'1.2-2':'es-HN' }}
+                    </ng-container>
+                    <ng-container *ngIf="['TP','CN','PE','CM'].includes(selectedMeta.meta_Tipo)">
+                      {{ selectedMeta.meta_Unidades | number:'1.0-0' }} unidades
+                    </ng-container>
+                  </h4>
+                </div>
               </div>
             </div>
-            <div class="text-end">
-              <div class="mb-1">
-                <small class="text-muted">Objetivo</small>
-              </div>
-              <div>
-                <strong>
-                  <ng-container *ngIf="['IM','IT','IP','PC'].includes(selectedMeta.meta_Tipo)">
-                    {{ selectedMeta.meta_Ingresos | currency:'HNL':'symbol':'1.2-2':'es-HN' }}
-                  </ng-container>
-                  <ng-container *ngIf="['TP','CN','PE','CM'].includes(selectedMeta.meta_Tipo)">
-                    {{ selectedMeta.meta_Unidades | number:'1.0-0' }} unidades
-                  </ng-container>
-                </strong>
-              </div>
-              <div class="mt-2 small text-muted">
-                {{ formatDate(selectedMeta.meta_FechaInicio) }} — {{ formatDate(selectedMeta.meta_FechaFin) }}
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div *ngIf="selectedMeta">
-          <div class="row mb-2">
-            <div class="col-12 col-md-6 mb-2">
-              <input class="form-control" placeholder="Filtrar vendedor..." [(ngModel)]="filterText" (ngModelChange)="onFilterChange()">
-            </div>
-            <div class="col-12 col-md-6 text-md-end">
-              <small class="text-muted">Vendedores: {{ vendedores?.length ?? 0 }}</small>
-            </div>
-          </div>
+            <div class="card-body pt-3">
+              <!-- Search & Stats -->
+              <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="input-group" style="max-width: 300px;">
+                  <span class="input-group-text border-0" [style.background-color]="'rgba(20, 25, 46, 0.1)'">
+                    <i class="ri-search-line"></i>
+                  </span>
+                  <input type="text" 
+                    class="form-control border-0" 
+                    [style.background-color]="'rgba(20, 25, 46, 0.1)'"
+                    placeholder="Filtrar vendedor..." 
+                    [(ngModel)]="filterText" 
+                    (ngModelChange)="onFilterChange()">
+                </div>
+                <span class="badge border" [style.color]="'#14192e'" [style.border-color]="'#14192e'">
+                  {{ vendedores.length }} vendedores
+                </span>
+              </div>
 
-          <div *ngIf="vendedores.length > 0">
-            <apx-chart
-              *ngIf="chart"
-              [series]="chart.series"
-              [chart]="chart.chart"
-              [plotOptions]="chart.plotOptions"
-              [dataLabels]="chart.dataLabels"
-              [xaxis]="chart.xaxis"
-              [yaxis]="chart.yaxis"
-              [colors]="chart.colors"
-              [legend]="chart.legend"
-              [tooltip]="chart.tooltip"
-              [grid]="chart.grid"
-              dir="ltr"
-              style="width:100%; min-height:420px;">
-            </apx-chart>
-          </div>
+              <!-- Chart -->
+              <div *ngIf="vendedores.length > 0">
+                <div *ngIf="chartOptions" [style.height.px]="chartOptions.chart.height">
+                  <apx-chart
+                    [series]="chartOptions.series"
+                    [chart]="chartOptions.chart"
+                    [plotOptions]="chartOptions.plotOptions"
+                    [dataLabels]="chartOptions.dataLabels"
+                    [xaxis]="chartOptions.xaxis"
+                    [yaxis]="chartOptions.yaxis"
+                    [grid]="chartOptions.grid"
+                    [tooltip]="chartOptions.tooltip"
+                    [colors]="chartOptions.colors"
+                    dir="ltr">
+                  </apx-chart>
+                </div>
+              </div>
 
-          <div *ngIf="vendedores?.length === 0" class="alert alert-warning">
-            No hay vendedores asignados a esta meta.
+              <!-- No Data Message -->
+              <div *ngIf="vendedores.length === 0" 
+                class="alert" 
+                [style.background-color]="'rgba(20, 25, 46, 0.1)'"
+                [style.color]="'#14192e'"
+                [style.border]="'none'">
+                <i class="ri-information-line me-2"></i>
+                No hay vendedores asignados a esta meta.
+              </div>
+            </div>
           </div>
-        </div>
+        </ng-container>
       </div>
     </div>
   </div>

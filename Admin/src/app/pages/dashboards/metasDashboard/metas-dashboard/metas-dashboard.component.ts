@@ -1,11 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
-import { NgSelectModule } from '@ng-select/ng-select';
 import { NgApexchartsModule } from 'ng-apexcharts';
-import { BreadcrumbsComponent } from 'src/app/shared/breadcrumbs/breadcrumbs.component';
+import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
+import { BreadcrumbsComponent } from 'src/app/shared/breadcrumbs/breadcrumbs.component';
+import { NgSelectModule } from '@ng-select/ng-select';
+
+import localeEsHN from '@angular/common/locales/es-HN';
+import { registerLocaleData } from '@angular/common';
+registerLocaleData(localeEsHN, 'es-HN');
 
 @Component({
   selector: 'app-metas-dashboard',
@@ -18,41 +22,38 @@ import { environment } from 'src/environments/environment.prod';
     NgApexchartsModule,
     BreadcrumbsComponent
   ],
-  templateUrl: './metas-dashboard.component.html',
-  styleUrl: './metas-dashboard.component.scss'
+  templateUrl: './metas-dashboard.component.html'
 })
 export class MetasDashboardComponent implements OnInit {
-  // ...existing code...
   breadCrumbItems = [
-    { label: 'Ventas' },
-    { label: 'Metas', active: true }
+    { label: 'Dashboards' },
+    { label: 'Dashboard de Metas', active: true }
   ];
 
   metas: any[] = [];
-  selectedMeta: any | null = null;
   vendedores: any[] = [];
+  selectedMeta: any = null;
   loading = false;
   errorMsg = '';
-  chart: any | null = null;
+  chartOptions: any = null;
   filterText = '';
 
-  // cache configs per meta id to avoid recalculation & re-render
-  private chartCache: { [metaId: number]: any } = {};
+  private readonly colorPalette = [
+    "#14192e", "#29142e", "#2e2914", "#192e14", 
+    "#2e1c14", "#262e14", "#2e1419", "#142e1c", 
+    "#1c142e", "#14262e"
+  ];
 
-  // keep same palette used elsewhere
-  private paletteJson = '["#14192e", "#29142e", "#2e2914", "#192e14", "#2e1c14", "#262e14", "#2e1419", "#142e1c", "#1c142e", "#14262e"]';
-
-  // meta type display map (icons/colors follow existing patterns)
-  metaTipoMap: any = {
-    IT: { text: 'Ingresos Totales', icon: 'ri-money-dollar-circle-line', color: '#0d6efd' },
-    IM: { text: 'Ingresos Manuales', icon: 'ri-edit-box-line', color: '#6f42c1' },
-    IP: { text: 'Ingresos por Producto', icon: 'ri-bar-chart-2-line', color: '#198754' },
-    PC: { text: 'Productos por Categoría (Ingresos)', icon: 'ri-apps-2-line', color: '#fd7e14' },
-    TP: { text: 'Total Productos', icon: 'ri-shopping-bag-3-line', color: '#0dcaf0' },
-    CN: { text: 'Clientes Nuevos', icon: 'ri-user-add-line', color: '#6610f2' },
-    PE: { text: 'Producto Específico (Cant.)', icon: 'ri-price-tag-3-line', color: '#d63384' },
-    CM: { text: 'Cantidades Manuales', icon: 'ri-edit-2-line', color: '#6c757d' }
-  };
+  tiposMeta = [
+    { value: 'IT', text: 'Ingresos Totales', icon: 'ri-money-dollar-circle-line' },
+    { value: 'IM', text: 'Ingresos Manuales', icon: 'ri-edit-box-line' },
+    { value: 'IP', text: 'Ingresos por Producto', icon: 'ri-bar-chart-2-line' },
+    { value: 'PC', text: 'Productos por Categoría', icon: 'ri-apps-2-line' },
+    { value: 'TP', text: 'Total Productos', icon: 'ri-shopping-bag-3-line' },
+    { value: 'CN', text: 'Clientes Nuevos', icon: 'ri-user-add-line' },
+    { value: 'PE', text: 'Producto Específico', icon: 'ri-price-tag-3-line' },
+    { value: 'CM', text: 'Cantidades Manuales', icon: 'ri-edit-2-line' }
+  ];
 
   constructor(private http: HttpClient) {}
 
@@ -60,34 +61,17 @@ export class MetasDashboardComponent implements OnInit {
     this.loadMetas();
   }
 
-  private getChartColorsArray(colors: any): string[] {
-    try {
-      const arr = typeof colors === 'string' ? JSON.parse(colors) : colors;
-      return arr.map((value: string) => {
-        const v = (value || '').trim();
-        // if css var
-        if (v.startsWith('--')) {
-          const computed = getComputedStyle(document.documentElement).getPropertyValue(v);
-          return computed ? computed.trim() : v;
-        }
-        return v;
-      });
-    } catch {
-      return [];
-    }
-  }
-
   loadMetas(): void {
     this.loading = true;
     this.http.get<any[]>(`${environment.apiBaseUrl}/Metas/ListarCompleto`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
-      next: data => {
-        this.metas = Array.isArray(data) ? data : [];
+      next: (data) => {
+        this.metas = data;
         this.loading = false;
       },
       error: () => {
-        this.errorMsg = 'Error al cargar metas.';
+        this.errorMsg = 'Error al cargar metas';
         this.loading = false;
       }
     });
@@ -95,217 +79,223 @@ export class MetasDashboardComponent implements OnInit {
 
   onMetaChange(): void {
     this.filterText = '';
-    this.chart = null;
-
+    this.chartOptions = null;
+    
     if (!this.selectedMeta) {
       this.vendedores = [];
       return;
     }
 
-    // parse vendedoresJson safely (API returns string)
     try {
-      const raw = this.selectedMeta.vendedoresJson;
-      console.log('Metas:', this.metas);
-      console.log('Selected Meta:', this.selectedMeta);
-      console.log('Raw vendedoresJson:', raw);
-      this.vendedores = JSON.parse(raw);
-      console.log('Parsed vendedores:', this.vendedores);
+      this.vendedores = JSON.parse(this.selectedMeta.vendedoresJson || '[]');
+      this.buildChartOptions();
     } catch {
       this.vendedores = [];
     }
-
-    // normalize field names (some components use different casing)
-    this.vendedores = this.vendedores.map((v: any) => ({
-      Vend_Id: v.Vend_Id ?? v.Vend_Id ?? v.vend_Id ?? v.vendId,
-      Vend_NombreCompleto: v.Vend_NombreCompleto ?? v.Vend_Nombre ?? v.nombre ?? v.Vend_NombreCompleto,
-      MeEm_ProgresoIngresos: Number(v.MeEm_ProgresoIngresos ?? v.ProgresoIngresos ?? v.meem_progresosIngresos ?? 0),
-      MeEm_ProgresoUnidades: Number(v.MeEm_ProgresoUnidades ?? v.ProgresoUnidades ?? v.meem_progresoUnidades ?? 0)
-    }));
-
-    // build or reuse cached config
-    const metaId = Number(this.selectedMeta.meta_Id ?? this.selectedMeta.metaId);
-    if (this.chartCache[metaId]) {
-      // clone cached (so template change detection safe) and apply filter
-      this.chart = structuredClone(this.chartCache[metaId]);
-      this.applyFilterToChart();
-    } else {
-      this.buildChartConfig();
-      // cache after built
-      if (this.chart) this.chartCache[metaId] = structuredClone(this.chart);
-    }
   }
 
-  private applyFilterToChart(): void {
-    if (!this.chart || !this.vendedores) return;
+  private buildChartOptions(): void {
+    if (!this.selectedMeta || !this.vendedores.length) return;
 
-    const filtered = this.filteredVendedores();
-    const objetivo = this.getObjetivo();
-    const isIngresos = this.isIngresosTipo();
+    const filtered = this.filterVendedores();
+    const tipo = this.selectedMeta.meta_Tipo;
+    const isIngresos = ['IM', 'IT', 'IP', 'PC'].includes(tipo);
+    const objetivo = isIngresos ? this.selectedMeta.meta_Ingresos : this.selectedMeta.meta_Unidades;
 
-    // series are percent values; datalabels/tooltips formatter will show actual values
-    const seriesData = filtered.map(v => {
-      const actual = isIngresos ? v.MeEm_ProgresoIngresos : v.MeEm_ProgresoUnidades;
-      const pct = objetivo ? (actual / objetivo) * 100 : 0;
-      return Math.round((pct + Number.EPSILON) * 100) / 100;
-    });
-
+    const actualValues = filtered.map(v => 
+      isIngresos ? v.MeEm_ProgresoIngresos : v.MeEm_ProgresoUnidades
+    );
+    const percentValues = actualValues.map(val => 
+      objetivo ? Math.min((val / objetivo) * 100, 100) : 0
+    );
     const categories = filtered.map(v => v.Vend_NombreCompleto);
 
-    // update chart object used by template
-    this.chart.series = [{ name: isIngresos ? 'Ingresos' : 'Unidades', data: seriesData }];
-    // keep xaxis max 100
-    this.chart.xaxis.categories = categories;
-    this.chart.yaxis = { labels: { style: { fontSize: '13px' } } };
-    // create colors distributed for each bar
-    const palette = this.getChartColorsArray(this.paletteJson);
-    const colors = filtered.map((_, i) => palette[i % palette.length]);
-    this.chart.colors = colors;
-    // store actual values on chart for tooltip/datapoints reference
-    this.chart._actualValues = filtered.map(v => isIngresos ? v.MeEm_ProgresoIngresos : v.MeEm_ProgresoUnidades);
-  }
+    // Calculate dynamic height based on number of items with minimum height
+    const itemHeight = 40; // Height per bar
+    const minHeight = 350; // Minimum chart height
+    const calculatedHeight = Math.max(minHeight, filtered.length * itemHeight);
 
-  private filteredVendedores(): any[] {
-    if (!this.filterText?.trim()) return this.vendedores;
-    const q = this.filterText.trim().toLowerCase();
-    return this.vendedores.filter(v => (v.Vend_NombreCompleto || '').toLowerCase().includes(q));
-  }
-
-  private isIngresosTipo(): boolean {
-    const tipo = (this.selectedMeta?.meta_Tipo ?? '').toString();
-    return ['IM', 'IT', 'IP', 'PC'].includes(tipo);
-  }
-
-  private getObjetivo(): number {
-    if (!this.selectedMeta) return 1;
-    return this.isIngresosTipo()
-      ? Number(this.selectedMeta.meta_Ingresos ?? this.selectedMeta.metaIngresos ?? 0) || 1
-      : Number(this.selectedMeta.meta_Unidades ?? this.selectedMeta.metaUnidades ?? 0) || 1;
-  }
-
-  private buildChartConfig(): void {
-    if (!this.selectedMeta) return;
-    const isIngresos = this.isIngresosTipo();
-    const objetivo = this.getObjetivo();
-
-    const filtered = this.filteredVendedores();
-    const categories = filtered.map(v => v.Vend_NombreCompleto);
-    const palette = this.getChartColorsArray(this.paletteJson);
-    const colors = filtered.map((_, i) => palette[i % palette.length]);
-
-    // series values are percent (0..100) so xaxis max = 100
-    const seriesData = filtered.map(v => {
-      const actual = isIngresos ? v.MeEm_ProgresoIngresos : v.MeEm_ProgresoUnidades;
-      const pct = objetivo ? (actual / objetivo) * 100 : 0;
-      return Math.round((pct + Number.EPSILON) * 100) / 100;
-    });
-
-    this.chart = {
-      // keep original actual values for tooltip formatting
-      _actualValues: filtered.map(v => isIngresos ? v.MeEm_ProgresoIngresos : v.MeEm_ProgresoUnidades),
-
-      series: [{ name: isIngresos ? 'Ingresos' : 'Unidades', data: seriesData }],
+    this.chartOptions = {
+      series: [{
+        name: isIngresos ? 'Ingresos' : 'Unidades',
+        data: actualValues
+      }],
       chart: {
-        height: 520,
-        type: 'bar',
+        height: calculatedHeight,
+        type: "bar",
         toolbar: { show: false },
-        animations: { enabled: false } // reduce re-render animations
+        fontFamily: 'inherit',
       },
       plotOptions: {
         bar: {
           horizontal: true,
+          barHeight: '32', // Fixed bar height
           distributed: true,
-          barHeight: '60%',
-          borderRadius: 6
-        }
-      },
-      dataLabels: {
-        enabled: true,
-        formatter: (val: number, opts: any) => {
-          const idx = opts.dataPointIndex;
-          const actual = this.chart?._actualValues?.[idx] ?? 0;
-          if (isIngresos) {
-            return `${Number(actual).toLocaleString('es-HN', { style: 'currency', currency: 'HNL', maximumFractionDigits: 2 })} (${val.toFixed(1)}%)`;
-          } else {
-            return `${Number(actual).toLocaleString('es-HN')} (${val.toFixed(1)}%)`;
-          }
-        },
-        style: { fontSize: '13px', fontWeight: 600, colors: ['#ffffff'] },
-        background: { enabled: false }
-      },
-      colors: colors,
-      legend: {
-        show: true,
-        position: 'top',
-        horizontalAlign: 'right',
-        labels: { colors: '#333' }
-      },
-      tooltip: {
-        enabled: true,
-        y: {
-          formatter: (val: number, opts: any) => {
-            const idx = opts.dataPointIndex;
-            const actual = this.chart?._actualValues?.[idx] ?? 0;
-            if (isIngresos) {
-              return `${Number(actual).toLocaleString('es-HN', { style: 'currency', currency: 'HNL', maximumFractionDigits: 2 })} (${val.toFixed(1)}%)`;
-            } else {
-              return `${Number(actual).toLocaleString('es-HN')} (${val.toFixed(1)}%)`;
-            }
-          },
-          title: {
-            formatter: (seriesName: string, opts: any) => {
-              // show vendedor name as title
-              const idx = opts.dataPointIndex;
-              return this.chart?.xaxis?.categories?.[idx] ?? '';
-            }
+          borderRadius: 4,
+          dataLabels: {
+            position: 'center'
           }
         }
       },
-      grid: { borderColor: '#f1f1f1' },
+      colors: this.colorPalette,
+      // dataLabels: {
+      //   enabled: true,
+      //   formatter: (val: number, opts: any) => {
+      //     const percent = objetivo ? (val / objetivo) * 100 : 0;
+      //     if (isIngresos) {
+      //       return `${val.toLocaleString('es-HN', { 
+      //         style: 'currency', 
+      //         currency: 'HNL',
+      //         maximumFractionDigits: 2 
+      //       })} (${percent.toFixed(1)}%)`;
+      //     }
+      //     return `${val.toLocaleString('es-HN')} (${percent.toFixed(1)}%)`;
+      //   },
+      //   style: {
+      //     fontSize: '13px',
+      //     fontWeight: 500,
+      //     colors: ['#fff']
+      //   },
+      //   background: {
+      //     enabled: true,
+      //     foreColor: '#14192e',
+      //     padding: 4,
+      //     borderRadius: 2,
+      //     borderWidth: 1,
+      //     borderColor: 'rgba(255,255,255,0.2)',
+      //     opacity: 0.9,
+      //   },
+      //   textAnchor: 'middle'
+      // },
+      
+      // In buildChartOptions(), update the dataLabels configuration:
+dataLabels: {
+  enabled: true,
+  formatter: (val: number, opts: any) => {
+    const percent = objetivo ? (val / objetivo) * 100 : 0;
+    if (isIngresos) {
+      return `${val.toLocaleString('es-HN', { 
+        style: 'currency', 
+        currency: 'HNL',
+        maximumFractionDigits: 2 
+      })} (${percent.toFixed(1)}%)`;
+    }
+    return `${val.toLocaleString('es-HN')} (${percent.toFixed(1)}%)`;
+  },
+  style: {
+    fontSize: '13px',
+    fontWeight: 700,
+    colors: ['#fff'],
+    textShadow: `
+      -2px -2px 0 #14192e,
+       2px -2px 0 #14192e,
+      -2px  2px 0 #14192e,
+       2px  2px 0 #14192e,
+      -2.5px 0 0 #14192e,
+       2.5px 0 0 #14192e,
+       0 -2.5px 0 #14192e,
+       0 2.5px 0 #14192e
+    `
+  },
+  background: {
+    enabled: false
+  },
+  textAnchor: 'middle',
+  position: 'center',
+  offsetY: 0
+},
+
+
       xaxis: {
-        categories: [], // categories are shown on yaxis for horizontal bars; keep for compatibility
-        max: 100,
+        categories: categories,
+        max: objetivo,
         labels: {
-          formatter: (val: number) => `${val}%`,
-          style: { fontSize: '13px', fontWeight: 600 }
+          formatter: (val: number) => {
+            if (isIngresos) {
+              return val.toLocaleString('es-HN', {
+                style: 'currency',
+                currency: 'HNL',
+                maximumFractionDigits: 0
+              });
+            }
+            return val.toLocaleString('es-HN');
+          },
+          style: {
+            colors: this.colorPalette[0],
+            fontSize: '13px',
+            fontWeight: 500
+          }
         },
         title: {
-          text: 'Porcentaje (%)',
-          style: { fontSize: '13px', fontWeight: 600 }
+          text: isIngresos ? 'Ingresos' : 'Unidades',
+          style: {
+            color: this.colorPalette[0],
+            fontSize: '14px',
+            fontWeight: 600
+          }
         }
       },
       yaxis: {
-        categories: categories,
-        labels: { style: { fontSize: '13px', fontWeight: 600 } }
+        labels: {
+          style: {
+            colors: this.colorPalette[0],
+            fontSize: '13px',
+            fontWeight: 500
+          }
+        }
+      },
+      grid: {
+        borderColor: '#f1f1f1',
+        xaxis: { lines: { show: true } },
+        yaxis: { lines: { show: false } },
+        padding: { left: 10, right: 10 }
+      },
+      tooltip: {
+        theme: 'light',
+        style: { fontSize: '13px' },
+        y: {
+          formatter: (val: number) => {
+            const percent = objetivo ? (val / objetivo) * 100 : 0;
+            if (isIngresos) {
+              return `${val.toLocaleString('es-HN', {
+                style: 'currency',
+                currency: 'HNL',
+                
+                minimumFractionDigits: 2
+              })} (${percent.toFixed(1)}%)`;
+            }
+            return `${val.toLocaleString('es-HN')} (${percent.toFixed(1)}%)`;
+          }
+        }
       }
     };
   }
 
+  private filterVendedores(): any[] {
+    if (!this.filterText?.trim()) return this.vendedores;
+    return this.vendedores.filter(v => 
+      v.Vend_NombreCompleto?.toLowerCase().includes(this.filterText.toLowerCase())
+    );
+  }
+
   onFilterChange(): void {
-    // rebuild only the displayed data from cache or build new
-    if (!this.selectedMeta) return;
-    // if cached config exists, reuse structure and replace data
-    const metaId = Number(this.selectedMeta.meta_Id ?? this.selectedMeta.metaId);
-    if (this.chartCache[metaId]) {
-      this.chart = structuredClone(this.chartCache[metaId]);
-    }
-    this.applyFilterToChart();
+    this.buildChartOptions();
   }
 
-  getMetaTipoText(tipo: string): string {
-    return this.metaTipoMap[tipo]?.text ?? tipo;
-  }
-  getMetaTipoIcon(tipo: string): string {
-    return this.metaTipoMap[tipo]?.icon ?? 'ri-flag-2-line';
-  }
-  getMetaTipoColor(tipo: string): string {
-    return this.metaTipoMap[tipo]?.color ?? '#0d6efd';
+  getMetaTipo(tipo: string): any {
+    return this.tiposMeta.find(t => t.value === tipo) || { 
+      value: tipo, 
+      text: tipo,
+      icon: 'ri-flag-2-line'
+    };
   }
 
-  formatDate(value: string | null): string {
-    if (!value) return 'N/A';
-    const d = new Date(value);
-    if (isNaN(d.getTime())) return 'N/A';
-    return d.toLocaleDateString('es-HN');
+  formatDate(date: string): string {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleDateString('es-HN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   }
-  // ...existing code...
 }
