@@ -235,13 +235,13 @@ export class EditConfigFacturaComponent implements OnChanges {
             });
 
             try {
-              console.log('Iniciando subida de imagen...');
+              //console.log('Iniciando subida de imagen...');
               // Subir imagen al backend usando ImageUploadService
               const imagePath = await this.imageUploadService.uploadImageAsync(croppedFile);
-              console.log('Imagen subida exitosamente. Ruta:', imagePath);
+              //console.log('Imagen subida exitosamente. Ruta:', imagePath);
               this.configFactura.coFa_Logo = imagePath;
               this.logoSeleccionado = true;
-              console.log('Logo asignado a configFactura.coFa_Logo:', this.configFactura.coFa_Logo);
+              //console.log('Logo asignado a configFactura.coFa_Logo:', this.configFactura.coFa_Logo);
               this.cerrarModalCropper();
             } catch (error) {
               console.error('Error al subir la imagen:', error);

@@ -606,14 +606,14 @@ private inicializar(): void {
    */
   cambiarTipoVenta(): void {
     // Actualizar la visibilidad de la información de crédito
-    this.mostrarInfoCredito = (this.venta.fact_TipoVenta === 'Crédito');
+    this.mostrarInfoCredito = (this.venta.fact_TipoVenta === 'CR');
     
     // Si se seleccionó crédito pero el cliente no puede usarlo, mostrar advertencia
-    if (this.venta.fact_TipoVenta === 'Crédito') {
+    if (this.venta.fact_TipoVenta === 'CR') {
       // Verificar si el cliente puede usar crédito (tiene crédito habilitado y no tiene saldo vencido)
       if (!this.puedeUsarCredito()) {
         this.mostrarWarning('Este cliente no puede usar crédito. Verifique límite de crédito o saldo vencido.');
-        this.venta.fact_TipoVenta = 'Contado';
+        this.venta.fact_TipoVenta = 'CO';
         this.mostrarInfoCredito = false;
         return;
       }
@@ -623,7 +623,7 @@ private inicializar(): void {
         const totalVenta = this.getTotalGeneral();
         const saldoDisponible = this.getSaldoDisponible();
         this.mostrarWarning(`El total de la venta (L. ${totalVenta.toFixed(2)}) excede el crédito disponible (L. ${saldoDisponible.toFixed(2)})`);
-        this.venta.fact_TipoVenta = 'Contado';
+        this.venta.fact_TipoVenta = 'CO';
         this.mostrarInfoCredito = false;
       }
     }
@@ -715,7 +715,7 @@ private inicializar(): void {
    */
   excedeCreditoDisponible(): boolean {
     // Si no es venta a crédito, no aplica esta validación
-    if (this.venta.fact_TipoVenta !== 'Crédito') return false;
+    if (this.venta.fact_TipoVenta !== 'CR') return false;
     
     // Si no hay cliente seleccionado o no tiene crédito, no se puede usar crédito
     if (!this.clienteActual || !this.tieneCredito()) return true;
@@ -925,7 +925,7 @@ private inicializar(): void {
       }
       
       // Si la venta es a crédito, verificar si el total excede el crédito disponible
-      if (this.venta.fact_TipoVenta === 'Crédito' && this.excedeCreditoDisponible()) {
+      if (this.venta.fact_TipoVenta === 'CR' && this.excedeCreditoDisponible()) {
         const totalVenta = this.getTotalGeneral();
         const saldoDisponible = this.getSaldoDisponible();
         this.mostrarWarning(`El total de la venta (L. ${totalVenta.toFixed(2)}) excede el crédito disponible (L. ${saldoDisponible.toFixed(2)})`);
@@ -990,7 +990,7 @@ private inicializar(): void {
     if (this.obtenerDetallesVenta().length === 0) errores.push('Productos');
 
     // Validar que el total de la venta no exceda el crédito disponible
-    if (this.venta.fact_TipoVenta === 'Crédito' && this.excedeCreditoDisponible()) {
+    if (this.venta.fact_TipoVenta === 'CR' && this.excedeCreditoDisponible()) {
       const totalVenta = this.getTotalGeneral();
       const saldoDisponible = this.getSaldoDisponible();
       this.mostrarWarning(`El total de la venta (L. ${totalVenta.toFixed(2)}) excede el crédito disponible (L. ${saldoDisponible.toFixed(2)})`);

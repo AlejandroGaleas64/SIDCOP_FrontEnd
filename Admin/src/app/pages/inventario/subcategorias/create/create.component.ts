@@ -124,7 +124,7 @@ export class CreateComponent {
       
       };
 
-      console.log('Guardando subcategoria:', sucategoriaGuardar);
+      //console.log('Guardando subcategoria:', sucategoriaGuardar);
       
       this.http.post<any>(`${environment.apiBaseUrl}/Subcategoria/Insertar`, sucategoriaGuardar, {
         headers: { 
@@ -134,7 +134,7 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          console.log('Subc guardada exitosamente:', response);
+          //console.log('Subc guardada exitosamente:', response);
           this.mensajeExito = `Subcategoria "${this.subcategoria.subc_Descripcion}" guardada exitosamente`;
           this.mostrarAlertaExito = true;
           this.mostrarErrores = false;

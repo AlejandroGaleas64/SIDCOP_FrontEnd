@@ -156,7 +156,9 @@ aplicarmascaracodigo(valor: string): string {
   }
 
   validarCorreo(correo: string): boolean {
-    return correo.includes("@") && correo.trim().endsWith(".com");
+    if (!correo) return false;
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(correo.trim());
   }
 
     
@@ -307,13 +309,12 @@ aplicarmascaracodigo(valor: string): string {
   validarEdicion(): void {
     this.mostrarErrores = true;
 
-    if (!this.aplicarmascaracorreo(this.sucursal.sucu_Correo)) {
-    this.mostrarAlertaWarning = true;
-    this.mostrarErrores = true;
-    
-    this.mensajeWarning = 'Debe ingresar un correo valido';
-    setTimeout(() => this.cerrarAlerta(), 4000);
-    return;
+    // Validar correo electrónico
+    if (this.sucursal.sucu_Correo.trim() && !this.validarCorreo(this.sucursal.sucu_Correo)) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'Por favor ingrese un correo electrónico válido.';
+      setTimeout(() => this.cerrarAlerta(), 4000);
+      return;
     }
     // Validación estricta para sucu_Codigo
     if (!this.sucursal.sucu_Codigo || this.sucursal.sucu_Codigo.trim().length !== 3) {
@@ -331,7 +332,8 @@ aplicarmascaracodigo(valor: string): string {
       this.sucursal.sucu_Codigo &&
       this.sucursal.sucu_Codigo.trim() &&
       this.sucursal.sucu_Telefono1.trim() &&
-      this.sucursal.sucu_Correo.trim()
+      this.sucursal.sucu_Correo.trim() &&
+      this.validarCorreo(this.sucursal.sucu_Correo)
     ) {
       if (this.hayDiferencias()) {
         this.mostrarConfirmacionEditar = true;

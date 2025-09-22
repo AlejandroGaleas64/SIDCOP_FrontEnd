@@ -10,34 +10,24 @@
         <div class="card-body">
           <h4 class="card-title mb-4">Registrar Pago</h4>
 
-          <!-- Alertas -->
-          <div
-            *ngIf="mostrarAlertaError"
-            class="alert alert-danger alert-dismissible fade show"
-            role="alert"
-          >
-            <i class="mdi mdi-alert-circle-outline me-2"></i>
-            {{ mensajeError }}
-            <button
-              type="button"
-              class="btn-close"
-              (click)="cerrarAlertaError()"
-            ></button>
-          </div>
+<!-- Contenedor de alertas flotantes -->
+<div class="alert-container">
+  <!-- Éxito -->
+  <div *ngIf="mostrarAlertaExito"
+    class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+    <strong>¡Éxito!</strong> {{ mensajeExito }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
 
-          <div
-            *ngIf="mostrarAlertaExito"
-            class="alert alert-success alert-dismissible fade show"
-            role="alert"
-          >
-            <i class="mdi mdi-check-circle-outline me-2"></i>
-            {{ mensajeExito }}
-            <button
-              type="button"
-              class="btn-close"
-              (click)="cerrarAlertaExito()"
-            ></button>
-          </div>
+  <!-- Error -->
+  <div *ngIf="mostrarAlertaError"
+    class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+    <strong>¡Error!</strong> {{ mensajeError }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
+</div>
 
           <!-- Información de la cuenta -->
           <div *ngIf="cuentaPorCobrar" class="mb-4">

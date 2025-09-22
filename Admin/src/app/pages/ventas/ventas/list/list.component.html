@@ -317,15 +317,13 @@
                   <td>{{ data.fact_Numero }}</td>
 
                   <td>{{ data.fact_FechaEmision | date : "dd/MM/yyyy" }}</td>
-                  <td>
-                    {{
-                      data.fact_TipoVenta === "CR"
-                        ? "Crédito"
-                        : data.fact_TipoVenta === "CO"
-                        ? "Contado"
-                        : data.fact_TipoVenta
-                    }}
-                  </td>
+<td>
+  {{
+    (data.fact_TipoVenta?.toLowerCase() === 'cr' && 'Crédito') ||
+    (data.fact_TipoVenta?.toLowerCase() === 'co' && 'Contado') ||
+    data.fact_TipoVenta || ''
+  }}
+</td>
                   <td>{{ data.clie_NombreCompleto }}</td>
                   <td>{{ data.clie_NombreNegocio }}</td>
                   <td>{{ data.vend_NombreCompleto }}</td>
@@ -373,7 +371,6 @@
                   [ngModel]="table.page"
                   [itemsPerPage]="table.pageSizeValue"
                   [maxSize]="5"
-                  [boundaryLinks]="true"
                   [rotate]="true"
                   (ngModelChange)="table.setPage($event)"
                   (pageChanged)="table.setPage($event.page)"

@@ -58,14 +58,14 @@ export class ListComponent implements OnInit {
     ];
     // Obtener acciones disponibles del usuario
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
+    //console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
   // Método para cargar las acciones disponibles del usuario
   private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+    //console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -88,7 +88,7 @@ export class ListComponent implements OnInit {
       }
     }
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
+    //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   // Cierra el dropdown si se hace click fuera
@@ -108,7 +108,7 @@ export class ListComponent implements OnInit {
   }
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
+    //console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -116,12 +116,7 @@ export class ListComponent implements OnInit {
   }
 
   editar(marcasVehiculos: MarcasVehiculos): void {
-    console.log('Abriendo formulario de edición para:', marcasVehiculos);
-    console.log('Datos específicos:', {
-      id: marcasVehiculos.maVe_Id,
-      descripcion: marcasVehiculos.maVe_Marca,
-      completo: marcasVehiculos
-    });
+ 
     this.marcasVehiculosEditando = { ...marcasVehiculos }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -130,7 +125,7 @@ export class ListComponent implements OnInit {
   }
 
   detalles(marcasVehiculos: MarcasVehiculos): void {
-    console.log('Abriendo detalles para:', marcasVehiculos);
+    //console.log('Abriendo detalles para:', marcasVehiculos);
     this.marcasVehiculosDetalle = { ...marcasVehiculos }; // Hacer copia profunda
     this.showDetailsForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -222,21 +217,21 @@ formatearNumero(valor: number): string {
   }
 
   guardarMarcasVehiculos(marcasVehiculos: MarcasVehiculos): void {
-    console.log('Marcas vehículos guardado exitosamente desde create component:', marcasVehiculos);
+    //console.log('Marcas vehículos guardado exitosamente desde create component:', marcasVehiculos);
     // Recargar los datos de la tabla
     this.cargardatos();
     this.cerrarFormulario();
   }
 
   actualizarMarcasVehiculos(marcasVehiculos: MarcasVehiculos): void {
-    console.log('Marcas vehículos actualizado exitosamente desde edit component:', marcasVehiculos);
+    //console.log('Marcas vehículos actualizado exitosamente desde edit component:', marcasVehiculos);
     // Recargar los datos de la tabla
     this.cargardatos();
     this.cerrarFormularioEdicion();
   }
 
   confirmarEliminar(marcasVehiculos: MarcasVehiculos): void {
-    console.log('Solicitando confirmación para eliminar:', marcasVehiculos);
+    //console.log('Solicitando confirmación para eliminar:', marcasVehiculos);
     this.marcasVehiculosAEliminar = marcasVehiculos;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones
@@ -250,7 +245,7 @@ formatearNumero(valor: number): string {
   eliminar(): void {
     if (!this.marcasVehiculosAEliminar) return;
     
-    console.log('Eliminando marcas vehículos:', this.marcasVehiculosAEliminar);
+    //console.log('Eliminando marcas vehículos:', this.marcasVehiculosAEliminar);
     
     this.http.post(`${environment.apiBaseUrl}/MarcasVehiculos/Eliminar/${this.marcasVehiculosAEliminar.maVe_Id}`, {}, {
       headers: { 
@@ -259,13 +254,13 @@ formatearNumero(valor: number): string {
       }
     }).subscribe({
       next: (response: any) => {
-        console.log('Respuesta del servidor:', response);
+        //console.log('Respuesta del servidor:', response);
         
         // Verificar el código de estado en la respuesta
         if (response.success && response.data) {
           if (response.data.code_Status === 1) {
             // Éxito: eliminado correctamente
-            console.log('Marcas vehículos eliminado exitosamente');
+            //console.log('Marcas vehículos eliminado exitosamente');
             this.mensajeExito = `Marcas vehículos "${this.marcasVehiculosAEliminar!.maVe_Marca}" eliminado exitosamente`;
             this.mostrarAlertaExito = true;
             
@@ -280,7 +275,7 @@ formatearNumero(valor: number): string {
             this.cancelarEliminar();
           } else if (response.data.code_Status === -1) {
             //result: está siendo utilizado
-            console.log('Marcas vehículos está siendo utilizado');
+            //console.log('Marcas vehículos está siendo utilizado');
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'No se puede eliminar: las marcas vehículos está siendo utilizado.';
             
@@ -293,7 +288,7 @@ formatearNumero(valor: number): string {
             this.cancelarEliminar();
           } else if (response.data.code_Status === 0) {
             // Error general
-            console.log('Error general al eliminar marcas vehículos');
+            //console.log('Error general al eliminar marcas vehículos');
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'Error al eliminar las marcas vehículos.';
             
@@ -307,7 +302,7 @@ formatearNumero(valor: number): string {
           }
         } else {
           // Respuesta inesperada
-          console.log('Respuesta inesperada del servidor');
+          //console.log('Respuesta inesperada del servidor');
           this.mostrarAlertaError = true;
           this.mensajeError = response.message || 'Error inesperado al eliminar las marcas vehículos.';
           
@@ -511,7 +506,7 @@ formatearNumero(valor: number): string {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (data) => {
-        console.log('Datos recargados:', data);
+        //console.log('Datos recargados:', data);
         this.table.setData(data);
       },
       error: (error) => {

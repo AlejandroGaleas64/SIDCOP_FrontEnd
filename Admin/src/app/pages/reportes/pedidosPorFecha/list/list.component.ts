@@ -80,8 +80,8 @@ export class ReportePedidosPorFechaComponent implements OnInit {
       params: params
     }).subscribe({
       next: (data) => {
-        console.log('Parámetros de reporte:', params);
-        console.log('Datos del reporte:', data);
+        //console.log('Parámetros de reporte:', params);
+        //console.log('Datos del reporte:', data);
         this.pedidos = data;
         this.generarPdf();
         this.cargando = false;
@@ -278,7 +278,7 @@ export class ReportePedidosPorFechaComponent implements OnInit {
 
   async generarPdf() {
     const filasConRowSpan = this.generarFilasConRowSpan();
-    console.log(filasConRowSpan);
+    //console.log(filasConRowSpan);
     
     const config: ReportConfig = {
       titulo: 'PEDIDOS SEGÚN FECHA',

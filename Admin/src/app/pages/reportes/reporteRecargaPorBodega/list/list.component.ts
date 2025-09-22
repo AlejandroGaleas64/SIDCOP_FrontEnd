@@ -44,7 +44,7 @@ export class ReporteRecargasPorBodegaComponent implements OnInit, OnDestroy {
     const select = event.target as HTMLSelectElement;
     const value = select.value;
     this.bodeSelectedId = value ? parseInt(value) : null;
-    console.log('Bodega seleccionada:', this.bodeSelectedId);
+    //console.log('Bodega seleccionada:', this.bodeSelectedId);
   }
 
   generarReporte() {
@@ -56,7 +56,7 @@ export class ReporteRecargasPorBodegaComponent implements OnInit, OnDestroy {
       params.bodega = this.bodeSelectedId;
     }
 
-    console.log('Generando reporte con parámetros:', params);
+    //console.log('Generando reporte con parámetros:', params);
 
     this.http.get<any[]>(`${environment.apiBaseUrl}/Reportes/ReporteRecargasPorBodega`, {
       headers: { 'x-api-key': environment.apiKey },

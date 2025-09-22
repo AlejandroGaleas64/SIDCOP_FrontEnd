@@ -105,7 +105,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
         this.productos = JSON.parse(this.PedidoDetalle.detallesJson ?? '[]');
         
         // Log para ver la estructura de los productos
-        console.log('Estructura de productos en el pedido:', this.productos);
+        //console.log('Estructura de productos en el pedido:', this.productos);
         
         // Configurar el servicio de invoice con los datos del pedido
         this.pedidoInvoiceService.setPedidoCompleto(this.PedidoDetalle);
@@ -146,7 +146,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
   
     private async cargarLogo(): Promise<string | null> {
       if (!this.configuracionEmpresa?.coFa_Logo) {
-        console.log('No hay logo configurado');
+        //console.log('No hay logo configurado');
         return null;
       }
   
@@ -187,7 +187,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
             ctx.drawImage(img, 0, 0, width, height);
             
             const dataUrl = canvas.toDataURL('image/png', 0.8);
-            console.log('Logo procesado correctamente desde URL');
+            //console.log('Logo procesado correctamente desde URL');
             resolve(dataUrl);
           } catch (e) {
             console.error('Error al procesar el logo:', e);
@@ -202,7 +202,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
         
         try {
           const logoUrl = this.configuracionEmpresa.coFa_Logo;
-          console.log('Intentando cargar logo desde:', logoUrl);
+          //console.log('Intentando cargar logo desde:', logoUrl);
           
           if (logoUrl.startsWith('http')) {
             img.src = logoUrl;
@@ -236,7 +236,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
       next: (data) => {
         if (data && data.length > 0) {
           this.configuracionEmpresa = data[0];
-          console.log('Configuración de empresa cargada:', this.configuracionEmpresa);
+          //console.log('Configuración de empresa cargada:', this.configuracionEmpresa);
         }
       },
       error: (error) => {
@@ -397,7 +397,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
     // Paso 1: Insertar la factura
     this.insertarFactura().subscribe({
       next: (response: any) => {
-        console.log('Factura insertada correctamente:', response);
+        //console.log('Factura insertada correctamente:', response);
         const facturaId = response.id || response.fact_Id || 'N/A';
 
         
@@ -808,7 +808,7 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
           this.cerrarConfiguracionImpresion();
           
         } else {
-          console.log("Error/s", printerStatus.errors);
+          //console.log("Error/s", printerStatus.errors);
           this.mostrarMensajeError(`Error en la impresora: ${printerStatus.errors}`);
         }
 

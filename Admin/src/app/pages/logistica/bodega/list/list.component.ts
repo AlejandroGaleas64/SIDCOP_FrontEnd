@@ -322,7 +322,7 @@ export class ListComponent implements OnInit {
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
+    //console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -330,12 +330,8 @@ export class ListComponent implements OnInit {
   }
 
   editar(bodega: Bodega): void {
-    console.log('Abriendo formulario de edición para:', bodega);
-    console.log('Datos específicos:', {
-      id: bodega.bode_Id,
-      descripcion: bodega.bode_Descripcion,
-      completo: bodega
-    });
+    //console.log('Abriendo formulario de edición para:', bodega);
+  
     this.bodegaEditando = { ...bodega }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -344,7 +340,7 @@ export class ListComponent implements OnInit {
   }
 
   detalles(bodega: Bodega): void {
-    console.log('Abriendo detalles para:', bodega);
+    //console.log('Abriendo detalles para:', bodega);
     this.bodegaDetalle = { ...bodega }; // Hacer copia profunda
     this.showDetailsForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -393,7 +389,7 @@ export class ListComponent implements OnInit {
     ];
 
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
+    //console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
   onActionMenuClick(rowIndex: number) {
@@ -445,7 +441,7 @@ export class ListComponent implements OnInit {
   }
 
   confirmarEliminar(bodega: Bodega): void {
-    console.log('Solicitando confirmación para eliminar:', bodega);
+    //console.log('Solicitando confirmación para eliminar:', bodega);
     this.bodegaAEliminar = bodega;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones
@@ -459,7 +455,7 @@ export class ListComponent implements OnInit {
   eliminar(): void {
     if (!this.bodegaAEliminar) return;
     
-    console.log('Eliminando bodega:', this.bodegaAEliminar);
+    //console.log('Eliminando bodega:', this.bodegaAEliminar);
     this.mostrarOverlayCarga = true;
     this.http.post(`${environment.apiBaseUrl}/Bodega/Eliminar/${this.bodegaAEliminar.bode_Id}`, {}, {
       headers: { 
@@ -470,13 +466,13 @@ export class ListComponent implements OnInit {
       next: (response: any) => {
         setTimeout(() => {
           this.mostrarOverlayCarga = false;
-          console.log('Respuesta del servidor:', response);
+          //console.log('Respuesta del servidor:', response);
           
           // Verificar el código de estado en la respuesta
           if (response.success && response.data) {
             if (response.data.code_Status === 1) {
               // Éxito: eliminado correctamente
-              console.log('Bodega eliminada exitosamente');
+              //console.log('Bodega eliminada exitosamente');
               this.mensajeExito = `Bodega "${this.bodegaAEliminar!.bode_Descripcion}" eliminada exitosamente`;
               this.mostrarAlertaExito = true;
 
@@ -491,7 +487,7 @@ export class ListComponent implements OnInit {
               this.cancelarEliminar();
             } else if (response.data.code_Status === -1) {
               //result: está siendo utilizado
-              console.log('La bodega está siendo utilizada');
+              //console.log('La bodega está siendo utilizada');
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status || 'No se puede eliminar: la bodega está siendo utilizada.';
 
@@ -505,7 +501,7 @@ export class ListComponent implements OnInit {
             } else if (response.data.code_Status === 0) 
             {
               // Error general
-              console.log('Error general al eliminar');
+              //console.log('Error general al eliminar');
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status || 'Error al eliminar la bodega.';
 
@@ -519,7 +515,7 @@ export class ListComponent implements OnInit {
             }
           } else {
             // Respuesta inesperada
-            console.log('Respuesta inesperada del servidor');
+            //console.log('Respuesta inesperada del servidor');
             this.mostrarAlertaError = true;
             this.mensajeError = response.message || 'Error inesperado al eliminar la bodega.';
 
@@ -548,7 +544,7 @@ export class ListComponent implements OnInit {
   private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
-    // console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+    // //console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -571,7 +567,7 @@ export class ListComponent implements OnInit {
       }
     }
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
+    //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   //Declaramos un estado en el cargarDatos, esto para hacer el overlay

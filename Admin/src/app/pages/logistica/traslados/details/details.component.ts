@@ -62,10 +62,10 @@ export class DetailsComponent implements OnChanges {
       }
     }).subscribe({
       next: (response) => {
-        console.log('Respuesta completa del API:', response);
+        //console.log('Respuesta completa del API:', response);
         
         if (response && response.success && response.data) {
-          console.log('Datos del traslado:', response.data);
+          //console.log('Datos del traslado:', response.data);
           this.trasladoDetalle = response.data;
         } else {
           console.error('Estructura de respuesta inesperada:', response);
@@ -101,11 +101,11 @@ export class DetailsComponent implements OnChanges {
       }
     }).subscribe({
       next: (response) => {
-        console.log('Respuesta detalles del traslado:', response);
+        //console.log('Respuesta detalles del traslado:', response);
         
         if (response && response.success && response.data) {
           this.detallesTraslado = response.data;
-          console.log('Detalles cargados:', this.detallesTraslado);
+          //console.log('Detalles cargados:', this.detallesTraslado);
         } else {
           console.error('Error en la respuesta de detalles:', response);
           this.detallesTraslado = [];

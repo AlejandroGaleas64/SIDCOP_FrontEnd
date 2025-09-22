@@ -21,6 +21,12 @@ import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 })
 export class CreateComponent {
 
+  validarCorreo(correo: string): boolean {
+    if (!correo) return false;
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(correo.trim());
+  }
+
   sucursales: any[] = [];
   estadosCiviles: any[] = [];
 
@@ -148,9 +154,36 @@ export class CreateComponent {
     }
       this.mostrarErrores = true;
 
+      // Validar correo electrónico
+      if (this.empleado.empl_Correo.trim() && !this.validarCorreo(this.empleado.empl_Correo)) {
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = 'Por favor ingrese un correo electrónico válido.';
+        this.mostrarAlertaError = false;
+        this.mostrarAlertaExito = false;
+        setTimeout(() => {
+          this.mostrarAlertaWarning = false;
+          this.mensajeWarning = '';
+        }, 4000);
+        return;
+      }
+
       
         
-      if (this.empleado.empl_DNI.trim()) {
+      // Validar todos los campos requeridos
+      if (this.empleado.empl_DNI.trim() &&
+          this.empleado.empl_Codigo.trim() &&
+          this.empleado.empl_Nombres.trim() &&
+          this.empleado.empl_Apellidos.trim() &&
+          this.empleado.empl_Sexo &&
+          this.empleado.empl_FechaNacimiento &&
+          this.empleado.empl_Correo.trim() &&
+          this.validarCorreo(this.empleado.empl_Correo) &&
+          this.empleado.empl_Telefono.trim() &&
+          this.empleado.sucu_Id &&
+          this.empleado.esCv_Id &&
+          this.empleado.carg_Id &&
+          this.empleado.colo_Id &&
+          this.empleado.empl_DireccionExacta.trim()) {
       // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
@@ -183,8 +216,8 @@ export class CreateComponent {
       empl_FechaModificacion: new Date().toISOString(),
       };
       
-      console.log('Datos a enviar al backend:', empleadoGuardar);
-      console.log('URL de la imagen (empl_Imagen):', empleadoGuardar.empl_Imagen);
+      //console.log('Datos a enviar al backend:', empleadoGuardar);
+      //console.log('URL de la imagen (empl_Imagen):', empleadoGuardar.empl_Imagen);
         
       this.http.post<any>(`${environment.apiBaseUrl}/Empleado/Insertar`, empleadoGuardar, {
       headers: { 
@@ -194,7 +227,7 @@ export class CreateComponent {
       }
       }).subscribe({
       next: (response) => {
-      console.log('Empleado guardado exitosamente:', response);
+      //console.log('Empleado guardado exitosamente:', response);
       this.mensajeExito = `Empleado "${this.empleado.empl_Nombres}" guardado exitosamente`;
       this.mostrarAlertaExito = true;
       this.mostrarErrores = false;

@@ -244,6 +244,8 @@ tieneAyudante: boolean = false;
 
   guardar(): void {
   this.mostrarErrores = true;
+   const rutasValidas = this.rutasVendedor.length > 0 &&
+    this.rutasVendedor.every(rv => rv.ruta_Id != null && rv.diasSeleccionados && rv.diasSeleccionados.length > 0);
 
   if (
     this.vendedor.vend_Apellidos.trim() &&
@@ -252,7 +254,7 @@ tieneAyudante: boolean = false;
     this.esCorreoValido(this.vendedor.vend_Correo) &&
     this.vendedor.vend_DNI.trim() && this.vendedor.vend_Sexo.trim() &&
     this.vendedor.vend_Tipo.trim() && this.vendedor.vend_DireccionExacta.trim() &&
-    this.vendedor.sucu_Id > 0 && this.vendedor.colo_Id > 0 && this.rutasVendedor.length > 0
+    this.vendedor.sucu_Id > 0 && this.vendedor.colo_Id > 0 && rutasValidas
   ) {
     this.mostrarAlertaWarning = false;
     this.mostrarAlertaError = false;
@@ -262,7 +264,7 @@ tieneAyudante: boolean = false;
       .filter(rv => rv.ruta_Id != null && rv.veRu_Dias !== '')
       .map(rv => ({ ruta_Id: rv.ruta_Id as number, veRu_Dias: rv.veRu_Dias }));
 
-      console.log('Rutas para enviar:', rutasParaEnviar);
+    
     // Construir el objeto para guardar
     const vendedorGuardar: any = {
       vend_Id: 0,
@@ -295,7 +297,7 @@ tieneAyudante: boolean = false;
       vendedorGuardar.vend_Ayudante = this.vendedor.vend_Ayudante;
     }
 
-    console.log('Guardando Vendedor:', vendedorGuardar);
+
 
     this.http.post<any>(`${environment.apiBaseUrl}/Vendedores/Insertar`, vendedorGuardar, {
       headers: {
@@ -305,7 +307,7 @@ tieneAyudante: boolean = false;
       }
     }).subscribe({
       next: (response) => {
-        console.log('Vendedor guardado exitosamente:', response);
+
         this.mensajeExito = `Vendedor "${this.vendedor.vend_Nombres}  ${this.vendedor.vend_Apellidos}" guardado exitosamente`;
         this.mostrarAlertaExito = true;
         this.mostrarErrores = false;
@@ -378,7 +380,7 @@ actualizarDias(idx: number, dias: number[]) {
   this.rutasVendedor[idx].veRu_Dias = dias.join(',');
   // Recalcular días disponibles para todos los índices
   this.recomputarOpciones();
-  console.log('rutasVendedor actualizadas:', this.rutasVendedor);
+ 
 }
 
 // Reaccionar al cambio de ruta en un índice

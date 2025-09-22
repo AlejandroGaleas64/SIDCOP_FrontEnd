@@ -86,12 +86,12 @@ private readonly exportConfig = {
 
     // Obtener acciones disponibles del usuario (ejemplo: desde API o localStorage)
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
+    //console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
+    //console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -99,13 +99,8 @@ private readonly exportConfig = {
   }
 
   editar(cai: CAIs): void {
-    console.log('Abriendo formulario de edición para:', cai);
-    console.log('Datos específicos:', {
-      id: cai.nCai_Id,
-      codigo: cai.nCai_Codigo,
-      descripcion: cai.nCai_Descripcion,
-      completo: cai
-    });
+    //console.log('Abriendo formulario de edición para:', cai);
+  
     this.caiEditando = { ...cai }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -114,7 +109,7 @@ private readonly exportConfig = {
   }
 
   detalles(cai: CAIs): void {
-    console.log('Abriendo detalles para:', cai);
+    //console.log('Abriendo detalles para:', cai);
     this.caiDetalle = { ...cai }; // Hacer copia profunda
     this.showDetailsForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -360,21 +355,21 @@ private readonly exportConfig = {
   }
 
   guardarCai(cai: CAIs): void {
-    console.log('CAI guardado exitosamente desde create component:', cai);
+    //console.log('CAI guardado exitosamente desde create component:', cai);
     // Recargar los datos de la tabla
     this.cargarDatos();
     this.cerrarFormulario();
   }
 
   actualizarCai(cai: CAIs): void {
-    console.log('CAI actualizado exitosamente desde edit component:', cai);
+    //console.log('CAI actualizado exitosamente desde edit component:', cai);
     // Recargar los datos de la tabla
     this.cargarDatos();
     this.cerrarFormularioEdicion();
   }
 
   confirmarEliminar(cai: CAIs): void {
-    console.log('Solicitando confirmación para eliminar:', cai);
+    //console.log('Solicitando confirmación para eliminar:', cai);
     this.caiAEliminar = cai;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones
@@ -388,7 +383,7 @@ private readonly exportConfig = {
   eliminar(): void {
   if (!this.caiAEliminar) return;
   
-  console.log('Eliminando CAI:', this.caiAEliminar);
+  //console.log('Eliminando CAI:', this.caiAEliminar);
   
   // Cambiar de POST a PUT y ajustar la URL según el endpoint del backend
   this.http.put(`${environment.apiBaseUrl}/CaiS/Eliminar/${this.caiAEliminar.nCai_Id}`, {}, {
@@ -398,13 +393,13 @@ private readonly exportConfig = {
     }
   }).subscribe({
     next: (response: any) => {
-      console.log('Respuesta del servidor:', response);
+      //console.log('Respuesta del servidor:', response);
       
       // Verificar el código de estado en la respuesta
       if (response.success && response.data) {
         if (response.data.code_Status === 1) {
           // Éxito: eliminado correctamente
-          console.log('CAI eliminado exitosamente');
+          //console.log('CAI eliminado exitosamente');
           this.mensajeExito = `CAI "${this.caiAEliminar!.nCai_Descripcion}" eliminado exitosamente`;
           this.mostrarAlertaExito = true;
           
@@ -418,7 +413,7 @@ private readonly exportConfig = {
           this.cancelarEliminar();
         } else if (response.data.code_Status === -1) {
           //result: está siendo utilizado
-          console.log('CAI está siendo utilizado');
+          //console.log('CAI está siendo utilizado');
           this.mostrarAlertaError = true;
           this.mensajeError = response.data.message_Status || 'No se puede eliminar: el CAI está siendo utilizado.';
           
@@ -431,7 +426,7 @@ private readonly exportConfig = {
           this.cancelarEliminar();
         } else if (response.data.code_Status === 0) {
           // Error general
-          console.log('Error general al eliminar');
+          //console.log('Error general al eliminar');
           this.mostrarAlertaError = true;
           this.mensajeError = response.data.message_Status || 'Error al eliminar el CAI.';
           
@@ -445,7 +440,7 @@ private readonly exportConfig = {
         }
       } else {
         // Respuesta inesperada
-        console.log('Respuesta inesperada del servidor');
+        //console.log('Respuesta inesperada del servidor');
         this.mostrarAlertaError = true;
         this.mensajeError = response.message || 'Error inesperado al eliminar el CAI.';
         
@@ -487,7 +482,7 @@ private readonly exportConfig = {
   private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+    //console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -502,24 +497,24 @@ private readonly exportConfig = {
           modulo = permisos['CAIs'] || permisos['cais'] || null;
         }
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
-          console.log('Acciones del módulo:', modulo.Acciones);
+          //console.log('Acciones del módulo:', modulo.Acciones);
           // Extraer solo el nombre de la acción
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
-          console.log('Acciones del módulo:', accionesArray);
+          //console.log('Acciones del módulo:', accionesArray);
         }
       } catch (e) {
         console.error('Error al parsear permisosJson:', e);
       }
     }
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
+    //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   private cargarDatos(): void {
     this.http.get<CAIs[]>(`${environment.apiBaseUrl}/CAIs/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
-      console.log('Datos recargados:', data);
+      //console.log('Datos recargados:', data);
       this.table.setData(data);
     });
   }

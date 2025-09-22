@@ -449,7 +449,7 @@ private calcularRowSpanCanal(indiceActual: number, clientes: any[]): number {
       filtros.push({ label: 'Hasta', valor: this.fechaFin });
     }
     
-    console.log('canalSeleccionado', this.canalSeleccionado);
+    //console.log('canalSeleccionado', this.canalSeleccionado);
 
     if (this.canalSeleccionado && this.canalSeleccionado != null) {
       const canal = this.canales.find(m => m.cana_Id == this.canalSeleccionado);
