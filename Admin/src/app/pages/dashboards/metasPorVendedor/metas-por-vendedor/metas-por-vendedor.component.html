@@ -1,0 +1,151 @@
+<app-breadcrumbs
+  [title]="'Metas por Vendedor'"
+  [breadcrumbItems]="breadCrumbItems"
+>
+  <img class="breadcrumbs-icon ms-2 icon-breadcrumb" src="assets/images/imagenes/seller (1).svg" alt="icono breadcrumb" [width]="70"/>
+</app-breadcrumbs>
+
+<div class="row">
+  <div class="col-lg-12">
+    <div class="card shadow-sm" style="border-radius: 1rem;">
+      <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center gap-3 mb-4 col-md-12">
+          <label class="form-label mb-0" style="font-weight: 600; font-size: large;">Vendedor :</label>
+          <ng-select 
+          style="width: 100%;"
+          
+          [items]="vendedores"
+            bindLabel="vendedorDisplay"
+          [(ngModel)]="selectedVendedor" 
+          (change)="onVendedorChange()"
+          [searchable]="true"
+          placeholder="Seleccione un vendedor"
+          clearable="true"
+          >
+            <!-- <option [ngValue]="null" disabled selected>Seleccione un vendedor</option>
+            <option *ngFor="let v of vendedores" [ngValue]="v.vend_Id">{{ v.vend_Nombres }} {{ v.vend_Apellidos }}</option> -->
+          </ng-select>
+
+        
+        </div>
+        <div *ngIf="errorMsg" class="alert alert-danger mb-3">{{ errorMsg }}</div>
+        <div *ngIf="loading" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+        </div>
+        <div *ngIf="!loading && metas.length === 0 && selectedVendedorId" class="text-center text-muted py-5">
+          No hay metas asignadas a este vendedor.
+        </div>
+        <div class="row g-4" *ngIf="!loading && metas.length > 0">
+          <div class="col-12 col-md-6 col-lg-4" *ngFor="let meta of metas; let i = index">
+            <div class="card h-100 shadow-sm" style="border-radius: 1rem; background: #f8f9fb;">
+              <div class="card-header d-flex align-items-center" style="background: #14192e; color: #fff; border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
+                <i class="ri-flag-2-line me-2 fs-5"></i>
+                <span style="font-weight: 600;">{{ meta.Meta_Descripcion }}</span>
+              </div>
+              <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                <!-- <apx-chart
+                  [series]="getMetaChartConfig(meta, i).series"
+                  [chart]="getMetaChartConfig(meta, i).chart"
+                  [plotOptions]="getMetaChartConfig(meta, i).plotOptions"
+                  [grid]="getMetaChartConfig(meta, i).grid"
+                  [fill]="getMetaChartConfig(meta, i).fill"
+                  [labels]="getMetaChartConfig(meta, i).labels"
+                  [colors]="getMetaChartConfig(meta, i).colors"
+                  dir="ltr"
+                  style="width: 250px; min-width: 250px;">
+                </apx-chart> -->
+
+                <!-- <apx-chart
+                  *ngIf="chartConfigs[meta.Meta_Id]"
+                  [series]="chartConfigs[meta.Meta_Id].series"
+                  [chart]="chartConfigs[meta.Meta_Id].chart"
+                  [plotOptions]="chartConfigs[meta.Meta_Id].plotOptions"
+                  [labels]="chartConfigs[meta.Meta_Id].labels"
+                  [colors]="chartConfigs[meta.Meta_Id].colors"
+                  dir="ltr"
+                  style="width: 250px; min-width: 250px;">
+                </apx-chart> -->
+
+
+                <!-- <apx-chart
+                class="mt-0"
+                  [series]="getBasicRadialbarChartConfig(meta).series"
+                  [chart]="getBasicRadialbarChartConfig(meta).chart"
+                  [plotOptions]="getBasicRadialbarChartConfig(meta).plotOptions"
+                  [labels]="getBasicRadialbarChartConfig(meta).labels"
+                  [colors]="getBasicRadialbarChartConfig(meta).colors"
+                  dir="ltr"
+                  style="width: 300px; min-width: 300px;">
+                </apx-chart> -->
+
+                <apx-chart
+                  *ngIf="basicRadialConfigs[meta.Meta_Id]"
+                  [series]="basicRadialConfigs[meta.Meta_Id].series"
+                  [chart]="basicRadialConfigs[meta.Meta_Id].chart"
+                  [plotOptions]="basicRadialConfigs[meta.Meta_Id].plotOptions"
+                  [labels]="basicRadialConfigs[meta.Meta_Id].labels"
+                  [colors]="basicRadialConfigs[meta.Meta_Id].colors"
+                  dir="ltr"
+                  style="width: 300px; min-width: 300px;">
+                </apx-chart>
+
+                <div class="mt-3 w-100">
+                  <div style="font-size: 0.95rem;">
+                    <!-- <strong>Tipo:</strong>
+                    {{
+                      meta.Meta_Tipo === 'IT' ? 'Ingresos Totales' :
+                      meta.Meta_Tipo === 'TP' ? 'Total Productos (Cantidad)' :
+                      meta.Meta_Tipo === 'CN' ? 'Clientes Nuevos' :
+                      meta.Meta_Tipo === 'PE' ? 'Producto Específico (Cantidad)' :
+                      meta.Meta_Tipo === 'IP' ? 'Ingresos de Producto Específico' :
+                      meta.Meta_Tipo === 'PC' ? 'Productos de Categoría (Ingresos)' :
+                      meta.Meta_Tipo === 'CM' ? 'Cantidades Manuales' :
+                      meta.Meta_Tipo === 'IM' ? 'Ingresos Manuales' :
+                      meta.Meta_Tipo
+                    }}
+                  </div> -->
+                  <div *ngIf="['CM','TP','CN','PE'].includes(meta.Meta_Tipo)" style="font-size: 0.95rem;">
+                    <strong>Progreso: </strong> {{ meta.ProgresoUnidades }} Unidades
+                  </div>
+                  <div *ngIf="['IM','IT','IP','PC'].includes(meta.Meta_Tipo)" style="font-size: 0.95rem;">
+                    <strong>Progreso: </strong> {{ meta.ProgresoIngresos | currency:'L. ':'symbol':'1.2-2':'es-HN' }}
+                  </div>
+                  <!-- <div style="font-size: 0.95rem;">
+                    <strong>Fecha:</strong> {{ formatearFecha(meta.Meta_FechaInicio) }} - {{ formatearFecha(meta.Meta_FechaFin) }}
+                  </div> -->
+                  <div *ngIf="['IT','IP','PC','IM'].includes(meta.Meta_Tipo)" style="font-size: 0.95rem;">
+                    <strong>Objetivo:</strong> {{ meta.Meta_Ingresos | currency:'L. ':'symbol':'1.2-2':'es-HN' }}
+                  </div>
+                  <div *ngIf="['TP','CN','PE','CM'].includes(meta.Meta_Tipo)" style="font-size: 0.95rem;">
+                    <strong>Objetivo:</strong> {{ meta.Meta_Unidades | number:'1.0-2' }} Unidades
+                  </div>
+                  <div *ngIf="meta.Producto" style="font-size: 0.95rem;">
+                    <strong>Producto:</strong> {{ meta.Producto }}
+                  </div>
+                  <div *ngIf="meta.Categoria" style="font-size: 0.95rem;">
+                    <strong>Categoría:</strong> {{ meta.Categoria }}
+                  </div>
+                  
+                </div>
+              </div>
+              </div>
+
+              <div class="card-footer text-center" style="background: #f8f9fb; border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem;">
+                <small class="text-muted">
+                  <strong>Fecha: </strong> {{ formatearFecha(meta.Meta_FechaInicio) }} — {{ formatearFecha(meta.Meta_FechaFin) }}
+                </small>
+                
+
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      
+      </div>
+
+      <div class="card-footer text-center" style="background: #f8f9fb; border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem;">
+        <small class="text-muted">Total Metas: {{ metas.length }}</small>
+      </div>
+  </div>
+</div>
