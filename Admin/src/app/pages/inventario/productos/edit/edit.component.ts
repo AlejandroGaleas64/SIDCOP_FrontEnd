@@ -190,7 +190,7 @@ export class EditComponent implements OnChanges {
       this.producto.subc_Id = 0;
       return;
     }
-    console.log('Filtrando subcategorías para categoría:', categoriaId);
+    //console.log('Filtrando subcategorías para categoría:', categoriaId);
     this.filtrarSubcategoriasPorCategoria(categoriaId, true);
   }
 
@@ -287,7 +287,7 @@ export class EditComponent implements OnChanges {
   isCargandoSubcategorias: boolean = false;
 
   filtrarSubcategoriasPorCategoria(categoriaId: number, limpiarSubcategoria: boolean = false) {
-    console.log('Filtrando subcategorías para categoría:', categoriaId);
+    //console.log('Filtrando subcategorías para categoría:', categoriaId);
     if (!categoriaId) {
       this.subcategoriasFiltradas = [];
       this.producto.subc_Id = 0;
@@ -331,7 +331,7 @@ export class EditComponent implements OnChanges {
         this.producto.subc_Id = unica.subc_Id;
         this.producto.subc_Descripcion = unica.subC_Descripcion;
       }
-      console.log('Subcategorías filtradas:', this.subcategoriasFiltradas);
+      //console.log('Subcategorías filtradas:', this.subcategoriasFiltradas);
       // this.producto.subc_Id = 0; // Reset subcategory selection
       this.isCargandoSubcategorias = false; // terminó carga
     }, error => {
@@ -623,7 +623,7 @@ export class EditComponent implements OnChanges {
       this.imageUploadService.uploadImageAsync(file)
         .then(imagePath => {
           this.producto.prod_Imagen = imagePath;
-          console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
+          //console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
           this.mostrarOverlayCarga = false;
         })
         .catch(error => {

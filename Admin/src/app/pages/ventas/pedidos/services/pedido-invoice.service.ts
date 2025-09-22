@@ -81,7 +81,7 @@ export class PedidoInvoiceService {
 
   private async cargarLogo(): Promise<string | null> {
     if (!this.configuracionEmpresa?.coFa_Logo) {
-      console.log('No hay logo configurado');
+      //console.log('No hay logo configurado');
       return null;
     }
 
@@ -122,7 +122,7 @@ export class PedidoInvoiceService {
           ctx.drawImage(img, 0, 0, width, height);
 
           const dataUrl = canvas.toDataURL('image/png', 0.8);
-          console.log('Logo procesado correctamente desde URL');
+          //console.log('Logo procesado correctamente desde URL');
           resolve(dataUrl);
         } catch (e) {
           console.error('Error al procesar el logo:', e);
@@ -137,7 +137,7 @@ export class PedidoInvoiceService {
 
       try {
         const logoUrl = this.configuracionEmpresa.coFa_Logo;
-        console.log('Intentando cargar logo desde:', logoUrl);
+        //console.log('Intentando cargar logo desde:', logoUrl);
 
         if (logoUrl.startsWith('http')) {
           img.src = logoUrl;
@@ -483,7 +483,7 @@ export class PedidoInvoiceService {
     // Preparar los detalles de la factura (productos)
     const detallesFacturaInput = productos.map((p: any) => {
       // Log detallado de cada producto para depuración
-      console.log('Producto original:', p);
+      //console.log('Producto original:', p);
       
       return {
         prod_Id: p.prod_Id || p.id || 0,
@@ -491,7 +491,7 @@ export class PedidoInvoiceService {
       };
     });
     
-    console.log('Productos a insertar:', detallesFacturaInput);
+    //console.log('Productos a insertar:', detallesFacturaInput);
     
     // Crear el objeto de factura a insertar
     const facturaData = {
@@ -512,7 +512,7 @@ export class PedidoInvoiceService {
       detallesFacturaInput: detallesFacturaInput // Añadimos los productos
     };
     
-    console.log('Datos de factura a insertar:', facturaData);
+    //console.log('Datos de factura a insertar:', facturaData);
     
     // Realizar la llamada al endpoint
     return this.http.post<FacturaInsertarResponse>(

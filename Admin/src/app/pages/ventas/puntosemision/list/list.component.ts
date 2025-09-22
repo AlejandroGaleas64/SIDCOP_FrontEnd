@@ -137,14 +137,14 @@ export class ListComponent implements OnInit {
 
        // Obtener acciones disponibles del usuario (ejemplo: desde API o localStorage)
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
+    //console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
   // Cierra el dropdown si se hace click fuera
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
+    //console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -152,13 +152,8 @@ export class ListComponent implements OnInit {
   }
 
   editar(puntodeemision: PuntoEmision): void {
-    console.log('Abriendo formulario de edición para:', puntodeemision);
-    console.log('Datos específicos:', {
-      id: puntodeemision.puEm_Id,
-      codigo: puntodeemision.puEm_Codigo,
-      descripcion: puntodeemision.puEm_Descripcion,
-      completo: puntodeemision
-    });
+    //console.log('Abriendo formulario de edición para:', puntodeemision);
+
     this.PEEditando = { ...puntodeemision }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -167,7 +162,7 @@ export class ListComponent implements OnInit {
   }
 
   detalles(puntodeemision: PuntoEmision): void {
-    console.log('Abriendo detalles para:', puntodeemision);
+    //console.log('Abriendo detalles para:', puntodeemision);
     this.PEDetalle = { ...puntodeemision }; // Hacer copia profunda
     this.showDetailsForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -428,7 +423,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
   }
 
   actualizarPE(puntodeemision: PuntoEmision): void {
-    console.log('Estado civil actualizado exitosamente desde edit component:', puntodeemision);
+    //console.log('Estado civil actualizado exitosamente desde edit component:', puntodeemision);
     // Recargar los datos de la tabla
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
@@ -444,7 +439,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
   }
 
   confirmarEliminar(puntodeemision: PuntoEmision): void {
-    console.log('Solicitando confirmación para eliminar:', puntodeemision);
+    //console.log('Solicitando confirmación para eliminar:', puntodeemision);
     this.PEEliminar = puntodeemision;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones
@@ -458,7 +453,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
   eliminar(): void {
     if (!this.PEEliminar) return;
     
-    console.log('Eliminando estado civil:', this.PEEliminar);
+    //console.log('Eliminando estado civil:', this.PEEliminar);
 
     const PEeliminado = {
         puEm_Id: this.PEEliminar.puEm_Id,
@@ -483,13 +478,13 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
       }
     }).subscribe({
       next: (response: any) => {
-        console.log('Respuesta del servidor:', response);
+        //console.log('Respuesta del servidor:', response);
         setTimeout(() => {
         // Verificar el código de estado en la respuesta
         if (response.success && response.data) {
           if (response.data.code_Status === 1) {
             // Éxito: eliminado correctamente
-            console.log('Punto de Emision exitosamente');
+            //console.log('Punto de Emision exitosamente');
              const accion = this.PEEliminar?.estado === 'Activo' ? 'desactivado' : 'activado';
             this.mensajeExito = `Punto de Emision "${this.PEEliminar!.puEm_Descripcion}" ${accion} exitosamente`;
             this.mostrarAlertaExito = true;
@@ -506,7 +501,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
             this.mostrarOverlayCarga = false;
           } else if (response.data.code_Status === -1) {
             //result: está siendo utilizado
-            console.log('Punto de emisión está siendo utilizado');
+            //console.log('Punto de emisión está siendo utilizado');
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'No se puede eliminar: el punto de emisión está siendo utilizado.';
             
@@ -520,7 +515,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
             this.mostrarOverlayCarga = false;
           } else if (response.data.code_Status === 0) {
             // Error general
-            console.log('Error general al eliminar');
+            //console.log('Error general al eliminar');
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'Error al eliminar el punto de emisión.';
             
@@ -535,7 +530,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
           }
         } else {
           // Respuesta inesperada
-          console.log('Respuesta inesperada del servidor');
+          //console.log('Respuesta inesperada del servidor');
           this.mostrarAlertaError = true;
           this.mensajeError = response.message || 'Error inesperado al eliminar el punto de emision.';
           
@@ -564,7 +559,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
   private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+    //console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -587,7 +582,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
       }
     }
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
+    //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
 

@@ -21,6 +21,12 @@ import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 })
 export class CreateComponent {
 
+  validarCorreo(correo: string): boolean {
+    if (!correo) return false;
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(correo.trim());
+  }
+
   sucursales: any[] = [];
   estadosCiviles: any[] = [];
 
@@ -28,80 +34,37 @@ export class CreateComponent {
   colonia: any[] = [];
   empleados: any[] = [];
   @Output() onCancel = new EventEmitter<void>();
-  @Output() onSave = new EventEmitter<Empleado>();
+    @Output() onSave = new EventEmitter<Empleado>();
     
-  mostrarErrores = false;
-  mostrarAlertaExito = false;
-  mensajeExito = '';
-  mostrarAlertaError = false;
-  mensajeError = '';
-  mostrarAlertaWarning = false;
-  mensajeWarning = '';
+    mostrarErrores = false;
+    mostrarAlertaExito = false;
+    mensajeExito = '';
+    mostrarAlertaError = false;
+    mensajeError = '';
+    mostrarAlertaWarning = false;
+    mensajeWarning = '';
 
-  isDragOver: boolean = false;
-  selectedFile: File | null = null;
-  imagePreview: string | null = null;
+    isDragOver: boolean = false;
+    selectedFile: File | null = null;
+    imagePreview: string | null = null;
     
-  constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {}
+    constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {}
 
-  ngOnInit(): void {
-    this.obtenerSucursales();
-    this.obtenerEstadosCiviles();
-    this.obtenerCargos();
-    this.listarColonias();
-    this.cargarEmpleados();
-  }
+    ngOnInit(): void {
+      this.obtenerSucursales();
+      this.obtenerEstadosCiviles();
+      this.obtenerCargos();
+      this.listarColonias();
+      this.cargarEmpleados();
+    }
   
-  empleado: Empleado = {
-    empl_Id: 0,
-    empl_DNI: '',
-    empl_Codigo: '',
-    empl_Nombres: '',
-    empl_Apellidos: '',
-    empl_Sexo: 'M',
-    empl_FechaNacimiento: new Date(),
-    empl_Correo: '',
-    empl_Telefono: '',
-    sucu_Id: 0,
-    esCv_Id: 0,
-    carg_Id: 0,
-    colo_Id: 0,
-    empl_DireccionExacta: '',
-    usua_Creacion: 0,
-    empl_FechaCreacion: new Date(),
-    usua_Modificacion: 0,
-    empl_FechaModificacion: new Date(),
-    empl_Estado: true,
-    empl_Imagen: ''
-  };
-  
-  cancelar(): void {
-    // Limpiar alertas
-    this.mostrarErrores = false;
-    this.mostrarAlertaExito = false;
-    this.mensajeExito = '';
-    this.mostrarAlertaError = false;
-    this.mensajeError = '';
-    this.mostrarAlertaWarning = false;
-    this.mensajeWarning = '';
-
-    // Limpiar imagen
-    this.uploadedFiles = [];
-    this.selectedFile = null;
-    this.imagePreview = null;
-    this.isDragOver = false;
-
-    // Recargar lista de empleados para obtener el código actualizado
-    this.cargarEmpleados();
-
-    // Reiniciar el empleado con valores por defecto
-    this.empleado = {
+    empleado: Empleado = {
       empl_Id: 0,
       empl_DNI: '',
       empl_Codigo: '',
       empl_Nombres: '',
       empl_Apellidos: '',
-      empl_Sexo: 'M', // Mantener el valor por defecto 'M'
+      empl_Sexo: 'M',
       empl_FechaNacimiento: new Date(),
       empl_Correo: '',
       empl_Telefono: '',
@@ -117,24 +80,68 @@ export class CreateComponent {
       empl_Estado: true,
       empl_Imagen: ''
     };
+  
+    cancelar(): void {
+      // Limpiar alertas
+      this.mostrarErrores = false;
+      this.mostrarAlertaExito = false;
+      this.mensajeExito = '';
+      this.mostrarAlertaError = false;
+      this.mensajeError = '';
+      this.mostrarAlertaWarning = false;
+      this.mensajeWarning = '';
 
-    // Emitir evento de cancelar solo si se llamó desde el botón de cancelar
-    if (!this.mostrarAlertaExito) {
-      this.onCancel.emit();
+      // Limpiar imagen
+      this.uploadedFiles = [];
+      this.selectedFile = null;
+    this.imagePreview = null;
+    this.isDragOver = false;
+
+      // Recargar lista de empleados para obtener el código actualizado
+      this.cargarEmpleados();
+
+      // Reiniciar el empleado con valores por defecto
+      this.empleado = {
+        empl_Id: 0,
+        empl_DNI: '',
+        empl_Codigo: '',
+        empl_Nombres: '',
+        empl_Apellidos: '',
+        empl_Sexo: 'M', // Mantener el valor por defecto 'M'
+        empl_FechaNacimiento: new Date(),
+        empl_Correo: '',
+        empl_Telefono: '',
+        sucu_Id: 0,
+        esCv_Id: 0,
+        carg_Id: 0,
+        colo_Id: 0,
+        empl_DireccionExacta: '',
+        usua_Creacion: 0,
+        empl_FechaCreacion: new Date(),
+        usua_Modificacion: 0,
+        empl_FechaModificacion: new Date(),
+        empl_Estado: true,
+        empl_Imagen: ''
+      };
+
+      // Emitir evento de cancelar solo si se llamó desde el botón de cancelar
+      if (!this.mostrarAlertaExito) {
+        this.onCancel.emit();
+      }
     }
-  }
   
-  cerrarAlerta(): void {
-    this.mostrarAlertaExito = false;
-    this.mensajeExito = '';
-    this.mostrarAlertaError = false;
-    this.mensajeError = '';
-    this.mostrarAlertaWarning = false;
-    this.mensajeWarning = '';
-  }
+    cerrarAlerta(): void {
+      this.mostrarAlertaExito = false;
+      this.mensajeExito = '';
+      this.mostrarAlertaError = false;
+      this.mensajeError = '';
+      this.mostrarAlertaWarning = false;
+      this.mensajeWarning = '';
+    }
   
-  async guardar(): Promise<void> {
-    // Si hay un archivo local seleccionado en uploadedFiles, subirlo al backend
+    async guardar(): Promise<void> {
+
+      // Si hay un archivo local seleccionado en uploadedFiles, subirlo al backend
     if (this.uploadedFiles.length > 0 && this.uploadedFiles[0].file) {
       try {
         const imagePath = await this.imageUploadService.uploadImageAsync(this.uploadedFiles[0].file);
@@ -145,12 +152,38 @@ export class CreateComponent {
         return; // No continuar si la imagen no se pudo subir
       }
     }
+      this.mostrarErrores = true;
 
-    this.mostrarErrores = true;
+      // Validar correo electrónico
+      if (this.empleado.empl_Correo.trim() && !this.validarCorreo(this.empleado.empl_Correo)) {
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = 'Por favor ingrese un correo electrónico válido.';
+        this.mostrarAlertaError = false;
+        this.mostrarAlertaExito = false;
+        setTimeout(() => {
+          this.mostrarAlertaWarning = false;
+          this.mensajeWarning = '';
+        }, 4000);
+        return;
+      }
 
-    
       
-    if (this.empleado.empl_DNI.trim()) {
+        
+      // Validar todos los campos requeridos
+      if (this.empleado.empl_DNI.trim() &&
+          this.empleado.empl_Codigo.trim() &&
+          this.empleado.empl_Nombres.trim() &&
+          this.empleado.empl_Apellidos.trim() &&
+          this.empleado.empl_Sexo &&
+          this.empleado.empl_FechaNacimiento &&
+          this.empleado.empl_Correo.trim() &&
+          this.validarCorreo(this.empleado.empl_Correo) &&
+          this.empleado.empl_Telefono.trim() &&
+          this.empleado.sucu_Id &&
+          this.empleado.esCv_Id &&
+          this.empleado.carg_Id &&
+          this.empleado.colo_Id &&
+          this.empleado.empl_DireccionExacta.trim()) {
       // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
@@ -161,30 +194,30 @@ export class CreateComponent {
       const telefono = this.empleado.empl_Telefono.trim();
         
       const empleadoGuardar = {
-        empl_Id: 0,
-        empl_DNI: dniMask,
-        empl_Codigo: this.empleado.empl_Codigo,
-        empl_Nombres: this.empleado.empl_Nombres,
-        empl_Apellidos: this.empleado.empl_Apellidos,
-        empl_Sexo: this.empleado.empl_Sexo,
-        empl_FechaNacimiento: new Date(this.empleado.empl_FechaNacimiento).toISOString(),
-        empl_Correo: this.empleado.empl_Correo,
-        empl_Telefono: this.empleado.empl_Telefono,
-        sucu_Id: this.empleado.sucu_Id,
-        esCv_Id: this.empleado.esCv_Id,
-        carg_Id: this.empleado.carg_Id,
-        colo_Id: this.empleado.colo_Id,
-        empl_DireccionExacta: this.empleado.empl_DireccionExacta,
-        empl_Imagen: this.empleado.empl_Imagen,
-        empl_Estado: true,
-        usua_Creacion: getUserId(),// varibale global, obtiene el valor del environment, esto por mientras
-        empl_FechaCreacion: new Date().toISOString(),
-        usua_Modificacion: 0,
-        empl_FechaModificacion: new Date().toISOString(),
+      empl_Id: 0,
+      empl_DNI: dniMask,
+      empl_Codigo: this.empleado.empl_Codigo,
+      empl_Nombres: this.empleado.empl_Nombres,
+      empl_Apellidos: this.empleado.empl_Apellidos,
+      empl_Sexo: this.empleado.empl_Sexo,
+      empl_FechaNacimiento: new Date(this.empleado.empl_FechaNacimiento).toISOString(),
+      empl_Correo: this.empleado.empl_Correo,
+      empl_Telefono: this.empleado.empl_Telefono,
+      sucu_Id: this.empleado.sucu_Id,
+      esCv_Id: this.empleado.esCv_Id,
+      carg_Id: this.empleado.carg_Id,
+      colo_Id: this.empleado.colo_Id,
+      empl_DireccionExacta: this.empleado.empl_DireccionExacta,
+      empl_Imagen: this.empleado.empl_Imagen,
+      empl_Estado: true,
+      usua_Creacion: getUserId(),// varibale global, obtiene el valor del environment, esto por mientras
+      empl_FechaCreacion: new Date().toISOString(),
+      usua_Modificacion: 0,
+      empl_FechaModificacion: new Date().toISOString(),
       };
       
-      console.log('Datos a enviar al backend:', empleadoGuardar);
-      console.log('URL de la imagen (empl_Imagen):', empleadoGuardar.empl_Imagen);
+      //console.log('Datos a enviar al backend:', empleadoGuardar);
+      //console.log('URL de la imagen (empl_Imagen):', empleadoGuardar.empl_Imagen);
         
       this.http.post<any>(`${environment.apiBaseUrl}/Empleado/Insertar`, empleadoGuardar, {
       headers: { 
@@ -194,7 +227,7 @@ export class CreateComponent {
       }
       }).subscribe({
       next: (response) => {
-      console.log('Empleado guardado exitosamente:', response);
+      //console.log('Empleado guardado exitosamente:', response);
       this.mensajeExito = `Empleado "${this.empleado.empl_Nombres}" guardado exitosamente`;
       this.mostrarAlertaExito = true;
       this.mostrarErrores = false;
@@ -222,20 +255,20 @@ export class CreateComponent {
       }, 5000);
       }
       });
-    } else {
-    // Mostrar alerta de warning para campos vacíos
-    this.mostrarAlertaWarning = true;
-    this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
-    this.mostrarAlertaError = false;
-    this.mostrarAlertaExito = false;
-      
-    // Ocultar la alerta de warning después de 4 segundos
-    setTimeout(() => {
-    this.mostrarAlertaWarning = false;
-    this.mensajeWarning = '';
-    }, 4000);
-    }
-    }
+      } else {
+      // Mostrar alerta de warning para campos vacíos
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
+      this.mostrarAlertaError = false;
+      this.mostrarAlertaExito = false;
+        
+      // Ocultar la alerta de warning después de 4 segundos
+      setTimeout(() => {
+      this.mostrarAlertaWarning = false;
+      this.mensajeWarning = '';
+      }, 4000);
+      }
+      }
 
 
     //Selects
