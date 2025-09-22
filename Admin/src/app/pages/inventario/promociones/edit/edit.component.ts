@@ -148,7 +148,12 @@ export class EditComponent implements OnInit, OnChanges {
       this.producto.prod_PagaImpuesto = this.producto.prod_PagaImpuesto || 'N';
       this.producto.impu_Id = this.producto.impu_Id || 0;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       console.log('Productos cargados:', this.producto);
+=======
+
+   
+>>>>>>> Stashed changes
 =======
 
    
@@ -160,8 +165,12 @@ export class EditComponent implements OnInit, OnChanges {
         clientesLista = JSON.parse(jsonRaw);
       } catch (error) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         console.warn('Error parsing clientes JSON:', error);
         console.log('Raw clientes data:', this.producto.clientes);
+=======
+
+>>>>>>> Stashed changes
 =======
 
 >>>>>>> Stashed changes
@@ -174,7 +183,11 @@ export class EditComponent implements OnInit, OnChanges {
      
         let productosRaw = this.producto.productos ?? '[]';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         console.log('Raw productos data:', productosRaw);
+=======
+
+>>>>>>> Stashed changes
 =======
 
 >>>>>>> Stashed changes
@@ -194,8 +207,12 @@ export class EditComponent implements OnInit, OnChanges {
         
       } catch (error) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         console.warn('Error parsing productos JSON:', error);
         console.log('Raw productos data:', this.producto.productos);
+=======
+      
+>>>>>>> Stashed changes
 =======
       
 >>>>>>> Stashed changes
@@ -207,7 +224,11 @@ export class EditComponent implements OnInit, OnChanges {
       // Importante: crear copias para evitar referencias compartidas que impidan detectar cambios
       this.producto.idClientes = [...clientesIds];
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       console.log('Productos lista:', productosLista);
+=======
+   
+>>>>>>> Stashed changes
 =======
    
 >>>>>>> Stashed changes
@@ -241,7 +262,11 @@ export class EditComponent implements OnInit, OnChanges {
   }));
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   console.log('Cantidades aplicadas a productos:', cantidadesPorProducto);
+=======
+
+>>>>>>> Stashed changes
 =======
 
 >>>>>>> Stashed changes
@@ -251,8 +276,12 @@ export class EditComponent implements OnInit, OnChanges {
       this.clientesSeleccionados = [...clientesIds];
       
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       console.log('Clientes seleccionados cargados:', this.clientesSeleccionados);
       console.log('Productos cargados:', this.productos);
+=======
+    
+>>>>>>> Stashed changes
 =======
     
 >>>>>>> Stashed changes
@@ -339,7 +368,11 @@ export class EditComponent implements OnInit, OnChanges {
           this.producto.prod_Imagen = `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
           this.mostrarOverlayCarga = false;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
           console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
+=======
+ 
+>>>>>>> Stashed changes
 =======
  
 >>>>>>> Stashed changes
@@ -600,7 +633,11 @@ if (serializeProductos(productosOriginal) !== serializeProductos(productosActual
         return;
       }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       console.log('Datos a actualizar:', promocionActualizar);
+=======
+
+>>>>>>> Stashed changes
 =======
 
 >>>>>>> Stashed changes
