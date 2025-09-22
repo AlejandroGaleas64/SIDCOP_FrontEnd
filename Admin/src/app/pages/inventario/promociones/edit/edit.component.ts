@@ -147,33 +147,14 @@ export class EditComponent implements OnInit, OnChanges {
       this.producto.prod_EsPromo = this.producto.prod_EsPromo || 'N';
       this.producto.prod_PagaImpuesto = this.producto.prod_PagaImpuesto || 'N';
       this.producto.impu_Id = this.producto.impu_Id || 0;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-      console.log('Productos cargados:', this.producto);
-=======
 
-   
->>>>>>> Stashed changes
-=======
-
-   
->>>>>>> Stashed changes
       // Parseo seguro de clientes
       let clientesLista: any[] = [];
       try {
         const jsonRaw = this.producto.clientes?.replace(/\\"/g, '"').replace(/^"|"$/g, '') ?? '[]';
         clientesLista = JSON.parse(jsonRaw);
       } catch (error) {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        console.warn('Error parsing clientes JSON:', error);
-        console.log('Raw clientes data:', this.producto.clientes);
-=======
 
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
         clientesLista = [];
       }
 
@@ -182,15 +163,6 @@ export class EditComponent implements OnInit, OnChanges {
       try {
      
         let productosRaw = this.producto.productos ?? '[]';
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        console.log('Raw productos data:', productosRaw);
-=======
-
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
         
        
          if (typeof productosRaw === 'string') {
@@ -206,16 +178,10 @@ export class EditComponent implements OnInit, OnChanges {
         productosLista = JSON.parse(productosRaw);
         
       } catch (error) {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+
         console.warn('Error parsing productos JSON:', error);
         console.log('Raw productos data:', this.producto.productos);
-=======
-      
->>>>>>> Stashed changes
-=======
-      
->>>>>>> Stashed changes
+
         productosLista = [];
       }
 
@@ -223,15 +189,7 @@ export class EditComponent implements OnInit, OnChanges {
       const clientesIds = clientesLista.map((c: any) => c.id);
       // Importante: crear copias para evitar referencias compartidas que impidan detectar cambios
       this.producto.idClientes = [...clientesIds];
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-      console.log('Productos lista:', productosLista);
-=======
-   
->>>>>>> Stashed changes
-=======
-   
->>>>>>> Stashed changes
+
       // Transformar y aplicar las cantidades de productos seleccionados
       if (productosLista.length > 0) {
   // Normaliza los IDs si vienen como 'id' en vez de 'prod_Id'
@@ -261,30 +219,19 @@ export class EditComponent implements OnInit, OnChanges {
     prDe_Cantidad: item.cantidad
   }));
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+
+
   console.log('Cantidades aplicadas a productos:', cantidadesPorProducto);
-=======
 
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
 }
       
       // Copia independiente para que las mutaciones del UI no modifiquen el arreglo original por referencia
       this.clientesSeleccionados = [...clientesIds];
       
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+
       console.log('Clientes seleccionados cargados:', this.clientesSeleccionados);
       console.log('Productos cargados:', this.productos);
-=======
-    
->>>>>>> Stashed changes
-=======
-    
->>>>>>> Stashed changes
+
 
   }}
 
@@ -367,15 +314,7 @@ export class EditComponent implements OnInit, OnChanges {
           const baseUrl = environment.apiBaseUrl.replace('/api', '');
           this.producto.prod_Imagen = `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
           this.mostrarOverlayCarga = false;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-          console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
-=======
- 
->>>>>>> Stashed changes
-=======
- 
->>>>>>> Stashed changes
+
         })
         .catch(error => {
           console.error('Error al subir la imagen:', error);
@@ -632,15 +571,7 @@ if (serializeProductos(productosOriginal) !== serializeProductos(productosActual
         setTimeout(() => this.cerrarAlerta(), 4000);
         return;
       }
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-      console.log('Datos a actualizar:', promocionActualizar);
-=======
 
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
       this.mostrarOverlayCarga = true;
       this.http.put<any>(`${environment.apiBaseUrl}/Promociones/Actualizar`, promocionActualizar, {
         headers: {
