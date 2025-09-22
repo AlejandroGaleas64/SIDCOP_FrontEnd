@@ -501,6 +501,11 @@ getFinRegistro(): number {
       )
       .subscribe({
         next: (productos) => {
+          // Aplicar corrección de URLs de imágenes
+          productos.forEach((item: any) => {
+            item.prod_Imagen = item.prod_Imagen.includes("http") ? item.prod_Imagen : environment.apiBaseUrl + item.prod_Imagen;
+          });
+
           // Mapear productos para agregar cantidad y precio
           this.productos = productos.map((producto: any) => ({
             ...producto,
