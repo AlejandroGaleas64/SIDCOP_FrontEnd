@@ -19,11 +19,9 @@ export class EditComponent implements OnInit, OnChanges {
   @Output() onSave = new EventEmitter<Colonias>();
   @Output() onCancel = new EventEmitter<void>();
 
-  // Devuelve la lista de cambios detectados para el modal de confirmación
   obtenerListaCambios() {
     const cambios = [];
     
-    // Comparar descripción
     if (this.coloniaEditada.colo_Descripcion?.trim() !== this.coloniaOriginal?.trim()) {
       cambios.push({
         label: 'Descripción',
@@ -32,7 +30,6 @@ export class EditComponent implements OnInit, OnChanges {
       });
     }
     
-    // Comparar municipio
     const municipioOriginal = this.coloniaData?.muni_Codigo || '';
     const municipioActual = this.coloniaEditada.muni_Codigo || '';
     if (municipioActual !== municipioOriginal) {
@@ -120,7 +117,6 @@ export class EditComponent implements OnInit, OnChanges {
     this.mostrarErrores = true;
 
     if ((this.coloniaEditada.colo_Descripcion ?? '').trim() && (this.coloniaEditada.muni_Codigo ?? '').trim()) {
-      // Compara todos los campos relevantes para detectar cambios
       const descripcionOriginal = (this.coloniaOriginal ?? '').trim();
       const descripcionActual = (this.coloniaEditada.colo_Descripcion ?? '').trim();
       const muniCodigoOriginal = (this.coloniaData?.muni_Codigo ?? '').trim();
