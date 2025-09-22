@@ -282,6 +282,11 @@ export class EditComponent implements OnInit, OnChanges {
       )
       .subscribe({
         next: (productos) => {
+          // Aplicar corrección de URLs de imágenes
+          productos.forEach((item: any) => {
+            item.prod_Imagen = item.prod_Imagen.includes("http") ? item.prod_Imagen : environment.apiBaseUrl + item.prod_Imagen;
+          });
+
           // Paso 2.1: Parsear productos con lógica adicional
           this.productos = productos.map((producto: any) => {
             const detalleExistente = this.pedidoEditada.detalles?.find(
@@ -403,6 +408,11 @@ export class EditComponent implements OnInit, OnChanges {
       })
       .subscribe({
         next: (data) => {
+          // Aplicar corrección de URLs de imágenes
+          data.forEach((item: any) => {
+            item.prod_Imagen = item.prod_Imagen.includes("http") ? item.prod_Imagen : environment.apiBaseUrl + item.prod_Imagen;
+          });
+
           this.productos = data.map((producto: any) => ({
             ...producto,
             cantidad: 0,
