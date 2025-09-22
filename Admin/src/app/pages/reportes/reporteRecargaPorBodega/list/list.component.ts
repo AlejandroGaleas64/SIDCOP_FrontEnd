@@ -44,7 +44,7 @@ export class ReporteRecargasPorBodegaComponent implements OnInit, OnDestroy {
     const select = event.target as HTMLSelectElement;
     const value = select.value;
     this.bodeSelectedId = value ? parseInt(value) : null;
-    console.log('Bodega seleccionada:', this.bodeSelectedId);
+    //console.log('Bodega seleccionada:', this.bodeSelectedId);
   }
 
   generarReporte() {
@@ -56,7 +56,7 @@ export class ReporteRecargasPorBodegaComponent implements OnInit, OnDestroy {
       params.bodega = this.bodeSelectedId;
     }
 
-    console.log('Generando reporte con parámetros:', params);
+    //console.log('Generando reporte con parámetros:', params);
 
     this.http.get<any[]>(`${environment.apiBaseUrl}/Reportes/ReporteRecargasPorBodega`, {
       headers: { 'x-api-key': environment.apiKey },
@@ -84,7 +84,7 @@ export class ReporteRecargasPorBodegaComponent implements OnInit, OnDestroy {
     const bode_Descripcion = bodegaSeleccionada?.bode_Descripcion || 'Todas las Bodegas';
 
     const config: ReportConfig = {
-      titulo: 'Reporte de Recargos por Bodega',
+      titulo: 'Reporte de Recargas por Bodega',
       orientacion: 'landscape',
       mostrarResumen: true,
       textoResumen: `Bodega: ${bode_Descripcion} - Total de recargos: ${this.recargos.length}`,
@@ -95,11 +95,11 @@ export class ReporteRecargasPorBodegaComponent implements OnInit, OnDestroy {
       head: [
         [
           { content: '#', styles: { halign: 'center', cellWidth: 20 } },
-          { content: 'Bodega', styles: { halign: 'center', cellWidth: 33 } },
-          { content: 'Productos', styles: { halign: 'center', cellWidth: 90 } },
-          { content: 'Observaciones', styles: { halign: 'center', cellWidth: 45 } },
-          { content: 'Estado', styles: { halign: 'center', cellWidth: 35 } },
-          { content: 'Fecha', styles: { halign: 'center', cellWidth: 35 } },
+          { content: 'Bodega', styles: { halign: 'center', cellWidth: 30 } },
+          { content: 'Productos', styles: { halign: 'center', cellWidth: 85 } },
+          { content: 'Observaciones', styles: { halign: 'center', cellWidth: 40 } },
+          { content: 'Estado', styles: { halign: 'center', cellWidth: 30 } },
+          { content: 'Fecha', styles: { halign: 'center', cellWidth: 30 } },
         ]
       ],
       body: this.recargos.map((recargo, index) => [
@@ -109,7 +109,7 @@ export class ReporteRecargasPorBodegaComponent implements OnInit, OnDestroy {
         },
         { 
           content: this.validarCampo(recargo.bode_Descripcion), 
-          styles: { halign: 'left', cellWidth: 33, fontSize: 8, valign: 'top' } 
+          styles: { halign: 'center', cellWidth: 33, fontSize: 8, valign: 'top' } 
         },
         { 
           content: this.formatearProductos(recargo.prod_DescripcionCorta), 
@@ -117,7 +117,7 @@ export class ReporteRecargasPorBodegaComponent implements OnInit, OnDestroy {
         },
         { 
           content: this.validarCampo(recargo.reca_Observaciones), 
-          styles: { halign: 'left', cellWidth: 45, fontSize: 7, valign: 'top', lineHeight: 1.2 } 
+          styles: { halign: 'center', cellWidth: 45, fontSize: 7, valign: 'top', lineHeight: 1.2 } 
         },
         { 
           content: this.formatearConfirmacion(recargo.reca_Confirmacion), 

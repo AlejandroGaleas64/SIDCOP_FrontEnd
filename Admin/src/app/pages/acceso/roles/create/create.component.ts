@@ -92,7 +92,7 @@ export class CreateComponent {
         this.cargarPantallas();
       },
       error: (err) => {
-        console.error('Error cargando acciones por pantalla:', err);
+        // console.error('Error cargando acciones por pantalla:', err);
         this.accionesPorPantalla = [];
         this.cargarPantallas();
       }
@@ -175,7 +175,7 @@ export class CreateComponent {
           });
 
         } catch (e) {
-          console.error('No se pudo parsear:', e);
+          // console.error('No se pudo parsear:', e);
         }
       },
       error: err => console.error('Error al cargar pantallas:', err)
@@ -336,7 +336,7 @@ export class CreateComponent {
             }).catch(error => {
               this.mostrarAlertaError = true;
               this.mensajeError = 'Error al guardar permisos.';
-              console.error(error);
+              // console.error(error);
             });
           },
           error: () => {
@@ -348,7 +348,7 @@ export class CreateComponent {
       error: error => {
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al guardar el rol.';
-        console.error(error);
+        // console.error(error);
       }
     });
   }

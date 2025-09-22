@@ -25,9 +25,15 @@
       <!-- LOGO DE LA EMPRESA -->
       <div class="col-12 col-md-4 d-flex flex-column justify-content-center align-items-center mb-4 mb-md-0"
         style="min-height: 220px;">
-        <div style="width:120px; height:120px; border:1px solid #d6b68a; border-radius:8px; overflow:hidden;">
+        <!-- SVG Preview when a file is selected but not yet uploaded -->
+        <app-svg-preview *ngIf="selectedFile && isSvgFile && !configFactura.coFa_Logo" 
+          [file]="selectedFile" [width]="120" [height]="120" alt="Logo de la Empresa (SVG Preview)"></app-svg-preview>
+        
+        <!-- Regular image preview for uploaded images -->
+        <div *ngIf="!selectedFile || !isSvgFile || configFactura.coFa_Logo" 
+             style="width:120px; height:120px; border:1px solid #d6b68a; border-radius:8px; overflow:hidden;">
           <img *ngIf="configFactura.coFa_Logo" [src]="getImageDisplayUrl(configFactura.coFa_Logo)" alt="Logo de la Empresa"
-            style="width:120px; height:120px; object-fit:cover;" />
+            style="width:120px; height:120px; object-fit:contain; object-position:center;" />
           <div *ngIf="!configFactura.coFa_Logo"
             style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
             <i class="ri-camera-line" style="font-size: 2rem; color: #878c9c;"></i>

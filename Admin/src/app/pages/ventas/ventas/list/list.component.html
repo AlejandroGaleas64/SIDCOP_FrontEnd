@@ -148,17 +148,149 @@
                     Acciones
                   </th>
 
-                  <th class="gridjs-th">No.</th>
-                  <th class="gridjs-th">Número</th>
-                  <th class="gridjs-th">Fecha Emisión</th>
-                  <th class="gridjs-th">Tipo Venta</th>
-                  <th class="gridjs-th">Cliente</th>
-                  <th class="gridjs-th">Negocio</th>
-                  <th class="gridjs-th">Vendedor</th>
-                  <th class="gridjs-th text-end">Subtotal</th>
-                  <th class="gridjs-th text-end">Imp. 15%</th>
-                  <th class="gridjs-th text-end">Imp. 18%</th>
-                  <th class="gridjs-th text-end">Total</th>
+                  <th class="gridjs-th" (click)="table.sortBy('secuencia')" style="cursor:pointer;">
+                    <span class="table-header-flex">
+                      No.
+                      <span style="display: flex; flex-direction: column;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'secuencia' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'secuencia' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="table.sortBy('fact_Numero')" style="cursor:pointer;">
+                    <span class="table-header-flex">
+                      Número
+                      <span style="display: flex; flex-direction: column;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'fact_Numero' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'fact_Numero' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="table.sortBy('fact_FechaEmision')" style="cursor:pointer;">
+                    <span class="table-header-flex">
+                      Fecha Emisión
+                      <span style="display: flex; flex-direction: column;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'fact_FechaEmision' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'fact_FechaEmision' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="table.sortBy('fact_TipoVenta')" style="cursor:pointer;">
+                    <span class="table-header-flex">
+                      Tipo Venta
+                      <span style="display: flex; flex-direction: column;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'fact_TipoVenta' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'fact_TipoVenta' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="table.sortBy('clie_NombreCompleto')" style="cursor:pointer;">
+                    <span class="table-header-flex">
+                      Cliente
+                      <span style="display: flex; flex-direction: column;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'clie_NombreCompleto' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'clie_NombreCompleto' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="table.sortBy('clie_NombreNegocio')" style="cursor:pointer;">
+                    <span class="table-header-flex">
+                      Negocio
+                      <span style="display: flex; flex-direction: column;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'clie_NombreNegocio' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'clie_NombreNegocio' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="table.sortBy('vend_NombreCompleto')" style="cursor:pointer;">
+                    <span class="table-header-flex">
+                      Vendedor
+                      <span style="display: flex; flex-direction: column;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'vend_NombreCompleto' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'vend_NombreCompleto' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th text-end" (click)="table.sortBy('fact_Subtotal')" style="cursor:pointer;">
+                    <span class="table-header-flex justify-content-end">
+                      Subtotal
+                      <span style="display: flex; flex-direction: column;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'fact_Subtotal' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'fact_Subtotal' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th text-end" (click)="table.sortBy('fact_TotalImpuesto15')" style="cursor:pointer;">
+                    <span class="table-header-flex justify-content-end">
+                      Imp. 15%
+                      <span style="display: flex; flex-direction: column;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'fact_TotalImpuesto15' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'fact_TotalImpuesto15' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th text-end" (click)="table.sortBy('fact_TotalImpuesto18')" style="cursor:pointer;">
+                    <span class="table-header-flex justify-content-end">
+                      Imp. 18%
+                      <span style="display: flex; flex-direction: column;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'fact_TotalImpuesto18' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'fact_TotalImpuesto18' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th text-end" (click)="table.sortBy('fact_Total')" style="cursor:pointer;">
+                    <span class="table-header-flex justify-content-end">
+                      Total
+                      <span style="display: flex; flex-direction: column;">
+                        <i class="ri-arrow-up-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'fact_Total' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort"
+                          [ngStyle]="table.sortField === 'fact_Total' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -185,15 +317,13 @@
                   <td>{{ data.fact_Numero }}</td>
 
                   <td>{{ data.fact_FechaEmision | date : "dd/MM/yyyy" }}</td>
-                  <td>
-                    {{
-                      data.fact_TipoVenta === "CR"
-                        ? "Crédito"
-                        : data.fact_TipoVenta === "CO"
-                        ? "Contado"
-                        : data.fact_TipoVenta
-                    }}
-                  </td>
+<td>
+  {{
+    (data.fact_TipoVenta?.toLowerCase() === 'cr' && 'Crédito') ||
+    (data.fact_TipoVenta?.toLowerCase() === 'co' && 'Contado') ||
+    data.fact_TipoVenta || ''
+  }}
+</td>
                   <td>{{ data.clie_NombreCompleto }}</td>
                   <td>{{ data.clie_NombreNegocio }}</td>
                   <td>{{ data.vend_NombreCompleto }}</td>
@@ -241,7 +371,6 @@
                   [ngModel]="table.page"
                   [itemsPerPage]="table.pageSizeValue"
                   [maxSize]="5"
-                  [boundaryLinks]="true"
                   [rotate]="true"
                   (ngModelChange)="table.setPage($event)"
                   (pageChanged)="table.setPage($event.page)"

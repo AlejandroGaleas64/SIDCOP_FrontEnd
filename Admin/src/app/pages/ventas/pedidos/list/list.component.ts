@@ -365,14 +365,14 @@ export class ListComponent implements OnInit {
 
     // Obtener acciones disponibles del usuario (ejemplo: desde API o localStorage)
     this.cargarAccionesUsuario();
-    //console.log('Acciones disponibles:', this.accionesDisponibles);
+    ////console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
   // Cierra el dropdown si se hace click fuera
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
+    //console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -380,10 +380,7 @@ export class ListComponent implements OnInit {
   }
 
   editar(pedido: Pedido): void {
-    console.log('Abriendo formulario de edición para:', pedido);
-    console.log('Datos específicos:', {
-      completo: pedido,
-    });
+   
     this.PedidoEditando = { ...pedido }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -392,7 +389,7 @@ export class ListComponent implements OnInit {
   }
 
   detalles(pedido: Pedido): void {
-    console.log('Abriendo detalles para:', pedido);
+    //console.log('Abriendo detalles para:', pedido);
     this.PedidoDetalle = { ...pedido }; // Hacer copia profunda
     this.showDetailsForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -468,10 +465,7 @@ export class ListComponent implements OnInit {
   }
 
   actualizarPedido(pedido: Pedido): void {
-    console.log(
-      'Pedido actualizado exitosamente desde edit component:',
-      pedido
-    );
+ 
     // Recargar los datos de la tabla
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
@@ -487,7 +481,7 @@ export class ListComponent implements OnInit {
   }
 
   confirmarEliminar(pedido: Pedido): void {
-    console.log('Solicitando confirmación para eliminar:', pedido);
+    //console.log('Solicitando confirmación para eliminar:', pedido);
     this.PedidoEliminar = pedido;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones
@@ -501,7 +495,7 @@ export class ListComponent implements OnInit {
   eliminar(): void {
     if (!this.PedidoEliminar) return;
 
-    console.log('Eliminando estado civil:', this.PedidoEliminar);
+    //console.log('Eliminando estado civil:', this.PedidoEliminar);
     this.mostrarOverlayCarga = true;
     this.http
       .post(
@@ -516,14 +510,14 @@ export class ListComponent implements OnInit {
       )
       .subscribe({
         next: (response: any) => {
-          console.log('Respuesta del servidor:', response);
+          //console.log('Respuesta del servidor:', response);
 
           // Verificar el código de estado en la respuesta
           if (response.success && response.data) {
-            console.log('Respuesta exitosa del servidor:', response.data);
+            //console.log('Respuesta exitosa del servidor:', response.data);
             if (response.data.code_Status === 1) {
               // Éxito: eliminado correctamente
-              console.log('Punto de Emision exitosamente');
+              //console.log('Punto de Emision exitosamente');
               this.mensajeExito = `Pedido de "${
                 this.PedidoEliminar!.clie_NombreNegocio
               }" eliminado exitosamente`;
@@ -540,7 +534,7 @@ export class ListComponent implements OnInit {
               this.mostrarOverlayCarga = false;
             } else if (response.data.code_Status === -1) {
               //result: está siendo utilizado
-              console.log('Pedido está siendo utilizado');
+              //console.log('Pedido está siendo utilizado');
               this.mostrarAlertaError = true;
               this.mensajeError =
                 response.data.message_Status ||
@@ -556,7 +550,7 @@ export class ListComponent implements OnInit {
               this.mostrarOverlayCarga = false;
             } else if (response.data.code_Status === 0) {
               // Error general
-              console.log('Error general al eliminar');
+              //console.log('Error general al eliminar');
               this.mostrarAlertaError = true;
               this.mensajeError =
                 response.data.message_Status || 'Error al eliminar el pedido.';
@@ -572,7 +566,7 @@ export class ListComponent implements OnInit {
             }
           } else {
             // Respuesta inesperada
-            console.log('Respuesta inesperada del servidor');
+            //console.log('Respuesta inesperada del servidor');
             this.mostrarAlertaError = true;
             this.mensajeError =
               response.message ||
@@ -602,7 +596,7 @@ export class ListComponent implements OnInit {
   private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+    //console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -630,7 +624,7 @@ export class ListComponent implements OnInit {
     this.accionesDisponibles = accionesArray
       .filter((a) => typeof a === 'string' && a.length > 0)
       .map((a) => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
+    //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   // ...existing code...

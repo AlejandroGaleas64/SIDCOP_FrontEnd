@@ -322,7 +322,6 @@ export class DetailsComponent implements OnChanges, OnDestroy {
         this.cargando = false;
       },
       error: (error) => {
-        console.error('Error al cargar detalles del factura:', error);
         if (error.status === 401 || error.status === 403) {
           this.mensajeError = 'No tiene permisos para ver este factura o su sesión ha expirado.';
         } else {
@@ -375,7 +374,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
           this.mostrarMensajeExito(`Factura ${facturaData.fact_Numero || 'N/A'} enviada a impresión correctamente`);
           
         } else {
-          console.log("Error/s", printerStatus.errors);
+          //console.log("Error/s", printerStatus.errors);
           this.mostrarMensajeError(`Error en la impresora: ${printerStatus.errors}`);
         }
 
@@ -530,7 +529,6 @@ export class DetailsComponent implements OnChanges, OnDestroy {
     try {
       this.invoiceService.generarFacturaPDF();
     } catch(error) {
-      console.log("error", error);
     }
   }
 
@@ -644,7 +642,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
 
             browserPrint.print(zpl);
         } else {
-        console.log("Error/s", printerStatus.errors);
+        //console.log("Error/s", printerStatus.errors);
         }
 
     } catch (error: any) {

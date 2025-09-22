@@ -85,17 +85,17 @@ export class ReporteProductosPorRutaComponent implements OnInit {
   // Ordenar los datos para agrupar por DNI, Vendedor y Ruta
   private ordenarDatos(productos: any[]): any[] {
     return productos.sort((a, b) => {
-      // Primero por DNI
+      // Primero por Ruta
+      if (a.ruta_Descripcion !== b.ruta_Descripcion) {
+        return a.ruta_Descripcion.localeCompare(b.ruta_Descripcion);
+      }
+      // Luego por DNI
       if (a.vend_DNI !== b.vend_DNI) {
         return a.vend_DNI.localeCompare(b.vend_DNI);
       }
-      // Luego por Vendedor
+      // Después por Vendedor
       if (a.nombreCompleto !== b.nombreCompleto) {
         return a.nombreCompleto.localeCompare(b.nombreCompleto);
-      }
-      // Finalmente por Ruta
-      if (a.ruta_Descripcion !== b.ruta_Descripcion) {
-        return a.ruta_Descripcion.localeCompare(b.ruta_Descripcion);
       }
       // Por último por Producto
       return a.prod_DescripcionCorta.localeCompare(b.prod_DescripcionCorta);
@@ -103,64 +103,28 @@ export class ReporteProductosPorRutaComponent implements OnInit {
   }
 
   // Generar las filas con rowSpan para celdas combinadas
-  private generarFilasConRowSpan(): FilaTabla[][] {
-    const filas: FilaTabla[][] = [];
-    let contadorVendedores = 0;
+  private generarFilasSinRowSpan(): any[][] {
+    const filas: any[][] = [];
+    let contadorRutas = 0;
+    let rutaAnterior = '';
     
     for (let i = 0; i < this.productos.length; i++) {
       const producto = this.productos[i];
-      const fila: FilaTabla[] = [];
+      const fila: any[] = [];
 
-    // Columna # (solo se muestra cuando es un nuevo vendedor)
-    const rowSpanDNI = this.calcularRowSpan(i, 'vend_DNI');
-    if (rowSpanDNI > 0) {
-      contadorVendedores++;
-      fila.push({
-        content: contadorVendedores.toString(),
-        rowSpan: rowSpanDNI,
-        styles: { halign: 'center', valign: 'middle' }
-      });
-    }
-
-      // Columna DNI
-      if (rowSpanDNI > 0) {
-        fila.push({
-          content: producto.vend_DNI || 'N/A',
-          rowSpan: rowSpanDNI,
-          styles: { halign: 'center', valign: 'middle' }
-        });
+      // Incrementar contador solo cuando cambia la ruta
+      if (producto.ruta_Descripcion !== rutaAnterior) {
+        contadorRutas++;
+        rutaAnterior = producto.ruta_Descripcion;
       }
 
-      // Columna Vendedor
-      const rowSpanVendedor = this.calcularRowSpan(i, 'nombreCompleto', 'vend_DNI');
-      if (rowSpanVendedor > 0) {
-        fila.push({
-          content: producto.nombreCompleto || 'N/A',
-          rowSpan: rowSpanVendedor,
-          styles: { halign: 'center', valign: 'middle' }
-        });
-      }
-
-      // Columna Ruta
-      const rowSpanRuta = this.calcularRowSpan(i, 'ruta_Descripcion', 'vend_DNI', 'nombreCompleto');
-      if (rowSpanRuta > 0) {
-        fila.push({
-          content: producto.ruta_Descripcion || 'N/A',
-          rowSpan: rowSpanRuta,
-          styles: { halign: 'center', valign: 'middle' }
-        });
-      }
-
-      // Columna Producto (siempre se muestra)
-      fila.push({
-        content: producto.prod_DescripcionCorta || 'N/A'
-      });
-
-      // Columna Cantidad (siempre se muestra)
-      fila.push({
-        content: (producto.cantidadVendida || 0).toString(),
-        styles: { halign: 'center' }
-      });
+      // Todas las columnas se muestran en cada fila (sin rowSpan)
+      fila.push(contadorRutas.toString());
+      fila.push(producto.ruta_Descripcion || 'N/A');
+      fila.push(producto.vend_DNI || 'N/A');
+      fila.push(producto.nombreCompleto || 'N/A');
+      fila.push(producto.prod_DescripcionCorta || 'N/A');
+      fila.push((producto.cantidadVendida || 0).toString());
 
       filas.push(fila);
     }
@@ -168,57 +132,7 @@ export class ReporteProductosPorRutaComponent implements OnInit {
     return filas;
   }
 
-  // Calcular cuántas filas debe abarcar una celda
-  private calcularRowSpan(indiceActual: number, campo: string, ...camposAdicionales: string[]): number {
-    const productoActual = this.productos[indiceActual];
-    
-    // Verificar si debemos mostrar esta celda
-    if (indiceActual > 0) {
-      const productoAnterior = this.productos[indiceActual - 1];
-      
-      // Verificar si algún campo de dependencia cambió
-      for (const campoAdicional of camposAdicionales) {
-        if (productoAnterior[campoAdicional] !== productoActual[campoAdicional]) {
-          // Si cambió un campo de dependencia, mostrar esta celda
-          break;
-        }
-      }
-      
-      // Si todos los campos de dependencia son iguales
-      const todosLosCamposDependenciaIguales = camposAdicionales.every(campoAdicional => 
-        productoAnterior[campoAdicional] === productoActual[campoAdicional]
-      );
-      
-      // Y el campo actual también es igual, entonces no mostrar
-      if (todosLosCamposDependenciaIguales && productoAnterior[campo] === productoActual[campo]) {
-        return 0; // No mostrar esta celda
-      }
-    }
-
-    // Contar cuántas filas consecutivas tienen el mismo valor para este campo y sus dependencias
-    let count = 1;
-    for (let i = indiceActual + 1; i < this.productos.length; i++) {
-      const siguienteProducto = this.productos[i];
-      
-      // Verificar si el campo actual es diferente
-      if (siguienteProducto[campo] !== productoActual[campo]) break;
-      
-      // Verificar si algún campo de dependencia es diferente
-      let algunCampoDependendenciaDiferente = false;
-      for (const campoAdicional of camposAdicionales) {
-        if (siguienteProducto[campoAdicional] !== productoActual[campoAdicional]) {
-          algunCampoDependendenciaDiferente = true;
-          break;
-        }
-      }
-      
-      if (algunCampoDependendenciaDiferente) break;
-      count++;
-    }
-
-    return count;
-  }
-
+  // 2. Método generarPDF() actualizado para usar filas sin rowSpan
   async generarPDF() {
     // CONFIGURACIÓN DEL REPORTE
     const config: ReportConfig = {
@@ -228,26 +142,81 @@ export class ReporteProductosPorRutaComponent implements OnInit {
       textoResumen: `Total de productos vendidos: ${this.productos.reduce((total, producto) => total + (producto.cantidadVendida || 0), 0)}`
     };
 
-    // DATOS DE LA TABLA CON CELDAS COMBINADAS
-    const filasConRowSpan = this.generarFilasConRowSpan();
+    // USAR EL MÉTODO SIN ROWSPAN
+    const filasTabla = this.generarFilasSinRowSpan();
     
     const tableData: TableData = {
       head: [
         [
           { content: '#', styles: { halign: 'center', cellWidth: 20 } },
+          { content: 'Ruta', styles: { cellWidth: 50, halign: 'center' } },
           { content: 'DNI', styles: { cellWidth: 50, halign: 'center' } },
           { content: 'Vendedor', styles: { cellWidth: 65, halign: 'center' } },
-          { content: 'Ruta', styles: { cellWidth: 50, halign: 'center' } },
           { content: 'Producto', styles: { cellWidth: 60, halign: 'center' } },
           { content: 'Cantidad', styles: { cellWidth: 20, halign: 'center' } }
         ]
       ],
-      body: filasConRowSpan
+      body: filasTabla
+    };
+
+    // Estilos personalizados para resaltar cambios de ruta y vendedor
+    const tableStyles = {
+      didParseCell: (data: any) => {
+        const rowIndex = data.row.index;
+        const colIndex = data.column.index;
+        
+        // Variables para detectar cambios
+        let esInicioDeNuevaRuta = false;
+        let esInicioDeNuevoVendedor = false;
+        
+        if (rowIndex === 0) {
+          // Primera fila siempre es inicio de ruta
+          esInicioDeNuevaRuta = true;
+        } else if (rowIndex > 0) {
+          // Comparar con la fila anterior
+          const filaActual = filasTabla[rowIndex];
+          const filaAnterior = filasTabla[rowIndex - 1];
+          
+          // Verificar si cambió la ruta
+          if (filaActual[1] !== filaAnterior[1]) { // Columna 1 es la ruta
+            esInicioDeNuevaRuta = true;
+          }
+          // Verificar si cambió el vendedor (pero la ruta es la misma)
+          else if (filaActual[1] === filaAnterior[1] && filaActual[3] !== filaAnterior[3]) { // Misma ruta, distinto vendedor (columna 3)
+            esInicioDeNuevoVendedor = true;
+          }
+        }
+        
+        // CASO 1: Nueva ruta completa - Estilo dorado para todas las columnas relevantes
+        if (esInicioDeNuevaRuta) {
+          if (colIndex <= 3) { // Columnas: #, Ruta, DNI, Vendedor
+            data.cell.styles.textColor = [20, 25, 45]; // Color dorado (#D6B68A)
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+        // CASO 2: Nuevo vendedor en la misma ruta - Solo resaltar DNI y Vendedor
+        else if (esInicioDeNuevoVendedor) {
+          if (colIndex === 2 || colIndex === 3) { // Solo columnas DNI y Vendedor
+            data.cell.styles.textColor = [20, 25, 45]; // Color dorado (#D6B68A)
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+        
+        // Centrar contenido de ciertas columnas
+        if (colIndex === 0 || colIndex === 2 || colIndex === 5) { // #, DNI, Cantidad
+          data.cell.styles.halign = 'center';
+        }
+        
+        // Centrar contenido de ruta y vendedor también
+        if (colIndex === 1 || colIndex === 3) { // Ruta, Vendedor
+          data.cell.styles.halign = 'center';
+        }
+      }
     };
 
     // GENERAR EL PDF
     try {
-      const pdfBlob = await this.pdfService.generarReportePDF(config, tableData, this.productos);
+      const pdfBlob = await this.pdfService.generarReportePDF(config, tableData, this.productos, tableStyles);
       const pdfUrl = URL.createObjectURL(pdfBlob);
       this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
     } catch (error) {

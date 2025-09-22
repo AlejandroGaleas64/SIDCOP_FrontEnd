@@ -1,108 +1,136 @@
 <div class="d-flex flex-column" style="height: 100%; min-height: 250px;">
-    <!-- Título del componente -->
-    <h5 class="card-title mb-4">Editar Estado de Visita<span class="text-danger">*</span></h5>
-    
-    <!-- Contenedor de alertas flotantes -->
-    <div class="alert-container">
-      <!-- Alerta de éxito -->
-      <div *ngIf="mostrarAlertaExito" class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
-        <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
-        <strong>¡Éxito!</strong> {{ mensajeExito }}
-        <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
-      </div>
-      
-      <!-- Alerta de advertencia -->
-      <div *ngIf="mostrarAlertaWarning" class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
-        <i class="ri-alert-line me-3 align-middle fs-lg"></i>
-        <strong>¡Atención!</strong> {{ mensajeWarning }}
-        <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
-      </div>
-      
-      <!-- Alerta de error -->
-      <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
-        <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
-        <strong>¡Error!</strong> {{ mensajeError }}
-        <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
-      </div>
+  <!-- Título del componente -->
+  <h5 class="card-title mb-4">Editar Estado de Visita</h5>
+
+  <!-- Contenedor de alertas flotantes -->
+  <div class="alert-container">
+    <!-- Alerta de éxito -->
+    <div *ngIf="mostrarAlertaExito"
+      class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+      <strong>¡Éxito!</strong> {{ mensajeExito }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
     </div>
-    
-    <div class="flex-grow-1">
-      <div class="row">
-        <div class="col-md-6">
-          <div class="mb-3">
-            <div class="d-flex align-items-center">
-                               <i class="ri-attachment-line" [ngStyle]="{
+
+    <!-- Alerta de advertencia -->
+    <div *ngIf="mostrarAlertaWarning"
+      class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+      <strong>¡Atención!</strong> {{ mensajeWarning }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+
+    <!-- Alerta de error -->
+    <div *ngIf="mostrarAlertaError"
+      class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+      <strong>¡Error!</strong> {{ mensajeError }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <div class="flex-grow-1">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label class="form-label">Descripción</label>
+          <span class="text-danger">*</span>
+          <div class="d-flex align-items-center">
+            <i class="ri-attachment-line" [ngStyle]="{
                 border: (!estadoVisita.esVi_Descripcion.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
                 backgroundColor: (!estadoVisita.esVi_Descripcion.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
                 borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-                </i><input
-              type="text"
-              class="form-control"
-              [class.is-invalid]="!estadoVisita.esVi_Descripcion.trim() && mostrarErrores"
-              id="marcaDescripcion"
-                [(ngModel)]="estadoVisita.esVi_Descripcion"
-                placeholder="Ingrese la descripción del estado de Visita"
-                required (blur)="mostrarErrores = true">
-              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-            </div>
-            <div class="text-danger mt-1" *ngIf="!estadoVisita.esVi_Descripcion.trim() && mostrarErrores">
-              <small>El campo Descripción del estado de Visita es requerido</small>
-            </div>
+            </i><input type="text" class="form-control"
+              [class.is-invalid]="!estadoVisita.esVi_Descripcion.trim() && mostrarErrores" id="marcaDescripcion"
+              [(ngModel)]="estadoVisita.esVi_Descripcion" placeholder="Ingrese la descripción del estado de Visita"
+              required (blur)="mostrarErrores = true">
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           </div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="mt-auto pt-3">
-      <div class="row">
-        <div class="col-12">
-          <div class="d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-primary gold" (click)="cancelar()">
-              <span class="btn-text">Cancelar</span>
-              <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
-            </button>
-            <button type="button" class="btn btn-primary" (click)="validarEdicion()">
-              <span class="btn-text">Guardar</span>
-              <span class="btn-icon"><i class="ri-save-line"></i></span>
-            </button>
+          <div class="text-danger mt-1" *ngIf="!estadoVisita.esVi_Descripcion.trim() && mostrarErrores">
+            <small>El campo Descripción del Estado de Visita es requerido</small>
           </div>
         </div>
       </div>
     </div>
   </div>
-  
-  <!-- Modal de confirmación para editar -->
-  <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }" [style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
-          <span>Confirmación</span>
-          <i class="ri-close-line custom-modal-close" (click)="cancelarEdicion()"></i>
-        </div>
-        <hr class="custom-modal-divider">
-        <div class="modal-body custom-modal-body">
-          <div class="text-center">
-            <p class="mt-2 custom-modal-text">
-              <i class="ri-edit-line me-2 custom-modal-alert-icon" (click)="cancelarEdicion()"></i>
-              ¿Estás seguro que deseas editar el estado de Visita <strong>"{{ estadoVisitaOriginal }}"</strong> por <strong>"{{ estadoVisita.esVi_Descripcion }}"</strong>?
-            </p>
-          </div>
-        </div>
-        <div class="modal-footer custom-modal-footer">
-          <button type="button" class="btn btn-primary  btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
-            <span class="btn-text">No</span>
+
+  <div class="mt-auto pt-3">
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-primary gold" (click)="cancelar()">
+            <span class="btn-text">Cancelar</span>
             <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
           </button>
-          <button type="button" class="btn btn-primary  btn-minw-5 btn-sm" (click)="confirmarEdicion()">
-            <span class="btn-text">Si</span>
+          <button type="button" class="btn btn-primary" (click)="validarEdicion()">
+            <span class="btn-text">Guardar</span>
             <span class="btn-icon"><i class="ri-save-line"></i></span>
           </button>
         </div>
       </div>
     </div>
   </div>
-  
-  <!-- Overlay para el modal -->
-  <div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEditar }" *ngIf="mostrarConfirmacionEditar"></div>
-  
+</div>
+
+<!-- Modal de confirmación para editar -->
+<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }"
+  [style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
+        <span>Confirmación</span>
+        <i class="ri-close-line custom-modal-close" (click)="cancelarEdicion()"></i>
+      </div>
+      <hr class="custom-modal-divider">
+      <div class="modal-body custom-modal-body">
+        <div class="text-center mb-3">
+          <p class="mt-2 custom-modal-text">
+            <i class="ri-edit-line me-2 custom-modal-alert-icon"></i>
+            ¿Estás seguro que deseas guardar los siguientes cambios en el estado de visita?
+          </p>
+        </div>
+
+        <!-- Lista de cambios detectados -->
+        <div class="changes-list" style="max-height: 300px; overflow-y: auto;">
+          <div *ngFor="let cambio of obtenerListaCambios()" class="change-item mb-3 p-3"
+            style="border: 1px solid #e9ecef; border-radius: 8px; background-color: #f8f9fa;">
+            <div class="d-flex align-items-center mb-2">
+              <i class="ri-arrow-right-circle-line me-2 text-primary"></i>
+              <strong class="text-primary">{{ cambio.label }}</strong>
+            </div>
+            <div class="row">
+              <div class="col-6">
+                <small class="text-muted d-block">Original :</small>
+                <div class="p-2" style="background-color: #fff2f2; border-left: 3px solid #dc3545; border-radius: 4px;">
+                  <span class="text-dark">{{ cambio.anterior }}</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <small class="text-muted d-block">Nuevo:</small>
+                <div class="p-2" style="background-color: #f0fff4; border-left: 3px solid #28a745; border-radius: 4px;">
+                  <span class="text-dark">{{ cambio.nuevo }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer custom-modal-footer">
+        <button type="button" class="btn btn-primary btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
+          <span class="btn-text">No</span>
+          <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+        </button>
+        <button type="button" class="btn btn-primary btn-minw-5 btn-sm" (click)="confirmarEdicion()">
+          <span class="btn-text">Sí</span>
+          <span class="btn-icon"><i class="ri-save-line"></i></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay para el modal -->
+<div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEditar }" *ngIf="mostrarConfirmacionEditar">
+</div>

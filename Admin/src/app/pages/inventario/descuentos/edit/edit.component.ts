@@ -15,6 +15,7 @@ import { NgStepperModule } from 'angular-ng-stepper';
 import { ViewChild } from '@angular/core';
 import { CdkStepper } from '@angular/cdk/stepper';
 import { CurrencyMaskModule } from "ng2-currency-mask";
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-edit',
@@ -154,7 +155,7 @@ seleccionarTodos(event: any) {
 
 hoy: string;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {
     this.listarcategorias();
     this.listarmarcass();
     this.listarPorductos();
@@ -673,7 +674,7 @@ actualizarFormaPago(): void {
     this.formaPago = ''; // Ninguno seleccionado
   }
 
-  console.log('Forma de pago seleccionada:', this.formaPago);
+
 }
 
 
@@ -1016,16 +1017,39 @@ private originalDescuentoSnapshot: {
   cancelarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
   }
+  mostrarOverlayCarga = false;
 
-  confirmarEdicion(): void {
+
+  async confirmarEdicion(): Promise<void> {
+  try {
+    // 1. Activar overlay
+    this.mostrarOverlayCarga = true;
+    this.cdr.detectChanges();
+
+    // 2. Esperar a que se pinte el overlay
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    // 3. Cerrar modal
     this.mostrarConfirmacionEditar = false;
-    this.guardar();
-  }
+    this.cdr.detectChanges();
 
-  public guardar(): void {
+    // 4. Esperar otro tick para asegurar que el DOM se actualice
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    // 5. Ejecutar el guardado
+    await this.guardar();
+  } catch (error) {
+    console.error('Error en edición:', error);
+    this.mostrarOverlayCarga = false;
+    this.cdr.detectChanges();
+  }
+}
+  public guardar(): Promise<void> {
+    return new Promise((resolve, reject) => {
     this.mostrarErrores = true;
 
    if (this.descuento.desc_Aplicar.trim()) {
+    
   const descuentoActualizar: any = {
     desc_Id: this.descuento.desc_Id,
     desc_Descripcion: this.descuento.desc_Descripcion.trim(),
@@ -1049,11 +1073,12 @@ private originalDescuentoSnapshot: {
     
 
   };
+  
   if (this.descuento.desc_Observaciones) {
       descuentoActualizar.desc_Observaciones = this.descuento.desc_Observaciones;
     }
 
-  console.log('datos enviados', descuentoActualizar);
+
 
 
       this.http.put<any>(`${environment.apiBaseUrl}/Descuentos/Actualizar`, descuentoActualizar, {
@@ -1070,11 +1095,16 @@ private originalDescuentoSnapshot: {
           setTimeout(() => {
             this.mostrarAlertaExito = false;
             this.onSave.emit(this.descuento);
+             this.mostrarOverlayCarga = false;
+            this.cdr.detectChanges();
+            resolve();
             this.cancelar();
           }, 3000);
         },
         error: (error) => {
-          console.error('Error al actualizar la Descuento:', error);
+          this.mostrarOverlayCarga = false;
+          this.cdr.detectChanges();
+          reject(error);
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al actualizar la Descuento. Por favor, intente nuevamente.';
           setTimeout(() => this.cerrarAlerta(), 5000);
@@ -1085,6 +1115,7 @@ private originalDescuentoSnapshot: {
       this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
       setTimeout(() => this.cerrarAlerta(), 4000);
     }
+    });
   }
 
   validarPasoActual(): boolean {
@@ -1100,6 +1131,7 @@ private originalDescuentoSnapshot: {
     default:
       return false;
   }
+  
 }
 
 validarPasoInformacionGeneral(): boolean {

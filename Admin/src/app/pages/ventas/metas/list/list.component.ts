@@ -157,7 +157,7 @@ export class ListComponent implements OnInit {
     ];
     this.cargarAccionesUsuario();
     this.cargardatos(true);
-    console.log('Acciones disponibles:', this.accionesDisponibles);
+    //console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
   crear(): void {
@@ -392,7 +392,7 @@ cerrarProgresoForm() {
       const tienePermisoListar = this.accionPermitida('listar');
       const userId = getUserId();
 
-      console.log('Datos recibidos api metas:', data);
+      //console.log('Datos recibidos api metas:', data);
       const datosFiltrados = data;
         // : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
       

@@ -282,6 +282,11 @@ export class EditComponent implements OnInit, OnChanges {
       )
       .subscribe({
         next: (productos) => {
+          // Aplicar corrección de URLs de imágenes
+          productos.forEach((item: any) => {
+            item.prod_Imagen = item.prod_Imagen.includes("http") ? item.prod_Imagen : environment.apiBaseUrl + item.prod_Imagen;
+          });
+
           // Paso 2.1: Parsear productos con lógica adicional
           this.productos = productos.map((producto: any) => {
             const detalleExistente = this.pedidoEditada.detalles?.find(
@@ -313,10 +318,7 @@ export class EditComponent implements OnInit, OnChanges {
           });
 
           this.aplicarFiltros();
-          console.log(
-            'Productos cargados y cantidades aplicadas:',
-            this.productos
-          );
+       
         },
         error: (error) => {
           console.error('Error al obtener productos:', error);
@@ -406,6 +408,11 @@ export class EditComponent implements OnInit, OnChanges {
       })
       .subscribe({
         next: (data) => {
+          // Aplicar corrección de URLs de imágenes
+          data.forEach((item: any) => {
+            item.prod_Imagen = item.prod_Imagen.includes("http") ? item.prod_Imagen : environment.apiBaseUrl + item.prod_Imagen;
+          });
+
           this.productos = data.map((producto: any) => ({
             ...producto,
             cantidad: 0,
@@ -704,7 +711,7 @@ export class EditComponent implements OnInit, OnChanges {
         secuencia: 0,
       };
 
-      console.log('Datos a enviar:', PEActualizar);
+      //console.log('Datos a enviar:', PEActualizar);
 
       this.http
         .put<any>(`${environment.apiBaseUrl}/Pedido/Actualizar`, PEActualizar, {
@@ -744,7 +751,7 @@ export class EditComponent implements OnInit, OnChanges {
       .subscribe({
         next: (cliente) => {
           this.Clientes = cliente;
-          console.log('Clientes cargados:', this.Clientes);
+          //console.log('Clientes cargados:', this.Clientes);
           this.http
             .get<any>(
               `${environment.apiBaseUrl}/DireccionesPorCliente/Listar`,
@@ -754,7 +761,7 @@ export class EditComponent implements OnInit, OnChanges {
             )
             .subscribe({
               next: (direcciones) => {
-                console.log('Direcciones cargadas:', direcciones);
+                //console.log('Direcciones cargadas:', direcciones);
                 this.TodasDirecciones = direcciones;
                 this.configurarUbicacionInicial();
               },
@@ -780,7 +787,7 @@ export class EditComponent implements OnInit, OnChanges {
 
   cargarMunicipios(codigoDepa: number): void {
     this.pedidoEditada.clie_Id = parseInt(codigoDepa.toString());
-    console.log('Código del departamento seleccionado:', codigoDepa);
+    //console.log('Código del departamento seleccionado:', codigoDepa);
     this.Direcciones = this.TodasDirecciones.filter(
       (m: any) => m.clie_Id === parseInt(codigoDepa.toString())
     );

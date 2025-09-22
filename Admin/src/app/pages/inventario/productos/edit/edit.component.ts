@@ -20,7 +20,7 @@ export class EditComponent implements OnChanges {
   @Input() productoData: Producto | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Producto>();
-
+  environment = environment;
   subcategorias: Categoria[] = [];
   categorias: any[] = [];
   subcategoriasFiltradas: Categoria[] = [];
@@ -108,6 +108,12 @@ export class EditComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['productoData'] && changes['productoData'].currentValue) {
       this.producto = { ...changes['productoData'].currentValue };
+      
+      // Limpiar la concatenación de URL de la imagen si existe
+      if (this.producto.prod_Imagen && this.producto.prod_Imagen.includes(environment.apiBaseUrl)) {
+        this.producto.prod_Imagen = this.producto.prod_Imagen.replace(environment.apiBaseUrl, '');
+      }
+      
       // Obtener descripción de marca a partir del id al cargar producto
       const marcaActual = this.marcas.find(m => m.marc_Id === this.producto.marc_Id);
       this.producto.marc_Descripcion = marcaActual ? marcaActual.marc_Descripcion : '';
@@ -184,7 +190,7 @@ export class EditComponent implements OnChanges {
       this.producto.subc_Id = 0;
       return;
     }
-    console.log('Filtrando subcategorías para categoría:', categoriaId);
+    //console.log('Filtrando subcategorías para categoría:', categoriaId);
     this.filtrarSubcategoriasPorCategoria(categoriaId, true);
   }
 
@@ -281,7 +287,7 @@ export class EditComponent implements OnChanges {
   isCargandoSubcategorias: boolean = false;
 
   filtrarSubcategoriasPorCategoria(categoriaId: number, limpiarSubcategoria: boolean = false) {
-    console.log('Filtrando subcategorías para categoría:', categoriaId);
+    //console.log('Filtrando subcategorías para categoría:', categoriaId);
     if (!categoriaId) {
       this.subcategoriasFiltradas = [];
       this.producto.subc_Id = 0;
@@ -325,7 +331,7 @@ export class EditComponent implements OnChanges {
         this.producto.subc_Id = unica.subc_Id;
         this.producto.subc_Descripcion = unica.subC_Descripcion;
       }
-      console.log('Subcategorías filtradas:', this.subcategoriasFiltradas);
+      //console.log('Subcategorías filtradas:', this.subcategoriasFiltradas);
       // this.producto.subc_Id = 0; // Reset subcategory selection
       this.isCargandoSubcategorias = false; // terminó carga
     }, error => {
@@ -607,20 +613,17 @@ export class EditComponent implements OnChanges {
     // Obtenemos el archivo seleccionado desde el input tipo file
     const file = event.target.files[0];
 
-    if (file) {
-      // Crear una URL temporal para mostrar la imagen inmediatamente
-      const tempImageUrl = URL.createObjectURL(file);
-      this.producto.prod_Imagen = tempImageUrl;
 
+    if (file) {
       // Mostrar indicador de carga
+      
       this.mostrarOverlayCarga = true;
       
       // Usar el servicio de carga de imágenes
       this.imageUploadService.uploadImageAsync(file)
         .then(imagePath => {
-          const baseUrl = environment.apiBaseUrl.replace('/api', '');
-          this.producto.prod_Imagen = `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
-          console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
+          this.producto.prod_Imagen = imagePath;
+          //console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
           this.mostrarOverlayCarga = false;
         })
         .catch(error => {

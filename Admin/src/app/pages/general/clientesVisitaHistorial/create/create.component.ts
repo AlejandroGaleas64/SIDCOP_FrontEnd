@@ -179,7 +179,6 @@ export class CreateComponent implements OnInit {
       });
     } catch (error) {
       this.mostrarMensaje('Error al procesar los archivos', 'error');
-      console.error('Error en onFileSelected:', error);
     }
   }
 
@@ -223,7 +222,7 @@ export class CreateComponent implements OnInit {
     const userId = getUserId();
     const fechaActual = new Date();
     const fechaVisita = new Date(this.visita.clVi_Fecha);
-    fechaVisita.setHours(0, 0, 0, 0);
+    // fechaVisita.setHours(0, 0, 0, 0);
 
     const visitaData = {
       clVi_Id: 0,
@@ -330,13 +329,12 @@ export class CreateComponent implements OnInit {
                     this.cargandoImagen = false;
                     // Construir la URL completa para mostrar la imagen
                     const baseUrl = environment.apiBaseUrl.replace('/api', '');
-                    const fullImagePath = `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
+                    const fullImagePath =  imagePath;
                     if (imagePath) subirImagen(fullImagePath);
                     else this.mostrarMensaje('No se pudo obtener la ruta de la imagen', 'error');
                   })
                   .catch(error => {
                     this.cargandoImagen = false;
-                    console.error('Error al subir la imagen:', error);
                     this.mostrarMensaje('Error al subir la imagen al servidor', 'error');
                   });
               } else if (file.dataURL) {
@@ -365,112 +363,11 @@ export class CreateComponent implements OnInit {
   async uploadImage(file: File): Promise<string> {
     try {
       const imagePath = await this.imageUploadService.uploadImageAsync(file);
-      // Construir la URL completa para mostrar la imagen
-      const baseUrl = environment.apiBaseUrl.replace('/api', '');
-      return `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
+      return imagePath;
     } catch (error) {
-      console.error('Error al subir la imagen:', error);
       throw new Error('No se pudo subir la imagen');
     }
   }
-
-  // private async crearVisita(): Promise<any> {
-  //   try {
-  //     if (!this.visita.vendedor?.ruta_Id) throw new Error('Falta el ID de ruta del vendedor');
-  //     if (!this.visita.direccion?.diCl_Id) throw new Error('Falta el ID de dirección');
-  //     if (!this.visita.esVi_Id) throw new Error('Falta el estado de la visita');
-  //     if (!this.visita.clVi_Fecha) throw new Error('Falta la fecha de la visita');
-
-  //     const userId = getUserId();
-  //     const fechaActual = new Date();
-  //     const fechaVisita = new Date(this.visita.clVi_Fecha);
-  //     fechaVisita.setHours(0, 0, 0, 0);
-
-  //     const visitaData = {
-  //       clVi_Id: 0,                               
-  //       diCl_Id: Number(this.visita.direccion?.diCl_Id) || 0,
-  //       diCl_Latitud: 0,
-  //       diCl_Longitud: 0,
-  //       vend_Id: 0,
-  //       vend_Codigo: '',
-  //       vend_DNI: '',
-  //       vend_Nombres: '',
-  //       vend_Apellidos: '',
-  //       vend_Telefono: '',
-  //       vend_Tipo: '',
-  //       vend_Imagen: '',
-  //       ruta_Id: 0,
-  //       ruta_Descripcion: '',
-  //       veRu_Id: Number(this.visita.vendedor?.veRu_Id) || 0,
-  //       veRu_Dias: '',
-  //       clie_Id: Number(this.visita.cliente?.clie_Id) || 0,
-  //       clie_Codigo: this.visita.cliente?.clie_Codigo || '',
-  //       clie_Nombres: this.visita.cliente?.clie_Nombres || '',
-  //       clie_Apellidos: this.visita.cliente?.clie_Apellidos || '',
-  //       clie_NombreNegocio: this.visita.cliente?.clie_NombreNegocio || '',
-  //       imVi_Imagen: '',
-  //       clie_Telefono: this.visita.cliente?.clie_Telefono || '',
-  //       esVi_Id: Number(this.visita.esVi_Id) || 0,
-  //       esVi_Descripcion: '',
-  //       clVi_Observaciones: this.visita.clVi_Observaciones || '',
-  //       clVi_Fecha: fechaVisita.toISOString(),
-  //       usua_Creacion: Number(userId) || 0,
-  //       clVi_FechaCreacion: fechaActual.toISOString()
-  //     };
-
-
-
-  //     console.log('Enviando datos de visita:', visitaData);
-
-  //     const response = await lastValueFrom(
-  //       this.http.post<any>(
-  //         `${environment.apiBaseUrl}/ClientesVisitaHistorial/Insertar`,
-  //         visitaData,
-  //         { headers: { 'x-api-key': environment.apiKey, 'Content-Type': 'application/json' } }
-  //       )
-  //     );
-
-  //     if (!response) throw new Error('No se recibió respuesta del servidor');
-  //     return response;
-
-  //   } catch (error: any) {
-  //     console.error('Error en crearVisita:', error);
-  //     throw new Error(error.message || 'Error al crear la visita');
-  //   }
-  // }
-
-  // private async asociarImagenesAVisita(visitaId: number, imageUrls: string[]): Promise<void> {
-  //   if (!visitaId || !imageUrls?.length) return;
-
-  //   const userId = getUserId();
-  //   const fechaActual = new Date().toISOString();
-
-  //   for (const imageUrl of imageUrls) {
-  //     const imagenData = {
-  //       ImVi_Imagen: imageUrl,
-  //       ClVi_Id: Number(visitaId),
-  //       Usua_Creacion: Number(userId),
-  //       ImVi_FechaCreacion: fechaActual
-  //     };
-
-  //     console.log('Enviando imagen a asociar:', imagenData);
-
-  //     try {
-  //       const response = await lastValueFrom(
-  //         this.http.post<any>(
-  //           `${environment.apiBaseUrl}/ImagenVisita/Insertar`,
-  //           imagenData,
-  //           { headers: { 'x-api-key': environment.apiKey, 'Content-Type': 'application/json' } }
-  //         )
-  //       );
-
-  //       console.log('Respuesta de imagen asociada:', response);
-
-  //     } catch (error) {
-  //       console.error('Error al asociar imagen:', error);
-  //     }
-  //   }
-  // }
 
   limpiarFormulario() {
     this.visita = {

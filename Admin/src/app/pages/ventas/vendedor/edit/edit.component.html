@@ -518,13 +518,14 @@
         <div *ngFor="let ruta of rutasVendedor; let i = index" class="row align-items-end mb-2">
           <div class="col-md-5">
             <label class="form-label">Ruta</label>
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
             <div class="d-flex align-items-center">
             
             <i class="ri-guide-line" [ngStyle]="{
-              border: (!vendedor.vend_Tipo && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-              backgroundColor: (!vendedor.vend_Tipo && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-            </i>
+              border: (mostrarErrores && !rutasVendedor[i].ruta_Id) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (mostrarErrores && !rutasVendedor[i].ruta_Id) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'
+            }"></i>
             <ng-select
               [items]="rutasDisponiblesFiltradas[i]"
               bindLabel="ruta_Descripcion"
@@ -533,18 +534,24 @@
               (change)="onRutaChange(i)"
               placeholder="Seleccione una ruta"
               [clearable]="false"
-              required>
+              required
+              [class.is-invalid]="mostrarErrores && !rutasVendedor[i].ruta_Id">
             </ng-select>
+            </div>
+             <div class="text-danger mt-1" *ngIf="mostrarErrores && !rutasVendedor[i].ruta_Id">
+              <small>Debe seleccionar una ruta</small>
             </div>
           </div>
           <div class="col-md-5">
             <label class="form-label">Días</label>
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+
             <div class="d-flex align-items-center">
-            <i class=" ri-calendar-2-line" [ngStyle]="{
-              border: (!vendedor.vend_Tipo && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-              backgroundColor: (!vendedor.vend_Tipo && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-            </i>
+            <i class="ri-calendar-2-line" [ngStyle]="{
+              border: (mostrarErrores && (!rutasVendedor[i].diasSeleccionados || rutasVendedor[i].diasSeleccionados.length === 0)) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (mostrarErrores && (!rutasVendedor[i].diasSeleccionados || rutasVendedor[i].diasSeleccionados.length === 0)) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'
+            }"></i>
             <ng-select
               [items]="diasDisponiblesFiltradas[i]"
               bindLabel="nombre"
@@ -559,9 +566,13 @@
               [maxSelectedItems]="7"
               [closeOnSelect]="false"
               [virtualScroll]="true"
-              style="min-width: 180px;">
+              style="min-width: 180px;"
+              [class.is-invalid]="mostrarErrores && (!rutasVendedor[i].diasSeleccionados || rutasVendedor[i].diasSeleccionados.length === 0)">
             </ng-select>
-            </div>
+          </div>
+          <div class="text-danger mt-1" *ngIf="mostrarErrores && (!rutasVendedor[i].diasSeleccionados || rutasVendedor[i].diasSeleccionados.length === 0)">
+            <small>Debe seleccionar al menos un día</small>
+          </div>
           </div>
           <div class="col-md-2 d-flex align-items-center" *ngIf="rutasVendedor.length > 1">
             <button type="button" class="btn btn-danger btn-sm" (click)="eliminarRuta(i)">

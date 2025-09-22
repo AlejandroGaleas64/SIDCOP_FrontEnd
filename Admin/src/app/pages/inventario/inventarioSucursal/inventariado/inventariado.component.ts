@@ -89,7 +89,7 @@ export class InventariadoComponent implements OnInit {
     }).subscribe({
       next: (data) => {
         this.sucursales = data;
-        console.log('Sucursales cargadas:', this.sucursales);
+        //console.log('Sucursales cargadas:', this.sucursales);
       },
       error: (error) => {
         this.mostrarAlertaError = true;

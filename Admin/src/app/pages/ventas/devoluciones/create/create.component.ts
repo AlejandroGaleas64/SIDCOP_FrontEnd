@@ -8,6 +8,7 @@ import { DropzoneModule, DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
 import { Router } from '@angular/router';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { Usuario } from 'src/app/Modelos/acceso/usuarios.Model';
+import { Factura } from 'src/app/Modelos/ventas/Facturas.model';
 
 @Component({
   selector: 'app-create',
@@ -114,7 +115,7 @@ export class CreateComponent implements OnInit {
 
     this.vendedorSeleccionado = vendedor; // Guardar referencia
     this.cargarClientesPorRuta(vendedor.ruta_Id);
-    console.log('Vendedor seleccionado:', vendedor);
+    //console.log('Vendedor seleccionado:', vendedor);
   }
 
   cargarClientesPorRuta(rutaId: number) {
@@ -137,7 +138,7 @@ export class CreateComponent implements OnInit {
         //   this.visita.cliente = null; 
         //   this.visita.direccion = null; 
         // }
-        console.log('Clientes filtrados:', this.clientesFiltrados);
+        //console.log('Clientes filtrados:', this.clientesFiltrados);
         
       },
       error: () => { 
@@ -149,7 +150,7 @@ export class CreateComponent implements OnInit {
   }
 
   onClienteSeleccionado(cliente: any) {
-    console.log('Cliente recibido en onClienteSeleccionado:', cliente);
+    //console.log('Cliente recibido en onClienteSeleccionado:', cliente);
     
     if (!cliente) { 
       this.direcciones = [];
@@ -160,7 +161,7 @@ export class CreateComponent implements OnInit {
 
     this.clienteSeleccionado = cliente; // Guardar referencia
     this.cargarDireccionesCliente(cliente.clie_Id);
-    console.log('Cliente seleccionado:', cliente);
+    //console.log('Cliente seleccionado:', cliente);
   }
 
   cargarDireccionesCliente(clienteId: number) {
@@ -176,13 +177,13 @@ export class CreateComponent implements OnInit {
     }).subscribe({
       next: (data) => { 
         this.direcciones = data || []; 
-        console.log('Direcciones cargadas:', this.direcciones);
+        //console.log('Direcciones cargadas:', this.direcciones);
         
         // Cargar facturas después de tener las direcciones
         if (this.vendedorSeleccionado && this.direcciones.length > 0) {
           this.cargarYFiltrarFacturas();
         } else if (this.direcciones.length === 0) {
-          console.log('No hay direcciones para este cliente');
+          //console.log('No hay direcciones para este cliente');
           this.facturasFiltradas = [];
         }
         
@@ -210,28 +211,28 @@ export class CreateComponent implements OnInit {
       return;
     }
 
-    console.log('Cargando facturas para vendedor:', this.vendedorSeleccionado.vend_Id);
+    //console.log('Cargando facturas para vendedor:', this.vendedorSeleccionado.vend_Id);
     
-    this.cargando = true;
-    this.http.get<any>(`${environment.apiBaseUrl}/Facturas/ListarPorVendedor/${this.vendedorSeleccionado.vend_Id}`, {
+    this.cargando = true;//${this.vendedorSeleccionado.vend_Id}
+    this.http.get<any>(`${environment.apiBaseUrl}/Facturas/ListarConLimiteDevolucion`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (res) => {
-        console.log('Respuesta facturas completa:', res);
+        //console.log('Respuesta facturas completa:', res);
         const todasFacturas = res?.data || res || []; // Intentar ambas estructuras
 
         // Obtener la fecha actual en formato YYYY-MM-DD
-        const fechaActual = new Date().toISOString().split('T')[0];
+        //const fechaActual = new Date().toISOString().split('T')[0];
 
         // Obtener los IDs de las direcciones
         const direccionesIds = this.direcciones.map(d => d.diCl_Id);
-        console.log('IDs de direcciones:', direccionesIds);
+        //console.log('IDs de direcciones:', direccionesIds);
 
         // Log de las facturas para ver su estructura
-        console.log('Todas las facturas:', todasFacturas);
+        //console.log('Todas las facturas:', todasFacturas);
         if (todasFacturas.length > 0) {
-          console.log('Ejemplo de factura:', todasFacturas[0]);
-          console.log('Campos disponibles:', Object.keys(todasFacturas[0]));
+          //console.log('Ejemplo de factura:', todasFacturas[0]);
+          //console.log('Campos disponibles:', Object.keys(todasFacturas[0]));
         }
 
         // Filtrar facturas - revisar diferentes nombres de campo posibles
@@ -239,26 +240,26 @@ export class CreateComponent implements OnInit {
           // Intentar diferentes nombres de campo que podrían contener el ID de dirección
           const direccionId = factura.dicl_Id || factura.diCl_Id || factura.direccion_Id || factura.cliente_direccion_Id;
           const coincideDireccion = direccionesIds.includes(direccionId);
-          
+          const vendedor = factura.vend_Id === this.vendedorSeleccionado.vend_Id;
           // Convertir fact_FechaEmision a formato YYYY-MM-DD para comparar
           const fechaEmision = new Date(factura.fact_FechaEmision).toISOString().split('T')[0];
-          const coincideFecha = fechaEmision === fechaActual;
+          //const coincideFecha = fechaEmision === fechaActual;
           
           // Validar que la factura no esté anulada
           const noAnulada = factura.fact_Anulado === false;
           
-          if (coincideDireccion && coincideFecha && noAnulada) {
-            console.log(`Factura ${factura.fact_Numero || factura.numero} coincide con dirección ${direccionId}, fecha actual y no está anulada`);
+          if (coincideDireccion && noAnulada) {
+            //console.log(`Factura ${factura.fact_Numero || factura.numero} coincide con dirección ${direccionId}, fecha actual y no está anulada`);
           }
           
-          return coincideDireccion && coincideFecha && noAnulada;
+          return coincideDireccion && noAnulada && vendedor;
         });
 
-        console.log('Facturas filtradas final:', this.facturasFiltradas);
+        //console.log('Facturas filtradas final:', this.facturasFiltradas);
         
         if (this.facturasFiltradas.length === 0) {
           console.warn('No se encontraron facturas que coincidan con las direcciones del cliente, la fecha actual y que no estén anuladas');
-          console.log('Verificar si el nombre del campo de dirección en las facturas es correcto');
+          //console.log('Verificar si el nombre del campo de dirección en las facturas es correcto');
         }
       },
       error: (err) => { 
@@ -280,7 +281,7 @@ export class CreateComponent implements OnInit {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (res) => {
-        console.log('Respuesta completa:', res);
+        //console.log('Respuesta completa:', res);
         const todasFacturas = res?.data || [];
         
         // Obtener la fecha actual en formato YYYY-MM-DD
@@ -300,7 +301,7 @@ export class CreateComponent implements OnInit {
           // Si no hay direcciones, no mostrar facturas
           this.facturasFiltradas = [];
         }
-        console.log('Facturas filtradas:', this.facturasFiltradas);
+        //console.log('Facturas filtradas:', this.facturasFiltradas);
       },
       error: (err) => {
         console.error('Error cargando facturas:', err);
@@ -335,7 +336,7 @@ export class CreateComponent implements OnInit {
     }).subscribe({
       next: (facturaCompleta) => {
         this.facturaOriginal = facturaCompleta;
-        console.log('📄 Factura completa recibida:', facturaCompleta);
+        //console.log('📄 Factura completa recibida:', facturaCompleta);
       },
       error: (err) => {
         console.error('❌ Error al obtener factura completa:', err);
@@ -362,7 +363,7 @@ export class CreateComponent implements OnInit {
           tieneStock: (producto.cantidadVendida || 0) > 0
         }));
         this.aplicarFiltros();
-        console.log('Productos cargados:', this.productos);
+        //console.log('Productos cargados:', this.productos);
       },
       error: () => this.mostrarMensaje('Error al cargar productos'),
       complete: () => this.cargando = false
@@ -551,7 +552,7 @@ export class CreateComponent implements OnInit {
   };
 
   guardar() {
-    console.log('\n=== INICIO DE insertarDevolucion ===');
+    //console.log('\n=== INICIO DE insertarDevolucion ===');
     
     // Validaciones básicas
     if (!this.devolucion.fact_Id) {
@@ -579,26 +580,22 @@ export class CreateComponent implements OnInit {
 
     const productosParaDevolver = this.productos.filter(producto => {
       const cantidadADevolver = producto.cantidadVendida || 0;
-      console.log(`Evaluando producto ${producto.prod_Descripcion}:`, {
-        cantidadOriginal: producto.cantidadOriginal,
-        cantidadVendida: producto.cantidadVendida,
-        cantidadADevolver: cantidadADevolver
-      });
+    
       return cantidadADevolver > 0; // Solo productos con cantidad seleccionada > 0
     });
 
-    console.log('Total productos evaluados:', this.productos.length);
-    console.log('Productos que cumplen el filtro:', productosParaDevolver.length);
+    //console.log('Total productos evaluados:', this.productos.length);
+    //console.log('Productos que cumplen el filtro:', productosParaDevolver.length);
 
     if (productosParaDevolver.length === 0) {
       this.mostrarMensaje('Debe seleccionar al menos un producto para devolver. Use los controles + y - para establecer la cantidad a devolver.', 'error');
       return;
     }
 
-    console.log('fact_Id:', this.devolucion.fact_Id);
-    console.log('clie_Id:', this.clienteSeleccionado.clie_Id);
-    console.log('devo_Motivo:', this.devolucion.devo_Motivo);
-    console.log('Productos seleccionados:', this.productos.length);
+    //console.log('fact_Id:', this.devolucion.fact_Id);
+    //console.log('clie_Id:', this.clienteSeleccionado.clie_Id);
+    //console.log('devo_Motivo:', this.devolucion.devo_Motivo);
+    //console.log('Productos seleccionados:', this.productos.length);
 
     // Construir el XML de detalles
   let detalleXml = '<DevolucionDetalle>';
@@ -606,11 +603,11 @@ export class CreateComponent implements OnInit {
     productosParaDevolver.forEach((producto, index) => {
       const cantidadADevolver = producto.cantidadVendida || 0; // Esta es la cantidad que el usuario seleccionó para devolver
       
-      console.log(`  Producto ${index + 1}:`);
-      console.log(`    prod_Id: ${producto.prod_Id}`);
-      console.log(`    cantidadOriginal: ${producto.cantidadOriginal}`);
-      console.log(`    cantidadADevolver: ${cantidadADevolver}`);
-      console.log(`    descripcion: ${producto.prod_Descripcion}`);
+      //console.log(`  Producto ${index + 1}:`);
+      //console.log(`    prod_Id: ${producto.prod_Id}`);
+      //console.log(`    cantidadOriginal: ${producto.cantidadOriginal}`);
+      //console.log(`    cantidadADevolver: ${cantidadADevolver}`);
+      //console.log(`    descripcion: ${producto.prod_Descripcion}`);
       
       // Estructura XML idéntica a Flutter
       detalleXml += `<Producto><Prod_Id>${producto.prod_Id}</Prod_Id><DevD_Cantidad>${cantidadADevolver}</DevD_Cantidad></Producto>`;
@@ -618,14 +615,14 @@ export class CreateComponent implements OnInit {
     
     detalleXml += '</DevolucionDetalle>';
     
-    console.log('XML generado paso a paso:');
-    console.log('- Inicio XML:', '<DevolucionDetalle>');
+    //console.log('XML generado paso a paso:');
+    //console.log('- Inicio XML:', '<DevolucionDetalle>');
     productosParaDevolver.forEach((producto, index) => {
       const cantidadADevolver = producto.cantidadVendida || 0;
       const xmlProducto = `<Producto><Prod_Id>${producto.prod_Id}</Prod_Id><DevD_Cantidad>${cantidadADevolver}</DevD_Cantidad></Producto>`;
-      console.log(`- Producto ${index + 1}:`, xmlProducto);
+      //console.log(`- Producto ${index + 1}:`, xmlProducto);
     });
-    console.log('- Fin XML:', '</DevolucionDetalle>');
+    //console.log('- Fin XML:', '</DevolucionDetalle>');
 
     const now = new Date().toISOString();
     const fechaDevolucion = now;
@@ -653,10 +650,10 @@ export class CreateComponent implements OnInit {
       item: []
     };
 
-    console.log('Body de la petición:', body);
-    console.log('XML generado:', detalleXml);
+    //console.log('Body de la petición:', body);
+    //console.log('XML generado:', detalleXml);
 
-    console.log('FACTURA ID A ELIMINAR:', this.devolucion.fact_Id);
+    //console.log('FACTURA ID A ELIMINAR:', this.devolucion.fact_Id);
     this.cargando = true;
     this.mostrarErrores = false;
 
@@ -667,7 +664,7 @@ export class CreateComponent implements OnInit {
       }
     }).subscribe({
       next: (response) => {
-        console.log('Respuesta del servidor:', response);
+        //console.log('Respuesta del servidor:', response);
         
         if (response && response.success === true) {
           this.mostrarMensaje('Devolución creada exitosamente', 'exito');
@@ -775,7 +772,7 @@ export class CreateComponent implements OnInit {
       detallesFacturaInput: productosRestantes
     };
 
-    console.log('Creando nueva factura:', body);
+    //console.log('Creando nueva factura:', body);
 
     this.http.post<any>(`${environment.apiBaseUrl}/Facturas/Insertar`, body, {
       headers: {
@@ -784,7 +781,7 @@ export class CreateComponent implements OnInit {
       }
     }).subscribe({
       next: (response) => {
-        console.log('Nueva factura creada:', response);
+        //console.log('Nueva factura creada:', response);
         if (response && (response.success === true || response.Success === true)) {
           this.mostrarMensaje('Nueva factura creada exitosamente', 'exito');
         } else {
@@ -806,7 +803,7 @@ export class CreateComponent implements OnInit {
     //   return;
     // }
     
-    console.log('Anulando factura con ID:', fact_Id);
+    //console.log('Anulando factura con ID:', fact_Id);
 
     // Obtener el ID del usuario actual
     const usuarioId = getUserId() || 1;
@@ -817,7 +814,7 @@ export class CreateComponent implements OnInit {
       usua_Modificacion: usuarioId
     };
 
-    console.log('Body para anular factura:', body);
+    //console.log('Body para anular factura:', body);
 
     this.http.post<any>(`${environment.apiBaseUrl}/Facturas/AnularFactura`, body, {
       headers: { 
@@ -826,10 +823,10 @@ export class CreateComponent implements OnInit {
       }
     }).subscribe({
       next: (response) => {
-        console.log('Respuesta de anulación de factura:', response);
+        //console.log('Respuesta de anulación de factura:', response);
         
         if (response && (response.success === true || response.Success === true)) {
-          console.log('Factura anulada exitosamente');
+          //console.log('Factura anulada exitosamente');
           this.mostrarMensaje('Factura anulada exitosamente', 'exito');
         } else {
           console.warn('Respuesta inesperada al anular factura:', response);

@@ -1,18 +1,26 @@
 .card {
     border-radius: 16px;
+    border: none;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8f9fa 60%, #e9ecef 100%);
+    box-shadow: 0 4px 24px rgba(20, 26, 47, 0.08);
+}
+
+.card-details-visit {
+    border-radius: 16px;
     border: 1px solid #e1e1e1;
     overflow: hidden;
 }
 
 .employee-photo-card {
-    overflow: hidden;
-    min-height: 320px;
-    position: relative;
-    background: #181a2f;
+    width: 100%;
+    height: auto;
+    min-height: 200px;
+    /* Opcional, para mantener altura mínima */
     display: flex;
-    align-items: stretch;
-    padding: 0;
-    border-radius: 16px;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
 }
 
 @media (max-width: 767px) {
@@ -25,18 +33,20 @@
 
 .employee-img-card {
     width: 100%;
-    height: 100%;
-    min-height: 320px;
+    height: auto;
+    // min-height: 320px;
+    max-height: 400px;
     object-fit: cover;
-    object-position: center;
+    border-radius: 12px;
+    // object-position: center;
     display: block;
-    filter: brightness(0.85);
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 1;
+    // filter: brightness(0.85);
+    // position: absolute;
+    // top: 0;
+    // left: 0;
+    // right: 0;
+    // bottom: 0;
+    // z-index: 1;
 }
 
 @media (max-width: 767px) {
@@ -50,16 +60,24 @@
 
 
 .employee-img-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 1.2rem 0.6rem 1.4rem 0.6rem;
-    background: linear-gradient(0deg, rgba(20, 26, 47, 0.85) 60%, rgba(20, 26, 47, 0.1) 100%);
-    text-align: center;
-    z-index: 2;
-    border-bottom-left-radius: 16px;
-    border-bottom-right-radius: 16px;
+    // position: absolute;
+    // bottom: 0;
+    // left: 0;
+    // width: 100%;
+    // padding: 1.2rem 0.6rem 1.4rem 0.6rem;
+    // background: linear-gradient(0deg, rgba(20, 26, 47, 0.85) 60%, rgba(20, 26, 47, 0.1) 100%);
+    // text-align: center;
+    // z-index: 2;
+    // border-bottom-left-radius: 16px;
+    // border-bottom-right-radius: 16px;
+        background: rgba(20, 26, 47, 0.55);
+        backdrop-filter: blur(1px);
+        color: #fff;
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        border-bottom-left-radius: 16px;
+        border-bottom-right-radius: 16px;
 }
 
 @media (max-width: 767px) {
@@ -416,16 +434,28 @@
 .carousel-container {
     position: relative;
     width: 100%;
-    height: 100%;
+    aspect-ratio: 1 / 1; // Mantiene cuadrado el contenedor (puedes ajustar a 4/3, 16/9, etc.)
+    max-width: 100%;
+    max-height: 500px; // Ajusta según tu diseño
     overflow: hidden;
-    border-radius: 8px;
+    border-radius: 16px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .carousel-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease-in-out;
+    // width: 100%;
+    // height: 100%;
+    // object-fit: cover;
+    // display: block;
+    // border-radius: 16px;
+    // transition: transform 0.3s ease-in-out;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(48, 61, 125, 0.12);
+    border: 2px solid #fff;
+    background: #fff;
 }
 
 .carousel-btn {

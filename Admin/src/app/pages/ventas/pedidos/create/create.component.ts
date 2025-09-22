@@ -373,7 +373,7 @@ getFinRegistro(): number {
           this.generarSiguienteCodigo();
         },
         (error) => {
-          console.error('Error al cargar las pedios:', error);
+          //.error('Error al cargar las pedios:', error);
         }
       );
   }
@@ -383,7 +383,7 @@ getFinRegistro(): number {
       (d) => d.diCl_Id === this.pedido.diCl_Id
     );
     if (!direccionSeleccionada) {
-      console.error('Dirección no encontrada.');
+      //.error('Dirección no encontrada.');
       return;
     }
 
@@ -391,7 +391,7 @@ getFinRegistro(): number {
 
     const cliente = this.Clientes.find((c) => c.clie_Id === clienteId);
     if (!cliente || !cliente.ruta_Id) {
-      console.error('Cliente no encontrado o sin ruta_Id.');
+      //.error('Cliente no encontrado o sin ruta_Id.');
       return;
     }
 
@@ -427,10 +427,10 @@ getFinRegistro(): number {
             .toString()
             .padStart(7, '0')}`;
           this.pedido.pedi_Codigo = nuevoCodigo;
-          console.log('Código generado:', nuevoCodigo);
+          //.log('Código generado:', nuevoCodigo);
         },
         error: (error) => {
-          console.error('Error al obtener ruta:', error);
+          //.error('Error al obtener ruta:', error);
         },
       });
   }
@@ -443,10 +443,10 @@ getFinRegistro(): number {
       .subscribe({
         next: (data) => {
           this.Clientes = data;
-          console.log('Clientes cargados:', this.Clientes);
+          //.log('Clientes cargados:', this.Clientes);
         },
         error: (error) => {
-          console.error('Error al cargar clientes:', error);
+          //.error('Error al cargar clientes:', error);
           this.mostrarAlertaError = true;
           this.mensajeError =
             'Error al cargar clientes. Por favor, intente nuevamente.';
@@ -486,7 +486,7 @@ getFinRegistro(): number {
         this.generarSiguienteCodigo(); // ✅ Ahora sí se llama con los pedidos cargados
       },
       error: (error) => {
-        console.error('Error al cargar los pedidos:', error);
+        //.error('Error al cargar los pedidos:', error);
       },
     });
   }
@@ -501,6 +501,11 @@ getFinRegistro(): number {
       )
       .subscribe({
         next: (productos) => {
+          // Aplicar corrección de URLs de imágenes
+          productos.forEach((item: any) => {
+            item.prod_Imagen = item.prod_Imagen.includes("http") ? item.prod_Imagen : environment.apiBaseUrl + item.prod_Imagen;
+          });
+
           // Mapear productos para agregar cantidad y precio
           this.productos = productos.map((producto: any) => ({
             ...producto,
@@ -520,12 +525,12 @@ getFinRegistro(): number {
                 : producto.desc_EspecificacionesJSON,
           }));
           this.aplicarFiltros();
-          console.log('Productos cargados para el cliente:', this.productos);
-          console.log('Productos cargados para el cliente:', this.productos);
-          // console.log("Listas de precio del producto:", productos.listasPrecio);
+          //.log('Productos cargados para el cliente:', this.productos);
+          //.log('Productos cargados para el cliente:', this.productos);
+          // //.log("Listas de precio del producto:", productos.listasPrecio);
         },
         error: (error) => {
-          console.error('Error al obtener productos:', error);
+          //.error('Error al obtener productos:', error);
           this.mostrarAlertaWarning = true;
           this.mensajeWarning =
             'No se pudieron obtener los productos para el cliente seleccionado.';
@@ -766,7 +771,7 @@ onCantidadChange(prodId: number, valor: any): void {
         secuencia: 0,
       };
 
-      console.log('Guardando pedido:', pedidoGuardar);
+      //.log('Guardando pedido:', pedidoGuardar);
 
       this.http
         .post<any>(`${environment.apiBaseUrl}/Pedido/Insertar`, pedidoGuardar, {
@@ -783,8 +788,8 @@ onCantidadChange(prodId: number, valor: any): void {
             this.cancelar();
           },
           error: (error) => {
-            console.log('Entro esto', this.pedido);
-            console.error('Error al guardar punto de emision:', error);
+            //.log('Entro esto', this.pedido);
+            //.error('Error al guardar punto de emision:', error);
             this.mostrarAlertaError = true;
             this.mensajeError =
               'Error al guardar el pedido. Por favor, intente nuevamente.';

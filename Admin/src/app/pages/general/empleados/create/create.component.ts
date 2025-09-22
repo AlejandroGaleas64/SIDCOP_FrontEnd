@@ -21,6 +21,12 @@ import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 })
 export class CreateComponent {
 
+  validarCorreo(correo: string): boolean {
+    if (!correo) return false;
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(correo.trim());
+  }
+
   sucursales: any[] = [];
   estadosCiviles: any[] = [];
 
@@ -37,7 +43,11 @@ export class CreateComponent {
     mensajeError = '';
     mostrarAlertaWarning = false;
     mensajeWarning = '';
-  
+
+    isDragOver: boolean = false;
+    selectedFile: File | null = null;
+    imagePreview: string | null = null;
+    
     constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {}
 
     ngOnInit(): void {
@@ -83,6 +93,9 @@ export class CreateComponent {
 
       // Limpiar imagen
       this.uploadedFiles = [];
+      this.selectedFile = null;
+    this.imagePreview = null;
+    this.isDragOver = false;
 
       // Recargar lista de empleados para obtener el código actualizado
       this.cargarEmpleados();
@@ -141,9 +154,36 @@ export class CreateComponent {
     }
       this.mostrarErrores = true;
 
+      // Validar correo electrónico
+      if (this.empleado.empl_Correo.trim() && !this.validarCorreo(this.empleado.empl_Correo)) {
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = 'Por favor ingrese un correo electrónico válido.';
+        this.mostrarAlertaError = false;
+        this.mostrarAlertaExito = false;
+        setTimeout(() => {
+          this.mostrarAlertaWarning = false;
+          this.mensajeWarning = '';
+        }, 4000);
+        return;
+      }
+
       
         
-      if (this.empleado.empl_DNI.trim()) {
+      // Validar todos los campos requeridos
+      if (this.empleado.empl_DNI.trim() &&
+          this.empleado.empl_Codigo.trim() &&
+          this.empleado.empl_Nombres.trim() &&
+          this.empleado.empl_Apellidos.trim() &&
+          this.empleado.empl_Sexo &&
+          this.empleado.empl_FechaNacimiento &&
+          this.empleado.empl_Correo.trim() &&
+          this.validarCorreo(this.empleado.empl_Correo) &&
+          this.empleado.empl_Telefono.trim() &&
+          this.empleado.sucu_Id &&
+          this.empleado.esCv_Id &&
+          this.empleado.carg_Id &&
+          this.empleado.colo_Id &&
+          this.empleado.empl_DireccionExacta.trim()) {
       // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
@@ -176,8 +216,8 @@ export class CreateComponent {
       empl_FechaModificacion: new Date().toISOString(),
       };
       
-      console.log('Datos a enviar al backend:', empleadoGuardar);
-      console.log('URL de la imagen (empl_Imagen):', empleadoGuardar.empl_Imagen);
+      //console.log('Datos a enviar al backend:', empleadoGuardar);
+      //console.log('URL de la imagen (empl_Imagen):', empleadoGuardar.empl_Imagen);
         
       this.http.post<any>(`${environment.apiBaseUrl}/Empleado/Insertar`, empleadoGuardar, {
       headers: { 
@@ -187,7 +227,7 @@ export class CreateComponent {
       }
       }).subscribe({
       next: (response) => {
-      console.log('Empleado guardado exitosamente:', response);
+      //console.log('Empleado guardado exitosamente:', response);
       this.mensajeExito = `Empleado "${this.empleado.empl_Nombres}" guardado exitosamente`;
       this.mostrarAlertaExito = true;
       this.mostrarErrores = false;
@@ -358,18 +398,79 @@ export class CreateComponent {
     imageURL: any;
 
     onFileSelected(event: any) {
-      const file = Array.isArray(event) ? event[0] : event;
-      if (!file) return;
-
-      // Previsualización local inmediata
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.uploadedFiles = [{ ...file, dataURL: e.target.result, name: file.name, file: file }];
-      };
-      reader.readAsDataURL(file);
+      let file: File;
+    
+    // Manejar tanto eventos de input como de dropzone
+    if (event.target && event.target.files) {
+      file = event.target.files[0];
+    } else if (Array.isArray(event)) {
+      file = event[0];
+    } else {
+      file = event;
     }
 
+    if (!file) return;
+
+    // Validar que sea una imagen
+    if (!file.type.startsWith('image/')) {
+      this.mostrarAlertaError = true;
+      this.mensajeError = 'Por favor selecciona una imagen válida';
+      return;
+    }
+
+    // Validar tamaño (50MB como tienes en dropzoneConfig)
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSize) {
+      this.mostrarAlertaError = true;
+      this.mensajeError = 'La imagen es demasiado grande. Máximo 50MB.';
+      return;
+    }
+
+    this.selectedFile = file;
+
+    // Previsualización local inmediata (tu lógica original)
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.imagePreview = e.target.result;
+      this.uploadedFiles = [{ 
+        ...file, 
+        dataURL: e.target.result, 
+        name: file.name, 
+        file: file 
+      }];
+    };
+    reader.readAsDataURL(file);
+    }
+
+    onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = false;
     
+    if (event.dataTransfer?.files && event.dataTransfer.files[0]) {
+      this.onFileSelected(event.dataTransfer.files[0]);
+    }
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
 
       // Método para obtener la URL completa de la imagen para mostrarla
       getImageDisplayUrl(imagePath: string): string {
@@ -378,7 +479,25 @@ export class CreateComponent {
     
       // File Remove
       removeFile(event: any) {
-        this.uploadedFiles.splice(this.uploadedFiles.indexOf(event), 1);
+        if (event && event.stopPropagation) {
+          event.stopPropagation();
+        }
+        
+        // Limpiar las nuevas propiedades
+        this.selectedFile = null;
+        this.imagePreview = null;
+        
+        // Limpiar tu lógica original
+        if (this.uploadedFiles.length > 0) {
+          this.uploadedFiles.splice(this.uploadedFiles.indexOf(event), 1);
+        }
+        this.uploadedFiles = [];
+
+        // Limpiar el input file
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        if (fileInput) {
+          fileInput.value = '';
+        }
       }
 
 

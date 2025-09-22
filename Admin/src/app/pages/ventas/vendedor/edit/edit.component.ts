@@ -301,6 +301,8 @@ export class EditComponent implements OnChanges {
 
   validarEdicion(): void {
     this.mostrarErrores = true;
+    const rutasValidas = this.rutasVendedor.length > 0 &&
+    this.rutasVendedor.every(rv => rv.ruta_Id != null && rv.diasSeleccionados && rv.diasSeleccionados.length > 0);
 
     if (
       !this.vendedor.vend_Codigo.trim() ||
@@ -317,7 +319,7 @@ export class EditComponent implements OnChanges {
       !this.vendedor.vend_Tipo.trim() ||
       !this.vendedor.vend_Supervisor ||
       (this.tieneAyudante && !this.vendedor.vend_Ayudante)
-      || this.rutasVendedor.length === 0
+      || !rutasValidas
     ) {
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
@@ -470,7 +472,7 @@ export class EditComponent implements OnChanges {
     this.rutasVendedor[idx].veRu_Dias = dias.join(',');
     // Recalcular días disponibles para todos los índices
     this.recomputarOpciones();
-    console.log('rutasVendedor actualizadas:', this.rutasVendedor);
+
   }
 
   // Reaccionar al cambio de ruta en un índice
@@ -601,9 +603,7 @@ export class EditComponent implements OnChanges {
     const original = this.vendedorOriginal as any;
     this.cambiosDetectados = {};
 
-    console.log('=== INICIO DETECCIÓN CAMBIOS ===');
-    console.log('Vendedor actual:', JSON.parse(JSON.stringify(nuevo)));
-    console.log('Vendedor original:', JSON.parse(JSON.stringify(original)));
+
 
     // Verificar campos básicos del vendedor (solo campos de texto/valor directo)
     // Excluimos ddl/relacionales e imagen para tratarlos aparte (sucursal, colonia, supervisor, ayudante, sexo, imagen)
@@ -618,17 +618,12 @@ export class EditComponent implements OnChanges {
       { key: 'vend_EsExterno', label: 'Es Contratista' }
     ];
 
-    console.log('=== COMPARANDO CAMPOS BÁSICOS ===');
     camposBasicos.forEach(campo => {
       const valorOriginal = original[campo.key];
       const valorNuevo = nuevo[campo.key];
       const sonDiferentes = valorOriginal !== valorNuevo;
 
-      console.log(`Campo: ${campo.key}`, {
-        original: valorOriginal,
-        nuevo: valorNuevo,
-        sonDiferentes
-      });
+      
 
       if (sonDiferentes) {
         const item = {
@@ -638,11 +633,11 @@ export class EditComponent implements OnChanges {
         };
         this.cambiosDetectados[campo.key] = item as any;
         cambios.push(item);
-        console.log(`Cambio detectado en ${campo.key}:`, item);
+
       }
     });
 
-    console.log('Cambios detectados hasta ahora:', Object.keys(this.cambiosDetectados).length > 0 ? this.cambiosDetectados : 'Ninguno');
+
 
     // Verificar tipo de vendedor (mapeado legible)
     if (nuevo.vend_Tipo !== original.vend_Tipo) {

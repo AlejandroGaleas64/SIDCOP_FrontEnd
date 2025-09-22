@@ -5,6 +5,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { obtenerUsuario } from 'src/app/core/utils/user-utils'; // Cambiado a obtenerUsuario
 import * as XLSX from 'xlsx';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 export interface ExportConfig {
   title: string;
@@ -47,7 +48,7 @@ export class ExportService {
     grisTexto: '#666666'
   };
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {
     this.cargarConfiguracionEmpresa();
   }
 
@@ -110,7 +111,7 @@ export class ExportService {
           fontSize: 8,
           cellPadding: 3,
           overflow: 'linebreak' as any,
-          halign: 'left' as any,
+          halign: 'center' as any,
           valign: 'middle' as any,
           lineColor: false,
           lineWidth: 0,
@@ -417,7 +418,7 @@ export class ExportService {
 
   private async precargarLogo(): Promise<void> {
     if (!this.configuracionEmpresa?.coFa_Logo) {
-      console.log('No hay logo configurado');
+      //console.log('No hay logo configurado');
       this.logoDataUrl = null;
       return;
     }
@@ -459,7 +460,6 @@ export class ExportService {
           ctx.drawImage(img, 0, 0, width, height);
           
           const dataUrl = canvas.toDataURL('image/png', 0.8);
-          console.log('Logo precargado correctamente');
           resolve(dataUrl);
         } catch (e) {
           console.error('Error al procesar el logo:', e);
@@ -474,15 +474,11 @@ export class ExportService {
       
       try {
         const logoUrl = this.configuracionEmpresa.coFa_Logo;
-        console.log('Intentando precargar logo desde:', logoUrl);
         
-        if (logoUrl.startsWith('http')) {
-          img.src = logoUrl;
-        } else if (logoUrl.startsWith('data:')) {
-          img.src = logoUrl;
-        } else {
-          img.src = `data:image/png;base64,${logoUrl}`;
-        }
+        // Usar el servicio ImageUploadService para construir la URL correcta
+        const fullLogoUrl = this.imageUploadService.getImageUrl(logoUrl);
+        
+        img.src = fullLogoUrl;
       } catch (e) {
         console.error('Error al configurar src del logo:', e);
         resolve(null);

@@ -43,7 +43,7 @@ export class CreateComponent {
         this.ruta.ruta_Codigo = this.generarSiguienteCodigo();
       },
       error => {
-        console.error('Error al cargar las rutas:', error);
+        // //console.error('Error al cargar las rutas:', error);
       });
     }
 
@@ -129,7 +129,7 @@ export class CreateComponent {
         usuarioModificacion: "" 
       };
 
-      console.log('Guardando ruta:', rutaGuardar);
+      //console.log('Guardando ruta:', rutaGuardar);
       
       this.http.post<any>(`${environment.apiBaseUrl}/Rutas/Crear`, rutaGuardar, {
         headers: { 
@@ -139,7 +139,7 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          console.log('Ruta guardada exitosamente:', response);
+          //console.log('Ruta guardada exitosamente:', response);
           this.mostrarErrores = false;
           setTimeout(() => {
             this.onOverlayChange.emit(false);
@@ -158,7 +158,7 @@ export class CreateComponent {
 
           setTimeout(() => {
             this.onOverlayChange.emit(false);
-            console.error('Error al guardar ruta:', error);
+            //console.error('Error al guardar ruta:', error);
             this.mostrarAlertaError = true;
             this.mensajeError = 'Error al guardar la ruta. Por favor, intente nuevamente.';
             this.mostrarAlertaExito = false;

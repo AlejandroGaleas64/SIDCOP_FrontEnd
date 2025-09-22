@@ -180,7 +180,7 @@ export class EditComponent implements OnChanges {
         error: (error) => {
           setTimeout(() => {
             this.onOverlayChange.emit(false);
-            console.error('Error al actualizar ruta:', error);
+            //console.error('Error al actualizar ruta:', error);
             this.mostrarAlertaError = true;
             this.mensajeError = 'Error al actualizar la ruta. Por favor, intente nuevamente.';
             setTimeout(() => this.cerrarAlerta(), 5000);

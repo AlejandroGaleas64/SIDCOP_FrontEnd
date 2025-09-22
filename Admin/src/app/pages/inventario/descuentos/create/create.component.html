@@ -69,7 +69,7 @@
                     [(ngModel)]="descuento.desc_Descripcion"
                     placeholder="Ingrese la descripcion del descuento"
                     required>
-                  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+                
                 </div>
                 <div class="text-danger mt-1" *ngIf="!descuento.desc_Descripcion.trim() && mostrarErrores">
                   <small>La descripcion es requerida</small>
@@ -99,7 +99,7 @@
                           <option value=false  selected>Porcentaje</option>
                           
                   </select>
-                  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+           
                 </div>
                 <div class="text-danger mt-1" *ngIf="descuento.desc_Tipo == null && mostrarErrores">
                   <small>El campo tipo de descuento es requerido</small>
@@ -156,7 +156,7 @@
                     required
                     [min]="hoy"
                     >
-                  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+            
                 </div>
                 <div class="text-danger mt-1" *ngIf="!descuento.desc_FechaInicio && mostrarErrores">
                   <small>La Fecha inicio es requerida</small>
@@ -183,7 +183,7 @@
                     required
                     [min]="hoy"
                     >
-                  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+           
                 </div>
                 <div class="text-danger mt-1" *ngIf="!descuento.desc_FechaFin && mostrarErrores">
                   <small>La Fecha fin es requerida</small>
@@ -604,7 +604,7 @@
           class="btn btn-primary  
           right ms-auto nexttab
             nexttab" data-nexttab="steparrow-description-info-tab" 
-            [disabled]="!validado || !puedeAgregarNuevaEscala()"
+            [disabled]="!validado || !puedeAgregarNuevaEscala() || mostrarOverlayCarga"
             >
              <span class="btn-text">Guardar</span>
             <span class="btn-icon"><i class="ri-save-line label-icon align-middle fs-16 ms-2"></i></span>
@@ -622,6 +622,17 @@
     <strong>¡Atención!</strong> {{ mensajeWarning }}
     <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
   </div>
+
+  <div *ngIf="mostrarOverlayCarga" class="overlay-carga">
+  <div class="typing-indicator">
+    <div class="typing-circle"></div>
+    <div class="typing-circle"></div>
+    <div class="typing-circle"></div>
+    <div class="typing-shadow"></div>
+    <div class="typing-shadow"></div>
+    <div class="typing-shadow"></div>
+  </div>
+</div>
 
 
 
