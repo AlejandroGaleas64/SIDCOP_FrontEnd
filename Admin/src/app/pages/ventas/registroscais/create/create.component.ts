@@ -314,7 +314,7 @@ export class CreateComponent {
         nCai_Codigo: '',
       };
 
-      console.log('Guardando registro:', registroscaisGuardar);
+      //console.log('Guardando registro:', registroscaisGuardar);
 
       this.http
         .post<any>(

@@ -64,7 +64,7 @@ export class MapaSelectorComponent implements AfterViewInit, OnChanges {
       }
 
       const script = document.createElement('script');
-      console.log('Usando API Key de Google Maps:', environment.googleMapsApiKey);
+      //console.log('Usando API Key de Google Maps:', environment.googleMapsApiKey);
       script.src = `https://maps.googleapis.com/maps/api/js?key=${environment.googleMapsApiKey}`;
       script.async = true;
       script.defer = true;

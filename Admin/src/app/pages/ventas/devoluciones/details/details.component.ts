@@ -91,7 +91,7 @@ export class DetailsComponent implements OnChanges {
       }
     }).subscribe({
       next: (response) => {
-        console.log('Respuesta detalles del traslado:', response);
+        //console.log('Respuesta detalles del traslado:', response);
         
         if (Array.isArray(response)) {
           // La API devuelve directamente un array

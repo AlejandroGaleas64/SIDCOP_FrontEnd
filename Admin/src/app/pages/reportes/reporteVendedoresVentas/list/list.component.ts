@@ -80,8 +80,8 @@ export class ReporteVendedoresVentasComponent implements OnInit {
       params: params
     }).subscribe({
       next: (data) => {
-        console.log('Parámetros de reporte:', params);
-        console.log('Datos del reporte:', data);
+        //console.log('Parámetros de reporte:', params);
+        //console.log('Datos del reporte:', data);
         this.vendedores = data;
         this.generarPDF();
         this.cargando = false;

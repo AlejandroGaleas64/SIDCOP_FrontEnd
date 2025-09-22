@@ -120,7 +120,7 @@ export class ListComponent implements OnInit {
 
     // OBTENER ACCIONES DISPONIBLES DEL USUARIO
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
+    //console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
   // ===== MÉTODOS DE EXPORTACIÓN OPTIMIZADOS =====
@@ -313,7 +313,7 @@ export class ListComponent implements OnInit {
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
+    //console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -321,8 +321,8 @@ export class ListComponent implements OnInit {
   }
 
   editar(rutas: Ruta): void {
-    // console.log('Abriendo formulario de edición para:', rutas);
-    // console.log('Datos específicos:', {
+    // //console.log('Abriendo formulario de edición para:', rutas);
+    // //console.log('Datos específicos:', {
     //   id: rutas.ruta_Id,
     //   codigo: rutas.ruta_Codigo,
     //   descripcion: rutas.ruta_Descripcion,
@@ -336,7 +336,7 @@ export class ListComponent implements OnInit {
   }
 
   detalles(rutas: Ruta): void {
-    // console.log('Abriendo detalles para:', rutas);
+    // //console.log('Abriendo detalles para:', rutas);
     this.rutaDetalle = { ...rutas }; // Hacer copia profunda
     this.showDetailsForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -396,21 +396,21 @@ export class ListComponent implements OnInit {
   }
 
   guardarRuta(rutas: Ruta): void {
-    // console.log('Ruta guardada exitosamente desde create component:', rutas);
+    // //console.log('Ruta guardada exitosamente desde create component:', rutas);
     // Recargar los datos de la tabla sin overlay
     this.cargardatos(false);
     this.cerrarFormulario();
   }
 
   actualizarRuta(rutas: Ruta): void {
-    // console.log('Ruta actualizada exitosamente desde edit component:', rutas); 
+    // //console.log('Ruta actualizada exitosamente desde edit component:', rutas); 
     // Recargar los datos de la tabla sin overlay
     this.cargardatos(false);
     this.cerrarFormularioEdicion();
   }
 
   confirmarEliminar(rutas: Ruta): void {
-    // console.log('Solicitando confirmación para eliminar:', rutas);
+    // //console.log('Solicitando confirmación para eliminar:', rutas);
     this.rutasAEliminar = rutas;
     this.mostrarConfirmacionEliminar = true;
   }
@@ -423,7 +423,7 @@ export class ListComponent implements OnInit {
   eliminar(): void {
     if (!this.rutasAEliminar) return;
     
-    // console.log('Eliminando estado civil:', this.rutasAEliminar);
+    // //console.log('Eliminando estado civil:', this.rutasAEliminar);
     
     this.http.put(`${environment.apiBaseUrl}/Rutas/Eliminar/${this.rutasAEliminar.ruta_Id}`, {}, {
       headers: { 
@@ -432,13 +432,13 @@ export class ListComponent implements OnInit {
       }
     }).subscribe({
       next: (response: any) => {
-        console.log('Respuesta del servidor:', response);
+        //console.log('Respuesta del servidor:', response);
         
         // Verificar el código de estado en la respuesta
         if (response.success && response.data) {
           if (response.data.code_Status === 1) {
             // Éxito: eliminado correctamente
-            // console.log('Estado civil eliminado exitosamente');
+            // //console.log('Estado civil eliminado exitosamente');
             this.mensajeExito = `Estado civil "${this.rutasAEliminar!.ruta_Descripcion}" eliminado exitosamente`;
             this.mostrarAlertaExito = true;
             
@@ -453,7 +453,7 @@ export class ListComponent implements OnInit {
             this.cancelarEliminar();
           } else if (response.data.code_Status === -1) {
             //result: está siendo utilizado
-            // console.log('Ruta está siendo utilizado');
+            // //console.log('Ruta está siendo utilizado');
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'No se puede eliminar: la ruta está siendo utilizado.';
             
@@ -466,7 +466,7 @@ export class ListComponent implements OnInit {
             this.cancelarEliminar();
           } else if (response.data.code_Status === 0) {
             // Error general
-            console.log('Error general al eliminar');
+            //console.log('Error general al eliminar');
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'Error al eliminar la ruta.';
             
@@ -480,7 +480,7 @@ export class ListComponent implements OnInit {
           }
         } else {
           // Respuesta inesperada
-          // console.log('Respuesta inesperada del servidor');
+          // //console.log('Respuesta inesperada del servidor');
           this.mostrarAlertaError = true;
           this.mensajeError = response.message || 'Error inesperado al eliminar la ruta.';
           
@@ -509,7 +509,7 @@ export class ListComponent implements OnInit {
   private cargarAccionesUsuario(): void {
     // OBTENEMOS PERMISOSJSON DEL LOCALSTORAGE
     const permisosRaw = localStorage.getItem('permisosJson');
-    // console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+    // //console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -526,7 +526,7 @@ export class ListComponent implements OnInit {
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
           // AQUI SACAMOS SOLO EL NOMBRE DE LA ACCIÓN
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
-          console.log('Acciones del módulo:', accionesArray);
+          //console.log('Acciones del módulo:', accionesArray);
         }
       } catch (e) {
         console.error('Error al parsear permisosJson:', e);
@@ -534,7 +534,7 @@ export class ListComponent implements OnInit {
     } 
     // AQUI FILTRAMOS Y NORMALIZAMOS LAS ACCIONES
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    // console.log('Acciones finales:', this.accionesDisponibles);
+    // //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   private cargardatos(state: boolean): void {

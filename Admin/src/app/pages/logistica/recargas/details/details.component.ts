@@ -44,9 +44,9 @@ export class DetailsComponent implements OnChanges {
         
         // PROCESAR XML DE PRODUCTOS
         if (data.detalleProductos) {
-          console.log('XML recibido:', data.detalleProductos);
+          //console.log('XML recibido:', data.detalleProductos);
           this.recargaDetalle.productos = this.parsearXMLProductos(data.detalleProductos);
-          console.log('Productos parseados:', this.recargaDetalle.productos);
+          //console.log('Productos parseados:', this.recargaDetalle.productos);
         } else {
           this.recargaDetalle.productos = [];
         }
@@ -171,7 +171,7 @@ export class DetailsComponent implements OnChanges {
   // MÉTODOS AUXILIARES PARA DEBUG (OPCIONALES)
   mostrarXMLOriginal(): void {
     if (this.recargaData?.detalleProductos) {
-      console.log('XML Original:', this.recargaData.detalleProductos);
+      //console.log('XML Original:', this.recargaData.detalleProductos);
       alert('Revisa la consola para ver el XML original');
     }
   }

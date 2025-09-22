@@ -313,10 +313,7 @@ export class EditComponent implements OnInit, OnChanges {
           });
 
           this.aplicarFiltros();
-          console.log(
-            'Productos cargados y cantidades aplicadas:',
-            this.productos
-          );
+       
         },
         error: (error) => {
           console.error('Error al obtener productos:', error);
@@ -704,7 +701,7 @@ export class EditComponent implements OnInit, OnChanges {
         secuencia: 0,
       };
 
-      console.log('Datos a enviar:', PEActualizar);
+      //console.log('Datos a enviar:', PEActualizar);
 
       this.http
         .put<any>(`${environment.apiBaseUrl}/Pedido/Actualizar`, PEActualizar, {
@@ -744,7 +741,7 @@ export class EditComponent implements OnInit, OnChanges {
       .subscribe({
         next: (cliente) => {
           this.Clientes = cliente;
-          console.log('Clientes cargados:', this.Clientes);
+          //console.log('Clientes cargados:', this.Clientes);
           this.http
             .get<any>(
               `${environment.apiBaseUrl}/DireccionesPorCliente/Listar`,
@@ -754,7 +751,7 @@ export class EditComponent implements OnInit, OnChanges {
             )
             .subscribe({
               next: (direcciones) => {
-                console.log('Direcciones cargadas:', direcciones);
+                //console.log('Direcciones cargadas:', direcciones);
                 this.TodasDirecciones = direcciones;
                 this.configurarUbicacionInicial();
               },
@@ -780,7 +777,7 @@ export class EditComponent implements OnInit, OnChanges {
 
   cargarMunicipios(codigoDepa: number): void {
     this.pedidoEditada.clie_Id = parseInt(codigoDepa.toString());
-    console.log('Código del departamento seleccionado:', codigoDepa);
+    //console.log('Código del departamento seleccionado:', codigoDepa);
     this.Direcciones = this.TodasDirecciones.filter(
       (m: any) => m.clie_Id === parseInt(codigoDepa.toString())
     );

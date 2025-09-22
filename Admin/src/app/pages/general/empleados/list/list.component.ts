@@ -211,7 +211,7 @@ export class ListComponent {
    private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+    //console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -234,7 +234,7 @@ export class ListComponent {
       }
     }
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
+    //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   private cargardatos(): void {
@@ -394,7 +394,7 @@ export class ListComponent {
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
+    //console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -414,14 +414,14 @@ export class ListComponent {
 
 
   guardarEmpleado(empleado: Empleado): void {
-    console.log('Estado civil guardado exitosamente desde create component:', empleado);
+    //console.log('Estado civil guardado exitosamente desde create component:', empleado);
     // Recargar los datos de la tabla
     this.cargardatos();
     this.cerrarFormulario();
   }
 
   confirmarEliminar(empleado: Empleado): void {
-    console.log('Solicitando confirmación para eliminar:', empleado);
+    //console.log('Solicitando confirmación para eliminar:', empleado);
     this.empleadoAEliminar = empleado;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones
@@ -444,7 +444,7 @@ export class ListComponent {
   eliminar(): void {
     if (!this.empleadoAEliminar) return;
     
-    console.log('Eliminando estado civil:', this.empleadoAEliminar);
+    //console.log('Eliminando estado civil:', this.empleadoAEliminar);
     
     this.http.post(`${environment.apiBaseUrl}/Empleado/Eliminar/${this.empleadoAEliminar.empl_Id}`, {}, {
       headers: { 
@@ -453,7 +453,7 @@ export class ListComponent {
       }
     }).subscribe({
       next: (response: any) => {
-        console.log('Respuesta del servidor:', response);
+        //console.log('Respuesta del servidor:', response);
         
         // Verificar el código de estado en la respuesta
         if (response.success && (!response.data || response.data.code_Status === 1)) {
@@ -513,7 +513,7 @@ export class ListComponent {
 
   //Detailss
   detalles(empleado: Empleado): void {
-      console.log('Abriendo detalles para:', empleado);
+      //console.log('Abriendo detalles para:', empleado);
       this.empleadoDetalle = { ...empleado }; // Hacer copia profunda
       this.showDetailsForm = true;
       this.showCreateForm = false; // Cerrar create si está abierto
@@ -525,7 +525,7 @@ export class ListComponent {
 
 
     editar(empleado: Empleado): void {
-      console.log('Abriendo formulario de edición para:', empleado);
+      //console.log('Abriendo formulario de edición para:', empleado);
       // Crear una copia profunda asegurando que todos los campos estén presentes y sin sobrescribir
       this.empleadoEditando = {
         empl_Id: empleado.empl_Id ?? undefined,
@@ -555,7 +555,7 @@ export class ListComponent {
     }
 
     actualizarEmpleado(empleado: Empleado): void {
-      console.log('Empleado actualizado exitosamente desde edit component:', empleado);
+      //console.log('Empleado actualizado exitosamente desde edit component:', empleado);
       // Recargar los datos de la tabla
       this.cargardatos();
       this.cerrarFormularioEdicion();
