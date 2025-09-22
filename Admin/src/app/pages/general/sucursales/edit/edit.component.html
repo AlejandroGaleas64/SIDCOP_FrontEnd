@@ -192,8 +192,8 @@
             <label for="sucu_Correo" class="form-label">Correo<span class="text-danger">*</span></label>
             <div class="d-flex align-items-center">
               <i class="ri-mail-line" [ngStyle]="{
-                border: (!sucursal.sucu_Correo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!sucursal.sucu_Correo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: ((!sucursal.sucu_Correo.trim() || (sucursal.sucu_Correo && !validarCorreo(sucursal.sucu_Correo))) && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: ((!sucursal.sucu_Correo.trim() || (sucursal.sucu_Correo && !validarCorreo(sucursal.sucu_Correo))) && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
               <input
                 type="email"

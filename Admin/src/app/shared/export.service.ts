@@ -418,7 +418,7 @@ export class ExportService {
 
   private async precargarLogo(): Promise<void> {
     if (!this.configuracionEmpresa?.coFa_Logo) {
-      console.log('No hay logo configurado');
+      //console.log('No hay logo configurado');
       this.logoDataUrl = null;
       return;
     }

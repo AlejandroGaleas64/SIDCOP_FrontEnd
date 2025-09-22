@@ -72,7 +72,7 @@ modelo: Modelo = new Modelo({
     }).subscribe({
       next: (data) => {
         this.marcas = data;
-        console.log('Marcas cargadas:', this.marcas);
+        //console.log('Marcas cargadas:', this.marcas);
       },
       error: (error) => {
         console.error('Error al cargar marcas:', error);
@@ -192,15 +192,7 @@ modelo: Modelo = new Modelo({
     this.mostrarAlertaError = false;
     
     const modeloAGuardar = this.prepararObjetoParaGuardar();
-    console.log('Guardando modelo:', modeloAGuardar);
-    console.log('JSON.stringify:', JSON.stringify(modeloAGuardar));
-    console.log('URL:', `${environment.apiBaseUrl}/Modelo/Insertar`);
-    console.log('Headers:', { 
-      'X-Api-Key': environment.apiKey,
-      'Content-Type': 'application/json',
-      'accept': '*/*'
-    });
-
+   
     this.http.post<any>(`${environment.apiBaseUrl}/Modelo/Insertar`, modeloAGuardar, {
       headers: { 
         'X-Api-Key': environment.apiKey,
@@ -209,7 +201,7 @@ modelo: Modelo = new Modelo({
       }
     }).subscribe({
       next: (response) => {
-        console.log('Modelo guardado exitosamente:', response);
+        //console.log('Modelo guardado exitosamente:', response);
         this.mensajeExito = `Modelo "${this.modelo.mode_Descripcion}" guardado exitosamente`;
         this.mostrarAlertaExito = true;
         this.mostrarErrores = false;

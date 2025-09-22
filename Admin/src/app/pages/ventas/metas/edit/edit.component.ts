@@ -319,7 +319,7 @@ export class EditComponent implements OnInit, OnChanges {
       vendedoresJson: ''
     };
 
-    console.log('Payload para guardar meta editada:', payload);
+    //console.log('Payload para guardar meta editada:', payload);
 
     this.http.post<any>(`${environment.apiBaseUrl}/Metas/ActualizarCompleto`, payload, {
       headers: {
@@ -330,7 +330,7 @@ export class EditComponent implements OnInit, OnChanges {
     }).subscribe({
       next: (response) => {
 
-        console.log('Respuesta al guardar meta:', response);
+        //console.log('Respuesta al guardar meta:', response);
         if (response?.data?.code_Status > 0) {
           this.mostrarAlertaExito = true;
           this.mensajeExito = 'Meta actualizada exitosamente.';

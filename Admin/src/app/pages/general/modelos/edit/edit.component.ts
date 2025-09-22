@@ -97,8 +97,8 @@ OnMarcaChange(event: any) {
     }).subscribe({
       next: (data) => {
         this.marcasVehiculo = data;
-        console.log('Marcas cargadas:', this.marcasVehiculo);
-        console.log('Marca actual del modelo:', this.modelo.maVe_Id);
+        //console.log('Marcas cargadas:', this.marcasVehiculo);
+        //console.log('Marca actual del modelo:', this.modelo.maVe_Id);
         
         // Verificar si la marca actual existe en la lista
         const marcaExiste = this.marcasVehiculo.find(marca => marca.maVe_Id === this.modelo.maVe_Id);
@@ -174,7 +174,7 @@ OnMarcaChange(event: any) {
 
     if (this.validarCampos()) {
       if (this.hayDiferencias()) {
-        console.log('Cambios detectados:', this.cambiosDetectados);
+        //console.log('Cambios detectados:', this.cambiosDetectados);
         this.mostrarConfirmacionEditar = true;
       } else {
         this.mostrarAlertaWarning = true;
