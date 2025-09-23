@@ -39,11 +39,9 @@
         <!-- Selected Meta Content -->
         <ng-container *ngIf="selectedMeta">
           <div class="card shadow-sm" [style.border-color]="'#14192e'">
-            <!-- Meta Header with subtle background -->
-            <div class="card-header border-bottom-0" 
-              style="background: linear-gradient(to bottom, rgba(20,25,46,0.03), transparent); padding: 1.5rem;">
-              <!-- Meta Info -->
-              <div class="d-flex flex-wrap gap-3">
+            <!-- Meta Header with subtle division -->
+            <div class="card-header bg-light border-bottom py-3">
+              <div class="d-flex flex-wrap gap-3 align-items-center">
                 <div class="flex-grow-1">
                   <span class="badge mb-2" [style.background-color]="'#14192e'">
                     <i [class]="getMetaTipo(selectedMeta.meta_Tipo).icon" class="me-1"></i>
@@ -54,7 +52,6 @@
                     <i class="ri-calendar-line me-1"></i>
                     {{ formatDate(selectedMeta.meta_FechaInicio) }} — {{ formatDate(selectedMeta.meta_FechaFin) }}
                   </div>
-                  <!-- Product/Category info -->
                   <div class="mt-2" *ngIf="selectedMeta.prod_Id || selectedMeta.cate_Id">
                     <small class="text-muted me-3" *ngIf="selectedMeta.prod_Id">
                       <i class="ri-price-tag-3-line me-1"></i>
@@ -80,7 +77,7 @@
               </div>
             </div>
 
-            <div class="card-body pt-3">
+            <div class="card-body">
               <!-- Search & Stats -->
               <div class="d-flex align-items-center gap-3 mb-4">
                 <div class="input-group" style="max-width: 300px;">

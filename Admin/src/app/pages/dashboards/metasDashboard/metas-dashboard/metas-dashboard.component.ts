@@ -110,10 +110,13 @@ export class MetasDashboardComponent implements OnInit {
     );
     const categories = filtered.map(v => v.Vend_NombreCompleto);
 
-    // Calculate dynamic height based on number of items with minimum height
-    const itemHeight = 40; // Height per bar
-    const minHeight = 350; // Minimum chart height
-    const calculatedHeight = Math.max(minHeight, filtered.length * itemHeight);
+    // Fixed height per bar regardless of filter
+    const barHeight = 40;  // Increased from 32
+    const barSpacing = 15; // Space between bars
+    const headerHeight = 60; // Space for header
+    const minHeight = 350;
+    // Calculate total height needed
+    const calculatedHeight = Math.max(minHeight, (filtered.length * (barHeight + barSpacing)) + headerHeight);
 
     this.chartOptions = {
       series: [{
@@ -125,87 +128,66 @@ export class MetasDashboardComponent implements OnInit {
         type: "bar",
         toolbar: { show: false },
         fontFamily: 'inherit',
+        animations: {
+          enabled: true
+        }
       },
       plotOptions: {
         bar: {
           horizontal: true,
-          barHeight: '32', // Fixed bar height
+          barHeight: barHeight,
           distributed: true,
           borderRadius: 4,
           dataLabels: {
             position: 'center'
-          }
+          },
+          columnWidth: '90%'
         }
       },
       colors: this.colorPalette,
-      // dataLabels: {
-      //   enabled: true,
-      //   formatter: (val: number, opts: any) => {
-      //     const percent = objetivo ? (val / objetivo) * 100 : 0;
-      //     if (isIngresos) {
-      //       return `${val.toLocaleString('es-HN', { 
-      //         style: 'currency', 
-      //         currency: 'HNL',
-      //         maximumFractionDigits: 2 
-      //       })} (${percent.toFixed(1)}%)`;
-      //     }
-      //     return `${val.toLocaleString('es-HN')} (${percent.toFixed(1)}%)`;
-      //   },
-      //   style: {
-      //     fontSize: '13px',
-      //     fontWeight: 500,
-      //     colors: ['#fff']
-      //   },
-      //   background: {
-      //     enabled: true,
-      //     foreColor: '#14192e',
-      //     padding: 4,
-      //     borderRadius: 2,
-      //     borderWidth: 1,
-      //     borderColor: 'rgba(255,255,255,0.2)',
-      //     opacity: 0.9,
-      //   },
-      //   textAnchor: 'middle'
-      // },
-      
-      // In buildChartOptions(), update the dataLabels configuration:
-dataLabels: {
-  enabled: true,
-  formatter: (val: number, opts: any) => {
-    const percent = objetivo ? (val / objetivo) * 100 : 0;
-    if (isIngresos) {
-      return `${val.toLocaleString('es-HN', { 
-        style: 'currency', 
-        currency: 'HNL',
-        maximumFractionDigits: 2 
-      })} (${percent.toFixed(1)}%)`;
-    }
-    return `${val.toLocaleString('es-HN')} (${percent.toFixed(1)}%)`;
-  },
-  style: {
-    fontSize: '13px',
-    fontWeight: 700,
-    colors: ['#fff'],
-    textShadow: `
-      -2px -2px 0 #14192e,
-       2px -2px 0 #14192e,
-      -2px  2px 0 #14192e,
-       2px  2px 0 #14192e,
-      -2.5px 0 0 #14192e,
-       2.5px 0 0 #14192e,
-       0 -2.5px 0 #14192e,
-       0 2.5px 0 #14192e
-    `
-  },
-  background: {
-    enabled: false
-  },
-  textAnchor: 'middle',
-  position: 'center',
-  offsetY: 0
-},
-
-
+      dataLabels: {
+        enabled: true,
+        formatter: (val: number, opts: any) => {
+          const percent = objetivo ? (val / objetivo) * 100 : 0;
+          if (isIngresos) {
+            return `${val.toLocaleString('es-HN', { 
+              style: 'currency', 
+              currency: 'HNL',
+              maximumFractionDigits: 2 
+            })} (${percent.toFixed(1)}%)`;
+          }
+          return `${val.toLocaleString('es-HN')} (${percent.toFixed(1)}%)`;
+        },
+        style: {
+          fontSize: '13px',
+          fontWeight: 600,
+          colors: ['#fff'],
+          textShadow: '1px 1px 2px rgba(0,0,0,0.8)' // Added text shadow for better visibility
+        },
+        background: {
+          enabled: true,
+          foreColor: '#14192e',
+          padding: 2,
+          opacity: 0.9,
+          borderWidth: 1,
+          borderColor: '#fff',
+          borderRadius: 2
+        },
+        textAnchor: 'middle',
+        position: 'center',
+        offsetY: 0
+      },
+      grid: {
+        borderColor: '#f1f1f1',
+        xaxis: { lines: { show: true } },
+        yaxis: { lines: { show: false } },
+        padding: { 
+          top: 20,     // Space for header
+          right: 10,
+          bottom: 10,
+          left: 10 
+        }
+      },
       xaxis: {
         categories: categories,
         max: objetivo,
@@ -232,7 +214,8 @@ dataLabels: {
             color: this.colorPalette[0],
             fontSize: '14px',
             fontWeight: 600
-          }
+          },
+          offsetY: -10
         }
       },
       yaxis: {
@@ -244,12 +227,6 @@ dataLabels: {
           }
         }
       },
-      grid: {
-        borderColor: '#f1f1f1',
-        xaxis: { lines: { show: true } },
-        yaxis: { lines: { show: false } },
-        padding: { left: 10, right: 10 }
-      },
       tooltip: {
         theme: 'light',
         style: { fontSize: '13px' },
@@ -260,7 +237,6 @@ dataLabels: {
               return `${val.toLocaleString('es-HN', {
                 style: 'currency',
                 currency: 'HNL',
-                
                 minimumFractionDigits: 2
               })} (${percent.toFixed(1)}%)`;
             }
@@ -269,7 +245,7 @@ dataLabels: {
         }
       }
     };
-  }
+}
 
   private filterVendedores(): any[] {
     if (!this.filterText?.trim()) return this.vendedores;
