@@ -1,3 +1,4 @@
+// ESTOS SON TODOS LOS IMPORTS NECESARIOS
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -17,6 +18,7 @@ interface TreeItem {
   esReporte?: boolean;
 }
 
+// AQUI HACEMOS OTRO "MODEL" DE LOS PERMISOS Y PARA ELIMINAR Y ETC
 interface Permiso {
   perm_Id: number;
   acPa_Id: number;
@@ -90,6 +92,7 @@ export class EditComponent implements OnChanges {
     role_Estado: true
   };
 
+  // AQUI TENEMOS EL ROL ORIGINAL Y LAS ALERTAS PREECARGADAS
   rolOriginal: any = {};
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -120,6 +123,7 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // AQUI EMPIEZA EL METODO DE LAS ACCIONES POR PANTALLA
   private cargarAccionesPorPantalla(): void {
     this.http.get<{ acPa_Id: number, pant_Id: number, acci_Id: number }[]>(`${environment.apiBaseUrl}/Roles/ListarAccionesPorPantalla`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -140,6 +144,7 @@ export class EditComponent implements OnChanges {
     });
   }
 
+  // AQUI HACEMOS LLAMADO A LOS ENDPOINT PARA PODER OBTENER LOS PERMISOS
   private cargarPantallas(): void {
     this.http.get(`${environment.apiBaseUrl}/Roles/ListarPantallas`, {
       headers: { 'x-api-key': environment.apiKey },
@@ -251,6 +256,7 @@ export class EditComponent implements OnChanges {
     });
   }
 
+  // AQUI LA SELECCION DE LOS PERMISOS
   toggleSelection(item: TreeItem): void {
     item.selected = !item.selected;
 

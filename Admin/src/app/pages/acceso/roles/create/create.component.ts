@@ -1,3 +1,4 @@
+// ESTOS SON TODOS LOS IMPORTS NECESARIOS
 import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -17,6 +18,7 @@ interface TreeItem {
   esReporte?: boolean;
 }
 
+// AQUI HACEMOS UN "MODEL" PARA LAS PANTALLAS CON LOS ESQUEMAS, PANTALLAS Y ACCIONES
 interface Esquema {
   Esquema: string;
   Pantallas: Pantalla[];
@@ -46,6 +48,7 @@ export class CreateComponent {
 
   treeData: TreeItem[] = [];
   selectedItems: TreeItem[] = [];
+  // NECESARIO PARA LA ACCIONES POR PANTALLA
   accionesPorPantalla: { AcPa_Id: number, Pant_Id: number, Acci_Id: number }[] = [];
 
   rol: Rol = {
@@ -79,6 +82,7 @@ export class CreateComponent {
     this.inicializarFormulario();
   }
 
+  // METODO PARA LAS ACCIONES POR PANTALLA
   private cargarAccionesPorPantalla(): void {
     this.http.get<{ acPa_Id: number, pant_Id: number, acci_Id: number }[]>(`${environment.apiBaseUrl}/Roles/ListarAccionesPorPantalla`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -120,6 +124,7 @@ export class CreateComponent {
     this.mostrarAlertaWarning = false;
   }
 
+  // CARGANDO LAS PANTALLAS PARA LOS PERMISOS
   private cargarPantallas(): void {
     this.http.get(`${environment.apiBaseUrl}/Roles/ListarPantallas`, {
       headers: { 'x-api-key': environment.apiKey },
@@ -182,12 +187,14 @@ export class CreateComponent {
     });
   }
 
+  // AQUI EMPEZAMOS LO DEL TREE VIEW
   toggleSelection(item: TreeItem): void {
     item.selected = !item.selected;
     if (item.type === 'esquema' || item.type === 'pantalla') {
       this.updateChildrenSelection(item, item.selected);
     }
 
+    // AQUI PARA LA EXPANSIÓN DE ACCIONES Y ABAJO EL DE LAS PANTALLAS
     if (item.type === 'accion') {
       const pantalla = item.parent;
       const esquema = pantalla?.parent;
@@ -227,6 +234,7 @@ export class CreateComponent {
     this.updateSelectedItems();
   }
 
+  // LA SELECCIÓN DE LAS PANTALLAS Y LAS ACCIONES
   private updateChildrenSelection(parent: TreeItem, selected: boolean): void {
     if (parent.children) {
       for (const child of parent.children) {
@@ -249,11 +257,13 @@ export class CreateComponent {
     }, []);
   }
 
+  // AQUI PARA LAS EXPANSIONES DESDE EL ESQUEMA
   get hayExpandido(): boolean {
     return this.treeData.some(esquema =>
       esquema.expanded || (esquema.children ? esquema.children.some(pantalla => pantalla.expanded) : false));
   }
 
+  // AQUI PARA EXPANDIRLOS TODOS O NO
   alternarDesplegables(): void {
     const expandir = !this.hayExpandido;
     const cambiarExpansion = (items: TreeItem[], expandir: boolean) => {
@@ -269,6 +279,7 @@ export class CreateComponent {
     item.expanded = !item.expanded;
   }
 
+  // AQUI PARA EL PROCESO DE GUARDAR CON TODAS LAS VALIDACIONES
   guardar(): void {
     this.mostrarErrores = true;
 
@@ -301,6 +312,7 @@ export class CreateComponent {
       role_Estado: true
     };
 
+    // AQUI INSERTAMOS EL ROL
     this.http.post<Rol>(`${environment.apiBaseUrl}/Roles/Insertar`, rolInsertar, {
       headers: {
         'X-Api-Key': environment.apiKey,
@@ -309,6 +321,7 @@ export class CreateComponent {
       }
     }).subscribe({
       next: () => {
+        // AQUI OBTENEMOS EL ÚLTIMO ROL PARA PODER INSERTAR LOS PERMISOS
         this.http.get<Rol[]>(`${environment.apiBaseUrl}/Roles/Listar`, {
           headers: { 'X-Api-Key': environment.apiKey }
         }).subscribe({
@@ -316,6 +329,7 @@ export class CreateComponent {
             const ultimoRol = roles[0];
             const permisos = this.getPermisosSeleccionados(ultimoRol.role_Id);
 
+            // AQUI SE INSERTAR LOS PERMISOS
             Promise.all(permisos.map(permiso =>
               this.http.post(`${environment.apiBaseUrl}/Insertar`, permiso!, {
                 headers: {
@@ -353,6 +367,7 @@ export class CreateComponent {
     });
   }
 
+  // AQUI LOS PERMISOS
   private getPermisosSeleccionados(roleId: number) {
     return this.selectedItems.map((item: TreeItem) => {
       let pantallaId: number | undefined;
