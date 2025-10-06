@@ -65,7 +65,7 @@ export const MENU: MenuItem[] = [
   {
     id: 3,
     label: 'MENUITEMS.GENERAL.TEXT',
-    icon: 'ri-apps-2-line',
+    icon: ' ri-earth-line',
     subItems: [
       { id: 8,  label: 'MENUITEMS.GENERAL.LIST.CANALES',          link: '/general/canales',           parentId: 2, icon: 'ri-building-2-line' },
       { id: 9,  label: 'MENUITEMS.GENERAL.LIST.CARGOS',           link: '/general/cargos',            parentId: 2, icon: 'ri-building-2-line' },
@@ -89,7 +89,7 @@ export const MENU: MenuItem[] = [
   {
     id: 3,
     label: 'MENUITEMS.INVENTARIO.TEXT',
-    icon: 'ri-layout-grid-fill',
+    icon: 'ri-archive-line',
     subItems: [
       { id: 21, label: 'MENUITEMS.INVENTARIO.LIST.CATEGORIAS',         link: '/inventario/categorias',         parentId: 3, icon: 'ri-truck-line' },
       { id: 22, label: 'MENUITEMS.INVENTARIO.LIST.DESCUENTOS',         link: '/inventario/descuentos',         parentId: 3, icon: 'ri-truck-line' },
@@ -133,7 +133,7 @@ export const MENU: MenuItem[] = [
   {
     id: 7,
     label: 'MENUITEMS.REPORTES.TEXT',
-    icon: 'ri-layout-grid-fill',
+    icon: 'ri-file-list-3-line',
     subItems: [
       { id: 61, label: 'MENUITEMS.REPORTES.LIST.REPORTEPRODUCTOS',               link: '/reportes/reporteproductos',               parentId: 7, icon: 'ri-truck-line' },
       { id: 66, label: 'MENUITEMS.REPORTES.LIST.REPORTECLIENTESMASFACTURADOS',   link: '/reportes/reporteclientesMasFacturados',   parentId: 7, icon: 'ri-truck-line' },
