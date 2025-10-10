@@ -241,7 +241,8 @@ export class ListComponent {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Empleado/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
-      this.usuarioGrid = data || [];
+      // Filtrar solo los empleados con Empl_Estado igual a true
+      this.usuarioGrid = (data || []).filter(empleado => empleado.empl_Estado === true);
       this.instructorGrid = [...this.usuarioGrid];
       this.updateInstructors();
       this.isLoading = false;

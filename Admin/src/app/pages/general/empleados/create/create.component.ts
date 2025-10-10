@@ -21,12 +21,6 @@ import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 })
 export class CreateComponent {
 
-  validarCorreo(correo: string): boolean {
-    if (!correo) return false;
-    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return regex.test(correo.trim());
-  }
-
   sucursales: any[] = [];
   estadosCiviles: any[] = [];
 
@@ -39,10 +33,11 @@ export class CreateComponent {
     mostrarErrores = false;
     mostrarAlertaExito = false;
     mensajeExito = '';
-    mostrarAlertaError = false;
-    mensajeError = '';
-    mostrarAlertaWarning = false;
-    mensajeWarning = '';
+    mostrarAlertaError: boolean = false;
+    mensajeError: string = '';
+    mostrarAlertaWarning: boolean = false;
+    mensajeWarning: string = '';
+    correoInvalido: boolean = false;
 
     isDragOver: boolean = false;
     selectedFile: File | null = null;
@@ -81,33 +76,21 @@ export class CreateComponent {
       empl_Imagen: ''
     };
   
-    cancelar(): void {
-      // Limpiar alertas
-      this.mostrarErrores = false;
-      this.mostrarAlertaExito = false;
-      this.mensajeExito = '';
-      this.mostrarAlertaError = false;
-      this.mensajeError = '';
-      this.mostrarAlertaWarning = false;
-      this.mensajeWarning = '';
-
+    limpiarFormulario(): void {
       // Limpiar imagen
       this.uploadedFiles = [];
       this.selectedFile = null;
-    this.imagePreview = null;
-    this.isDragOver = false;
-
-      // Recargar lista de empleados para obtener el código actualizado
-      this.cargarEmpleados();
+      this.imagePreview = null;
+      this.isDragOver = false;
 
       // Reiniciar el empleado con valores por defecto
       this.empleado = {
         empl_Id: 0,
         empl_DNI: '',
-        empl_Codigo: '',
+        empl_Codigo: this.generarSiguienteCodigo(), // Generar nuevo código
         empl_Nombres: '',
         empl_Apellidos: '',
-        empl_Sexo: 'M', // Mantener el valor por defecto 'M'
+        empl_Sexo: 'M',
         empl_FechaNacimiento: new Date(),
         empl_Correo: '',
         empl_Telefono: '',
@@ -123,11 +106,30 @@ export class CreateComponent {
         empl_Estado: true,
         empl_Imagen: ''
       };
+      
+      // Resetear errores de validación
+      this.mostrarErrores = false;
+      this.correoInvalido = false;
+    }
 
-      // Emitir evento de cancelar solo si se llamó desde el botón de cancelar
-      if (!this.mostrarAlertaExito) {
-        this.onCancel.emit();
-      }
+    cancelar(): void {
+      // Limpiar alertas
+      this.mostrarErrores = false;
+      this.mostrarAlertaExito = false;
+      this.mensajeExito = '';
+      this.mostrarAlertaError = false;
+      this.mensajeError = '';
+      this.mostrarAlertaWarning = false;
+      this.mensajeWarning = '';
+
+      // Limpiar el formulario
+      this.limpiarFormulario();
+      
+      // Recargar lista de empleados para obtener el código actualizado
+      this.cargarEmpleados();
+      
+      // Emitir evento de cancelar
+      this.onCancel.emit();
     }
   
     cerrarAlerta(): void {
@@ -140,56 +142,84 @@ export class CreateComponent {
     }
   
     async guardar(): Promise<void> {
-
-      // Si hay un archivo local seleccionado en uploadedFiles, subirlo al backend
-    if (this.uploadedFiles.length > 0 && this.uploadedFiles[0].file) {
-      try {
-        const imagePath = await this.imageUploadService.uploadImageAsync(this.uploadedFiles[0].file);
-        this.empleado.empl_Imagen = imagePath;
-      } catch (error) {
-        this.mostrarAlertaError = true;
-        this.mensajeError = 'Error al subir la imagen al servidor.';
-        return; // No continuar si la imagen no se pudo subir
-      }
-    }
+      // Activar bandera de errores para validación visual
       this.mostrarErrores = true;
 
-      // Validar correo electrónico
-      if (this.empleado.empl_Correo.trim() && !this.validarCorreo(this.empleado.empl_Correo)) {
+      // Validar campos obligatorios
+      const camposFaltantes: string[] = [];
+
+      if (!this.empleado.empl_DNI?.trim()) camposFaltantes.push('DNI');
+      if (!this.empleado.empl_Nombres?.trim()) camposFaltantes.push('nombres');
+      if (!this.empleado.empl_Apellidos?.trim()) camposFaltantes.push('apellidos');
+      if (!this.empleado.empl_Correo?.trim()) {
+        camposFaltantes.push('correo electrónico');
+        this.correoInvalido = false;
+      } else if (!this.empleado.empl_Correo.match('[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$')) {
+        this.correoInvalido = true;
+        camposFaltantes.push('un correo electrónico válido');
+      } else {
+        this.correoInvalido = false;
+      }
+      if (!this.empleado.empl_Telefono?.trim()) camposFaltantes.push('teléfono');
+      if (!this.empleado.sucu_Id) camposFaltantes.push('sucursal');
+      if (!this.empleado.esCv_Id) camposFaltantes.push('estado civil');
+      if (!this.empleado.carg_Id) camposFaltantes.push('cargo');
+      if (!this.empleado.colo_Id) camposFaltantes.push('colonia');
+      if (!this.empleado.empl_DireccionExacta?.trim()) camposFaltantes.push('dirección exacta');
+      if (!this.selectedFile && !this.uploadedFiles.length) camposFaltantes.push('imagen');
+
+      // Si hay campos faltantes, mostrar mensaje de advertencia
+      if (camposFaltantes.length > 0) {
         this.mostrarAlertaWarning = true;
-        this.mensajeWarning = 'Por favor ingrese un correo electrónico válido.';
+        this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
         this.mostrarAlertaError = false;
-        this.mostrarAlertaExito = false;
+        
+        // Ocultar la alerta después de 4 segundos
         setTimeout(() => {
           this.mostrarAlertaWarning = false;
           this.mensajeWarning = '';
         }, 4000);
+        
         return;
       }
 
-      
-        
-      // Validar todos los campos requeridos
-      if (this.empleado.empl_DNI.trim() &&
-          this.empleado.empl_Codigo.trim() &&
-          this.empleado.empl_Nombres.trim() &&
-          this.empleado.empl_Apellidos.trim() &&
-          this.empleado.empl_Sexo &&
-          this.empleado.empl_FechaNacimiento &&
-          this.empleado.empl_Correo.trim() &&
-          this.validarCorreo(this.empleado.empl_Correo) &&
-          this.empleado.empl_Telefono.trim() &&
-          this.empleado.sucu_Id &&
-          this.empleado.esCv_Id &&
-          this.empleado.carg_Id &&
-          this.empleado.colo_Id &&
-          this.empleado.empl_DireccionExacta.trim()) {
+      // Si hay un archivo local seleccionado en uploadedFiles, subirlo al backend
+      if (this.uploadedFiles.length > 0 && this.uploadedFiles[0].file) {
+        try {
+          const imagePath = await this.imageUploadService.uploadImageAsync(this.uploadedFiles[0].file);
+          this.empleado.empl_Imagen = imagePath;
+        } catch (error) {
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error al subir la imagen al servidor.';
+          return; // No continuar si la imagen no se pudo subir
+        }
+      } else if (this.selectedFile) {
+        // Si hay un archivo seleccionado pero no en uploadedFiles (puede pasar en algunos casos)
+        try {
+          const imagePath = await this.imageUploadService.uploadImageAsync(this.selectedFile);
+          this.empleado.empl_Imagen = imagePath;
+        } catch (error) {
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error al subir la imagen al servidor.';
+          return;
+        }
+      }
+
+      // Si llegamos hasta aquí, todos los campos obligatorios están completos
+      this.mostrarAlertaError = false;
+      this.mostrarAlertaWarning = false;
+
+      // Continuar con el procesamiento del formulario
+      if (this.empleado.empl_DNI.trim()) {
       // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
 
-      const dni = this.empleado.empl_DNI.trim();
-      const dniMask = dni.length === 15 ? dni.slice(0, 4) + '-' + dni.slice(4, 8) + '-' + dni.slice(8, 15) : dni;
+      const dni = this.empleado.empl_DNI.replace(/[^0-9]/g, ''); // Eliminar cualquier guión existente y solo mantener números
+      // Formatear como 0505-5050-50505 (4-4-5)
+      const dniMask = dni.length >= 13 ? 
+        `${dni.slice(0, 4)}-${dni.slice(4, 8)}-${dni.slice(8, 13)}` : 
+        dni; // Si no tiene la longitud suficiente, dejarlo como está
 
       const telefono = this.empleado.empl_Telefono.trim();
         
@@ -216,8 +246,8 @@ export class CreateComponent {
       empl_FechaModificacion: new Date().toISOString(),
       };
       
-      //console.log('Datos a enviar al backend:', empleadoGuardar);
-      //console.log('URL de la imagen (empl_Imagen):', empleadoGuardar.empl_Imagen);
+      console.log('Datos a enviar al backend:', empleadoGuardar);
+      console.log('URL de la imagen (empl_Imagen):', empleadoGuardar.empl_Imagen);
         
       this.http.post<any>(`${environment.apiBaseUrl}/Empleado/Insertar`, empleadoGuardar, {
       headers: { 
@@ -227,20 +257,29 @@ export class CreateComponent {
       }
       }).subscribe({
       next: (response) => {
-      //console.log('Empleado guardado exitosamente:', response);
-      this.mensajeExito = `Empleado "${this.empleado.empl_Nombres}" guardado exitosamente`;
-      this.mostrarAlertaExito = true;
-      this.mostrarErrores = false;
+        console.log('Empleado guardado exitosamente:', response);
         
-      this.onSave.emit(this.empleado);
+        // Mostrar mensaje de éxito
+        this.mostrarAlertaExito = true;
+        this.mensajeExito = `Empleado "${this.empleado.empl_Nombres}" guardado exitosamente`;
+        this.mostrarAlertaError = false;
+        this.mostrarAlertaWarning = false;
+        this.mostrarErrores = false;
+        
+        // Emitir evento de guardado exitoso
+        this.onSave.emit(response.data || this.empleado);
 
-      // Actualizar la lista de empleados y limpiar el formulario
-      this.cargarEmpleados();
-      this.cancelar();
-
-      setTimeout(() => {
-        this.mostrarAlertaExito = false;
-      }, 3000);
+        // Actualizar la lista de empleados
+        this.cargarEmpleados();
+        
+        // Limpiar el formulario pero mantener el mensaje
+        this.limpiarFormulario();
+        
+        // Ocultar el mensaje de éxito después de 5 segundos
+        setTimeout(() => {
+          this.mostrarAlertaExito = false;
+          this.mensajeExito = '';
+        }, 5000);
       },
       error: (error) => {
       console.error('Error al guardar Empleado:', error);
