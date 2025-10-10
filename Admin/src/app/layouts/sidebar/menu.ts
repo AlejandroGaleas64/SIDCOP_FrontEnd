@@ -74,16 +74,15 @@ export const MENU: MenuItem[] = [
       { id: 12, label: 'MENUITEMS.GENERAL.LIST.DEPARTAMENTOS',    link: '/general/departamentos',     parentId: 2, icon: 'ri-group-line' },
       { id: 13, label: 'MENUITEMS.GENERAL.LIST.EMPLEADOS',        link: '/general/empleados',         parentId: 2, icon: 'ri-building-2-line' },
       { id: 14, label: 'MENUITEMS.GENERAL.LIST.ESTADOSCIVILES',   link: '/general/estadosciviles',    parentId: 2, icon: 'ri-group-line' },
+      { id: 78, label: 'MENUITEMS.GENERAL.LIST.ESTADOSVISITA',    link: '/general/estadosvisita',     parentId: 2, icon: 'ri-group-line' },
       { id: 15, label: 'MENUITEMS.GENERAL.LIST.MARCAS',           link: '/general/marcas',            parentId: 2, icon: 'ri-group-line' },
       { id: 16, label: 'MENUITEMS.GENERAL.LIST.MARCASVEHICULOS',  link: '/general/marcasvehiculos',   parentId: 2, icon: 'ri-group-line' },
       { id: 17, label: 'MENUITEMS.GENERAL.LIST.MODELOS',          link: '/general/modelos',           parentId: 2, icon: 'ri-group-line' },
       { id: 18, label: 'MENUITEMS.GENERAL.LIST.MUNICIPIOS',       link: '/general/municipios',        parentId: 2, icon: 'ri-group-line' },
       { id: 19, label: 'MENUITEMS.GENERAL.LIST.PROVEEDORES',      link: '/general/proveedores',       parentId: 2, icon: 'ri-group-line' },
       { id: 20, label: 'MENUITEMS.GENERAL.LIST.SUCURSALES',       link: '/general/sucursales',        parentId: 2, icon: 'ri-group-line' },
-      { id: 71, label: 'MENUITEMS.GENERAL.LIST.VISITASCLIENTES',  link: '/general/visitas-clientes',  parentId: 2, icon: 'ri-group-line' },
-      { id: 78, label: 'MENUITEMS.GENERAL.LIST.ESTADOSVISITA',    link: '/general/estadosvisita',     parentId: 2, icon: 'ri-group-line' },
-      { id: 81, label: 'MENUITEMS.GENERAL.LIST.UNIDADESDEPESO',   link: '/general/unidadesDePeso',    parentId: 2, icon: 'ri-group-line' }
-
+      { id: 81, label: 'MENUITEMS.GENERAL.LIST.UNIDADESDEPESO',   link: '/general/unidadesDePeso',    parentId: 2, icon: 'ri-group-line' },
+      { id: 71, label: 'MENUITEMS.GENERAL.LIST.VISITASCLIENTES',  link: '/general/visitas-clientes',  parentId: 2, icon: 'ri-group-line' }
     ],
   },
   {
