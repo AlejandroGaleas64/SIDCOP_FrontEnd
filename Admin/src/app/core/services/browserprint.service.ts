@@ -37,7 +37,7 @@ export class ZebraBrowserPrintService {
         const defaultDevice = await this.getDefaultDevice();
         if (defaultDevice) {
           this.selectedDevice = defaultDevice;
-          console.log('Impresora Zebra detectada:', defaultDevice.name);
+          //console.log('Impresora Zebra detectada:', defaultDevice.name);
         }
       }
     } catch (error) {
@@ -68,7 +68,7 @@ export class ZebraBrowserPrintService {
       }
 
       const text = await response.text();
-      console.log('Estado del servicio:', text);
+      //console.log('Estado del servicio:', text);
       return true;
     } catch (error) {
       console.error('Browser Print no está disponible:', error);
@@ -98,7 +98,7 @@ export class ZebraBrowserPrintService {
       if (devices.length === 0) {
         console.warn('No se encontraron impresoras Zebra conectadas');
       } else {
-        console.log('Impresoras encontradas:', devices.map(d => d.name));
+        //console.log('Impresoras encontradas:', devices.map(d => d.name));
       }
       
       return devices;
@@ -179,11 +179,6 @@ export class ZebraBrowserPrintService {
         'Cache-Control': 'no-cache'
       });
 
-      console.log('Enviando a imprimir:', {
-        url: `${this.BROWSER_PRINT_URL}/write`,
-        device: this.selectedDevice?.name,
-        zplLength: zplCode.length
-      });
 
       // Construir la URL con el parámetro de dispositivo si existe
       let url = `${this.BROWSER_PRINT_URL}/write`;
@@ -206,7 +201,7 @@ export class ZebraBrowserPrintService {
         throw new Error(`Error de impresión: ${response.statusText}`);
       }
 
-      console.log('Impresión enviada exitosamente');
+      //console.log('Impresión enviada exitosamente');
       return true;
     } catch (error) {
       console.error('Error al imprimir:', error);

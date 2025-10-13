@@ -273,6 +273,8 @@ export class EditComponent implements OnInit, OnChanges {
   
 
   cargarProductosPorCliente(clienteId: number): void {
+    this.mostrarOverlayCarga = true; // Activar el overlay
+    
     this.http
       .get<any>(
         `${environment.apiBaseUrl}/Productos/ListaPrecio/${clienteId}`,
@@ -282,6 +284,11 @@ export class EditComponent implements OnInit, OnChanges {
       )
       .subscribe({
         next: (productos) => {
+          // Aplicar corrección de URLs de imágenes
+          productos.forEach((item: any) => {
+            item.prod_Imagen = item.prod_Imagen.includes("http") ? item.prod_Imagen : environment.apiBaseUrl + item.prod_Imagen;
+          });
+
           // Paso 2.1: Parsear productos con lógica adicional
           this.productos = productos.map((producto: any) => {
             const detalleExistente = this.pedidoEditada.detalles?.find(
@@ -313,16 +320,15 @@ export class EditComponent implements OnInit, OnChanges {
           });
 
           this.aplicarFiltros();
-          console.log(
-            'Productos cargados y cantidades aplicadas:',
-            this.productos
-          );
+          this.mostrarOverlayCarga = false; // Desactivar el overlay
+       
         },
         error: (error) => {
           console.error('Error al obtener productos:', error);
           this.mostrarAlertaWarning = true;
           this.mensajeWarning =
             'No se pudieron obtener los productos para el cliente seleccionado.';
+          this.mostrarOverlayCarga = false; // Desactivar el overlay en caso de error
         },
       });
   }
@@ -379,6 +385,9 @@ export class EditComponent implements OnInit, OnChanges {
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
 
+  // Variable para el overlay de carga (mismo patrón que list)
+  mostrarOverlayCarga = false;
+
   trackByProducto(index: number, producto: any): number {
     return producto.prod_Id;
   }
@@ -406,6 +415,11 @@ export class EditComponent implements OnInit, OnChanges {
       })
       .subscribe({
         next: (data) => {
+          // Aplicar corrección de URLs de imágenes
+          data.forEach((item: any) => {
+            item.prod_Imagen = item.prod_Imagen.includes("http") ? item.prod_Imagen : environment.apiBaseUrl + item.prod_Imagen;
+          });
+
           this.productos = data.map((producto: any) => ({
             ...producto,
             cantidad: 0,
@@ -704,7 +718,7 @@ export class EditComponent implements OnInit, OnChanges {
         secuencia: 0,
       };
 
-      console.log('Datos a enviar:', PEActualizar);
+      //console.log('Datos a enviar:', PEActualizar);
 
       this.http
         .put<any>(`${environment.apiBaseUrl}/Pedido/Actualizar`, PEActualizar, {
@@ -737,6 +751,8 @@ export class EditComponent implements OnInit, OnChanges {
   }
 
   cargarListados(): void {
+    this.mostrarOverlayCarga = true; // Activar el overlay
+    
     this.http
       .get<any>(`${environment.apiBaseUrl}/Cliente/Listar`, {
         headers: { 'x-api-key': environment.apiKey },
@@ -744,7 +760,7 @@ export class EditComponent implements OnInit, OnChanges {
       .subscribe({
         next: (cliente) => {
           this.Clientes = cliente;
-          console.log('Clientes cargados:', this.Clientes);
+          //console.log('Clientes cargados:', this.Clientes);
           this.http
             .get<any>(
               `${environment.apiBaseUrl}/DireccionesPorCliente/Listar`,
@@ -754,12 +770,21 @@ export class EditComponent implements OnInit, OnChanges {
             )
             .subscribe({
               next: (direcciones) => {
-                console.log('Direcciones cargadas:', direcciones);
+                //console.log('Direcciones cargadas:', direcciones);
                 this.TodasDirecciones = direcciones;
                 this.configurarUbicacionInicial();
+                this.mostrarOverlayCarga = false; // Desactivar el overlay cuando todo esté cargado
               },
+              error: (error) => {
+                console.error('Error al cargar direcciones:', error);
+                this.mostrarOverlayCarga = false; // Desactivar el overlay en caso de error
+              }
             });
         },
+        error: (error) => {
+          console.error('Error al cargar clientes:', error);
+          this.mostrarOverlayCarga = false; // Desactivar el overlay en caso de error
+        }
       });
   }
 
@@ -780,7 +805,7 @@ export class EditComponent implements OnInit, OnChanges {
 
   cargarMunicipios(codigoDepa: number): void {
     this.pedidoEditada.clie_Id = parseInt(codigoDepa.toString());
-    console.log('Código del departamento seleccionado:', codigoDepa);
+    //console.log('Código del departamento seleccionado:', codigoDepa);
     this.Direcciones = this.TodasDirecciones.filter(
       (m: any) => m.clie_Id === parseInt(codigoDepa.toString())
     );

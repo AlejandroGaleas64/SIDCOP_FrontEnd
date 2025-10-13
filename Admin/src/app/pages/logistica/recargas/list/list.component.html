@@ -223,6 +223,8 @@
                   [totalItems]="(table.total$ | async) || 0" 
                   [(ngModel)]="table.page" 
                   [itemsPerPage]="table.pageSizeValue" 
+                  [maxSize]="5"
+                  [rotate]="true"
                   (pageChanged)="table.setPage($event.page)">
                 </pagination>
               </div>

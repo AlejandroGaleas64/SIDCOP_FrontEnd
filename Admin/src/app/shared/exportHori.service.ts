@@ -111,7 +111,7 @@ export class ExportService {
           fontSize: 8,
           cellPadding: 3,
           overflow: 'linebreak' as any,
-          halign: 'left' as any,
+          halign: 'center' as any,
           valign: 'middle' as any,
           lineColor: false,
           lineWidth: 0,
@@ -418,7 +418,7 @@ export class ExportService {
 
   private async precargarLogo(): Promise<void> {
     if (!this.configuracionEmpresa?.coFa_Logo) {
-      console.log('No hay logo configurado');
+      //console.log('No hay logo configurado');
       this.logoDataUrl = null;
       return;
     }

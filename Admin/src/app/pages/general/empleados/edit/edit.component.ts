@@ -38,35 +38,30 @@ export class EditComponent implements OnInit, OnChanges {
 
 
   async ngOnInit(): Promise<void> {
-    console.log('================ INICIO NGONINIT ================');
+    //console.log('================ INICIO NGONINIT ================');
     // Inicializar datos básicos primero
     this.obtenerSucursales();
     this.obtenerEstadosCiviles();
     this.obtenerCargos();
     this.listarColonias();
 
-    console.log('Estado inicial:', {
-      empleadoData: this.empleadoData,
-      empleado: this.empleado,
-      imagePreview: this.imagePreview,
-      uploadedFiles: this.uploadedFiles
-    });
+ 
     
     if (this.empleadoData) {
-      console.log('EmpleadoData encontrado, procediendo a inicializar...');
+      //console.log('EmpleadoData encontrado, procediendo a inicializar...');
       this.empleado = { ...this.empleadoData };
       this.empleadoOriginal = this.empleado.empl_Apellidos || '';
       
       // Cargar imagen existente si hay una
       if (this.empleado.empl_Imagen) {
-        console.log('ngOnInit - Imagen encontrada:', this.empleado.empl_Imagen);
+        //console.log('ngOnInit - Imagen encontrada:', this.empleado.empl_Imagen);
         try {
           // Usar el método getImageDisplayUrl para construir la URL
           const imageUrl = this.getImageDisplayUrl(this.empleado.empl_Imagen);
-          console.log('ngOnInit - URL de imagen construida:', imageUrl);
+          //console.log('ngOnInit - URL de imagen construida:', imageUrl);
           
           this.imagePreview = imageUrl;
-          console.log('ngOnInit - ImagePreview establecido');
+          //console.log('ngOnInit - ImagePreview establecido');
           
           // Actualizar uploadedFiles con la información de la imagen
           const filename = this.empleado.empl_Imagen.split('/').pop() || 'image';
@@ -74,7 +69,7 @@ export class EditComponent implements OnInit, OnChanges {
             name: filename,
             dataURL: imageUrl,
           }];
-          console.log('ngOnInit - UploadedFiles actualizado:', this.uploadedFiles);
+          //console.log('ngOnInit - UploadedFiles actualizado:', this.uploadedFiles);
           
           // No intentar convertir a File por ahora
           this.selectedFile = null;
@@ -82,10 +77,10 @@ export class EditComponent implements OnInit, OnChanges {
           console.error('ngOnInit - Error al cargar la imagen:', error);
         }
       } else {
-        console.log('ngOnInit - No se encontró imagen en el empleado');
+        //console.log('ngOnInit - No se encontró imagen en el empleado');
       }
     } else {
-      console.log('ngOnInit - No hay EmpleadoData');
+      //console.log('ngOnInit - No hay EmpleadoData');
     }
 
     this.obtenerSucursales();
@@ -128,13 +123,13 @@ export class EditComponent implements OnInit, OnChanges {
   mostrarConfirmacionEditar = false;
 
   constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {
-    console.log('================ CONSTRUCTOR ================');
-    console.log('Componente EditComponent inicializado');
+    //console.log('================ CONSTRUCTOR ================');
+    //console.log('Componente EditComponent inicializado');
     // Forzar detección de cambios al inicializar
     setTimeout(() => {
       if (this.empleadoData && this.empleadoData.empl_Imagen) {
-        console.log('Constructor - EmpleadoData:', this.empleadoData);
-        console.log('Constructor - Imagen encontrada:', this.empleadoData.empl_Imagen);
+        //console.log('Constructor - EmpleadoData:', this.empleadoData);
+        //console.log('Constructor - Imagen encontrada:', this.empleadoData.empl_Imagen);
         this.initializeImage();
       }
     }, 0);
@@ -143,9 +138,9 @@ export class EditComponent implements OnInit, OnChanges {
   private initializeImage(): void {
     try {
       if (this.empleadoData?.empl_Imagen) {
-        console.log('InitializeImage - Procesando imagen:', this.empleadoData.empl_Imagen);
+        //console.log('InitializeImage - Procesando imagen:', this.empleadoData.empl_Imagen);
         const imageUrl = this.getImageDisplayUrl(this.empleadoData.empl_Imagen);
-        console.log('InitializeImage - URL construida:', imageUrl);
+        //console.log('InitializeImage - URL construida:', imageUrl);
         this.imagePreview = imageUrl;
         
         const filename = this.empleadoData.empl_Imagen.split('/').pop() || 'image';
@@ -153,7 +148,7 @@ export class EditComponent implements OnInit, OnChanges {
           name: filename,
           dataURL: imageUrl
         }];
-        console.log('InitializeImage - Preview establecido:', this.imagePreview);
+        //console.log('InitializeImage - Preview establecido:', this.imagePreview);
       }
     } catch (error) {
       console.error('Error al inicializar la imagen:', error);
@@ -181,19 +176,15 @@ export class EditComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('================ INICIO NGONCHANGES ================');
-    console.log('Cambios detectados:', changes);
+    //console.log('================ INICIO NGONCHANGES ================');
+    //console.log('Cambios detectados:', changes);
     
     if (changes['empleadoData']) {
-      console.log('Cambio en empleadoData:', {
-        anterior: changes['empleadoData'].previousValue,
-        nuevo: changes['empleadoData'].currentValue,
-        esElPrimerCambio: changes['empleadoData'].firstChange
-      });
+     
     }
     
     if (changes['empleadoData'] && changes['empleadoData'].currentValue) {
-      console.log('Actualizando empleado con nuevos datos...');
+      //console.log('Actualizando empleado con nuevos datos...');
       this.empleado = { ...changes['empleadoData'].currentValue };
       this.empleadoOriginal = this.empleado.empl_Apellidos || '';
       this.mostrarErrores = false;
@@ -236,6 +227,12 @@ export class EditComponent implements OnInit, OnChanges {
     return formatoDNI.test(dni);
   }
 
+  validarCorreo(correo: string): boolean {
+    if (!correo) return false;
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(correo.trim());
+  }
+
   validarEdicion(): void {
     this.mostrarErrores = true;
 
@@ -265,6 +262,14 @@ export class EditComponent implements OnInit, OnChanges {
     if (!this.validarFormatoDNI(this.empleado?.empl_DNI || '')) {
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'El DNI debe tener el formato 0000-0000-00000';
+      setTimeout(() => this.cerrarAlerta(), 4000);
+      return;
+    }
+
+    // Validar correo electrónico
+    if (this.empleado.empl_Correo.trim() && !this.validarCorreo(this.empleado.empl_Correo)) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'Por favor ingrese un correo electrónico válido.';
       setTimeout(() => this.cerrarAlerta(), 4000);
       return;
     }
@@ -370,6 +375,7 @@ export class EditComponent implements OnInit, OnChanges {
       this.empleado.empl_Apellidos?.trim() !== '' &&
       this.empleado.empl_Sexo?.trim() !== '' &&
       this.empleado.empl_Correo?.trim() !== '' &&
+      this.validarCorreo(this.empleado.empl_Correo) &&
       this.empleado.empl_Telefono?.trim() !== '' &&
       this.empleado.sucu_Id !== 0 &&
       this.empleado.esCv_Id !== 0 &&
@@ -551,7 +557,7 @@ export class EditComponent implements OnInit, OnChanges {
 
     // Método para obtener la URL completa de la imagen para mostrarla
     getImageDisplayUrl(imagePath: string): string {
-      console.log('getImageDisplayUrl - Path recibido:', imagePath);
+      //console.log('getImageDisplayUrl - Path recibido:', imagePath);
       if (!imagePath) return '';
       
       // Limpiar la ruta de cualquier referencia duplicada a apiBaseUrl
@@ -561,7 +567,7 @@ export class EditComponent implements OnInit, OnChanges {
         .replace(/^\/+/, '');                 // Remover slashes iniciales extra
       
       const fullUrl = `${environment.apiBaseUrl}/${cleanPath}`;
-      console.log('getImageDisplayUrl - URL construida:', fullUrl);
+      //console.log('getImageDisplayUrl - URL construida:', fullUrl);
       return fullUrl;
     }
   

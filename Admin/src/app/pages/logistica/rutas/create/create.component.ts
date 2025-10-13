@@ -1,3 +1,4 @@
+// ESTOS SON TODOS LOS IMPORTS NECESARIOS
 import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -10,6 +11,7 @@ import { NgxMaskDirective, NgxMaskPipe, provideNgxMask } from 'ngx-mask';
 @Component({
   selector: 'app-create',
   standalone: true,
+  // CONFIRMAMOS LOS IMPORTS A UTILIZAR
   imports: [CommonModule, FormsModule, HttpClientModule, NgxMaskDirective, NgxMaskPipe],
   templateUrl: './create.component.html',
   styleUrl: './create.component.scss',
@@ -20,6 +22,7 @@ export class CreateComponent {
   @Output() onSave = new EventEmitter<Ruta>();
   @Output() onOverlayChange = new EventEmitter<boolean>();
 
+  // PREPARAMOS PARA LOS MENSAJES DE EXITO, FALLA, ETC
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -35,6 +38,7 @@ export class CreateComponent {
     this.cargarRutas();
   }
 
+  // CARGAMOS LAS RUTAS YA CREADAS PARA PODER GENERAR EL CÓDIGO DE LA NUEVA RUTA
   cargarRutas() {
       this.http.get<any[]>(`${environment.apiBaseUrl}/Rutas/Listar`, {
         headers: { 'x-api-key': environment.apiKey }
@@ -43,7 +47,7 @@ export class CreateComponent {
         this.ruta.ruta_Codigo = this.generarSiguienteCodigo();
       },
       error => {
-        console.error('Error al cargar las rutas:', error);
+        // //console.error('Error al cargar las rutas:', error);
       });
     }
 
@@ -63,6 +67,7 @@ export class CreateComponent {
     usuarioModificacion: ''
   };
 
+  // CUANDO CANCELAMOS LA CREACIÓN DE LA RUTA, SE DEBEN LIMPIAR TODOS LOS CAMPOS
   cancelar(): void {
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
@@ -100,13 +105,14 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
+  // PARA QUE EL CÓDIGO DE LA RUTA NO LA PUEDA MODIFICAR EL USUARIO
   bloquearCodigo(valor: string) {
     if (this.ruta.ruta_Codigo !== this.generarSiguienteCodigo()) {
       this.ruta.ruta_Codigo = this.generarSiguienteCodigo();
     }
   }
 
-
+  // ESTE ES EL PROCESO DE GUARDAR CON LAS VALIDACIONES
   guardar(): void {
     this.mostrarErrores = true;
     this.onOverlayChange.emit(true);
@@ -120,7 +126,7 @@ export class CreateComponent {
         ruta_Codigo: this.ruta.ruta_Codigo.trim(),
         ruta_Descripcion: this.ruta.ruta_Descripcion.trim(),
         ruta_Observaciones: this.ruta.ruta_Observaciones.trim() || 'N/A',
-        usua_Creacion: getUserId(),// varibale global, obtiene el valor del environment, esto por mientras
+        usua_Creacion: getUserId(),// AQUI ES UNA VARIABLE GLOBAL DEL ENVIROIMENT
         ruta_FechaCreacion: new Date().toISOString(),
         usua_Modificacion: 0,
         numero: "", 
@@ -129,7 +135,7 @@ export class CreateComponent {
         usuarioModificacion: "" 
       };
 
-      console.log('Guardando ruta:', rutaGuardar);
+      //console.log('Guardando ruta:', rutaGuardar);
       
       this.http.post<any>(`${environment.apiBaseUrl}/Rutas/Crear`, rutaGuardar, {
         headers: { 
@@ -139,7 +145,7 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          console.log('Ruta guardada exitosamente:', response);
+          //console.log('Ruta guardada exitosamente:', response);
           this.mostrarErrores = false;
           setTimeout(() => {
             this.onOverlayChange.emit(false);
@@ -158,7 +164,7 @@ export class CreateComponent {
 
           setTimeout(() => {
             this.onOverlayChange.emit(false);
-            console.error('Error al guardar ruta:', error);
+            //console.error('Error al guardar ruta:', error);
             this.mostrarAlertaError = true;
             this.mensajeError = 'Error al guardar la ruta. Por favor, intente nuevamente.';
             this.mostrarAlertaExito = false;

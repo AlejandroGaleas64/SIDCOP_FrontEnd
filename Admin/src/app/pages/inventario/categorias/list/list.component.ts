@@ -323,7 +323,7 @@ export class ListComponent implements OnInit {
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
+    //console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -331,12 +331,8 @@ export class ListComponent implements OnInit {
   }
 
   editar(categoria: Categoria): void {
-    console.log('Abriendo formulario de edición para:', categoria);
-    console.log('Datos específicos:', {
-      id: categoria.cate_Id,
-      descripcion: categoria.cate_Descripcion,
-      completo: categoria
-    });
+    //console.log('Abriendo formulario de edición para:', categoria);
+ 
     this.categoriaEditando = { ...categoria }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -345,7 +341,7 @@ export class ListComponent implements OnInit {
   }
 
   detalles(categoria: Categoria): void {
-    console.log('Abriendo detalles para:', categoria);
+    //console.log('Abriendo detalles para:', categoria);
     this.categoriaDetalle = { ...categoria }; // Hacer copia profunda
     this.showDetailsForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -386,14 +382,14 @@ export class ListComponent implements OnInit {
 
     // Obtener acciones disponibles del usuario (ejemplo: desde API o localStorage)
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
+    //console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
   // Método para cargar las acciones disponibles del usuario
   private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+    //console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -416,7 +412,7 @@ export class ListComponent implements OnInit {
       }
     }
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
+    //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   onActionMenuClick(rowIndex: number) {
@@ -442,21 +438,21 @@ export class ListComponent implements OnInit {
   }
 
   guardarCategoria(categoria: Categoria): void {
-    console.log('Categoria guardado exitosamente desde create component:', categoria);
+    //console.log('Categoria guardado exitosamente desde create component:', categoria);
     // Recargar los datos de la tabla
     this.cargardatos();
     this.cerrarFormulario();
   }
 
   actualizarCategoria(categoria: Categoria): void {
-    console.log('Categoria actualizado exitosamente desde edit component:', categoria);
+    //console.log('Categoria actualizado exitosamente desde edit component:', categoria);
     // Recargar los datos de la tabla
     this.cargardatos();
     this.cerrarFormularioEdicion();
   }
 
   confirmarEliminar(categoria: Categoria): void {
-    console.log('Solicitando confirmación para eliminar:', categoria);
+    //console.log('Solicitando confirmación para eliminar:', categoria);
     this.categoriaAEliminar = categoria;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones
@@ -470,7 +466,7 @@ export class ListComponent implements OnInit {
   eliminar(): void {
     if (!this.categoriaAEliminar) return;
     
-    console.log('Eliminando Categoria:', this.categoriaAEliminar);
+    //console.log('Eliminando Categoria:', this.categoriaAEliminar);
     
     this.http.post(`${environment.apiBaseUrl}/Categorias/Eliminar?id=${this.categoriaAEliminar.cate_Id}`, {}, {
       headers: { 
@@ -479,13 +475,13 @@ export class ListComponent implements OnInit {
       }
     }).subscribe({
       next: (response: any) => {
-        console.log('Respuesta del servidor:', response);
+        //console.log('Respuesta del servidor:', response);
         
         // Verificar el código de estado en la respuesta
         if (response.success && response.data) {
           if (response.data.code_Status === 1) {
             // Éxito: eliminado correctamente
-            console.log('Categoria eliminado exitosamente');
+            //console.log('Categoria eliminado exitosamente');
             this.mensajeExito = `Categoria "${this.categoriaAEliminar!.cate_Descripcion}" eliminado exitosamente`;
             this.mostrarAlertaExito = true;
             
@@ -500,7 +496,7 @@ export class ListComponent implements OnInit {
             this.cancelarEliminar();
           } else if (response.data.code_Status === -1) {
             //result: está siendo utilizado
-            console.log('Categoria está siendo utilizado');
+            //console.log('Categoria está siendo utilizado');
             this.mostrarAlertaError = true;
             this.mensajeError = /* response.data.message_Status || */ 'No se puede eliminar: el Categoria está siendo utilizado.';
             
@@ -513,7 +509,7 @@ export class ListComponent implements OnInit {
             this.cancelarEliminar();
           } else if (response.data.code_Status === 0) {
             // Error general
-            console.log('Error general al eliminar');
+            //console.log('Error general al eliminar');
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'Error al eliminar el Categoria.';
             
@@ -527,7 +523,7 @@ export class ListComponent implements OnInit {
           }
         } else {
           // Respuesta inesperada
-          console.log('Respuesta inesperada del servidor');
+          //console.log('Respuesta inesperada del servidor');
           this.mostrarAlertaError = true;
           this.mensajeError = response.message || 'Error inesperado al eliminar el Categoria.';
           
@@ -560,7 +556,7 @@ export class ListComponent implements OnInit {
     this.http.get<Categoria[]>(`${environment.apiBaseUrl}/Categorias/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
-      console.log('Datos recargados:', data);
+      //console.log('Datos recargados:', data);
       
       setTimeout(() => {
         const tienePermisoListar = this.accionPermitida('listar');

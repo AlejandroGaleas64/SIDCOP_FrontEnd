@@ -93,7 +93,7 @@ export class InvoiceService {
 
   private async cargarLogo(): Promise<string | null> {
     if (!this.configuracionEmpresa?.coFa_Logo) {
-      console.log('No hay logo configurado');
+      //console.log('No hay logo configurado');
       return null;
     }
 
@@ -134,7 +134,7 @@ export class InvoiceService {
           ctx.drawImage(img, 0, 0, width, height);
 
           const dataUrl = canvas.toDataURL('image/png', 0.8);
-          console.log('Logo procesado correctamente desde URL');
+          //console.log('Logo procesado correctamente desde URL');
           resolve(dataUrl);
         } catch (e) {
           console.error('Error al procesar el logo:', e);
@@ -149,7 +149,7 @@ export class InvoiceService {
 
       try {
         const logoUrl = this.configuracionEmpresa.coFa_Logo;
-        console.log('Intentando cargar logo desde:', logoUrl);
+        //console.log('Intentando cargar logo desde:', logoUrl);
 
         if (logoUrl.startsWith('http')) {
           img.src = logoUrl;
@@ -176,7 +176,7 @@ export class InvoiceService {
     if (this.facturaDetalle?.coFa_Logo) {
       try {
         doc.addImage(this.facturaDetalle?.coFa_Logo, 'PNG', 20, 5, 30, 25);
-        console.log('Logo agregado al PDF correctamente');
+        //console.log('Logo agregado al PDF correctamente');
       } catch (e) {
         console.error('Error al agregar imagen al PDF:', e);
       }

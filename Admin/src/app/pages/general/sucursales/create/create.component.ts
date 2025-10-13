@@ -213,6 +213,21 @@ colonias: any[] = [];
   this.sucursal.colo_Id = Number(this.sucursal.colo_Id);
     this.mostrarErrores = true;
     this.onOverlayChange.emit(true);
+    
+    // Validar correo electrónico
+    if (this.sucursal.sucu_Correo.trim() && !this.validarCorreo(this.sucursal.sucu_Correo)) {
+      this.onOverlayChange.emit(false);
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'Por favor ingrese un correo electrónico válido.';
+      this.mostrarAlertaError = false;
+      this.mostrarAlertaExito = false;
+      setTimeout(() => {
+        this.mostrarAlertaWarning = false;
+        this.mensajeWarning = '';
+      }, 4000);
+      return;
+    }
+    
     if (
       this.sucursal.sucu_Descripcion.trim() &&
       this.sucursal.colo_Id &&
@@ -220,7 +235,8 @@ colonias: any[] = [];
       this.sucursal.sucu_Codigo &&
       this.sucursal.sucu_Codigo.trim() &&
       this.sucursal.sucu_Telefono1.trim() &&
-      this.sucursal.sucu_Correo.trim()
+      this.sucursal.sucu_Correo.trim() &&
+      this.validarCorreo(this.sucursal.sucu_Correo)
     ) {
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;

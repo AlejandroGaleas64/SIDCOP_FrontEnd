@@ -1,3 +1,4 @@
+// ESTOS SON TODOS LOS IMPORTS NECESARIOS
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Ruta } from 'src/app/Modelos/logistica/Rutas.Model';
@@ -11,6 +12,7 @@ import { forkJoin } from 'rxjs';
 @Component({
   selector: 'app-details',
   standalone: true,
+  // CONFIRMAMOS LOS IMPORTS A UTILIZAR
   imports: [
     CommonModule,
     MapaSelectorComponent
@@ -27,6 +29,7 @@ export class DetailsComponent implements OnChanges {
   mostrarAlertaError = false;
   mensajeError = '';
 
+  // ESTO ES PARA EL MAPA
   puntosVista: { lat: number; lng: number; nombre?: string; cliente?: string; nombrenegocio?: string }[] = [];
 
   cliente: Cliente[] = [];
@@ -51,7 +54,7 @@ export class DetailsComponent implements OnChanges {
 
         this.cargarClientes();
       } catch (error) {
-        console.error('Error al cargar detalles de la ruta:', error);
+        //console.error('Error al cargar detalles de la ruta:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los detalles de la ruta.';
         this.cargando = false;
@@ -59,6 +62,7 @@ export class DetailsComponent implements OnChanges {
     }, 500);
   }
 
+  // CARGAMOS LOS CLIENTES PARA OBTENER SUS DIRECCIONES Y MOSTRARLAS EN EL MAPA
   cargarClientes(): void {
     this.http.get<Cliente[]>(`${environment.apiBaseUrl}/Cliente/Listar/`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -69,7 +73,7 @@ export class DetailsComponent implements OnChanges {
 
       if (rutaIdActual !== undefined) {
         this.clientesFiltrados = this.cliente.filter(c => c.ruta_Id === rutaIdActual);
-        console.log('Clientes con ruta_Id =', rutaIdActual, this.clientesFiltrados);
+        //console.log('Clientes con ruta_Id =', rutaIdActual, this.clientesFiltrados);
 
         const observablesDirecciones = this.clientesFiltrados.map(cliente => 
           this.http.get<DireccionPorCliente[]>(`${environment.apiBaseUrl}/DireccionesPorCliente/Buscar/${cliente.clie_Id}`, {
@@ -95,16 +99,16 @@ export class DetailsComponent implements OnChanges {
           });
 
           this.puntosVista = todosPuntos;
-          console.log('PuntosVista completos:', this.puntosVista);
+          //console.log('PuntosVista completos:', this.puntosVista);
         }, err => {
-          console.error('Error al cargar direcciones de clientes:', err);
+          //console.error('Error al cargar direcciones de clientes:', err);
         });
 
       } else {
-        console.warn('No hay rutaDetalle.id para filtrar clientes.');
+        //console.warn('No hay rutaDetalle.id para filtrar clientes.');
       }
     }, error => {
-      console.error('Error al cargar clientes:', error);
+      //console.error('Error al cargar clientes:', error);
     });
   }
 

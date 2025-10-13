@@ -172,6 +172,8 @@
                 [(ngModel)]="currentPage" 
                 [totalItems]="productosFiltrados.length" 
                 [itemsPerPage]="itemsPerPage"
+                [maxSize]="5"
+                [rotate]="true"
                 (pageChanged)="pageChanged($event)">
                 </pagination>
             </div>
