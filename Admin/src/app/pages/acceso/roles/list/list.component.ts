@@ -1,3 +1,4 @@
+// ESTOS SON TODOS LOS IMPORTS NECESARIOS
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -23,6 +24,7 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
 @Component({
   selector: 'app-list',
   standalone: true,
+  // CONFIRMAMOS LOS IMPORTS A UTILIZAR
   imports: [
     CommonModule,
     FormsModule,
