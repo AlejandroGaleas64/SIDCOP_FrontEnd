@@ -15,10 +15,13 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 })
 
 export class EditComponent implements OnChanges {
+  // Recibe el modelo a editar desde el contenedor
   @Input() cargoData: Cargos | null = null;
+  // Eventos hacia el contenedor para cerrar/actualizar lista
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Cargos>();
 
+  // Estado editable del formulario
  cargo: Cargos = {
     carg_Id: 0,
     carg_Descripcion: '',
@@ -34,7 +37,9 @@ export class EditComponent implements OnChanges {
     secuencia : 0
   };
 
+  // Para detectar cambios vs. original y validar edición
   cargoOriginal = '';
+  // Flags de UI (validación y alertas)
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -42,10 +47,13 @@ export class EditComponent implements OnChanges {
   mensajeError = '';
   mostrarAlertaWarning = false;
   mensajeWarning = '';
+  // Controla la visualización del modal de confirmación
   mostrarConfirmacionEditar = false;
 
+  // HttpClient inyectado para llamadas a API
   constructor(private http: HttpClient) {}
 
+  // Sincroniza el input con el estado interno cuando cambia la selección
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['cargoData'] && changes['cargoData'].currentValue) {
       this.cargo = { ...changes['cargoData'].currentValue };
@@ -55,11 +63,13 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // Emite cancelación sin guardar cambios
   cancelar(): void {
     this.cerrarAlerta();
     this.onCancel.emit();
   }
 
+  // Resetea cualquier alerta visible
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -69,6 +79,7 @@ export class EditComponent implements OnChanges {
     this.mensajeWarning = '';
   }
 
+  // Valida campos requeridos y si hay cambios para mostrar confirmación
   validarEdicion(): void {
     this.mostrarErrores = true;
 
@@ -87,15 +98,18 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // Cierra modal de confirmación
   cancelarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
   }
 
+  // Confirma y procede a guardar cambios
   confirmarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
     this.guardar();
   }
 
+  // Construye payload y envía actualización a API
   private guardar(): void {
     this.mostrarErrores = true;
 
@@ -114,6 +128,7 @@ export class EditComponent implements OnChanges {
         // usuarioModificacion: ''
       };
 
+      // Llamada a API para actualizar registro existente
       this.http.put<any>(`${environment.apiBaseUrl}/Cargo/Actualizar`, cargoActualizar, {
         headers: {
           'X-Api-Key': environment.apiKey,
@@ -122,6 +137,7 @@ export class EditComponent implements OnChanges {
         }
       }).subscribe({
         next: (response) => {
+          // Éxito: notifica, emite evento y cierra
           this.mensajeExito = `Cargo "${this.cargo.carg_Descripcion}" actualizado exitosamente`;
           this.mostrarAlertaExito = true;
           this.mostrarErrores = false;
@@ -134,15 +150,18 @@ export class EditComponent implements OnChanges {
         },
         error: (error) => {
           // console.error('Error al actualizar cargo:', error);
+          // Error no controlado (cliente/red/servidor)
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al actualizar el cargo. Por favor, intente nuevamente.';
           setTimeout(() => this.cerrarAlerta(), 5000);
         }
       });
     } else {
+      // Validación: campo requerido vacío
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
       setTimeout(() => this.cerrarAlerta(), 4000);
     }
   }
 }
+
