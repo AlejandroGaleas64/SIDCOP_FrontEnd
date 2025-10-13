@@ -7,6 +7,7 @@ import { Rol } from 'src/app/Modelos/acceso/roles.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 
+// INTERFACES PARA DEFINIR LA ESTRUCTURA DEL TREE VIEW DE PERMISOS
 interface TreeItem {
   id: string;
   name: string;
@@ -75,6 +76,7 @@ export class CreateComponent {
   mensajeWarning = '';
 
   constructor(private http: HttpClient) {
+    // CARGA LAS ACCIONES POR PANTALLA AL INICIALIZAR EL COMPONENTE
     this.cargarAccionesPorPantalla();
   }
 
@@ -96,13 +98,13 @@ export class CreateComponent {
         this.cargarPantallas();
       },
       error: (err) => {
-        // console.error('Error cargando acciones por pantalla:', err);
         this.accionesPorPantalla = [];
         this.cargarPantallas();
       }
     });
   }
 
+  // REINICIA LOS VALORES DEL FORMULARIO Y OCULTA LAS ALERTAS
   inicializarFormulario(): void {
     this.rol = {
       role_Id: 0,
@@ -157,11 +159,9 @@ export class CreateComponent {
                 children: []
               };
 
-              // Detectamos si la pantalla es un reporte según el esquema
               const esReporte = esquema.Esquema === 'Reportes';
               pantallaNode.esReporte = esReporte;
 
-              // Solo agregamos acciones si no es reporte
               if (!esReporte) {
                 pantallaNode.children = pantalla.Acciones.map((accion: Accion) => ({
                   id: `${pantalla.Pant_Id}_${accion.Acci_Id}`,
@@ -180,7 +180,7 @@ export class CreateComponent {
           });
 
         } catch (e) {
-          // console.error('No se pudo parsear:', e);
+          // ERROR AL PARSEAR LOS DATOS DE LA RESPUESTA
         }
       },
       error: err => console.error('Error al cargar pantallas:', err)
@@ -245,10 +245,12 @@ export class CreateComponent {
     }
   }
 
+  // ACTUALIZA LA LISTA DE ÍTEMS SELECCIONADOS A PARTIR DEL TREE VIEW
   private updateSelectedItems(): void {
     this.selectedItems = this.getAllSelectedItems(this.treeData);
   }
 
+  // OBTIENE TODOS LOS NODOS SELECCIONADOS QUE SON ACCIONES O PANTALLAS DE TIPO REPORTE
   private getAllSelectedItems(items: TreeItem[]): TreeItem[] {
     return items.reduce<TreeItem[]>((acc, item) => {
       if (item.selected && (item.type === 'accion' || (item.type === 'pantalla' && item.esReporte))) acc.push(item);
@@ -275,6 +277,7 @@ export class CreateComponent {
     cambiarExpansion(this.treeData, expandir);
   }
 
+  // CAMBIA EL ESTADO DE EXPANSIÓN DE UN SOLO NODO
   toggleExpand(item: TreeItem): void {
     item.expanded = !item.expanded;
   }
@@ -350,7 +353,6 @@ export class CreateComponent {
             }).catch(error => {
               this.mostrarAlertaError = true;
               this.mensajeError = 'Error al guardar permisos.';
-              // console.error(error);
             });
           },
           error: () => {
@@ -362,7 +364,6 @@ export class CreateComponent {
       error: error => {
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al guardar el rol.';
-        // console.error(error);
       }
     });
   }
@@ -378,7 +379,6 @@ export class CreateComponent {
         accionId = Number(item.id.split('_').pop());
       }
 
-      // Pantalla tipo reporte
       if (item.type === 'pantalla' && item.esReporte) {
         pantallaId = Number(item.id.split('_').pop());
         const acc = this.accionesPorPantalla.find(ap => ap.Pant_Id === pantallaId);
@@ -407,12 +407,14 @@ export class CreateComponent {
     }).filter((permiso): permiso is { acPa_Id: number, role_Id: number, usua_Creacion: number, perm_FechaCreacion: string} => permiso !== null);
   }
 
+  // REINICIA EL FORMULARIO Y EMITE EL EVENTO DE CANCELACIÓN
   cancelar(): void {
     this.clearSelections();
     this.inicializarFormulario();
     this.onCancel.emit();
   }
 
+  // LIMPIA TODAS LAS SELECCIONES DEL TREE VIEW
   private clearSelections(): void {
     const clearNode = (node: TreeItem) => {
       node.selected = false;
@@ -423,6 +425,7 @@ export class CreateComponent {
     this.selectedItems = [];
   }
 
+  // CIERRA Y RESETEA TODAS LAS ALERTAS EN PANTALLA
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
