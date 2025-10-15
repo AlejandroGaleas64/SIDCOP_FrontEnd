@@ -22,6 +22,7 @@ import {
   animate
 } from '@angular/animations';
 
+//Importación de animaciones
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
 
 @Component({
@@ -88,15 +89,18 @@ export class ListComponent implements OnInit {
   }
 
   private readonly exportConfig = {
+    //Configuración basica
     title: 'Listado de Departamentos',
     filename: 'Departamentos',
     department: 'General',
     additionalInfo: '',
+    //Columnas a configurar - Según los datos usados
     columns: [
       { key: 'No', header: 'No.', width: 8, align: 'center' as const },
       { key: 'Código', header: 'Código', width: 25, align: 'left' as const },
       { key: 'Descripción', header: 'Descripción', width: 50, align: 'left' as const }
     ] as ExportColumn[],
+    //Mapeo de datos - según el modelo
     dataMapping: (depa: Departamento, index: number) => ({
       'No': depa?.secuencia || (index + 1),
       'Código': this.limpiarTexto(depa?.depa_Codigo),
@@ -140,15 +144,21 @@ export class ListComponent implements OnInit {
       this.tipoExportacion = null;
     }
   }
+
+  //metodos especificos para cada tipo
   async exportarExcel(): Promise<void> { await this.exportar('excel'); }
   async exportarPDF(): Promise<void> { await this.exportar('pdf'); }
   async exportarCSV(): Promise<void> { await this.exportar('csv'); }
+
+  //validar si puede exportar a un tipo de documento especifico
   puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
     if (this.exportando) {
       return tipo ? this.tipoExportacion !== tipo : false;
     }
     return this.table.data$.value?.length > 0;
   }
+
+  //crea la configuración de exportación de forma dinamica
   private crearConfiguracionExport(): ExportConfig {
     return {
       title: this.exportConfig.title,
@@ -161,17 +171,23 @@ export class ListComponent implements OnInit {
       }
     };
   }
+
+  //obtiene y prepara los datos para la exportación
   private obtenerDatosExport(): any[] {
     try {
       const datos = this.table.data$.value;
       if (!Array.isArray(datos) || datos.length === 0) {
         throw new Error('No hay datos disponibles para exportar');
       }
+
+      //usar el mapeo configurado
       return datos.map((depa, index) => this.exportConfig.dataMapping.call(this, depa, index));
     } catch (error) {
       throw error;
     }
   }
+
+  //Manejar el resultado de las exportaciones
   private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
     if (resultado.success) {
       this.mostrarMensaje('success', resultado.message);
@@ -179,6 +195,8 @@ export class ListComponent implements OnInit {
       this.mostrarMensaje('error', resultado.message);
     }
   }
+
+  //validar datos antes de exportar
   private validarDatosParaExport(): boolean {
     const datos = this.table.data$.value;
     if (!Array.isArray(datos) || datos.length === 0) {
@@ -194,12 +212,16 @@ export class ListComponent implements OnInit {
     }
     return true;
   }
+
+  //limpiar texto de exportación de manera eficiente
   private limpiarTexto(texto: any): string {
     if (!texto) return '';
     return String(texto)
       .trim()
       .substring(0, 150);
   }
+
+  //Sistema de mensajes mejorado con tipos adicionales
   private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
     if (typeof this.cerrarAlerta === 'function') this.cerrarAlerta();
     const duracion = tipo === 'error' ? 5000 : 3000;
@@ -223,6 +245,7 @@ export class ListComponent implements OnInit {
     }
   }
   
+  // Método robusto para validar si una acción está permitida
   accionPermitida(accion: string): boolean {
     const accionBuscada = accion.toLowerCase();
     const accionesMapeadas: {[key: string]: string} = {
@@ -240,22 +263,26 @@ export class ListComponent implements OnInit {
   cargarAccionesUsuario() {
     let accionesArray: string[] = [];
     let modulo: any = null;
+    // Obtener permisosJson del localStorage
     const permisosJson = localStorage.getItem('permisosJson');
     
     if (permisosJson) {
       try {
         const permisos = JSON.parse(permisosJson);
-        
+        // Buscar el módulo de departamentos
+        // Buscar por ID de pantalla
         if (Array.isArray(permisos)) {
           modulo = permisos.find((m: any) => {
             return m.Pant_Id === 12; 
           });
         } else if (typeof permisos === 'object' && permisos !== null) {
+          // Si es objeto, buscar por clave
           modulo = permisos['Departamentos'] || permisos['departamentos'] || null;
         }
         
         if (modulo) {
           if (modulo.Acciones && Array.isArray(modulo.Acciones)) {
+            // Extraer solo el nombre de la acción
             accionesArray = modulo.Acciones
               .map((a: any) => {
                 const accion = a.Accion || a.accion || a;
@@ -282,8 +309,10 @@ export class ListComponent implements OnInit {
   departamentoEditando: Departamento | null = null;
   departamentoDetalle: Departamento | null = null;
 
+   // Cierra el dropdown si se hace click fuera
   onDocumentClick(event: MouseEvent, rowIndex: number) {
     const target = event.target as HTMLElement;
+    // Busca el dropdown abierto
     const dropdowns = document.querySelectorAll('.dropdown-action-list');
     let clickedInside = false;
     dropdowns.forEach((dropdown, idx) => {
@@ -296,6 +325,7 @@ export class ListComponent implements OnInit {
     }
   }
 
+  // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; 
@@ -329,6 +359,9 @@ export class ListComponent implements OnInit {
   mostrarConfirmacionEliminar = false;
   departamentoAEliminar: Departamento | null = null;
 
+  //Declaramos un estado en el cargarDatos, esto para hacer el overlay
+  //segun dicha funcion de recargar, ya que si vienes de hacer una accion
+  //es innecesario mostrar el overlay de carga
   private cargardatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
     this.http.get<Departamento[]>(`${environment.apiBaseUrl}/Departamentos/Listar`, {
@@ -417,12 +450,14 @@ export class ListComponent implements OnInit {
     }).subscribe({
       next: (response: any) => {
         setTimeout(() => {
-          this.cargardatos(false);          
+          this.cargardatos(false);   
+           // Verificar el código de estado en la respuesta       
           if (response.success && response.data) {
             if (response.data.code_Status === 1) {
               this.mensajeExito = `Departamento "${this.departamentoAEliminar!.depa_Descripcion}" eliminado exitosamente`;
               this.mostrarAlertaExito = true;
 
+              //Ocultar alerta luego de cierto tiempo (3s)
               setTimeout(() => {
                 this.mostrarAlertaExito = false;
                 this.mensajeExito = '';
@@ -430,6 +465,8 @@ export class ListComponent implements OnInit {
 
               this.cargardatos(false);
               this.cancelarEliminar();
+
+              //error general
             } else if (response.data.code_Status === -1) {
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status || 'No se puede eliminar: el departamento está siendo utilizado.';
@@ -440,6 +477,8 @@ export class ListComponent implements OnInit {
               }, 5000);
 
               this.cancelarEliminar();
+
+              //Respuesta inesperado
             } else if (response.data.code_Status === 0) 
             {
               this.mostrarAlertaError = true;
