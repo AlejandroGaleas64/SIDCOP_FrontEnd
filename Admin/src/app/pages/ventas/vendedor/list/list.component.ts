@@ -87,13 +87,13 @@ export class ListComponent implements OnInit {
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
       { key: 'No', header: 'No.', width: 8, align: 'center' as const },
-      { key: 'Codigo', header: 'Codigo', width: 25, align: 'left' as const },
-      { key: 'DNI', header: 'DNI', width: 17, align: 'left' as const },
-      { key: 'Nombre', header: 'Nombre', width: 20, align: 'left' as const },
-      { key: 'Telefono', header: 'Telefono', width: 15, align: 'left' as const },
-      { key: 'Correo', header: 'Correo', width: 40, align: 'left' as const },
-      { key: 'Sexo', header: 'Sexo', width: 15, align: 'left' as const },
-      { key: 'Direccion Exacta', header: 'Direccion Exacta', width: 50, align: 'left' as const }
+      { key: 'Codigo', header: 'Codigo', width: 20, align: 'center' as const },
+      { key: 'DNI', header: 'DNI', width: 17, align: 'center' as const },
+      { key: 'Nombre', header: 'Nombre', width: 20, align: 'center' as const },
+      { key: 'Telefono', header: 'Telefono', width: 15, align: 'center' as const },
+      { key: 'Correo', header: 'Correo', width: 40, align: 'center' as const },
+      { key: 'Sexo', header: 'Sexo', width: 15, align: 'center' as const },
+      { key: 'Direccion Exacta', header: 'Direccion Exacta', width: 50, align: 'center' as const }
 
     ] as ExportColumn[],
 
@@ -324,12 +324,12 @@ export class ListComponent implements OnInit {
     ];
 
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
+
   }
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
+
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -337,11 +337,7 @@ export class ListComponent implements OnInit {
   }
 
   editar(vendedor: Vendedor): void {
-    console.log('Abriendo formulario de edición para:', vendedor);
-    console.log('Datos específicos:', {
-      id: vendedor.vend_Id,
-      completo: vendedor
-    });
+  
     this.vendedorEditando = { ...vendedor }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -350,7 +346,7 @@ export class ListComponent implements OnInit {
   }
 
   detalles(vendedor: Vendedor): void {
-    console.log('Abriendo detalles para:', vendedor);
+
     this.vendedorDetalle = { ...vendedor }; // Hacer copia profunda
     this.showDetailsForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -438,7 +434,6 @@ export class ListComponent implements OnInit {
   }
 
   guardarVendedor(vendedor: Vendedor): void {
-    console.log('Vendedor guardado exitosamente desde create component:', vendedor);
    this.mostrarOverlayCarga = true;
     setTimeout(()=> {
       this.cargardatos(false);
@@ -453,7 +448,7 @@ export class ListComponent implements OnInit {
   }
 
   actualizarVendedor(vendedor: Vendedor): void {
-    console.log('Vendedor actualizado exitosamente desde edit component:', vendedor);
+
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
       this.cargardatos(false);
@@ -468,7 +463,7 @@ export class ListComponent implements OnInit {
   }
 
   confirmarEliminar(vendedor: Vendedor): void {
-    console.log('Solicitando confirmación para eliminar:', vendedor);
+
     this.vendedorEliminar = vendedor;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones
@@ -482,7 +477,7 @@ export class ListComponent implements OnInit {
   eliminar(): void {
     if (!this.vendedorEliminar) return;
     
-    console.log('Eliminando Vendedor:', this.vendedorEliminar);
+
        this.mostrarOverlayCarga = true;
     this.http.post(`${environment.apiBaseUrl}/Vendedores/Eliminar/${this.vendedorEliminar.vend_Id}`, {}, {
       headers: { 
@@ -492,13 +487,13 @@ export class ListComponent implements OnInit {
     }).subscribe({
       next: (response: any) => {
         setTimeout(() => {
-        console.log('Respuesta del servidor:', response);
+
          this.mostrarOverlayCarga = false;
         // Verificar el código de estado en la respuesta
         if (response.success && response.data) {
           if (response.data.code_Status === 1) {
             // Éxito: eliminado correctamente
-            console.log('Vendedor eliminada exitosamente');
+
             this.mensajeExito = `Vendedor "${this.vendedorEliminar!.vend_Nombres}" eliminada exitosamente`;
             this.mostrarAlertaExito = true;
             
@@ -513,7 +508,7 @@ export class ListComponent implements OnInit {
             this.cancelarEliminar();
           } else if (response.data.code_Status === -1) {
             //result: está siendo utilizado
-            console.log('el Vendedor está siendo utilizada');
+
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'No se puede eliminar: la Vendedor está siendo utilizada.';
             
@@ -526,7 +521,7 @@ export class ListComponent implements OnInit {
             this.cancelarEliminar();
           } else if (response.data.code_Status === 0) {
             // Error general
-            console.log('Error general al eliminar');
+    
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'Error al eliminar el Vendedor.';
             
@@ -540,7 +535,7 @@ export class ListComponent implements OnInit {
           }
         } else {
           // Respuesta inesperada
-          console.log('Respuesta inesperada del servidor');
+ 
           this.mostrarAlertaError = true;
           this.mensajeError = response.message || 'Error inesperado al eliminar la Vendedor.';
           
@@ -569,7 +564,7 @@ export class ListComponent implements OnInit {
    private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -592,7 +587,6 @@ export class ListComponent implements OnInit {
       }
     }
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   private cargardatos(state: boolean): void {
@@ -603,12 +597,38 @@ export class ListComponent implements OnInit {
       const tienePermisoListar = this.accionPermitida('listar');
       const userId = getUserId();
 
+     data.forEach((item: any) => {
+  const img = item.vend_Imagen;
+  if (typeof img === 'string' && img.trim().length > 0) {
+    if (
+      !img.startsWith('http') &&
+      !img.startsWith('https') &&
+      !img.startsWith('assets/') &&
+      !img.startsWith('/assets/')
+    ) {
+     
+      // Imagen del backend, concatena la API URL
+      item.vend_Imagen = environment.apiBaseUrl + img;
+    } else {
+      // Cualquier otro caso, usa la imagen por defecto
+      item.vend_Imagen = img;
+    }
+  } else {
+    item.vend_Imagen = img;
+  }
+});
+
+
+
       const datosFiltrados = tienePermisoListar
         ? data
         : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
 
       setTimeout(() => {
+        this.vendedoresFiltrados = datosFiltrados;
         this.table.setData(datosFiltrados);
+        this.actualizarVendedoresVisibles();
+
         this.mostrarOverlayCarga = false;
       }, 500);
 
@@ -626,4 +646,38 @@ export class ListComponent implements OnInit {
     if (s.length === 9) return s.replace(/(\d{3})(\d{3})(\d{3})/, '$1.$2.$3');
     return s; // fallback sin formato
   }
+
+
+  currentPage: number = 1;
+itemsPerPage: number = 12;
+vendedoresFiltrados: any[] = [];
+vendedoresVisibles: any[] = [];
+
+get startIndex(): number {
+  return this.vendedoresFiltrados?.length ? ((this.currentPage - 1) * this.itemsPerPage) + 1 : 0;
+}
+
+get endIndex(): number {
+  if (!this.vendedoresFiltrados?.length) return 0;
+  const end = this.currentPage * this.itemsPerPage;
+  return end > this.vendedoresFiltrados.length ? this.vendedoresFiltrados.length : end;
+}
+
+pageChanged(event: any): void {
+  this.currentPage = event.page;
+  this.actualizarVendedoresVisibles();
+}
+
+actualizarVendedoresVisibles(): void {
+  const startItem = (this.currentPage - 1) * this.itemsPerPage;
+  const endItem = this.currentPage * this.itemsPerPage;
+  this.vendedoresVisibles = this.vendedoresFiltrados.slice(startItem, endItem);
+}
+
+onPageChanged(event: any): void {
+  this.currentPage = event.page;
+  this.table.setPage(event.page);
+  this.actualizarVendedoresVisibles();
+}
+  
 }

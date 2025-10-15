@@ -1,8 +1,13 @@
+<!--
+  Componente visual para la creación de una nueva venta.
+  Incluye alertas, navegación por tabs, formulario de datos, selección de productos,
+  resumen, controles de navegación y estilos reutilizados.
+-->
 <div class="d-flex flex-column" style="height: 100%; min-height: 250px">
-  <!-- Título del componente -->
+  <!-- Título principal del formulario de creación de venta -->
   <h5 class="card-title mb-4">Crear Nueva Venta</h5>
 
-  <!-- Contenedor de alertas flotantes -->
+  <!-- Sección de alertas flotantes para mostrar éxito, advertencia y error -->
   <div class="alert-container">
     <!-- Alerta de éxito -->
     <div
@@ -53,7 +58,7 @@
     </div>
   </div>
 
-  <!-- Navegación de Tabs -->
+  <!-- Navegación por pestañas: Datos/Productos y Resumen -->
   <ul class="nav nav-tabs mb-3 justify-content-center" role="tablist">
     <li class="nav-item" role="presentation">
       <button
@@ -80,6 +85,7 @@
     </li>
   </ul>
 
+  <!-- Contenido principal de los tabs -->
   <div class="flex-grow-1">
     <!-- TAB 1: Datos y Productos -->
     <div class="tab-content" id="nav-tabContent">
@@ -90,9 +96,9 @@
         id="nav-datos"
         role="tabpanel"
       >
-        <!-- Formulario de datos básicos -->
+  <!-- Formulario de datos básicos de la venta -->
         <div class="row mb-4">
-          <!-- Dropdown de Sucursal (Solo para administradores) -->
+          <!-- Selector de sucursal (solo administradores) -->
           <div class="col-md-6 mb-3" *ngIf="esAdmin">
             <label class="form-label"
               >Sucursal<span class="text-danger">*</span></label
@@ -164,7 +170,7 @@
             </div>
           </div>
 
-          <!-- Sucursal (Solo texto para no administradores) -->
+          <!-- Visualización de sucursal (solo para no administradores) -->
           <div class="col-md-6 mb-3" *ngIf="!esAdmin">
             <label class="form-label">Sucursal</label>
             <div class="form-control bg-light">
@@ -173,8 +179,7 @@
             </div>
           </div>
 
-          <!-- Selector de Vendedor -->
-          <!-- Dropdown de Vendedor (Solo para administradores) -->
+          <!-- Selector de vendedor (solo administradores) -->
           <div class="col-md-6 mb-3" *ngIf="esAdmin">
             <label class="form-label"
               >Vendedor<span class="text-danger">*</span></label
@@ -236,7 +241,7 @@
             </div>
           </div>
 
-          <!-- Vendedor (Solo texto para no administradores) -->
+          <!-- Visualización de vendedor (solo para no administradores) -->
           <div class="col-md-6 mb-3" *ngIf="!esAdmin">
             <label class="form-label">Vendedor</label>
             <div class="form-control bg-light">
@@ -245,7 +250,7 @@
             </div>
           </div>
 
-          <!--? Cliente -->
+          <!-- Selector de cliente -->
           <div class="col-md-6 mb-3">
             <label class="form-label fw-semibold">
               Cliente<span class="text-danger">*</span>
@@ -313,7 +318,7 @@
             </div>
           </div>
 
-          <!--? Selector de Dirección del Cliente -->
+          <!-- Selector de dirección del cliente -->
           <div class="col-md-6 mb-3">
             <label class="form-label fw-semibold">
               Dirección del Cliente<span class="text-danger">*</span>
@@ -399,7 +404,7 @@
             </div>
           </div>
 
-          <!--? Tipo de Venta -->
+          <!-- Selector de tipo de venta (Contado/Crédito) -->
           <div class="col-md-6 mb-3">
             <label class="form-label"
               >Tipo de Venta<span class="text-danger">*</span></label
@@ -434,8 +439,8 @@
                   required
                 >
                   <option value="" disabled selected>Seleccione tipo</option>
-                  <option value="Contado">Contado</option>
-                  <option value="Crédito" [disabled]="!puedeUsarCredito()">Crédito</option>
+                  <option value="CO">Contado</option>
+                  <option value="CR" [disabled]="!puedeUsarCredito()">Crédito</option>
                 </select>
                 <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
               </div>
@@ -449,7 +454,7 @@
           </div>
 
 
-          <!--? Campo de Referencia -->
+          <!-- Campo de referencia para la venta -->
           <div class="col-md-6 mb-3">
             <label class="form-label">Referencia</label>
             <div class="mb-3">
@@ -477,7 +482,7 @@
             </div>
           </div>
 
-          <!--? Información de Ubicación -->
+          <!-- Información y controles de ubicación geográfica -->
           <div class="col-md-6 mb-3">
             <label class="form-label">Ubicación</label>
             <div class="mb-3">
@@ -528,7 +533,7 @@
             </div>
           </div>
 
-                    <!--? Información de crédito del cliente (solo visible cuando se selecciona crédito) -->
+                    <!-- Información de crédito del cliente (solo visible cuando se selecciona crédito) -->
                     <div class="col-md-6 mb-3" *ngIf="mostrarInfoCredito">
                       <label class="form-label">Información de crédito</label>
                       <div class="form-control bg-light p-2" [ngClass]="{'text-danger': tieneSaldoVencido()}">
@@ -613,7 +618,7 @@
                     
         </div>
 
-        <!-- Sección de Productos -->
+  <!-- Sección de selección de productos -->
         <div class="row">
           <div class="col-12">
             <h6 class="mb-3">
@@ -621,7 +626,7 @@
               Seleccionar Productos
             </h6>
 
-            <!-- Mensaje informativo -->
+            <!-- Mensaje informativo si no hay sucursal seleccionada -->
             <div
               class="alert alert-info d-flex align-items-center mb-3"
               *ngIf="!sucursalSeleccionada || sucursalSeleccionada === 0"
@@ -680,7 +685,7 @@
               </div>
             </div>
 
-            <!-- Contenedor de tarjetas de productos -->
+            <!-- Tarjetas de productos disponibles para la venta -->
             <div
               class="productos-container"
               *ngIf="sucursalSeleccionada && sucursalSeleccionada > 0"
@@ -845,7 +850,7 @@
                 </div>
               </div>
 
-              <!-- Mensaje cuando no hay productos -->
+              <!-- Mensaje cuando no hay productos disponibles -->
               <div
                 class="text-center py-5"
                 *ngIf="productosFiltrados.length === 0"
@@ -863,7 +868,7 @@
               </div>
             </div>
 
-            <!-- Paginación -->
+            <!-- Paginación de productos -->
             <div
               class="d-flex justify-content-between align-items-center mt-4"
               *ngIf="
@@ -928,7 +933,7 @@
         </div>
       </div>
 
-      <!-- TAB 2: Resumen -->
+  <!-- TAB 2: Resumen de la venta -->
       <div
         class="tab-pane fade"
         [class.show]="tabActivo === 2"
@@ -936,7 +941,7 @@
         id="nav-resumen"
         role="tabpanel"
       >
-        <!-- Resumen de datos básicos -->
+  <!-- Resumen de datos básicos de la venta -->
         <div class="row mb-4">
           <div class="col-12">
             <div class="card resumen-card border-0">
@@ -946,7 +951,7 @@
                 </p>
               </div>
               <div class="card-body resumen-body">
-                <!-- Primera fila -->
+                <!-- Primera fila: Sucursal, Tipo de Venta, Fecha -->
                 <div class="row g-4">
                   <div class="col-12 col-md-4">
                     <div
@@ -985,7 +990,7 @@
                   </div>
                 </div>
 
-                <!-- Segunda fila -->
+                <!-- Segunda fila: Cliente, Dirección, Total Productos -->
                 <div class="row g-4 mt-1">
                   <div class="col-12 col-md-4">
                     <div
@@ -1026,7 +1031,7 @@
                   </div>
                 </div>
 
-                <!-- Tercera fila -->
+                <!-- Tercera fila: Vendedor, Subtotal, Total General -->
                 <div class="row g-4 mt-1">
                   <div class="col-12 col-md-4">
                     <div
@@ -1071,7 +1076,7 @@
           </div>
         </div>
 
-        <!-- Resumen de productos seleccionados -->
+  <!-- Tabla resumen de productos seleccionados -->
         <div class="row">
           <div class="col-12">
             <div class="card resumen-card border-0">
@@ -1169,7 +1174,7 @@
                   </table>
                 </div>
 
-                <ng-template #noProductos>
+                <!-- Mensaje si no hay productos seleccionados -->
                   <div class="text-center py-4 no-productos">
                     <i class="ri-box-3-line display-4 no-productos-icon"></i>
                     <p class="text-muted mt-2">
@@ -1185,7 +1190,7 @@
     </div>
   </div>
 
-  <!-- Botones de navegación -->
+  <!-- Botones de navegación para cancelar, avanzar, guardar -->
   <div class="mt-auto pt-3">
     <div class="row">
       <div class="col-12">
@@ -1241,7 +1246,7 @@
   </div>
 </div>
 
-<!-- Estilos reutilizados -->
+<!-- Estilos reutilizados para inventario y productos -->
 <style>
   /* Estilos adicionales para el manejo de inventario */
   .producto-card-premium.sin-stock {

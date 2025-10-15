@@ -9,6 +9,11 @@ import { CuentasPorCobrarService } from 'src/app/servicios/ventas/cuentas-por-co
 import { BreadcrumbsComponent } from 'src/app/shared/breadcrumbs/breadcrumbs.component';
 import { Subscription } from 'rxjs';
 
+/**
+ * Componente para el registro de pagos de cuentas por cobrar.
+ * Permite seleccionar forma de pago, ingresar monto y observaciones, y registrar el pago.
+ * Incluye validaciones, alertas y navegación.
+ */
 @Component({
   selector: 'app-payment',
   standalone: true,
@@ -18,23 +23,59 @@ import { Subscription } from 'rxjs';
 })
 export class PaymentComponent implements OnInit, OnDestroy {
   // Breadcrumbs
+  /**
+   * Items para el breadcrumb de navegación.
+   */
   breadCrumbItems: Array<{}> = [];
 
+  /**
+   * Identificador de la cuenta por cobrar a la que se registra el pago.
+   */
   cuentaId: number = 0;
+  /**
+   * Detalle de la cuenta por cobrar actual.
+   */
   cuentaPorCobrar: CuentaPorCobrar | null = null;
+  /**
+   * Formulario reactivo para el registro de pago.
+   */
   pagoForm: FormGroup;
+  /**
+   * Lista de formas de pago disponibles.
+   */
   formasPago: FormaPago[] = [];
-  
+  /**
+   * Estado de carga de datos.
+   */
   cargando: boolean = false;
+  /**
+   * Estado de envío del formulario de pago.
+   */
   enviando: boolean = false;
+  /**
+   * Control de visibilidad y mensajes para alertas de error.
+   */
   mostrarAlertaError: boolean = false;
+  /**
+   * Control de visibilidad y mensajes para alertas de éxito.
+   */
   mostrarAlertaExito: boolean = false;
+  /**
+   * Mensaje de error mostrado en alertas.
+   */
   mensajeError: string = '';
+  /**
+   * Mensaje de éxito mostrado en alertas.
+   */
   mensajeExito: string = '';
-  
-  // Subscripciones
+  /**
+   * Subscripciones activas para evitar memory leaks.
+   */
   private subscripciones: Subscription[] = [];
 
+  /**
+   * Constructor: Inyecta servicios para formularios, navegación y gestión de datos.
+   */
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -50,6 +91,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Inicializa el componente, configura breadcrumbs y carga formas de pago y datos de la cuenta.
+   */
   ngOnInit(): void {
     // Configurar breadcrumbs
     this.breadCrumbItems = [
@@ -73,6 +117,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
     this.subscripciones.push(routeSub);
   }
   
+  /**
+   * Carga las formas de pago disponibles desde el servicio.
+   */
   private cargarFormasPago(): void {
     const formasPagoSub = this.cuentasPorCobrarService.obtenerFormasPago().subscribe({
       next: (respuesta: any) => {
@@ -90,17 +137,24 @@ export class PaymentComponent implements OnInit, OnDestroy {
       error: (error) => {
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar las formas de pago. Por favor intente nuevamente.';
+        setTimeout(() => this.cerrarAlerta(), 5000);
       }
     });
     
     this.subscripciones.push(formasPagoSub);
   }
 
+  /**
+   * Destruye el componente y cancela las suscripciones activas.
+   */
   ngOnDestroy(): void {
-    // Desuscribirse para evitar memory leaks
     this.subscripciones.forEach(sub => sub.unsubscribe());
   }
 
+  /**
+   * Carga los datos de la cuenta por cobrar seleccionada.
+   * @param id Identificador de la cuenta por cobrar
+   */
   private cargarDatosCuenta(id: number): void {
     this.cargando = true;
     this.mostrarAlertaError = false;
@@ -138,12 +192,17 @@ export class PaymentComponent implements OnInit, OnDestroy {
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los datos de la cuenta por cobrar.';
         this.cargando = false;
+        setTimeout(() => this.cerrarAlerta(), 5000);
       }
     });
     
     this.subscripciones.push(detalleSub);
   }
 
+  /**
+   * Envía el formulario para registrar el pago.
+   * Realiza validaciones y llama al servicio para guardar el pago.
+   */
   onSubmit(): void {
     if (this.pagoForm.invalid) {
       this.pagoForm.markAllAsTouched();
@@ -203,33 +262,50 @@ export class PaymentComponent implements OnInit, OnDestroy {
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al registrar el pago. Por favor intente nuevamente.';
         this.enviando = false;
+        setTimeout(() => this.cerrarAlerta(), 5000);
       }
     });
     
     this.subscripciones.push(submitSub);
   }
 
+  /**
+   * Cancela el registro de pago y navega a la lista de cuentas por cobrar.
+   */
   cancelar(): void {
     this.router.navigate(['/ventas/cuentasporcobrar/list']);
   }
 
-  cerrarAlertaError(): void {
+cerrarAlertaExito(): void {
+    this.mostrarAlertaError = false;
+}    
+  /**
+   * Cierra todas las alertas activas (éxito y error).
+   */
+  cerrarAlerta(): void {
+    this.mostrarAlertaExito = false;
+    this.mensajeExito = '';
     this.mostrarAlertaError = false;
     this.mensajeError = '';
   }
 
-  cerrarAlertaExito(): void {
-    this.mostrarAlertaExito = false;
-    this.mensajeExito = '';
-  }
-
+  /**
+   * Formatea una fecha en formato local.
+   * @param fecha Fecha a formatear
+   */
   formatearFecha(fecha: Date | string | null): string {
     if (!fecha) return 'N/A';
     return new Date(fecha).toLocaleDateString('es-HN');
   }
 
+  /**
+   * Formatea un valor monetario en formato local.
+   * @param valor Valor a formatear
+   */
   formatearMoneda(valor: number | null): string {
     if (valor === null || valor === undefined) return 'L 0.00';
     return new Intl.NumberFormat('es-HN', { style: 'currency', currency: 'HNL' }).format(valor);
   }
+
 }
+

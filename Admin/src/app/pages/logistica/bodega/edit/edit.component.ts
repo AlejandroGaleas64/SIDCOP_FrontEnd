@@ -377,7 +377,7 @@ export class EditComponent implements OnChanges {
   };
 
   onSucursalChange(): void {
-    console.log('Sucursal cambiada a:', this.bodega.sucu_Id, typeof this.bodega.sucu_Id);
+    //console.log('Sucursal cambiada a:', this.bodega.sucu_Id, typeof this.bodega.sucu_Id);
     
     this.bodega.vend_Id = 0;
     
@@ -398,7 +398,7 @@ export class EditComponent implements OnChanges {
 
   // Nueva función para manejar el cambio de marca
   onMarcaChange(): void {
-    console.log('Marca cambiada a:', this.marcaSeleccionada);
+    //console.log('Marca cambiada a:', this.marcaSeleccionada);
     
     // Resetear el modelo seleccionado
     this.bodega.mode_Id = 0;

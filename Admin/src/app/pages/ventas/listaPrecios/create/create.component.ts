@@ -383,11 +383,11 @@ confirmarGuardarCambios() {
     valid = false;
   }
   if ( this.newLista.inicioEscala! <= 0) {
-    this.inputErrors.inicioEscala = 'Inicio escala debe ser mayor a 1.';
+    this.inputErrors.inicioEscala = 'Inicio escala debe ser mayor a 0.';
     valid = false;
   }
   if ((this.newLista.finEscala ?? null) === null || this.newLista.finEscala! < (this.newLista.inicioEscala ?? 0)) {
-    this.inputErrors.finEscala = 'Fin escala debe ser mayor o igual a inicio escala.';
+    this.inputErrors.finEscala = 'Fin de escala debe ser mayor o igual al inicio de escala.';
     valid = false;
   }
   if (!this.newLista.clientesChecked.length) {
@@ -419,7 +419,7 @@ confirmarGuardarCambios() {
     }).subscribe({
       next: (data) => {
 
-        console.log('Lista creada:', data);
+        //console.log('Lista creada:', data);
 
 
         if(data.data.code_Status == 1){
@@ -527,7 +527,7 @@ confirmarGuardarCambios() {
     }).subscribe({
       next: (response) => {
 
-        console.log('Lista actualizada:', response);
+        //console.log('Lista actualizada:', response);
 
         if(response.data.code_Status == 1){
 
@@ -573,7 +573,7 @@ confirmarGuardarCambios() {
 
 
   confirmarEliminar(listaId: any, prod_Id: number): void {
-    console.log('Solicitando confirmación para eliminar: lista ', listaId, ', de producto ', prod_Id);
+    //console.log('Solicitando confirmación para eliminar: lista ', listaId, ', de producto ', prod_Id);
     this.listaAEliminar.listaId = listaId;
     this.listaAEliminar.prod_Id = prod_Id;
 
@@ -593,7 +593,7 @@ confirmarGuardarCambios() {
   eliminar(): void {
   if (!this.listaAEliminar) return;
 
-  console.log('Eliminando Subcategoria:', this.listaAEliminar);
+  //console.log('Eliminando Subcategoria:', this.listaAEliminar);
 
   const payload = {
     preP_ListaPrecios: this.listaAEliminar.listaId,
@@ -615,12 +615,12 @@ confirmarGuardarCambios() {
     }
   }).subscribe({
     next: (response: any) => {
-      console.log('Respuesta del servidor:', response);
+      //console.log('Respuesta del servidor:', response);
 
       if (response.success && response.data) {
         if (response.data.code_Status === 1) {
           // Éxito: eliminado correctamente
-          console.log('lista de Precios eliminada exitosamente');
+          //console.log('lista de Precios eliminada exitosamente');
           this.mensajeExito = `Lista de Precios "${this.listaAEliminar.listaId}" eliminada exitosamente`;
           this.mostrarAlertaExito = true;
 
@@ -645,7 +645,7 @@ confirmarGuardarCambios() {
           this.cancelarEliminar();
         } else if (response.data.code_Status === 0) {
           // Error general
-          console.log('Error general al eliminar');
+          //console.log('Error general al eliminar');
           this.mostrarAlertaError = true;
           this.mensajeError = response.data.message_Status || 'Error al eliminar la lista de Precios.';
 
@@ -658,7 +658,7 @@ confirmarGuardarCambios() {
         }
       } else {
         // Respuesta inesperada
-        console.log('Respuesta inesperada del servidor');
+        //console.log('Respuesta inesperada del servidor');
         this.mostrarAlertaError = true;
         this.mensajeError = response.message || 'Error inesperado al eliminar lista de precios.';
 

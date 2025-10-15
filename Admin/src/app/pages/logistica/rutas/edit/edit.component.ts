@@ -1,3 +1,4 @@
+// ESTOS SON TODOS LOS IMPORTS NECESARIOS
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -9,6 +10,7 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 @Component({
   selector: 'app-edit',
   standalone: true,
+  // CONFIRMAMOS LOS IMPORTS A UTILIZAR
   imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss'
@@ -70,6 +72,7 @@ export class EditComponent implements OnChanges {
     this.mensajeWarning = '';
   }
 
+  // VALIDACIONES PARA TODOS LOS CAMPOS NECESARIOS Y LOS VALORES REQUERIDOS
   validarEdicion(): void {
     this.mostrarErrores = true;
 
@@ -98,6 +101,7 @@ export class EditComponent implements OnChanges {
 
   cambiosDetectados: any = {};
 
+  // PARA EL MENSAJE DE CONFIRMACIÓN CON LOS CAMBIOS NUEVOS Y LOS CAMPOS ANTERIORES
   hayDiferencias(): boolean {
     const a = this.ruta;
     const b = this.rutaOriginal;
@@ -136,6 +140,7 @@ export class EditComponent implements OnChanges {
     this.guardar();
   }
 
+  // EL PROCESO DE GUARDAR LA EDICIÓN CON LAS VALIDACIONES CONFIRMADAS
   private guardar(): void {
     this.mostrarErrores = true;
     this.onOverlayChange.emit(true);
@@ -180,7 +185,7 @@ export class EditComponent implements OnChanges {
         error: (error) => {
           setTimeout(() => {
             this.onOverlayChange.emit(false);
-            console.error('Error al actualizar ruta:', error);
+            //console.error('Error al actualizar ruta:', error);
             this.mostrarAlertaError = true;
             this.mensajeError = 'Error al actualizar la ruta. Por favor, intente nuevamente.';
             setTimeout(() => this.cerrarAlerta(), 5000);

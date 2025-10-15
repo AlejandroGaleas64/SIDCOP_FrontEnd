@@ -257,7 +257,7 @@ export class ListComponent implements OnInit {
 
   confirmarTrasladar(devoluciones: Devoluciones): void {
     this.DevolucionesATrasladar = devoluciones;
-    console.log('Devolución a Trasladar:', this.DevolucionesATrasladar);
+    //console.log('Devolución a Trasladar:', this.DevolucionesATrasladar);
     this.mostrarConfirmacionTrasladar = true;
     this.activeActionRow = null;
   }
@@ -270,7 +270,7 @@ export class ListComponent implements OnInit {
   trasladar(): void {
     if (!this.DevolucionesATrasladar) return;
     
-    console.log('Trasladando devolución:', this.DevolucionesATrasladar);
+    //console.log('Trasladando devolución:', this.DevolucionesATrasladar);
     
     const fechaActual = new Date();
 
@@ -299,13 +299,13 @@ export class ListComponent implements OnInit {
       }
     }).subscribe({
       next: (response: any) => {
-        console.log('Respuesta del servidor:', response);
+        //console.log('Respuesta del servidor:', response);
         
         // Verificar el código de estado en la respuesta
         if (response.success && response.data) {
           if (response.data.code_Status === 1) {
             // Éxito: eliminado correctamente
-            console.log('Proceso completado exitosamente');
+            //console.log('Proceso completado exitosamente');
             this.mensajeExito = `Operación completada exitosamente.`;
             this.mostrarAlertaExito = true;
             
@@ -320,7 +320,7 @@ export class ListComponent implements OnInit {
             this.cancelarTrasladar();
           } else if (response.data.code_Status === -1) {
             //result: está siendo utilizado
-            console.log('Ya se completo esta devolución.');
+            //console.log('Ya se completo esta devolución.');
             this.mostrarAlertaWarning = true;
             this.mensajeWarning = response.data.message_Status || 'Ya se completo esta devolución..';
             
@@ -333,7 +333,7 @@ export class ListComponent implements OnInit {
             this.cancelarTrasladar();
           } else if (response.data.code_Status === 0) {
             // Error general
-            console.log('Error al completar la operación.');
+            //console.log('Error al completar la operación.');
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'Error al completar la operación.';
             
@@ -347,7 +347,7 @@ export class ListComponent implements OnInit {
           }
         } else {
           // Respuesta inesperada
-          console.log('Respuesta inesperada del servidor');
+          //console.log('Respuesta inesperada del servidor');
           this.mostrarAlertaError = true;
           this.mensajeError = response.message || 'Error inesperado al completar la supu operación.';
           

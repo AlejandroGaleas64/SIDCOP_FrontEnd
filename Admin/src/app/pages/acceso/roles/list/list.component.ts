@@ -1,3 +1,4 @@
+// ESTOS SON TODOS LOS IMPORTS NECESARIOS
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -23,6 +24,7 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
 @Component({
   selector: 'app-list',
   standalone: true,
+  // CONFIRMAMOS LOS IMPORTS A UTILIZAR
   imports: [
     CommonModule,
     FormsModule,
@@ -156,7 +158,7 @@ export class ListComponent implements OnInit {
       this.manejarResultadoExport(resultado);
       
     } catch (error) {
-      console.error(`Error en exportación ${tipo}:`, error);
+      // console.error(`Error en exportación ${tipo}:`, error);
       this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
     } finally {
       this.exportando = false;
@@ -223,7 +225,7 @@ export class ListComponent implements OnInit {
       );
       
     } catch (error) {
-      console.error('Error obteniendo datos:', error);
+      // console.error('Error obteniendo datos:', error);
       throw error;
     }
   }
@@ -307,7 +309,7 @@ export class ListComponent implements OnInit {
   // ===== MÉTODOS EXISTENTES (SIN CAMBIOS) =====
 
   crear(): void {
-    console.log('Toggleando formulario de creación...');
+    // console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false;
     this.showDetailsForm = false;
@@ -317,11 +319,11 @@ export class ListComponent implements OnInit {
   }
 
   editar(rol: Rol): void {
-    console.log('Datos específicos:', {
-      id: rol.role_Id,
-      descripcion: rol.role_Descripcion,
-      completo: rol
-    });
+    // console.log('Datos específicos:', {
+    //   id: rol.role_Id,
+    //   descripcion: rol.role_Descripcion,
+    //   completo: rol
+    // });
     this.rolEditando = { ...rol }; 
     this.showEditForm = true;
     this.showCreateForm = false; 
@@ -439,7 +441,7 @@ export class ListComponent implements OnInit {
       next: (response: any) => {
         setTimeout(() => {
           this.mostrarOverlayCarga = false;
-          console.log('Respuesta del servidor:', response);
+          // console.log('Respuesta del servidor:', response);
         
           if (response.success && response.data) {
             if (response.data.code_Status === 1) {
@@ -458,7 +460,7 @@ export class ListComponent implements OnInit {
               this.cancelarEliminar();
             } else if (response.data.code_Status === -1) {
               //result: está siendo utilizado
-              console.log('Rol está siendo utilizado');
+              // console.log('Rol está siendo utilizado');
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status || 'No se puede eliminar: el rol está siendo utilizado.';
               
@@ -471,7 +473,7 @@ export class ListComponent implements OnInit {
               this.cancelarEliminar();
             } else if (response.data.code_Status === 0) {
               // Error general
-              console.log('Error general al eliminar');
+              // console.log('Error general al eliminar');
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status || 'Error al eliminar el rol.';
               
@@ -485,7 +487,7 @@ export class ListComponent implements OnInit {
             }
           } else {
             // Respuesta inesperada
-            console.log('Respuesta inesperada del servidor');
+            // console.log('Respuesta inesperada del servidor');
             this.mostrarAlertaError = true;
             this.mensajeError = response.message || 'Error inesperado al eliminar el rol.';
             
@@ -534,7 +536,7 @@ export class ListComponent implements OnInit {
           // console.log('Acciones del módulo:', accionesArray);
         }
       } catch (e) {
-        console.error('Error al parsear permisosJson:', e);
+        // console.error('Error al parsear permisosJson:', e);
       }
     } 
     // AQUI FILTRAMOS Y NORMALIZAMOS LAS ACCIONES
@@ -577,15 +579,13 @@ export class ListComponent implements OnInit {
           }
           const parsed = JSON.parse(data);
           // console.log('Pantallas cargadas:', parsed);
-          // Aquí podrías hacer algo con los datos de las pantallas si es necesario
         } catch (e) {
-          console.error('No se pudo parsear la respuesta de pantallas:', e, raw);
+          // console.error('No se pudo parsear la respuesta de pantallas:', e, raw);
         }
       },
       error: err => {
-        console.error('Error al cargar pantallas:', err);
+        // console.error('Error al cargar pantallas:', err);
       }
     });
   }
 }
-

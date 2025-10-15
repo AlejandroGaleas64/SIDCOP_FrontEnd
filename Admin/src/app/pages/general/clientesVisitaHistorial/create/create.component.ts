@@ -222,7 +222,7 @@ export class CreateComponent implements OnInit {
     const userId = getUserId();
     const fechaActual = new Date();
     const fechaVisita = new Date(this.visita.clVi_Fecha);
-    fechaVisita.setHours(0, 0, 0, 0);
+    // fechaVisita.setHours(0, 0, 0, 0);
 
     const visitaData = {
       clVi_Id: 0,

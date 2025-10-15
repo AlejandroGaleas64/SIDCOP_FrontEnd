@@ -188,12 +188,14 @@ export class ListComponent implements OnInit {
     columns: [
       { key: 'No', header: 'No.', width: 8, align: 'center' as const },
       { key: 'Código', header: 'Código', width: 25, align: 'left' as const },
-      { key: 'Descripción', header: 'Descripción', width: 50, align: 'left' as const }
+      { key: 'Municipio', header: 'Municipio', width: 50, align: 'left' as const },
+      { key: 'Departamento', header: 'Departamento', width: 50, align: 'left' as const }
     ] as ExportColumn[],
     dataMapping: (muni: Municipio, index: number) => ({
       'No': muni?.secuencia || (index + 1),
       'Código': this.limpiarTexto(muni?.muni_Codigo),
-      'Descripción': this.limpiarTexto(muni?.muni_Descripcion)
+      'Municipio': this.limpiarTexto(muni?.muni_Descripcion),
+      'Departamento': this.limpiarTexto(muni?.depa_Descripcion)
     })
   };
 

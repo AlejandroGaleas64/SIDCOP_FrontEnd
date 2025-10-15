@@ -91,12 +91,12 @@ private readonly exportConfig = {
 
     // OBTENER ACCIONES DISPONIBLES DEL USUARIO
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
+    //console.log('Acciones disponibles:', this.accionesDisponibles);
   }
   
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
+    //console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -104,15 +104,7 @@ private readonly exportConfig = {
   }
 
   editar(traslado: Traslado): void {
-    console.log('Abriendo formulario de edición para:', traslado);
-    console.log('Datos específicos:', {
-      id: traslado.tras_Id,
-      origen: traslado.origen,
-      destino: traslado.destino,
-      fecha: traslado.tras_Fecha,
-      observaciones: traslado.tras_Observaciones,
-      completo: traslado
-    });
+ 
     this.trasladoEditando = { ...traslado }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -121,8 +113,8 @@ private readonly exportConfig = {
   }
 
   detalles(traslado: Traslado): void {
-    console.log('Abriendo detalles para:', traslado);
-    console.log('ID del traslado seleccionado:', traslado.tras_Id);
+    //console.log('Abriendo detalles para:', traslado);
+    //console.log('ID del traslado seleccionado:', traslado.tras_Id);
     
     // Usar el ID para cargar datos actualizados desde el API
     this.trasladoIdDetalle = traslado.tras_Id;
@@ -377,7 +369,7 @@ private readonly exportConfig = {
   guardarTraslado(traslado: Traslado): void {
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
-      console.log('Traslado guardado exitosamente desde create component:', traslado);
+      //console.log('Traslado guardado exitosamente desde create component:', traslado);
       this.cargardatos();
       this.showCreateForm = false;
       this.mensajeExito = `Traslado guardado exitosamente`;
@@ -392,7 +384,7 @@ private readonly exportConfig = {
   actualizarTraslado(traslado: Traslado): void {
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
-      console.log('Traslado actualizado exitosamente desde edit component:', traslado);
+      //console.log('Traslado actualizado exitosamente desde edit component:', traslado);
       this.cargardatos();
       this.showEditForm = false;
       this.mensajeExito = `Traslado actualizado exitosamente`;
@@ -405,7 +397,7 @@ private readonly exportConfig = {
   }
 
   confirmarEliminar(traslado: Traslado): void {
-    console.log('Solicitando confirmación para eliminar:', traslado);
+    //console.log('Solicitando confirmación para eliminar:', traslado);
     this.trasladoAEliminar = traslado;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones
@@ -422,7 +414,7 @@ private readonly exportConfig = {
     // Prevenir múltiples clicks - deshabilitar el botón
     if (this.mostrarOverlayCarga) return;
     
-    console.log('Eliminando traslado:', this.trasladoAEliminar);
+    //console.log('Eliminando traslado:', this.trasladoAEliminar);
     this.mostrarOverlayCarga = true;
     
     // Cerrar el modal inmediatamente para evitar doble click
@@ -438,7 +430,7 @@ private readonly exportConfig = {
       next: (response: any) => {
         setTimeout(() => {
           this.mostrarOverlayCarga = false;
-          console.log('Respuesta del servidor:', response);
+          //console.log('Respuesta del servidor:', response);
           
           // Limpiar variables
           this.trasladoAEliminar = null;
@@ -447,7 +439,7 @@ private readonly exportConfig = {
           if (response.success && response.data) {
             if (response.data.code_Status === 1) {
               // Éxito: eliminado correctamente
-              console.log('Traslado eliminado exitosamente');
+              //console.log('Traslado eliminado exitosamente');
               this.mensajeExito = `Traslado del "${trasladoTemp.origen}" al "${trasladoTemp.destino}" eliminado exitosamente`;
               this.mostrarAlertaExito = true;
               
@@ -460,7 +452,7 @@ private readonly exportConfig = {
               this.cargardatos();
             } else if (response.data.code_Status === -1) {
               //result: está siendo utilizado
-              console.log('El traslado está siendo utilizado');
+              //console.log('El traslado está siendo utilizado');
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status || 'No se puede eliminar: el traslado está siendo utilizado.';
               
@@ -470,7 +462,7 @@ private readonly exportConfig = {
               }, 5000);
             } else if (response.data.code_Status === 0) {
               // Error general
-              console.log('Error general al eliminar');
+              //console.log('Error general al eliminar');
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status || 'Error al eliminar el traslado.';
               
@@ -481,7 +473,7 @@ private readonly exportConfig = {
             }
           } else {
             // Respuesta inesperada
-            console.log('Respuesta inesperada del servidor');
+            //console.log('Respuesta inesperada del servidor');
             this.mostrarAlertaError = true;
             this.mensajeError = response.message || 'Error inesperado al eliminar el traslado.';
             
@@ -522,7 +514,7 @@ private readonly exportConfig = {
   private cargarAccionesUsuario(): void {
     // OBTENEMOS PERMISOSJSON DEL LOCALSTORAGE
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+    //console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -539,7 +531,7 @@ private readonly exportConfig = {
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
           // AQUI SACAMOS SOLO EL NOMBRE DE LA ACCIÓN
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
-          console.log('Acciones del módulo:', accionesArray);
+          //console.log('Acciones del módulo:', accionesArray);
         }
       } catch (e) {
         console.error('Error al parsear permisosJson:', e);
@@ -547,7 +539,7 @@ private readonly exportConfig = {
     } 
     // AQUI FILTRAMOS Y NORMALIZAMOS LAS ACCIONES
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
+    //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   // Declaramos un estado en el cargarDatos, esto para hacer el overlay
@@ -579,7 +571,7 @@ private cargardatos(): void {
 
       setTimeout(() => {
         this.mostrarOverlayCarga = false;
-        console.log('Datos recargados:', datosFiltrados);
+        //console.log('Datos recargados:', datosFiltrados);
         this.table.setData(datosFiltrados);
       }, 500);
     },

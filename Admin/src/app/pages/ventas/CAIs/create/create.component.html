@@ -43,7 +43,11 @@
               [class.is-invalid]="!cai.nCai_Codigo.trim() && mostrarErrores"
               id="codigoCai"
               [(ngModel)]="cai.nCai_Codigo"
-              placeholder="Ingrese el código del CAI"
+              placeholder="XXXXXX-XXXXXX-XXXXXX-XXXXXX-XXXXXX-XX"
+              maxlength="37"
+              (input)="formatCaiCode($event)"
+              (paste)="onPasteCaiCode($event)"
+              style="text-transform: uppercase;"
               required
             />
           </div>

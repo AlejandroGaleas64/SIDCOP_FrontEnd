@@ -674,7 +674,7 @@ actualizarFormaPago(): void {
     this.formaPago = ''; // Ninguno seleccionado
   }
 
-  console.log('Forma de pago seleccionada:', this.formaPago);
+
 }
 
 

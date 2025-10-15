@@ -82,7 +82,7 @@ export class EditComponent implements OnChanges {
       })
       .subscribe((data) => {
         this.Sucursales = this.ordenarPorMunicipioYDepartamento(data);
-        console.log('Sucursales', this.Sucursales);
+        //console.log('Sucursales', this.Sucursales);
       });
   }
 
@@ -118,7 +118,7 @@ export class EditComponent implements OnChanges {
     if (changes['PEData'] && changes['PEData'].currentValue) {
       this.puntoEmision = { ...changes['PEData'].currentValue };
       this.PEOriginal = { ...this.PEData };
-      //console.log('Punto Original', this.PEOriginal );
+      ////console.log('Punto Original', this.PEOriginal );
       this.mostrarErrores = false;
       this.cerrarAlerta();
     }
@@ -273,7 +273,7 @@ export class EditComponent implements OnChanges {
           },
         });
     } else {
-      console.log('Entro al else');
+      //console.log('Entro al else');
       this.mostrarAlertaWarning = true;
       this.mensajeWarning =
         'Por favor complete todos los campos requeridos antes de guardar.';

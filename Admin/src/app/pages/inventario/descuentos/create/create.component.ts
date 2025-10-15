@@ -66,7 +66,7 @@ actualizarFormaPago(): void {
     this.formaPago = ''; // Ninguno seleccionado
   }
 
-  console.log('Forma de pago seleccionada:', this.formaPago);
+
 }
 
 get itemsDisponibles(): any[] {
@@ -666,7 +666,7 @@ tieneAyudante: boolean = false;
       DescuentoGuardar.desc_Observaciones = this.descuento.desc_Observaciones;
     }
 
-    console.log('Guardando Vendedor:', DescuentoGuardar, this.descuentoDetalle, this.descuentoPorCliente, this.descuentoPorEscala);
+
 
     this.http.post<any>(`${environment.apiBaseUrl}/Descuentos/Insertar`, DescuentoGuardar, {
       headers: {

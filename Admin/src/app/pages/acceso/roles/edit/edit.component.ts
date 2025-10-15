@@ -1,3 +1,4 @@
+// ESTOS SON TODOS LOS IMPORTS NECESARIOS
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,6 +7,7 @@ import { Rol } from 'src/app/Modelos/acceso/roles.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 
+// INTERFAZ QUE DEFINE LA ESTRUCTURA DEL ÁRBOL DE PERMISOS (ESQUEMAS, PANTALLAS Y ACCIONES)
 interface TreeItem {
   id: string;
   name: string;
@@ -17,6 +19,7 @@ interface TreeItem {
   esReporte?: boolean;
 }
 
+// AQUI HACEMOS OTRO "MODEL" DE LOS PERMISOS Y PARA ELIMINAR Y ETC
 interface Permiso {
   perm_Id: number;
   acPa_Id: number;
@@ -32,6 +35,7 @@ interface Permiso {
   perm_FechaModificacion: string;
 }
 
+// INTERFAZ PARA ELIMINAR PERMISOS
 interface PermisoEliminar {
   perm_Id: number;
   usua_Creacion: number;
@@ -40,6 +44,7 @@ interface PermisoEliminar {
   perm_FechaModificacion: string;
 }
 
+// INTERFAZ PARA INSERTAR NUEVOS PERMISOS
 interface PermisoInsertar {
   acPa_Id: number;
   role_Id: number;
@@ -47,6 +52,7 @@ interface PermisoInsertar {
   perm_FechaCreacion: string;
 }
 
+// INTERFACES PARA REPRESENTAR LA ESTRUCTURA DE ESQUEMAS, PANTALLAS Y ACCIONES
 interface Esquema {
   Esquema: string;
   Pantallas: Pantalla[];
@@ -71,10 +77,13 @@ interface Accion {
   styleUrls: ['./edit.component.scss']
 })
 export class EditComponent implements OnChanges {
+
+  // ENTRADAS Y SALIDAS DEL COMPONENTE (DATOS RECIBIDOS Y EVENTOS EMITIDOS)
   @Input() rolData: Rol | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Rol>();
 
+  // VARIABLES PRINCIPALES PARA MANEJO DEL ROL Y SU ESTADO
   rol: Rol = {
     role_Id: 0,
     role_Descripcion: '',
@@ -90,6 +99,7 @@ export class EditComponent implements OnChanges {
     role_Estado: true
   };
 
+  // AQUI TENEMOS EL ROL ORIGINAL Y LAS ALERTAS PREECARGADAS
   rolOriginal: any = {};
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -100,6 +110,7 @@ export class EditComponent implements OnChanges {
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
 
+  // VARIABLES PARA CONTROLAR LA ESTRUCTURA DEL ÁRBOL Y LOS PERMISOS
   treeData: TreeItem[] = [];
   permisosDelRol: string[] = [];
   permisosActuales: any[] = [];
@@ -110,6 +121,7 @@ export class EditComponent implements OnChanges {
 
   constructor(private http: HttpClient) {}
 
+  // MÉTODO QUE DETECTA CAMBIOS EN LAS PROPIEDADES DE ENTRADA (SE EJECUTA AL CAMBIAR rolData)
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['rolData'] && changes['rolData'].currentValue) {
       this.rol = { ...changes['rolData'].currentValue };
@@ -120,6 +132,7 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // AQUI EMPIEZA EL METODO DE LAS ACCIONES POR PANTALLA
   private cargarAccionesPorPantalla(): void {
     this.http.get<{ acPa_Id: number, pant_Id: number, acci_Id: number }[]>(`${environment.apiBaseUrl}/Roles/ListarAccionesPorPantalla`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -132,14 +145,14 @@ export class EditComponent implements OnChanges {
         }));
         this.cargarPermisos();
       },
-      error: (err) => {
-        console.error('Error cargando acciones por pantalla:', err);
+      error: () => {
         this.accionesPorPantalla = [];
         this.cargarPermisos();
       }
     });
   }
 
+  // AQUI HACEMOS LLAMADO A LOS ENDPOINT PARA PODER OBTENER LOS PERMISOS
   private cargarPantallas(): void {
     this.http.get(`${environment.apiBaseUrl}/Roles/ListarPantallas`, {
       headers: { 'x-api-key': environment.apiKey },
@@ -190,7 +203,6 @@ export class EditComponent implements OnChanges {
                 pantallaNode.selected = pantallaNode.children.some(c => c.selected) ?? false;
                 pantallaNode.expanded = pantallaNode.selected;
               } else {
-                // Para reportes, selecciona el nodo pantalla si tiene permisos
                 pantallaNode.selected = this.permisosDelRol.some(p => p.startsWith(`${pantalla.Pant_Id}_`));
                 pantallaNode.expanded = false;
               }
@@ -206,13 +218,13 @@ export class EditComponent implements OnChanges {
           this.updateSelectedItems();
 
         } catch (e) {
-          console.error('No se pudo parsear:', e);
+          // ERROR AL PARSEAR LA RESPUESTA DE PANTALLAS
         }
       },
-      error: err => console.error('Error al cargar pantallas:', err)
     });
   }
 
+  // CARGA LOS PERMISOS ACTUALES DEL ROL DESDE EL BACKEND
   private cargarPermisos(): void {
     if (!this.rol.role_Id) {
       this.treeData = [];
@@ -244,24 +256,21 @@ export class EditComponent implements OnChanges {
         this.cargarPantallas();
         this.hayCambiosPermisos = false;
       },
-      error: (err) => {
-        console.error('Error al cargar permisos del rol:', err);
+      error: () => {
         this.cargarPantallas();
       }
     });
   }
 
+  // AQUI LA SELECCION DE LOS PERMISOS
   toggleSelection(item: TreeItem): void {
     item.selected = !item.selected;
-
     if (item.type === 'esquema' || item.type === 'pantalla') {
       this.updateChildrenSelection(item, item.selected);
     }
-
     if (item.type === 'accion') {
       const pantalla = item.parent;
       const esquema = pantalla?.parent;
-
       if (item.selected) {
         if (pantalla) {
           pantalla.selected = true;
@@ -280,10 +289,8 @@ export class EditComponent implements OnChanges {
         }
       }
     }
-
     if (item.type === 'pantalla') {
       const esquema = item.parent;
-
       if (item.selected) {
         if (esquema) {
           esquema.selected = true;
@@ -295,10 +302,10 @@ export class EditComponent implements OnChanges {
         }
       }
     }
-
     this.updateSelectedItems();
   }
 
+  // ACTUALIZA LA SELECCIÓN DE LOS HIJOS DE UN ELEMENTO PADRE
   private updateChildrenSelection(parent: TreeItem, selected: boolean): void {
     if (parent.children) {
       for (const child of parent.children) {
@@ -311,23 +318,26 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // ACTUALIZA LA LISTA DE ELEMENTOS SELECCIONADOS
   private updateSelectedItems(): void {
     this.selectedItems = this.getAllSelectedItems(this.treeData);
   }
 
+  // OBTIENE TODOS LOS ELEMENTOS SELECCIONADOS DEL ÁRBOL
   private getAllSelectedItems(items: TreeItem[]): TreeItem[] {
     return items.reduce<TreeItem[]>((acc, item) => {
-      // Incluir acciones seleccionadas y pantallas tipo reporte seleccionadas
       if (item.selected && (item.type === 'accion' || (item.type === 'pantalla' && item.esReporte))) acc.push(item);
       if (item.children) acc.push(...this.getAllSelectedItems(item.children));
       return acc;
     }, []);
   }
 
+  // INDICA SI EXISTE ALGÚN ELEMENTO EXPANDIDO EN EL ÁRBOL
   get hayExpandido(): boolean {
     return this.treeData.some(esquema => esquema.expanded || (esquema.children ? esquema.children.some(pantalla => pantalla.expanded) : false));
   }
 
+  // EXPANDE O COLAPSA TODOS LOS ELEMENTOS DEL ÁRBOL
   alternarDesplegables(): void {
     const expandir = !this.hayExpandido;
     const cambiarExpansion = (items: TreeItem[], expandir: boolean) => {
@@ -341,48 +351,12 @@ export class EditComponent implements OnChanges {
     cambiarExpansion(this.treeData, expandir);
   }
 
-  // validarEdicion(): void {
-  //   this.mostrarErrores = true;
-  //   const nuevaDescripcion = this.rol.role_Descripcion.trim();
-  //   const descripcionCambiada = nuevaDescripcion !== this.rolOriginal;
-
-  //   const permisosActuales = this.selectedItems
-  //     .filter(item => item.type === 'accion')
-  //     .map(item => {
-  //       const pantallaId = item.parent ? Number(item.parent.id.split('_').pop()) : undefined;
-  //       const accionId = Number(item.id.split('_').pop());
-  //       return `${pantallaId}_${accionId}`;
-  //     });
-
-  //   const permisosCambiados = JSON.stringify(this.permisosDelRol.sort()) !== JSON.stringify(permisosActuales.sort());
-  //   this.hayCambiosPermisos = permisosCambiados;
-
-  //   if (nuevaDescripcion && (descripcionCambiada || permisosCambiados)) {
-  //     if (descripcionCambiada && permisosCambiados) {
-  //       this.mensajeWarning = '¿Estás seguro que deseas modificar la descripción y los permisos de este rol?';
-  //     } else if (descripcionCambiada) {
-  //       this.mensajeWarning = '¿Estás seguro que deseas modificar la descripción de este rol?';
-  //     } else {
-  //       this.mensajeWarning = '¿Estás seguro que deseas modificar los permisos de este rol?';
-  //     }
-  //     this.mostrarConfirmacionEditar = true;
-  //   } else if (!nuevaDescripcion) {
-  //     this.mostrarAlertaWarning = true;
-  //     this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
-  //     setTimeout(() => this.cerrarAlerta(), 4000);
-  //   } else {
-  //     this.mostrarAlertaWarning = true;
-  //     this.mensajeWarning = 'No se han detectado cambios.';
-  //     setTimeout(() => this.cerrarAlerta(), 4000);
-  //   }
-  // }
-
+  // COMPARA LOS DATOS ACTUALES CON LOS ORIGINALES PARA DETECTAR CAMBIOS
   hayDiferencias(): boolean {
     const a = this.rol;
     const b = this.rolOriginal;
     this.cambiosDetectados = {};
 
-    // Descripción del rol
     if (a.role_Descripcion !== b.role_Descripcion) {
       this.cambiosDetectados.descripcion = {
         anterior: b.role_Descripcion,
@@ -391,7 +365,6 @@ export class EditComponent implements OnChanges {
       };
     }
 
-    // Comparar permisos
     const permisosActuales = this.selectedItems
       .filter(item => item.type === 'accion')
       .map(item => {
@@ -401,22 +374,18 @@ export class EditComponent implements OnChanges {
       });
 
     const permisosOriginales = [...this.permisosDelRol];
-
-    // Ordenar para evitar falsos negativos
     const cambiosPermisos = JSON.stringify(permisosActuales.sort()) !== JSON.stringify(permisosOriginales.sort());
 
     if (cambiosPermisos) {
-      this.cambiosDetectados.permisos = {
-        label: 'Se modificaron los permisos.'
-      };
+      this.cambiosDetectados.permisos = { label: 'Se modificaron los permisos.' };
     }
 
     return Object.keys(this.cambiosDetectados).length > 0;
   }
 
+  // VALIDA LOS CAMBIOS ANTES DE GUARDAR (MUESTRA ALERTAS O CONFIRMACIÓN)
   validarEdicion(): void {
     this.mostrarErrores = true;
-
     if (this.rol.role_Descripcion.trim()) {
       if (this.hayDiferencias()) {
         this.mostrarConfirmacionEditar = true;
@@ -432,32 +401,33 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // DEVUELVE UNA LISTA DE LOS CAMBIOS DETECTADOS EN EL ROL
   obtenerListaCambios(): any[] {
     return Object.values(this.cambiosDetectados);
   }
 
   cambiosDetectados: any = {};
 
+  // CANCELA LA EDICIÓN EN PROCESO
   cancelarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
   }
 
+  // CONFIRMA LA EDICIÓN Y EJECUTA EL GUARDADO FINAL
   confirmarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
     this.guardar();
   }
 
+  // OBTIENE LOS PERMISOS SELECCIONADOS PARA ENVIAR AL SERVICIO DE GUARDADO
   private getPermisosSeleccionados(): PermisoInsertar[] {
     return this.selectedItems.map(item => {
       let pantallaId: number | undefined;
       let accionId: number | undefined;
-
       if (item.type === 'accion') {
         pantallaId = item.parent ? Number(item.parent.id.split('_').pop()) : undefined;
         accionId = Number(item.id.split('_').pop());
       }
-
-      // Pantalla tipo reporte
       if (item.type === 'pantalla' && item.esReporte) {
         pantallaId = Number(item.id.split('_').pop());
         const acc = this.accionesPorPantalla.find(ap => ap.Pant_Id === pantallaId);
@@ -471,12 +441,9 @@ export class EditComponent implements OnChanges {
         }
         return null;
       }
-
       if (!pantallaId || !accionId) return null;
-
       const acPa = this.accionesPorPantalla.find(ap => ap.Pant_Id === pantallaId && ap.Acci_Id === accionId);
       if (!acPa) return null;
-
       return {
         acPa_Id: acPa.AcPa_Id,
         role_Id: this.rol.role_Id,
@@ -486,16 +453,14 @@ export class EditComponent implements OnChanges {
     }).filter((permiso): permiso is PermisoInsertar => permiso !== null);
   }
 
+  // GUARDA LOS CAMBIOS DEL ROL Y SUS PERMISOS EN EL SERVIDOR
   private guardar(): void {
     this.mostrarErrores = true;
-
     const descripcionVacia = !this.rol.role_Descripcion.trim();
-    // Permitir acciones seleccionadas o pantallas tipo reporte seleccionadas
     const permisosVacios = !this.selectedItems.some(item => item.type === 'accion' || (item.type === 'pantalla' && item.esReporte));
 
     if (descripcionVacia || permisosVacios) {
       this.mostrarAlertaWarning = true;
-
       if (descripcionVacia && permisosVacios) {
         this.mensajeWarning = 'Por favor complete todos los campos requeridos y seleccione al menos un permiso antes de guardar.';
       } else if (permisosVacios) {
@@ -503,7 +468,6 @@ export class EditComponent implements OnChanges {
       } else if (descripcionVacia) {
         this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
       }
-
       setTimeout(() => this.cerrarAlerta(), 4000);
       return;
     }
@@ -521,134 +485,69 @@ export class EditComponent implements OnChanges {
     };
 
     this.http.put<any>(`${environment.apiBaseUrl}/Roles/Actualizar`, rolActualizar, {
-      headers: {
-        'X-Api-Key': environment.apiKey,
-        'Content-Type': 'application/json',
-        'accept': '*/*'
-      }
+      headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: () => {
-        const permisosNuevos = this.getPermisosSeleccionados();
+        const permisosSeleccionados = this.getPermisosSeleccionados();
+        const permisosEliminar: PermisoEliminar[] = this.permisosActuales.map(p => ({
+          perm_Id: p.perm_Id,
+          usua_Creacion: p.usua_Creacion,
+          perm_FechaCreacion: p.perm_FechaCreacion,
+          usua_Modificacion: getUserId(),
+          perm_FechaModificacion: new Date().toISOString()
+        }));
 
-        const permisosAEliminar = this.permisosActuales.filter(pActual => {
-          const idActual = `${pActual.pant_Id}_${pActual.acci_Id}`;
-          return !permisosNuevos.some(pNuevo => {
-            if (!pNuevo) return false;
-            const ap = this.accionesPorPantalla.find(ap => ap.AcPa_Id === pNuevo.acPa_Id);
-            if (!ap) return false;
-            return idActual === `${ap.Pant_Id}_${ap.Acci_Id}`;
-          });
-        });
-
-        const permisosAInsertar = permisosNuevos.filter(pNuevo => {
-          if (!pNuevo) return false;
-          const ap = this.accionesPorPantalla.find(ap => ap.AcPa_Id === pNuevo.acPa_Id);
-          if (!ap) return false;
-          const idNuevo = `${ap.Pant_Id}_${ap.Acci_Id}`;
-          return !this.permisosActuales.some(pActual => `${pActual.pant_Id}_${pActual.acci_Id}` === idNuevo);
-        });
-
-        const promesasEliminar = permisosAEliminar.map(pEliminar => {
-          const permisoEliminar: PermisoEliminar = {
-            perm_Id: pEliminar.perm_Id,
-            usua_Creacion: getUserId(),
-            perm_FechaCreacion: new Date().toISOString(),
-            usua_Modificacion: getUserId(),
-            perm_FechaModificacion: new Date().toISOString()
-          };
-          return this.http.post(`${environment.apiBaseUrl}/Eliminar`, permisoEliminar, {
-            headers: {
-              'X-Api-Key': environment.apiKey,
-              'Content-Type': 'application/json'
-            }
-          }).toPromise();
-        });
-
-        const promesasInsertar = permisosAInsertar.map(pInsertar => {
-          const permisoInsertar: PermisoInsertar = {
-            acPa_Id: pInsertar.acPa_Id,
-            role_Id: pInsertar.role_Id,
-            usua_Creacion: getUserId(),
-            perm_FechaCreacion: new Date().toISOString()
-          };
-          return this.http.post(`${environment.apiBaseUrl}/Insertar`, permisoInsertar, {
-            headers: {
-              'X-Api-Key': environment.apiKey,
-              'Content-Type': 'application/json',
-              'accept': '*/*'
-            }
-          }).toPromise();
-        });
-
-        Promise.all([...promesasEliminar, ...promesasInsertar])
-          .then(() => {
-            this.mensajeExito = 'Rol y permisos actualizados correctamente';
-            this.mostrarAlertaExito = true;
-            this.mostrarErrores = false;
-
-            setTimeout(() => {
-              this.mostrarAlertaExito = false;
+        this.http.post(`${environment.apiBaseUrl}/Roles/EliminarPermisos`, permisosEliminar, {
+          headers: { 'x-api-key': environment.apiKey }
+        }).subscribe({
+          next: () => {
+            if (permisosSeleccionados.length > 0) {
+              this.http.post(`${environment.apiBaseUrl}/Roles/InsertarPermisos`, permisosSeleccionados, {
+                headers: { 'x-api-key': environment.apiKey }
+              }).subscribe({
+                next: () => {
+                  this.mostrarAlertaExito = true;
+                  this.mensajeExito = 'El rol y sus permisos se actualizaron correctamente.';
+                  this.onSave.emit(this.rol);
+                  setTimeout(() => this.cerrarAlerta(), 4000);
+                },
+                error: () => {
+                  this.mostrarAlertaError = true;
+                  this.mensajeError = 'Error al insertar los permisos del rol.';
+                  setTimeout(() => this.cerrarAlerta(), 4000);
+                }
+              });
+            } else {
+              this.mostrarAlertaExito = true;
+              this.mensajeExito = 'El rol y sus permisos se actualizaron correctamente.';
               this.onSave.emit(this.rol);
-              this.cancelar();
-              this.mostrarErrores = false;
-            }, 3000);
-          })
-          .catch(error => {
-            console.error('Error al actualizar permisos:', error);
+              setTimeout(() => this.cerrarAlerta(), 4000);
+            }
+          },
+          error: () => {
             this.mostrarAlertaError = true;
-            this.mensajeError = 'Error al actualizar los permisos. Por favor intente nuevamente.';
-            setTimeout(() => this.cerrarAlerta(), 5000);
-          });
+            this.mensajeError = 'Error al eliminar los permisos anteriores del rol.';
+            setTimeout(() => this.cerrarAlerta(), 4000);
+          }
+        });
       },
-      error: (error) => {
-        console.error('Error al actualizar rol:', error);
+      error: () => {
         this.mostrarAlertaError = true;
-        this.mensajeError = 'Error al actualizar el rol. Por favor, intente nuevamente.';
-        setTimeout(() => this.cerrarAlerta(), 5000);
+        this.mensajeError = 'Error al actualizar el rol.';
+        setTimeout(() => this.cerrarAlerta(), 4000);
       }
     });
   }
 
-  cancelar(): void {
-    this.clearSelections();
-    this.rol = {
-      role_Id: 0,
-      role_Descripcion: '',
-      usua_Creacion: 0,
-      usua_Modificacion: 0,
-      secuencia: 0,
-      role_FechaCreacion: new Date(),
-      role_FechaModificacion: new Date(),
-      code_Status: 0,
-      message_Status: '',
-      usuarioCreacion: '',
-      usuarioModificacion: '',
-      role_Estado: true
-    };
-    this.mostrarErrores = false;
-    this.onCancel.emit();
-  }
-
-  private clearSelections(): void {
-    const clearNode = (node: TreeItem) => {
-      node.selected = false;
-      node.expanded = false;
-      if (node.children) node.children.forEach(child => clearNode(child));
-    };
-    this.treeData.forEach(esq => clearNode(esq));
-    this.selectedItems = [];
-  }
-
+  // CIERRA TODAS LAS ALERTAS EN PANTALLA
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
-    this.mensajeExito = '';
     this.mostrarAlertaError = false;
-    this.mensajeError = '';
     this.mostrarAlertaWarning = false;
-    this.mensajeWarning = '';
   }
 
-  toggleExpand(item: TreeItem): void {
-    item.expanded = !item.expanded;
+  // CANCELA LA EDICIÓN Y VUELVE ATRÁS
+  cancel(): void {
+    this.onCancel.emit();
   }
 }

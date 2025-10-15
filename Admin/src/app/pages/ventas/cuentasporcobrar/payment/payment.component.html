@@ -1,3 +1,7 @@
+<!--
+  Componente de Breadcrumbs
+  Muestra la navegación jerárquica para el registro de pago.
+-->
 <app-breadcrumbs
   [title]="'Registrar Pago'"
   [breadcrumbItems]="breadCrumbItems"
@@ -10,36 +14,48 @@
         <div class="card-body">
           <h4 class="card-title mb-4">Registrar Pago</h4>
 
-          <!-- Alertas -->
-          <div
-            *ngIf="mostrarAlertaError"
-            class="alert alert-danger alert-dismissible fade show"
-            role="alert"
-          >
-            <i class="mdi mdi-alert-circle-outline me-2"></i>
-            {{ mensajeError }}
-            <button
-              type="button"
-              class="btn-close"
-              (click)="cerrarAlertaError()"
-            ></button>
+          <!--
+  Contenedor de alertas flotantes.
+  Muestra mensajes de éxito y error al registrar el pago.
+-->
+          <div class="alert-container">
+            <!-- Éxito -->
+            <div
+              *ngIf="mostrarAlertaExito"
+              class="alert alert-success alert-border-left alert-dismissible fade show floating-alert"
+              role="alert"
+            >
+              <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+              <strong>¡Éxito!</strong> {{ mensajeExito }}
+              <button
+                type="button"
+                class="btn-close"
+                (click)="cerrarAlerta()"
+                aria-label="Close"
+              ></button>
+            </div>
+
+            <!-- Error -->
+            <div
+              *ngIf="mostrarAlertaError"
+              class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert"
+              role="alert"
+            >
+              <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+              <strong>¡Error!</strong> {{ mensajeError }}
+              <button
+                type="button"
+                class="btn-close"
+                (click)="cerrarAlerta()"
+                aria-label="Close"
+              ></button>
+            </div>
           </div>
 
-          <div
-            *ngIf="mostrarAlertaExito"
-            class="alert alert-success alert-dismissible fade show"
-            role="alert"
-          >
-            <i class="mdi mdi-check-circle-outline me-2"></i>
-            {{ mensajeExito }}
-            <button
-              type="button"
-              class="btn-close"
-              (click)="cerrarAlertaExito()"
-            ></button>
-          </div>
-
-          <!-- Información de la cuenta -->
+          <!--
+            Información de la cuenta por cobrar seleccionada.
+            Muestra datos del cliente, fechas y montos.
+          -->
           <div *ngIf="cuentaPorCobrar" class="mb-4">
             <div class="card bg-light">
               <div class="card-body">
@@ -85,14 +101,20 @@
             </div>
           </div>
 
-          <!-- Spinner de carga -->
+          <!--
+            Spinner de carga mientras se obtienen los datos de la cuenta.
+          -->
           <div *ngIf="cargando" class="d-flex justify-content-center my-5">
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Cargando...</span>
             </div>
           </div>
 
-          <!-- Formulario de pago -->
+          <!--
+            Formulario para registrar el pago.
+            Incluye campos de monto, forma de pago, referencia y observaciones.
+            Valida que el monto no exceda el saldo pendiente.
+          -->
           <form
             *ngIf="!cargando && cuentaPorCobrar"
             [formGroup]="pagoForm"
@@ -100,6 +122,7 @@
           >
             <div class="row mb-3">
               <div class="col-md-6">
+                <!-- Campo para ingresar el monto del pago -->
                 <label for="pago_Monto" class="form-label"
                   >Monto del Pago</label
                 >
@@ -133,9 +156,11 @@
                     class="form-control"
                     [class.is-invalid]="
                       (pagoForm.get('pago_Monto')?.invalid &&
-                      pagoForm.get('pago_Monto')?.touched) ||
-                      (cuentaPorCobrar && pagoForm.get('pago_Monto')?.value > cuentaPorCobrar.cpCo_Saldo &&
-                      pagoForm.get('pago_Monto')?.touched)
+                        pagoForm.get('pago_Monto')?.touched) ||
+                      (cuentaPorCobrar &&
+                        pagoForm.get('pago_Monto')?.value >
+                          cuentaPorCobrar.cpCo_Saldo &&
+                        pagoForm.get('pago_Monto')?.touched)
                     "
                     [max]="cuentaPorCobrar ? cuentaPorCobrar.cpCo_Saldo : 0"
                     step="0.01"
@@ -144,9 +169,10 @@
                 <div
                   *ngIf="
                     (pagoForm.get('pago_Monto')?.invalid &&
-                    pagoForm.get('pago_Monto')?.touched) ||
-                    (pagoForm.get('pago_Monto')?.value > (cuentaPorCobrar ? cuentaPorCobrar.cpCo_Saldo : 0) &&
-                    pagoForm.get('pago_Monto')?.touched)
+                      pagoForm.get('pago_Monto')?.touched) ||
+                    (pagoForm.get('pago_Monto')?.value >
+                      (cuentaPorCobrar ? cuentaPorCobrar.cpCo_Saldo : 0) &&
+                      pagoForm.get('pago_Monto')?.touched)
                   "
                   class="invalid-feedback d-block"
                 >
@@ -156,12 +182,21 @@
                   <div *ngIf="pagoForm.get('pago_Monto')?.errors?.['min']">
                     El monto debe ser mayor a 0.
                   </div>
-                  <div *ngIf="cuentaPorCobrar && pagoForm.get('pago_Monto')?.value > cuentaPorCobrar.cpCo_Saldo">
-                    El monto no puede exceder el saldo pendiente ({{formatearMoneda(cuentaPorCobrar.cpCo_Saldo)}}).
+                  <div
+                    *ngIf="
+                      cuentaPorCobrar &&
+                      pagoForm.get('pago_Monto')?.value >
+                        cuentaPorCobrar.cpCo_Saldo
+                    "
+                  >
+                    El monto no puede exceder el saldo pendiente ({{
+                      formatearMoneda(cuentaPorCobrar.cpCo_Saldo)
+                    }}).
                   </div>
                 </div>
               </div>
               <div class="col-md-6">
+                <!-- Campo para seleccionar la forma de pago -->
                 <label for="pago_FormaPago" class="form-label"
                   >Forma de Pago</label
                 >
@@ -197,8 +232,13 @@
                       pagoForm.get('foPa_Id')?.touched
                     "
                   >
-                    <option [ngValue]="0" disabled>Seleccione una forma de pago</option>
-                    <option *ngFor="let forma of formasPago" [ngValue]="forma.foPa_Id">
+                    <option [ngValue]="0" disabled>
+                      Seleccione una forma de pago
+                    </option>
+                    <option
+                      *ngFor="let forma of formasPago"
+                      [ngValue]="forma.foPa_Id"
+                    >
                       {{ forma.foPa_Descripcion }}
                     </option>
                   </select>
@@ -217,6 +257,7 @@
 
             <div class="row mb-3">
               <div class="col-md-6">
+                <!-- Campo para ingresar el número de referencia del pago -->
                 <label for="pago_NumeroReferencia" class="form-label"
                   >Número de Referencia</label
                 >
@@ -242,7 +283,7 @@
                     placeholder="Número de cheque, transferencia, etc."
                   />
                 </div>
-                
+
                 <div
                   *ngIf="
                     pagoForm.get('pago_Observaciones')?.invalid &&
@@ -252,9 +293,9 @@
                 >
                   Las observaciones no pueden exceder 500 caracteres.
                 </div>
-                
               </div>
               <div class="col-md-12">
+                <!-- Campo para ingresar observaciones adicionales del pago -->
                 <label for="pago_Observaciones" class="form-label"
                   >Observaciones</label
                 >
@@ -271,6 +312,10 @@
               </div>
             </div>
 
+            <!--
+              Botones para cancelar o registrar el pago.
+              El botón de registrar se deshabilita si el formulario es inválido o está procesando.
+            -->
             <div class="d-flex justify-content-end mt-4">
               <button
                 type="button"

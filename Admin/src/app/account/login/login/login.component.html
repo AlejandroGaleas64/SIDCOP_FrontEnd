@@ -1,4 +1,9 @@
+<!--
+  Componente visual para el inicio de sesión de usuarios.
+  Incluye encabezado, formulario de login, alertas, recuperación de contraseña y estilos.
+-->
 <header class="login-header">
+  <!-- Encabezado con logo y curvas decorativas -->
   <div class="login-header-content">
     <img src="/assets/images/imagenes/full-logo.png" alt="SIDCOP Logo" class="login-logo" />
   </div>
@@ -7,12 +12,13 @@
     <path d="M-14 -58H1254.03C1254.03 -58 1352.86 156.604 1244.99 140.529C661 53.5 -9.47848 150.011 -9.47848 150.011L-14 -58Z" fill="#141A2F"/>
   </svg>
 </header>
+<!-- Sección principal de login, visible si no se está recuperando contraseña -->
 <section class="auth-page-wrapper d-flex align-items-center justify-content-center min-vh-100" *ngIf="!showrecuperar">
   <div class="login-overlay"></div>
   <div class="login-card">
     <h2 class="login-title">Inicio de sesión</h2>
     
-    <!-- Alerts para mensajes de la API -->
+  <!-- Alertas para mostrar mensajes de éxito, error o advertencia -->
     <div *ngIf="showAlert && alertType === 'success'" class="alert alert-success" role="alert">
       {{ alertMessage }}
     </div>
@@ -23,15 +29,18 @@
       {{ alertMessage }}
     </div>
     
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-      <div class="login-input-group">
+  <!-- Formulario de login -->
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+  <!-- Campo de usuario -->
+  <div class="login-input-group">
         <label for="username" class="login-label">Usuario</label>
         <div class="login-input-icon">
           <i class="ri-user-line"></i>
           <input type="text" formControlName="email" id="username" placeholder="Nombre de usuario" />
         </div>
       </div>
-      <div class="login-input-group">
+  <!-- Campo de contraseña con opción de mostrar/ocultar -->
+  <div class="login-input-group">
         <label for="password-input" class="login-label">Contraseña</label>
         <div class="login-input-icon">
           <i class="ri-lock-2-line"></i>
@@ -42,7 +51,8 @@
           </button>
         </div>
       </div>
-      <button type="submit" class="btn btn-login" [disabled]="isLoading">
+  <!-- Botón de ingreso, muestra loader si está cargando -->
+  <button type="submit" class="btn btn-login" [disabled]="isLoading">
         <span class="btn-text" *ngIf="!isLoading">Ingresar</span>
        <i class="ri-loader-4-line animate-spin" *ngIf="isLoading"></i>
         <span class="btn-text" *ngIf="isLoading">Cargando...</span>
@@ -50,16 +60,18 @@
         
       </button>
       
-      <div class="login-forgot">
+  <!-- Enlace para recuperar contraseña -->
+  <div class="login-forgot">
         <a (click)="showrecuperar=true" [ngStyle]="{'cursor':'pointer'}">¿Olvidaste tu contraseña?</a>
       </div>
     </form>
   </div>
+<!-- Fin de sección principal de login -->
 </section> 
-<!-- recuperar contraseña-->
+<!-- Sección de recuperación de contraseña, visible si showrecuperar es true -->
 <section class="auth-page-wrapper d-flex align-items-center justify-content-center min-vh-100" *ngIf="showrecuperar">
   <div class="login-overlay"></div>
-         <app-recuperarcontrasenia (onCancel)="volver()"></app-recuperarcontrasenia>
+  <app-recuperarcontrasenia (onCancel)="volver()"></app-recuperarcontrasenia>
 </section>
 
       
