@@ -13,54 +13,76 @@ import { login } from 'src/app/store/Authentication/authentication.actions';
   styleUrls: ['./login.component.scss']
 })
 
-// Login Component
+/**
+ * Componente para el inicio de sesión de usuarios.
+ * Permite validar credenciales, mostrar alertas, controlar la visibilidad de recuperación de contraseña y manejar el estado de carga.
+ */
 export class LoginComponent {
 
-  // Login Form
+  /** Formulario de login */
   loginForm!: UntypedFormGroup;
+  /** Indica si el formulario fue enviado */
   submitted = false;
+  /** Controla la visibilidad del campo de contraseña */
   fieldTextType!: boolean;
+  /** Mensaje de error general */
   error = '';
+  /** URL de retorno tras login */
   returnUrl!: string;
+  /** Variables de ejemplo (no usadas) */
   a: any = 10;
   b: any = 20;
+  /** Controla la visibilidad del componente de recuperar contraseña */
   toast!: false;
-  showrecuperar: boolean = false; // Controla la visibilidad del componente de recuperar contraseña
-  
-  // Propiedades para alerts y loader
+  showrecuperar: boolean = false;
+
+  /** Estado de carga y alertas */
   isLoading: boolean = false;
+  /** Tipo de alerta mostrada */
   alertType: 'success' | 'danger' | 'warning' | '' = '';
+  /** Mensaje de alerta */
   alertMessage: string = '';
+  /** Indica si se muestra la alerta */
   showAlert: boolean = false;
 
-  // set the current year
+  /** Año actual para mostrar en el footer */
   year: number = new Date().getFullYear();
 
-  // tslint:disable-next-line: max-line-length
+  /**
+   * Constructor del componente. Inicializa servicios y el formBuilder.
+   * @param formBuilder Constructor de formularios
+   * @param router Servicio de rutas
+   * @param store Store de NgRx
+   * @param authService Servicio de autenticación
+   */
   constructor(private formBuilder: UntypedFormBuilder,
     private router: Router,
     private store: Store,
     private authService: AuthenticationService
 ) { }
 
+  /**
+   * Inicializa el formulario y redirige si el usuario ya está autenticado.
+   */
   ngOnInit(): void {
     if (localStorage.getItem('currentUser')) {
       this.router.navigate(['/']);
     }
-    /**
-     * Form Validatyion
-     */
+    // Inicialización del formulario de login
     this.loginForm = this.formBuilder.group({
-      email: ['', [Validators.required]], // Campo de usuario
+      email: ['', [Validators.required]],
       password: ['', [Validators.required]],
     });
   }
 
-  // convenience getter for easy access to form fields
+  /**
+   * Getter para acceder fácilmente a los campos del formulario.
+   */
   get f() { return this.loginForm.controls; }
 
   /**
-   * Form submit
+   * Envía el formulario de login, valida los campos y llama al servicio de autenticación.
+   * Muestra alertas según el resultado.
    */
   onSubmit() {
     this.submitted = true;
@@ -121,17 +143,16 @@ export class LoginComponent {
   }
 
   /**
-   * Password Hide/Show
+   * Alterna la visibilidad del campo de contraseña.
    */
   toggleFieldTextType() {
     this.fieldTextType = !this.fieldTextType;
   }
 
   /**
-   * Método para volver desde el componente de recuperar contraseña
+   * Método para volver desde el componente de recuperar contraseña y mostrar el login.
    */
   volver() {
-    // Ocultar el componente de recuperar contraseña y mostrar el formulario de login
     this.showrecuperar = false;
   }
 }
