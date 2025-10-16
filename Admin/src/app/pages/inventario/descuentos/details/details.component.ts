@@ -2,7 +2,10 @@ import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from
 import { CommonModule } from '@angular/common';
 import { Descuento } from 'src/app/Modelos/inventario/DescuentoModel';
 
-
+/**
+ * Componente para mostrar los detalles completos de un descuento.
+ * Presenta información general, items aplicables, clientes asignados y escalas de descuento.
+ */
 @Component({
   selector: 'app-details',
   standalone: true,
@@ -16,25 +19,21 @@ export class DetailsComponent implements OnChanges {
 
   descuentoDetalle: Descuento | null = null;
   cargando = false;
-
   mostrarAlertaError = false;
   mensajeError = '';
   referenciasLista = [];
   clientesLista = [];
-  referenciasNombre : any[] = [];
-  ClientesNombre : any[] = [];
-escalasParsed: any[] = [];
+  referenciasNombre: any[] = [];
+  ClientesNombre: any[] = [];
+  escalasParsed: any[] = [];
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['descuentoData'] && changes['descuentoData'].currentValue) {
       this.cargarDetallesSimulado(changes['descuentoData'].currentValue);
     }
-    
-     
-
   }
 
-  // Simulación de carga
+  /** Carga y procesa los detalles del descuento */
   cargarDetallesSimulado(data: Descuento): void {
     this.cargando = true;
     this.mostrarAlertaError = false;
@@ -43,8 +42,8 @@ escalasParsed: any[] = [];
       try {
         this.descuentoDetalle = { ...data };
         this.cargando = false;
-         this.referenciasLista = JSON.parse(this.descuentoDetalle.referencias ?? '[]');
-       this.clientesLista = JSON.parse(this.descuentoDetalle.clientes ?? '[]');
+        this.referenciasLista = JSON.parse(this.descuentoDetalle.referencias ?? '[]');
+        this.clientesLista = JSON.parse(this.descuentoDetalle.clientes ?? '[]');
         this.referenciasNombre = this.referenciasLista.map((r: any) => r.nombre);
         this.ClientesNombre = this.clientesLista.map((r: any) => r.nombre);
         if (typeof this.descuentoDetalle.escalas === 'string') {
@@ -53,10 +52,10 @@ escalasParsed: any[] = [];
       } catch (error) {
         console.error('Error al cargar detalles del descuento:', error);
         this.mostrarAlertaError = true;
-        this.mensajeError = 'Error al cargar los detalles del vendedor.';
+        this.mensajeError = 'Error al cargar los detalles del descuento.';
         this.cargando = false;
       }
-    }, 500); // Simula tiempo de carga
+    }, 500);
   }
 
   cerrar(): void {
@@ -78,6 +77,6 @@ escalasParsed: any[] = [];
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit'
-  });
+    });
   }
 }

@@ -24,6 +24,10 @@ import {
 import { set } from 'lodash';
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/exportHori.service';
 
+/**
+ * Componente principal para listar y gestionar descuentos.
+ * Incluye funcionalidades de CRUD, exportación y control de permisos.
+ */
 @Component({
   selector: 'app-list',
   standalone: true,
@@ -72,46 +76,40 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
       ])
     ])
   ]
-  //Animaciones para collapse
 })
 export class ListComponent implements OnInit {
-   private readonly exportConfig = {
-          // Configuración básica
-          title: 'Listado de Descuentos',                    // Título del reporte
-          filename: 'Descuentos',                           // Nombre base del archivo
-          department: 'Invetario',                         // Departamento
-          additionalInfo: '',         // Información adicional
-          
-          // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
-          columns: [
-            { key: 'No', header: 'No.', width: 5, align: 'center' as const },
-            { key: 'Descripcion', header: 'Descripcion', width: 25, align: 'left' as const },
-            { key: 'Tipo', header: 'Tipo', width: 17, align: 'left' as const },
-            { key: 'Aplica en', header: 'Aplica en', width: 20, align: 'left' as const },
-            { key: 'Tipo de Factura', header: 'Tipo de Factura', width: 15, align: 'left' as const },
-            { key: 'Fecha Inicio', header: 'Fecha Inicio', width: 15, align: 'left' as const },
-            { key: 'Fecha Fin', header: 'Fecha Fin', width: 15, align: 'left' as const },
-            { key: 'Observaciones', header: 'Observaciones', width: 20, align: 'left' as const }
-            
-          ] as ExportColumn[],
-          
-          // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
-          dataMapping: (descuento: Descuento, index: number) => ({
-            'No': descuento?.secuencia || (index + 1),
-            'Descripcion': this.limpiarTexto(descuento?.desc_Descripcion),
-            'Tipo': this.limpiarTexto(descuento?.desc_Tipo == true? 'Monto Fijo' : 'Porcentaje'),
-            'Aplica en': this.limpiarTexto(descuento?.desc_Aplicar == 'M'? 'Marcas' : descuento.desc_Aplicar == 'C'? 'Categorias' : descuento.desc_Aplicar == 'S'? 'Subcategoria' : 'Productos'),
-            'Tipo de Factura': this.limpiarTexto( descuento.desc_TipoFactura == 'CR'? 'Credito' : descuento.desc_TipoFactura == 'CO'? 'Contado' : descuento.desc_TipoFactura == 'AM'? 'Ambas' : 'N/A'),
-            'Fecha Inicio': this.formatearFecha(descuento?.desc_FechaInicio),
-            'Fecha Fin': this.formatearFecha(descuento?.desc_FechaFin),
-            'Observaciones': this.limpiarTexto(descuento?.desc_Observaciones),
-             // Combina dirección, municipio y departamento
-            // Agregar más campos aquí según necesites:
-            // 'Campo': this.limpiarTexto(modelo?.campo),
-          })
-        };
+  /** Configuración de exportación de datos */
+  private readonly exportConfig = {
+    title: 'Listado de Descuentos',
+    filename: 'Descuentos',
+    department: 'Inventario',
+    additionalInfo: '',
     
-         async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
+    columns: [
+      { key: 'No', header: 'No.', width: 5, align: 'center' as const },
+      { key: 'Descripcion', header: 'Descripcion', width: 25, align: 'left' as const },
+      { key: 'Tipo', header: 'Tipo', width: 17, align: 'left' as const },
+      { key: 'Aplica en', header: 'Aplica en', width: 20, align: 'left' as const },
+      { key: 'Tipo de Factura', header: 'Tipo de Factura', width: 15, align: 'left' as const },
+      { key: 'Fecha Inicio', header: 'Fecha Inicio', width: 15, align: 'left' as const },
+      { key: 'Fecha Fin', header: 'Fecha Fin', width: 15, align: 'left' as const },
+      { key: 'Observaciones', header: 'Observaciones', width: 20, align: 'left' as const }
+    ] as ExportColumn[],
+    
+    dataMapping: (descuento: Descuento, index: number) => ({
+      'No': descuento?.secuencia || (index + 1),
+      'Descripcion': this.limpiarTexto(descuento?.desc_Descripcion),
+      'Tipo': this.limpiarTexto(descuento?.desc_Tipo == true? 'Monto Fijo' : 'Porcentaje'),
+      'Aplica en': this.limpiarTexto(descuento?.desc_Aplicar == 'M'? 'Marcas' : descuento.desc_Aplicar == 'C'? 'Categorias' : descuento.desc_Aplicar == 'S'? 'Subcategoria' : 'Productos'),
+      'Tipo de Factura': this.limpiarTexto( descuento.desc_TipoFactura == 'CR'? 'Credito' : descuento.desc_TipoFactura == 'CO'? 'Contado' : descuento.desc_TipoFactura == 'AM'? 'Ambas' : 'N/A'),
+      'Fecha Inicio': this.formatearFecha(descuento?.desc_FechaInicio),
+      'Fecha Fin': this.formatearFecha(descuento?.desc_FechaFin),
+      'Observaciones': this.limpiarTexto(descuento?.desc_Observaciones),
+    })
+  };
+
+  /** Exporta datos en el formato especificado */
+  async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
         if (this.exportando) {
           this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
           return;
@@ -306,12 +304,11 @@ export class ListComponent implements OnInit {
         }
       }
   exportando = false;
-    tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
+  tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
   breadCrumbItems!: Array<{}>;
-  // Cierra el dropdown si se hace click fuera
+  
   onDocumentClick(event: MouseEvent, rowIndex: number) {
     const target = event.target as HTMLElement;
-    // Busca el dropdown abierto
     const dropdowns = document.querySelectorAll('.dropdown-action-list');
     let clickedInside = false;
     dropdowns.forEach((dropdown, idx) => {
@@ -324,52 +321,46 @@ export class ListComponent implements OnInit {
     }
   }
 
-   ngOnInit(): void {
+  ngOnInit(): void {
     this.breadCrumbItems = [
       { label: 'Inventario' },
       { label: 'Descuentos', active: true }
     ];
-
-     this.cargarAccionesUsuario();
-  
+    this.cargarAccionesUsuario();
   }
-  // Métodos para los botones de acción principales (crear, editar, detalles)
-  crear(): void {
 
+  crear(): void {
     this.showCreateForm = !this.showCreateForm;
-    this.showEditForm = false; // Cerrar edit si está abierto
-    this.showDetailsForm = false; // Cerrar details si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showEditForm = false;
+    this.showDetailsForm = false;
+    this.activeActionRow = null;
   }
 
   editar(descuento: Descuento): void {
- 
-    this.descuentoEditando = { ...descuento }; // Hacer copia profunda
+    this.descuentoEditando = { ...descuento };
     this.showEditForm = true;
-    this.showCreateForm = false; // Cerrar create si está abierto
-    this.showDetailsForm = false; // Cerrar details si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showCreateForm = false;
+    this.showDetailsForm = false;
+    this.activeActionRow = null;
   }
 
   detalles(descuento: Descuento): void {
- 
-    this.descuentoDetalle = { ...descuento }; // Hacer copia profunda
+    this.descuentoDetalle = { ...descuento };
     this.showDetailsForm = true;
-    this.showCreateForm = false; // Cerrar create si está abierto
-    this.showEditForm = false; // Cerrar edit si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showCreateForm = false;
+    this.showEditForm = false;
+    this.activeActionRow = null;
   }
   activeActionRow: number | null = null;
   showEdit = true;
   showDetails = true;
   showDelete = true;
-  showCreateForm = false; // Control del collapse
-  showEditForm = false; // Control del collapse de edición
-  showDetailsForm = false; // Control del collapse de detalles
+  showCreateForm = false;
+  showEditForm = false;
+  showDetailsForm = false;
   descuentoEditando: Descuento | null = null;
   descuentoDetalle: Descuento | null = null;
   
-  // Propiedades para alertas
   mostrarOverlayCarga = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -378,18 +369,15 @@ export class ListComponent implements OnInit {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
   
-  // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
   descuentoEliminar: Descuento | null = null;
 
   constructor(public table: ReactiveTableService<Descuento>, private http: HttpClient, private router: Router, private route: ActivatedRoute, public floatingMenuService: FloatingMenuService, private exportService: ExportService) {
     this.cargardatos(true);
-
   }
 
-   accionesDisponibles: string[] = [];
+  accionesDisponibles: string[] = [];
 
-  // Método robusto para validar si una acción está permitida
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
   }
@@ -397,10 +385,6 @@ export class ListComponent implements OnInit {
   onActionMenuClick(rowIndex: number) {
     this.activeActionRow = this.activeActionRow === rowIndex ? null : rowIndex;
   }
-
-  // (navigateToCreate eliminado, lógica movida a crear)
-
-  // (navigateToEdit y navigateToDetails eliminados, lógica movida a editar y detalles)
 
   cerrarFormulario(): void {
     this.showCreateForm = false;
@@ -417,43 +401,37 @@ export class ListComponent implements OnInit {
   }
 
   guardarDescuento(descuento: Descuento): void {
-
-     this.mostrarOverlayCarga = true;
+    this.mostrarOverlayCarga = true;
     setTimeout(()=> {
-    // Recargar los datos de la tabla
-    this.cargardatos(false);
-    this.showCreateForm = false;
+      this.cargardatos(false);
+      this.showCreateForm = false;
       this.mensajeExito = `Descuento guardado exitosamente`;
       this.mostrarAlertaExito = true;
-    setTimeout(() => {
+      setTimeout(() => {
         this.mostrarAlertaExito = false;
         this.mensajeExito = '';
       }, 3000);
-
-     }, 1000);
+    }, 1000);
   }
 
   actualizarDescuento(descuento: Descuento): void {
-     this.mostrarOverlayCarga = true;
-
+    this.mostrarOverlayCarga = true;
     setTimeout(() => {
-    // Recargar los datos de la tabla
-    this.cargardatos(false);
-    this.showEditForm = false;
+      this.cargardatos(false);
+      this.showEditForm = false;
       this.mensajeExito = `Descuento actualizado exitosamente`;
       this.mostrarAlertaExito = true;
       setTimeout(() => {
         this.mostrarAlertaExito = false;
         this.mensajeExito = '';
       }, 3000);
-     }, 1000);
+    }, 1000);
   }
 
   confirmarEliminar(descuento: Descuento): void {
-
     this.descuentoEliminar = descuento;
     this.mostrarConfirmacionEliminar = true;
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.activeActionRow = null;
   }
 
   cancelarEliminar(): void {
@@ -463,7 +441,6 @@ export class ListComponent implements OnInit {
 
   eliminar(): void {
     if (!this.descuentoEliminar) return;
-    
 
     this.mostrarOverlayCarga = true;
     this.http.post(`${environment.apiBaseUrl}/Descuentos/Eliminar/${this.descuentoEliminar.desc_Id}`, {}, {
@@ -476,50 +453,38 @@ export class ListComponent implements OnInit {
         setTimeout(() => {
           this.mostrarOverlayCarga = false;
 
-        
-        // Verificar el código de estado en la respuesta
-        if (response.success && response.data) {
-          if (response.data.code_Status === 1) {
-            // Éxito: eliminado correctamente
+          if (response.success && response.data) {
+            if (response.data.code_Status === 1) {
+              this.mensajeExito = `Descuento "${this.descuentoEliminar!.desc_Descripcion}" eliminada exitosamente`;
+              this.mostrarAlertaExito = true;
 
-            this.mensajeExito = `Descuento "${this.descuentoEliminar!.desc_Descripcion}" eliminada exitosamente`;
-            this.mostrarAlertaExito = true;
-            
-            // Ocultar la alerta después de 3 segundos
-            setTimeout(() => {
-              this.mostrarAlertaExito = false;
-              this.mensajeExito = '';
-            }, 3000);
-            
+              setTimeout(() => {
+                this.mostrarAlertaExito = false;
+                this.mensajeExito = '';
+              }, 3000);
 
-            this.cargardatos(false);
-            this.cancelarEliminar();
-          } else if (response.data.code_Status === -1) {
-            //result: está siendo utilizado
-         
-            this.mostrarAlertaError = true;
-            this.mensajeError = response.data.message_Status || 'No se puede eliminar: la Descuento está siendo utilizada.';
-            
-            setTimeout(() => {
-              this.mostrarAlertaError = false;
-              this.mensajeError = '';
-            }, 5000);
-            
-            // Cerrar el modal de confirmación
-            this.cancelarEliminar();
-          } else if (response.data.code_Status === 0) {
-            // Error general
-      
-            this.mostrarAlertaError = true;
-            this.mensajeError = response.data.message_Status || 'Error al eliminar el Descuento.';
-            
-            setTimeout(() => {
-              this.mostrarAlertaError = false;
-              this.mensajeError = '';
-            }, 5000);
-            
-            // Cerrar el modal de confirmación
-            this.cancelarEliminar();
+              this.cargardatos(false);
+              this.cancelarEliminar();
+            } else if (response.data.code_Status === -1) {
+              this.mostrarAlertaError = true;
+              this.mensajeError = response.data.message_Status || 'No se puede eliminar: la Descuento está siendo utilizada.';
+
+              setTimeout(() => {
+                this.mostrarAlertaError = false;
+                this.mensajeError = '';
+              }, 5000);
+
+              this.cancelarEliminar();
+            } else if (response.data.code_Status === 0) {
+              this.mostrarAlertaError = true;
+              this.mensajeError = response.data.message_Status || 'Error al eliminar el Descuento.';
+
+              setTimeout(() => {
+                this.mostrarAlertaError = false;
+                this.mensajeError = '';
+              }, 5000);
+
+              this.cancelarEliminar();
           }
         } else {
           // Respuesta inesperada
@@ -531,8 +496,7 @@ export class ListComponent implements OnInit {
             this.mostrarAlertaError = false;
             this.mensajeError = '';
           }, 5000);
-          
-          // Cerrar el modal de confirmación
+
           this.cancelarEliminar();
         }
       }, 1000);
@@ -549,25 +513,20 @@ export class ListComponent implements OnInit {
     this.mensajeWarning = '';
   }
 
-   private cargarAccionesUsuario(): void {
-    // Obtener permisosJson del localStorage
+  private cargarAccionesUsuario(): void {
     const permisosRaw = localStorage.getItem('permisosJson');
- 
+
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
         const permisos = JSON.parse(permisosRaw);
-        // Buscar el módulo de Estados Civiles (ajusta el nombre si es diferente)
         let modulo = null;
         if (Array.isArray(permisos)) {
-          // Buscar por ID de pantalla (ajusta el ID si cambia en el futuro)
           modulo = permisos.find((m: any) => m.Pant_Id === 28);
         } else if (typeof permisos === 'object' && permisos !== null) {
-          // Si es objeto, buscar por clave
           modulo = permisos[' '] || permisos['Descuento'] || null;
         }
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
-          // Extraer solo el nombre de la acción
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
         }
       } catch (e) {
@@ -575,7 +534,6 @@ export class ListComponent implements OnInit {
       }
     }
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-
   }
 
   private cargardatos(state: boolean): void {

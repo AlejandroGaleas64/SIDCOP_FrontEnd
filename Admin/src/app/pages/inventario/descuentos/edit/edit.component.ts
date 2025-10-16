@@ -17,6 +17,11 @@ import { CdkStepper } from '@angular/cdk/stepper';
 import { CurrencyMaskModule } from "ng2-currency-mask";
 import { ChangeDetectorRef } from '@angular/core';
 
+/**
+ * Componente para editar descuentos existentes en el sistema de inventario.
+ * Permite modificar todos los aspectos de un descuento: tipo, items aplicables,
+ * clientes asignados y escalas de descuento.
+ */
 @Component({
   selector: 'app-edit',
   standalone: true,
@@ -26,16 +31,17 @@ import { ChangeDetectorRef } from '@angular/core';
   styleUrl: './edit.component.scss'
 })
 export class EditComponent implements OnChanges {
-  @Input()descuentoData: Descuento | null = null;
+  @Input() descuentoData: Descuento | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Descuento>();
-seccionVisible: string | null = null;
+  
+  seccionVisible: string | null = null;
   filtro: string = '';
   seleccionados: number[] = [];
   clientesAgrupados: { canal: string, clientes: any[], filtro: string, collapsed: boolean }[] = [];
-clientesSeleccionados: number[] = [];
-descuentosExistentes: any[] = [];
-activeTab: number = 1;
+  clientesSeleccionados: number[] = [];
+  descuentosExistentes: any[] = [];
+  activeTab: number = 1;
 
  @ViewChild('cdkStepper') cdkStepper!: CdkStepper;
 
@@ -153,7 +159,7 @@ seleccionarTodos(event: any) {
   this.reclampEscalasSegunMax();
 }
 
-hoy: string;
+  hoy: string;
 
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {
     this.listarcategorias();
@@ -163,11 +169,9 @@ hoy: string;
     this.listarClientes();
     this.listarDescuentos();
     const today = new Date();
-    this.hoy = today.toISOString().split('T')[0]; // "YYYY-MM-DD"
+    this.hoy = today.toISOString().split('T')[0];
     this.mostrarSeccion('productos');
     this.activeTab = 1;
-
-    
   }
 
 
@@ -304,16 +308,17 @@ hoy: string;
   });
 }
 
-// Helpers: obtener nombres legibles para IDs
-private getNombreClientePorId(id: number): string {
-  for (const grupo of this.clientesAgrupados || []) {
-    const c = (grupo.clientes || []).find((x: any) => Number(x.clie_Id) === Number(id));
-    if (c) return c.clie_NombreNegocio || c.clie_NombreComercial || c.clie_NombreCompleto || String(id);
+  /** Obtiene el nombre de un cliente por su ID */
+  private getNombreClientePorId(id: number): string {
+    for (const grupo of this.clientesAgrupados || []) {
+      const c = (grupo.clientes || []).find((x: any) => Number(x.clie_Id) === Number(id));
+      if (c) return c.clie_NombreNegocio || c.clie_NombreComercial || c.clie_NombreCompleto || String(id);
+    }
+    return String(id);
   }
-  return String(id);
-}
 
-private getNombreReferenciaPorId(id: number, aplicar: string): string {
+  /** Obtiene el nombre de una referencia (producto/categoría/marca/subcategoría) por su ID y tipo */
+  private getNombreReferenciaPorId(id: number, aplicar: string): string {
   switch (aplicar) {
     case 'P': {
       const p = (this.productos || []).find((x: any) => Number(x.prod_Id) === Number(id));
@@ -467,43 +472,39 @@ hayConflicto(clienteId: number): boolean {
   });
 }
 
-mostrarPopup(mensaje: string): void {
-  this.mostrarAlertaWarning = true;
-          this.mensajeWarning = mensaje || 'cliente utilizado en otro descuento';
-          
-          setTimeout(() => {
-            this.mostrarAlertaWarning = false;
-            this.mensajeWarning = '';
-          }, 5000);
-}
-
-// Verificar si todos los clientes de un canal están seleccionados
-estanTodosSeleccionados(grupo: any): boolean {
-  return grupo.clientes.every((c: { clie_Id: number; }) => this.clientesSeleccionados.includes(c.clie_Id));
-}
-
-// Seleccionar/deseleccionar todos los clientes de un canal
-seleccionarTodosClientes(grupo: any, seleccionar: boolean): void {
-  grupo.clientes.forEach((cliente: { clie_Id: number; }) => {
-    this.alternarCliente(cliente.clie_Id, seleccionar);
-  });
-}
-
-// Alternar el estado colapsado/expandido de un canal
-toggleCanal(grupo: any): void {
-  grupo.collapsed = !grupo.collapsed;
-}
-
-// Obtener el precio más bajo de todos los items seleccionados
-getPrecioMinimoSeleccionados(): number {
-  if (!this.descuento.desc_Tipo) { // Si es porcentaje, no hay límite de precio
-    return Infinity;
+  mostrarPopup(mensaje: string): void {
+    this.mostrarAlertaWarning = true;
+    this.mensajeWarning = mensaje || 'cliente utilizado en otro descuento';
+    
+    setTimeout(() => {
+      this.mostrarAlertaWarning = false;
+      this.mensajeWarning = '';
+    }, 5000);
   }
 
-  // Validaciones defensivas
-  if (!Array.isArray(this.productos)) {
-    return Infinity;
+  estanTodosSeleccionados(grupo: any): boolean {
+    return grupo.clientes.every((c: { clie_Id: number; }) => this.clientesSeleccionados.includes(c.clie_Id));
   }
+
+  seleccionarTodosClientes(grupo: any, seleccionar: boolean): void {
+    grupo.clientes.forEach((cliente: { clie_Id: number; }) => {
+      this.alternarCliente(cliente.clie_Id, seleccionar);
+    });
+  }
+
+  toggleCanal(grupo: any): void {
+    grupo.collapsed = !grupo.collapsed;
+  }
+
+  /** Obtiene el precio más bajo de los items seleccionados (usado para limitar descuentos en monto fijo) */
+  getPrecioMinimoSeleccionados(): number {
+    if (!this.descuento.desc_Tipo) {
+      return Infinity;
+    }
+
+    if (!Array.isArray(this.productos)) {
+      return Infinity;
+    }
   let seleccionadosIds: number[] = (this.seleccionados || [])
     .map((id: any) => Number(id))
     .filter((n: number) => !isNaN(n));
@@ -659,29 +660,24 @@ set fechaFinFormato(value: string) {
   this.descuento.desc_FechaFin = new Date(value);
 }
 
- seleccionContado: boolean = false;
-seleccionCredito: boolean = false;
-formaPago: string = ''; // Aquí se guardará "CO", "CR" o "AM"
+  seleccionContado: boolean = false;
+  seleccionCredito: boolean = false;
+  /** Forma de pago: 'CO' (Contado), 'CR' (Crédito), 'AM' (Ambos) */
+  formaPago: string = '';
 
-actualizarFormaPago(): void {
-  if (this.seleccionContado && this.seleccionCredito) {
-    this.formaPago = 'AM'; // Ambos
-  } else if (this.seleccionContado) {
-    this.formaPago = 'CO'; // Solo contado
-  } else if (this.seleccionCredito) {
-    this.formaPago = 'CR'; // Solo crédito
-  } else {
-    this.formaPago = ''; // Ninguno seleccionado
+  actualizarFormaPago(): void {
+    if (this.seleccionContado && this.seleccionCredito) {
+      this.formaPago = 'AM';
+    } else if (this.seleccionContado) {
+      this.formaPago = 'CO';
+    } else if (this.seleccionCredito) {
+      this.formaPago = 'CR';
+    } else {
+      this.formaPago = '';
+    }
   }
 
-
-}
-
-
-tieneAyudante: boolean = false;
-  
-
-
+  tieneAyudante: boolean = false;
   descuentoOriginal = '';
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -692,20 +688,24 @@ tieneAyudante: boolean = false;
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
 
-// Snapshot para detectar diferencias del descuento
-private originalDescuentoSnapshot: {
-  desc_Descripcion: string;
-  desc_Tipo: boolean;
-  desc_Aplicar: string;
-  desc_FechaInicio: string; // ISO solo fecha
-  desc_FechaFin: string; // ISO solo fecha
-  desc_Observaciones: string;
-  desc_TipoFactura: string;
-  clientesIds: number[];
-  referenciasIds: number[];
-  escalas: { deEs_InicioEscala: number; deEs_FinEscala: number; deEs_Valor: number }[];
-} | null = null;
+  /** Snapshot del descuento original para detectar cambios */
+  private originalDescuentoSnapshot: {
+    desc_Descripcion: string;
+    desc_Tipo: boolean;
+    desc_Aplicar: string;
+    desc_FechaInicio: string;
+    desc_FechaFin: string;
+    desc_Observaciones: string;
+    desc_TipoFactura: string;
+    clientesIds: number[];
+    referenciasIds: number[];
+    escalas: { deEs_InicioEscala: number; deEs_FinEscala: number; deEs_Valor: number }[];
+  } | null = null;
 
+  /**
+   * Lifecycle hook que se ejecuta cuando cambian los datos de entrada.
+   * Carga y normaliza el descuento a editar.
+   */
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['descuentoData'] && changes['descuentoData'].currentValue) {
       this.descuento = { ...changes['descuentoData'].currentValue };
@@ -791,9 +791,7 @@ private originalDescuentoSnapshot: {
     }
   }
 
-
-
-  // Compara el estado actual del descuento contra el snapshot original
+  /** Compara el estado actual del descuento contra el snapshot original */
   private hayDiferenciasDescuento(): boolean {
     if (!this.originalDescuentoSnapshot) return true;
     const snap = this.originalDescuentoSnapshot;
@@ -1017,36 +1015,37 @@ private originalDescuentoSnapshot: {
   cancelarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
   }
+  
   mostrarOverlayCarga = false;
 
-
+  /**
+   * Confirma la edición y procede con el guardado del descuento.
+   * Muestra el overlay de carga y gestiona el flujo de actualización.
+   */
   async confirmarEdicion(): Promise<void> {
-  try {
-    // 1. Activar overlay
-    this.mostrarOverlayCarga = true;
-    this.cdr.detectChanges();
+    try {
+      this.mostrarOverlayCarga = true;
+      this.cdr.detectChanges();
 
-    // 2. Esperar a que se pinte el overlay
-    await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
 
-    // 3. Cerrar modal
-    this.mostrarConfirmacionEditar = false;
-    this.cdr.detectChanges();
+      this.mostrarConfirmacionEditar = false;
+      this.cdr.detectChanges();
 
-    // 4. Esperar otro tick para asegurar que el DOM se actualice
-    await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
 
-    // 5. Ejecutar el guardado
-    await this.guardar();
-  } catch (error) {
-    console.error('Error en edición:', error);
-    this.mostrarOverlayCarga = false;
-    this.cdr.detectChanges();
+      await this.guardar();
+    } catch (error) {
+      console.error('Error en edición:', error);
+      this.mostrarOverlayCarga = false;
+      this.cdr.detectChanges();
+    }
   }
-}
+  
+  /** Guarda los cambios del descuento editado */
   public guardar(): Promise<void> {
     return new Promise((resolve, reject) => {
-    this.mostrarErrores = true;
+      this.mostrarErrores = true;
 
    if (this.descuento.desc_Aplicar.trim()) {
     
