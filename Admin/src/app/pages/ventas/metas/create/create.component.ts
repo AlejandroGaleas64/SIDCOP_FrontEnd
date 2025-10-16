@@ -72,14 +72,24 @@ export class CreateComponent implements OnInit {
     { value: 'IM', label: 'Ingresos Administradas Manualmente' }
   ];
 
+  /**
+   * Constructor del componente de creación de metas.
+   * @param http Cliente HTTP para llamadas a la API.
+   */
   constructor(private http: HttpClient) {}
 
+  /**
+   * Hook de inicialización: carga catálogos (categorías, productos, vendedores).
+   */
   ngOnInit(): void {
     this.cargarCategorias();
     this.cargarProductos();
     this.cargarVendedores();
   }
 
+  /**
+   * Carga categorías disponibles desde la API.
+   */
   cargarCategorias(): void {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Categorias/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -89,6 +99,9 @@ export class CreateComponent implements OnInit {
     });
   }
 
+  /**
+   * Carga productos disponibles desde la API.
+   */
   cargarProductos(): void {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Productos/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -98,6 +111,9 @@ export class CreateComponent implements OnInit {
     });
   }
 
+  /**
+   * Carga vendedores disponibles desde la API.
+   */
   cargarVendedores(): void {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -108,6 +124,9 @@ export class CreateComponent implements OnInit {
   }
 
   // Stepper navigation
+  /**
+   * Avanza al siguiente paso del formulario si la validación del paso actual es correcta.
+   */
   irAlSiguientePaso() {
     this.mostrarErrores = true;
     if (this.validarPasoActual()) {
@@ -123,6 +142,9 @@ export class CreateComponent implements OnInit {
     }
   }
 
+  /**
+   * Regresa al paso anterior del formulario.
+   */
   irAlPasoAnterior() {
     if (this.activeStep > 1) {
       this.activeStep--;
@@ -131,6 +153,9 @@ export class CreateComponent implements OnInit {
   }
 
   // --- ADDED: Reset fields on tipo change ---
+  /**
+   * Resetea los campos dependientes cuando cambia el tipo de meta.
+   */
   onTipoChange() {
     const tipo = this.meta.meta_Tipo;
 
@@ -146,6 +171,10 @@ export class CreateComponent implements OnInit {
   }
 
   // --- CHANGED: Validation logic per tipo ---
+  /**
+   * Valida el paso actual del formulario según el tipo de meta y los campos requeridos.
+   * @returns true si el paso es válido; de lo contrario false.
+   */
   validarPasoActual(): boolean {
     if (this.activeStep === 1) {
       const tipo = this.meta.meta_Tipo;
@@ -192,10 +221,19 @@ export class CreateComponent implements OnInit {
     return false;
   }
 
+  /**
+   * Indica si un vendedor está seleccionado por su identificador.
+   * @param vend_Id Id del vendedor.
+   */
   isVendedorSeleccionado(vend_Id: number): boolean {
     return this.vendedoresSeleccionados.includes(vend_Id);
   }
 
+  /**
+   * Alterna la selección de un vendedor individual.
+   * @param vend_Id Id del vendedor.
+   * @param event Evento del checkbox.
+   */
   toggleVendedor(vend_Id: number, event: Event) {
     const checked = (event.target as HTMLInputElement).checked;
     if (checked) {
@@ -208,6 +246,10 @@ export class CreateComponent implements OnInit {
     this.selectAllVendedores = this.vendedoresSeleccionados.length === this.vendedores.length;
   }
 
+  /**
+   * Selecciona o deselecciona todos los vendedores visibles.
+   * @param event Evento del checkbox principal.
+   */
   toggleSelectAllVendedores(event: any) {
     const checked = event.target.checked;
     this.selectAllVendedores = checked;
@@ -219,6 +261,10 @@ export class CreateComponent implements OnInit {
   }
 
   // XML generation for vendedores
+  /**
+   * Genera un XML con los vendedores seleccionados para envío a la API.
+   * @returns Cadena XML <root><item><vend_id>...</vend_id></item>...</root> o cadena vacía si no hay seleccionados.
+   */
   generateVendedoresXml(): string {
     if (!this.vendedoresSeleccionados.length) return '';
     let xml = '<root>';
@@ -229,6 +275,9 @@ export class CreateComponent implements OnInit {
     return xml;
   }
 
+  /**
+   * Lista derivada de vendedores filtrados por texto.
+   */
   get vendedoresFiltrados() {
     if (!this.filtroVendedor?.trim()) return this.vendedores;
     const filtro = this.filtroVendedor.trim().toLowerCase();
@@ -238,6 +287,10 @@ export class CreateComponent implements OnInit {
   }
 
   // --- CHANGED: Ensure unused fields are null before saving ---
+  /**
+   * Envía la creación de la meta a la API tras validar y normalizar campos según el tipo.
+   * Muestra mensajes de éxito/error y emite onSave en caso exitoso.
+   */
   guardar(): void {
     this.mostrarErrores = true;
     if (!this.validarPasoActual()) {
@@ -349,6 +402,9 @@ export class CreateComponent implements OnInit {
     });
   }
 
+  /**
+   * Restaura estado visual y del formulario; emite evento de cancelación al padre.
+   */
   cancelar(): void {
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
@@ -380,6 +436,9 @@ export class CreateComponent implements OnInit {
     this.onCancel.emit();
   }
 
+  /**
+   * Cierra cualquier alerta visible y limpia mensajes asociados.
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';

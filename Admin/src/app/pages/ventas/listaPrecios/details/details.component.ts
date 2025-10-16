@@ -53,12 +53,22 @@ export class DetailsComponent implements OnChanges {
   canales: Canal[] = [];
   clientesFiltrados: Cliente[] = [];
 
+  /**
+   * Ciclo de vida de Angular: detecta cambios en inputs del componente.
+   * Cuando cambia "listaData", recarga los detalles.
+   * @param changes Objeto con los cambios detectados.
+   */
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['listaData']?.currentValue) {
       this.cargarDetalles(changes['listaData'].currentValue);
     }
   }
 
+  /**
+   * Carga los detalles de la lista en el estado del componente incluyendo
+   * agrupación de clientes por canal y colecciones filtrables.
+   * @param data Objeto de lista con metadatos y clientes.
+   */
   cargarDetalles(data: ListaDetalle): void {
     this.cargando = true;
     setTimeout(() => {
@@ -89,6 +99,9 @@ export class DetailsComponent implements OnChanges {
     }, 500);
   }
 
+  /**
+   * Aplica filtros de búsqueda a nivel global o por canal según la vista activa.
+   */
   filtrarClientes(): void {
     if (this.showByCanal) {
       this.canales.forEach(canal => {
@@ -103,6 +116,12 @@ export class DetailsComponent implements OnChanges {
     }
   }
 
+  /**
+   * Determina si un cliente coincide con un texto de búsqueda.
+   * @param cliente Cliente evaluado.
+   * @param texto Texto de búsqueda.
+   * @returns true si coincide en nombre, código o negocio; de lo contrario false.
+   */
   private coincideTexto(cliente: Cliente, texto: string): boolean {
     const searchText = texto.toLowerCase();
     return (
@@ -112,15 +131,26 @@ export class DetailsComponent implements OnChanges {
     );
   }
 
+  /**
+   * Emite el evento de cierre del componente de detalles hacia el padre.
+   */
   cerrar(): void {
     this.onClose.emit();
   }
 
+  /**
+   * Oculta la alerta de error y limpia su mensaje.
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaError = false;
     this.mensajeError = '';
   }
 
+  /**
+   * Formatea una fecha recibida como string o Date al locale 'es-HN'.
+   * @param fecha Fecha a formatear.
+   * @returns Cadena formateada o 'N/A' si es inválida.
+   */
   formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
     const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
