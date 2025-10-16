@@ -250,7 +250,7 @@ export class EditComponent implements OnInit, OnChanges {
     }
 
     // Validar correo electrónico
-    if (this.empleado.empl_Correo.trim() && !this.validarCorreo(this.empleado.empl_Correo)) {
+    if (this.empleado.empl_Correo.trim()) {
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'Por favor ingrese un correo electrónico válido.';
       setTimeout(() => this.cerrarAlerta(), 4000);
@@ -358,7 +358,6 @@ export class EditComponent implements OnInit, OnChanges {
       this.empleado.empl_Apellidos?.trim() !== '' &&
       this.empleado.empl_Sexo?.trim() !== '' &&
       this.empleado.empl_Correo?.trim() !== '' &&
-      this.validarCorreo(this.empleado.empl_Correo) &&
       this.empleado.empl_Telefono?.trim() !== '' &&
       this.empleado.sucu_Id !== 0 &&
       this.empleado.esCv_Id !== 0 &&
