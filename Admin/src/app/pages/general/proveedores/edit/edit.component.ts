@@ -44,6 +44,8 @@ export class EditComponent implements OnChanges {
     this.cargarListados();
   }
 
+
+//Obtiene listado de departamentos, municipios y colonias  
   cargarListados(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Departamentos/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -67,6 +69,7 @@ export class EditComponent implements OnChanges {
     });
   }
 
+  // Filtra municipios y colonias según selección
   cargarMunicipios(codigoDepa: string): void {
     this.Municipios = this.TodosMunicipios.filter(m => m.depa_Codigo === codigoDepa);
     this.Colonias = [];
@@ -74,17 +77,18 @@ export class EditComponent implements OnChanges {
     this.proveedor.colo_Id = 0;
   }
 
+  // Filtra colonias según municipio seleccionado
   cargarColonias(codigoMuni: string): void {
     this.Colonias = this.TodosColonias.filter(c => c.muni_Codigo === codigoMuni);
     this.proveedor.colo_Id = 0;
   }
 
+  // Detecta si se cambia el proveedor a editar
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['proveedorData'] && changes['proveedorData'].currentValue) {
       this.proveedor = { ...changes['proveedorData'].currentValue };
       this.mostrarErrores = false;
       this.ProveedorOriginal = { ...this.proveedor };
-
 
 
       this.cerrarAlerta();
@@ -114,7 +118,7 @@ export class EditComponent implements OnChanges {
   }
 
 
-
+// Valida los campos y muestra confirmación si hay cambios
   validarEdicion(): void {
     this.mostrarErrores = true;
 
@@ -146,23 +150,26 @@ export class EditComponent implements OnChanges {
     }
   }
 
-
+//Cierra confirmación de edición
   cancelarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
   }
 
+//Confirma edición y llama a guardar
   confirmarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
     console.log('Confirmar edición de proveedor');
     this.guardar();
   }
 
-
+// Cancela edición 
   cancelar(): void {
     this.cerrarAlerta();
     this.onCancel.emit();
   }
 
+
+  // Cierra todas las alertas
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -172,6 +179,7 @@ export class EditComponent implements OnChanges {
     this.mensajeWarning = '';
   }
 
+  // Guarda los cambios del proveedor
   guardar(): void {
     this.mostrarErrores = true;
     if (this.proveedor.prov_NombreEmpresa.trim() && this.proveedor.prov_Codigo.trim() &&

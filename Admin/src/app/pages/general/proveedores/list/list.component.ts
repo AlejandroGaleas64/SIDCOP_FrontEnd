@@ -163,7 +163,7 @@ export class ListComponent implements OnInit {
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
   }
-
+  // Carga las acciones permitidas para el usuario desde localStorage
   private cargarAccionesUsuario(): void {
     const permisosRaw = localStorage.getItem('permisosJson');
     let accionesArray: string[] = [];
@@ -191,6 +191,7 @@ export class ListComponent implements OnInit {
     this.floatingMenuService.open(event, data);
   }
 
+  //Oculta la alerta de exito o error
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -200,6 +201,7 @@ export class ListComponent implements OnInit {
     this.mensajeWarning = '';
   }
 
+  // Muestra el formulario de creación
   crear(): void {
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false;
@@ -207,6 +209,7 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null;
   }
 
+  // Muestra el formulario de edición
   editar(proveedor: Proveedor): void {
     this.proveedorEditando = { ...proveedor };
     this.showEditForm = true;
@@ -215,6 +218,7 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null;
   }
 
+  // Muestra el formulario de detalles
   detalles(proveedor: Proveedor): void {
     this.proveedorDetalle = { ...proveedor };
     this.showDetailsForm = true;
@@ -223,30 +227,36 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null;
   }
 
+  // Cierra el formulario de creación
   cerrarFormulario(): void {
     this.showCreateForm = false;
   }
 
+  // Cierra el formulario de edición
   cerrarFormularioEdicion(): void {
     this.showEditForm = false;
     this.proveedorEditando = null;
   }
 
+//Cierra el formulario de detalles
   cerrarFormularioDetalles(): void {
     this.showDetailsForm = false;
     this.proveedorDetalle = null;
   }
 
+  //Cierra dormulario de crear  
   guardarProveedor(proveedor: Proveedor): void {
     this.cargardatos(false);
     this.cerrarFormulario();
   }
 
+  //Cierra formulario de editar y recarga datos
   actualizarProveedor(proveedor: Proveedor): void {
     this.cargardatos(false);
     this.cerrarFormularioEdicion();
   }
 
+  // Obtiene el proveedor a eliminar y muestra la confirmación
   confirmarEliminar(proveedor: Proveedor): void {
     this.proveedorAEliminar = proveedor;
     console.log('Proveedor a eliminar:', this.proveedorAEliminar);
@@ -254,14 +264,17 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null;
   }
 
+  // Cierra la confirmación de eliminación y vacia la variable que contene el proveedor a eliminar
   cancelarEliminar(): void {
     this.mostrarConfirmacionEliminar = false;
     this.proveedorAEliminar = null;
   }
 
+
+// Realiza la eliminación del proveedor
 eliminar(): void {
   if (!this.proveedorAEliminar) return;
-  console.log('Eliminando proveedor:', this.proveedorAEliminar);
+ // console.log('Eliminando proveedor:', this.proveedorAEliminar);
   this.http.post(`${environment.apiBaseUrl}/Proveedor/Eliminar?id=${this.proveedorAEliminar.prov_Id}`,{}, {
     headers: { 
       'X-Api-Key': environment.apiKey,
@@ -322,6 +335,8 @@ eliminar(): void {
   });
 }
 
+
+  //Este metodo obtiene los datos de la API 
   // Declaramos un estado en el cargarDatos, esto para hacer el overlay
   // segun dicha funcion de recargar, ya que si vienes de hacer una accion
   // es innecesario mostrar el overlay de carga
@@ -359,12 +374,11 @@ eliminar(): void {
   }
 
   //Exportar reportes
-  // ===== MÉTODOS DE EXPORTACIÓN OPTIMIZADOS =====
-
-  /**
+   /**
    * Método unificado para todas las exportaciones
    */
-  async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
+ 
+   async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
     if (this.exportando) {
       this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
       return;
@@ -449,7 +463,7 @@ eliminar(): void {
   }
 
   /**
-   * Obtiene y prepara los datos para exportación
+   * Obtiene y prepara los datos de la tabla para exportación
    */
  private obtenerDatosExport(): any[] {
   try {
