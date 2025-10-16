@@ -80,7 +80,7 @@ export class EditComponent implements OnInit, OnChanges {
     }
   }
 
-OnMarcaChange(event: any) {
+  OnMarcaChange(event: any) {
     const selectedId = +event.target.value;
     const marcaSeleccionada = this.marcasVehiculo.find(m => m.maVe_Id === selectedId);
     if (marcaSeleccionada) {
@@ -90,7 +90,13 @@ OnMarcaChange(event: any) {
     }
   }
 
-
+  /**
+   * Carga las marcas de vehículos disponibles desde el backend
+   * - Realiza petición HTTP GET al endpoint de marcas
+   * - Llena el dropdown de marcas para selección
+   * - Verifica que la marca actual del modelo exista en la lista
+   * - Maneja errores de carga y muestra alertas
+   */
   private cargarMarcas(): void {
     this.http.get<Marca[]>(`${environment.apiBaseUrl}/MarcasVehiculos/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -115,7 +121,13 @@ OnMarcaChange(event: any) {
     });
   }
 
-  // Método mejorado para validar todos los campos obligatorios
+  /**
+   * Valida que todos los campos obligatorios estén completos
+   * @returns true si todos los campos son válidos, false en caso contrario
+   * - Verifica que la descripción no esté vacía
+   * - Verifica que se haya seleccionado una marca
+   * - Muestra mensajes de error específicos para campos faltantes
+   */
   private validarCampos(): boolean {
     const errores: string[] = [];
 
@@ -138,7 +150,13 @@ OnMarcaChange(event: any) {
     return true;
   }
 
-  // Método para detectar diferencias y almacenar cambios
+  /**
+   * Detecta diferencias entre el modelo actual y el original
+   * @returns true si hay cambios, false si no hay diferencias
+   * - Compara descripción del modelo
+   * - Compara marca seleccionada
+   * - Almacena los cambios detectados para mostrar al usuario
+   */
   hayDiferencias(): boolean {
     const a = this.modelo;
     const b = this.modeloOriginal;
@@ -153,7 +171,7 @@ OnMarcaChange(event: any) {
       };
     }
 
-       if (a.maVe_Id !== b.maVe_Id) {
+    if (a.maVe_Id !== b.maVe_Id) {
       this.cambiosDetectados.marca = {
         anterior: b.maVe_Marca,
         nuevo: a.maVe_Marca,
@@ -164,11 +182,23 @@ OnMarcaChange(event: any) {
     return Object.keys(this.cambiosDetectados).length > 0;
   }
 
-  // Método para obtener la lista de cambios como array
+  /**
+   * Obtiene la lista de cambios detectados como array
+   * @returns Array con los cambios detectados
+   * - Convierte el objeto de cambios a formato de lista
+   * - Facilita la visualización de cambios en la interfaz
+   */
   obtenerListaCambios(): any[] {
     return Object.values(this.cambiosDetectados);
   }
 
+  /**
+   * Valida los datos antes de proceder con la edición
+   * - Verifica que los campos obligatorios estén completos
+   * - Detecta si hay cambios respecto a los datos originales
+   * - Muestra confirmación si hay cambios válidos
+   * - Muestra advertencias si no hay cambios o faltan datos
+   */
   validarEdicion(): void {
     this.mostrarErrores = true;
 
@@ -187,15 +217,32 @@ OnMarcaChange(event: any) {
     }
   }
 
+  /**
+   * Cancela la confirmación de edición
+   * - Oculta el modal de confirmación
+   */
   cancelarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
   }
 
+  /**
+   * Confirma y procede con la edición
+   * - Oculta el modal de confirmación
+   * - Ejecuta el proceso de guardado
+   */
   confirmarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
     this.guardar();
   }
 
+  /**
+   * Guarda los cambios del modelo en la base de datos
+   * - Realiza validación final antes de guardar
+   * - Prepara el objeto con los datos actualizados
+   * - Envía petición HTTP PUT al backend
+   * - Maneja respuestas de éxito y error
+   * - Emite evento de guardado exitoso
+   */
   private guardar(): void {
     // Validación final antes de guardar
     if (!this.validarCampos()) {
@@ -242,11 +289,21 @@ OnMarcaChange(event: any) {
     });
   }
 
+  /**
+   * Cancela la edición del modelo
+   * - Cierra todas las alertas activas
+   * - Emite evento para cerrar el formulario de edición
+   */
   cancelar(): void {
     this.cerrarAlerta();
     this.onCancel.emit();
   }
 
+  /**
+   * Cierra todas las alertas de notificación
+   * - Oculta alertas de éxito, error y advertencia
+   * - Limpia todos los mensajes de alerta
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';

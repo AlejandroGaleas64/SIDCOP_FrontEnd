@@ -64,7 +64,10 @@ modelo: Modelo = new Modelo({
   }
 
   /**
-   * Carga las marcas disponibles para el select
+   * Carga las marcas de vehículos disponibles desde el backend
+   * - Realiza petición HTTP GET al endpoint de marcas
+   * - Llena el dropdown de marcas para selección
+   * - Maneja errores de carga y muestra alertas
    */
   private cargarMarcas(): void {
     this.http.get<Marca[]>(`${environment.apiBaseUrl}/MarcasVehiculos/Listar`, {
@@ -89,7 +92,10 @@ modelo: Modelo = new Modelo({
   }
 
   /**
-   * Maneja el cambio de marca y actualiza el nombre de la marca
+   * Maneja el cambio de selección en el dropdown de marcas
+   * - Busca la marca seleccionada por su ID
+   * - Actualiza el nombre de la marca en el modelo
+   * - Sincroniza los datos de marca seleccionada
    */
   onMarcaChange(): void {
     const marcaSeleccionada = this.marcas.find(m => m.maVe_Id === this.modelo.maVe_Id);
@@ -99,7 +105,10 @@ modelo: Modelo = new Modelo({
   }
 
   /**
-   * Resetea el modelo a sus valores iniciales
+   * Reinicia el modelo a sus valores por defecto
+   * - Limpia todos los campos del formulario
+   * - Establece valores iniciales para nuevo modelo
+   * - Prepara el formulario para una nueva entrada
    */
   private resetearModelo(): void {
     this.modelo = new Modelo({
@@ -120,7 +129,11 @@ modelo: Modelo = new Modelo({
   }
 
   /**
-   * Cancela la operación y resetea el formulario
+   * Cancela la creación del modelo y limpia el formulario
+   * - Oculta los errores de validación
+   * - Cierra todas las alertas activas
+   * - Reinicia el modelo a valores por defecto
+   * - Emite evento para cerrar el formulario
    */
   cancelar(): void {
     this.mostrarErrores = false;
@@ -130,7 +143,9 @@ modelo: Modelo = new Modelo({
   }
 
   /**
-   * Cierra las alertas manualmente
+   * Cierra todas las alertas de notificación
+   * - Oculta alertas de éxito, error y advertencia
+   * - Limpia todos los mensajes de alerta
    */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
@@ -142,14 +157,21 @@ modelo: Modelo = new Modelo({
   }
 
   /**
-   * Valida los campos requeridos
+   * Valida que los campos obligatorios estén completos
+   * @returns true si todos los campos requeridos están llenos, false en caso contrario
+   * - Verifica que se haya seleccionado una marca
+   * - Verifica que la descripción no esté vacía
    */
   private validarCampos(): boolean {
     return !!(this.modelo.maVe_Id && this.modelo.mode_Descripcion?.trim());
   }
 
   /**
-   * Prepara el objeto para enviar al backend
+   * Prepara el objeto modelo para enviar al backend
+   * @returns Objeto formateado con los datos del modelo
+   * - Convierte tipos de datos según requerimientos del API
+   * - Establece campos de auditoría (usuario, fechas)
+   * - Limpia y formatea los datos de entrada
    */
   private prepararObjetoParaGuardar(): any {
     return {
@@ -168,7 +190,12 @@ modelo: Modelo = new Modelo({
   }
 
   /**
-   * Guarda el modelo
+   * Guarda un nuevo modelo en la base de datos
+   * - Valida que los campos requeridos estén completos
+   * - Prepara el objeto para envío al backend
+   * - Envía petición HTTP POST al endpoint de inserción
+   * - Maneja respuestas de éxito y error
+   * - Muestra mensajes de confirmación al usuario
    */
   guardar(): void {
     this.mostrarErrores = true;
