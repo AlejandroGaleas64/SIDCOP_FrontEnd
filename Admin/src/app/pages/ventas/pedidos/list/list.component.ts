@@ -87,8 +87,9 @@ import { set } from 'lodash';
   //Animaciones para collapse
 })
 export class ListComponent implements OnInit {
-  
 
+  // ===== CONFIGURACIÓN DE EXPORTACIÓN =====
+  // Configuración centralizada para todos los tipos de exportación (Excel, PDF, CSV)
   private readonly exportConfig = {
     // Configuración básica
     title: 'Listado de Pedidos', // Título del reporte
@@ -150,10 +151,17 @@ export class ListComponent implements OnInit {
     return `${dia}/${mes}/${anio}`; // <-- formato dd/MM/yyyy
   }
 
-  // Estado de exportación
+  // ===== PROPIEDADES DE EXPORTACIÓN =====
+  // Control del estado de exportación para evitar múltiples exportaciones simultáneas
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
 
+  // ===== MÉTODOS PRINCIPALES DE EXPORTACIÓN =====
+  /**
+   * Método principal de exportación que maneja todos los formatos
+   * Incluye validaciones, control de estado y manejo de errores
+   * @param tipo - Formato de exportación: 'excel', 'pdf' o 'csv'
+   */
   async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
     if (this.exportando) {
       this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
@@ -198,7 +206,8 @@ export class ListComponent implements OnInit {
   }
 
   /**
-   * Métodos específicos para cada tipo (para usar en templates)
+   * Métodos específicos para cada tipo de exportación
+   * Estos métodos son llamados directamente desde el template
    */
   async exportarExcel(): Promise<void> {
     await this.exportar('excel');
@@ -214,6 +223,7 @@ export class ListComponent implements OnInit {
 
   /**
    * Verifica si se puede exportar un tipo específico
+   * Previene exportaciones cuando ya hay una en progreso
    */
   puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
     if (this.exportando) {
@@ -298,7 +308,8 @@ export class ListComponent implements OnInit {
   }
 
   /**
-   * Limpia texto para exportación de manera más eficiente
+   * Limpia y formatea texto para exportación
+   * Previene errores de formato y limita longitud para archivos de exportación
    */
   private limpiarTexto(texto: any): string {
     if (!texto) return '';
@@ -309,7 +320,8 @@ export class ListComponent implements OnInit {
   }
 
   /**
-   * Sistema de mensajes mejorado con tipos adicionales
+   * Sistema centralizado de notificaciones al usuario
+   * Maneja diferentes tipos de mensajes con duración automática
    */
   private mostrarMensaje(
     tipo: 'success' | 'error' | 'warning' | 'info',
@@ -341,36 +353,48 @@ export class ListComponent implements OnInit {
     }
   }
 
-  // bread crumb items
+  // ===== NAVEGACIÓN Y BREADCRUMBS =====
   breadCrumbItems!: Array<{}>;
 
-  // Acciones disponibles para el usuario en esta pantalla
+  // ===== CONTROL DE PERMISOS Y ACCIONES =====
+  // Acciones disponibles para el usuario en esta pantalla basadas en permisos
   accionesDisponibles: string[] = [];
 
-  // Método robusto para validar si una acción está permitida
+  /**
+   * Valida si el usuario tiene permisos para realizar una acción específica
+   * Compara de forma insensible a mayúsculas/minúsculas
+   */
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(
       (a) => a.trim().toLowerCase() === accion.trim().toLowerCase()
     );
   }
 
+  // ===== INICIALIZACIÓN DEL COMPONENTE =====
   ngOnInit(): void {
     /**
-     * BreadCrumb
+     * Configuración inicial de breadcrumbs para navegación
      */
     this.breadCrumbItems = [
       { label: 'Ventas' },
       { label: 'Pedidos', active: true },
     ];
 
-    // Obtener acciones disponibles del usuario (ejemplo: desde API o localStorage)
+    /**
+     * Carga permisos del usuario y configuración inicial
+     */
     this.cargarAccionesUsuario();
     ////console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
   // Cierra el dropdown si se hace click fuera
 
-  // Métodos para los botones de acción principales (crear, editar, detalles)
+  // ===== ACCIONES PRINCIPALES DE CRUD =====
+  
+  /**
+   * Abre el formulario de creación de nuevo pedido
+   * Cierra otros formularios para evitar conflictos de UI
+   */
   crear(): void {
     //console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
@@ -379,6 +403,10 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null; // Cerrar menú de acciones
   }
 
+  /**
+   * Abre el formulario de edición para un pedido específico
+   * Crea una copia del objeto para evitar mutaciones directas
+   */
   editar(pedido: Pedido): void {
    
     this.PedidoEditando = { ...pedido }; // Hacer copia profunda
@@ -388,6 +416,10 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null; // Cerrar menú de acciones
   }
 
+  /**
+   * Abre la vista de detalles para un pedido específico
+   * Modo de solo lectura para visualizar información completa
+   */
   detalles(pedido: Pedido): void {
     //console.log('Abriendo detalles para:', pedido);
     this.PedidoDetalle = { ...pedido }; // Hacer copia profunda
@@ -397,6 +429,7 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null; // Cerrar menú de acciones
   }
 
+  // ===== CONTROL DE MENÚS DE ACCIONES =====
   activeActionRow: number | null = null;
   showEdit = true;
   showDetails = true;
@@ -404,11 +437,11 @@ export class ListComponent implements OnInit {
   showCreateForm = false; // Control del collapse
   showEditForm = false; // Control del collapse de edición
   showDetailsForm = false; // Control del collapse de detalles
+  // ===== OBJETOS DE TRABAJO TEMPORAL =====
   PedidoEditando: Pedido | null = null;
   PedidoDetalle: Pedido | null = null;
 
-  // Propiedades para alertas
-
+  // ===== SISTEMA DE ALERTAS Y NOTIFICACIONES =====
   mostrarOverlayCarga = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -417,10 +450,11 @@ export class ListComponent implements OnInit {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
 
-  // Propiedades para confirmación de eliminación
+  // ===== CONFIRMACIONES DE ACCIONES CRÍTICAS =====
   mostrarConfirmacionEliminar = false;
   PedidoEliminar: Pedido | null = null;
 
+  // ===== CONSTRUCTOR E INYECCIÓN DE DEPENDENCIAS =====
   constructor(
     public table: ReactiveTableService<Pedido>,
     private http: HttpClient,
@@ -429,17 +463,24 @@ export class ListComponent implements OnInit {
     public floatingMenuService: FloatingMenuService,
     private exportService: ExportService
   ) {
+    /**
+     * Inicialización automática de datos al crear el componente
+     */
     this.cargardatos(true);
   }
 
-  // (navigateToCreate eliminado, lógica movida a crear)
-
-  // (navigateToEdit y navigateToDetails eliminados, lógica movida a editar y detalles)
-
+  // ===== GESTIÓN DE FORMULARIOS =====
+  
+  /**
+   * Cierra el formulario de creación y resetea estado
+   */
   cerrarFormulario(): void {
     this.showCreateForm = false;
   }
 
+  /**
+   * Cierra el formulario de edición y limpia objeto temporal
+   */
   cerrarFormularioEdicion(): void {
     this.showEditForm = false;
     this.PedidoEditando = null;
