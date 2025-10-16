@@ -45,8 +45,15 @@ get vendedoresFiltrados(): any[] {
   );
 }
 
+  /**
+   * Constructor del componente de progreso de metas.
+   * @param http Cliente HTTP (reservado para usos futuros si aplica).
+   */
   constructor(private http: HttpClient) {}
 
+  /**
+   * Inicializa el componente y construye el estado base desde metaData.
+   */
   ngOnInit(): void {
 
     if (!this.metaData) {
@@ -69,25 +76,43 @@ get vendedoresFiltrados(): any[] {
     this.initFromMetaData();
   }
 
+  /**
+   * Decrementa en 1 las unidades del vendedor, sin permitir valores negativos.
+   */
   decrementUnidades(vendId: number): void {
   this.progreso[vendId].unidades = Math.max(0, this.progreso[vendId].unidades - 1);
   }
+  /**
+   * Decrementa en 1 los ingresos del vendedor, sin permitir valores negativos.
+   */
   decrementIngresos(vendId: number): void {
     this.progreso[vendId].ingresos = Math.max(0, this.progreso[vendId].ingresos - 1);
   }
+  /**
+   * Incrementa en 1 las unidades del vendedor.
+   */
   incrementUnidades(vendId: number): void {
     this.progreso[vendId].unidades = this.progreso[vendId].unidades + 1;
   }
+  /**
+   * Incrementa en 1 los ingresos del vendedor.
+   */
   incrementIngresos(vendId: number): void {
     this.progreso[vendId].ingresos = this.progreso[vendId].ingresos + 1;
   }
 
+  /**
+   * Hook de cambios: re-inicializa el estado si cambia metaData.
+   */
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['metaData'] && changes['metaData'].currentValue) {
       this.initFromMetaData();
     }
   }
 
+  /**
+   * Inicializa las colecciones (vendedores y progreso) a partir de metaData.
+   */
   private initFromMetaData(): void {
     this.meta = this.metaData ? { ...this.metaData } : null;
     this.vendedores = [];
@@ -118,17 +143,26 @@ get vendedoresFiltrados(): any[] {
   }
 
   // Only allow for CM or IM
+  /**
+   * Indica si el progreso es editable (sólo para tipos CM e IM).
+   */
   get isEditable(): boolean {
     return this.meta && (this.meta.meta_Tipo === 'CM' || this.meta.meta_Tipo === 'IM');
   }
 
   // For display
+  /**
+   * Obtiene etiqueta legible del tipo de meta para mostrar en UI.
+   */
   get tipoLabel(): string {
     return this.meta?.meta_Tipo === 'CM' ? 'Cantidades Administradas Manualmente'
       : this.meta?.meta_Tipo === 'IM' ? 'Ingresos Administradas Manualmente'
       : this.meta?.meta_Tipo || '';
   }
 
+  /**
+   * Valida que existan vendedores y que los valores (según tipo) sean válidos y no negativos.
+   */
   validar(): boolean {
     if (!this.isEditable) return false;
     if (!this.vendedores.length) return false;
@@ -144,6 +178,10 @@ get vendedoresFiltrados(): any[] {
     return true;
   }
 
+  /**
+   * Construye XML de detalle de progreso por vendedor para enviar a la API.
+   * @returns XML con los items de progreso por vendedor.
+   */
   buildDetallesXml(): string {
     let xml = '<root>';
     for (const v of this.vendedores) {
@@ -159,6 +197,9 @@ get vendedoresFiltrados(): any[] {
     return xml;
   }
 
+  /**
+   * Envía el progreso actualizado a la API si es válido y muestra alertas según resultado.
+   */
   guardar(): void {
     this.mostrarErrores = true;
     if (!this.validar()) {
@@ -228,6 +269,9 @@ get vendedoresFiltrados(): any[] {
     });
   }
 
+  /**
+   * Restaura estado visual y emite cancelación hacia el padre.
+   */
   cancelar(): void {
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
@@ -240,6 +284,9 @@ get vendedoresFiltrados(): any[] {
     this.onCancel.emit();
   }
 
+  /**
+   * Oculta cualquier alerta visible.
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -249,6 +296,9 @@ get vendedoresFiltrados(): any[] {
     this.mensajeWarning = '';
   }
 
+  /**
+   * Formatea fecha a 'es-HN' para presentación.
+   */
   formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
     const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;

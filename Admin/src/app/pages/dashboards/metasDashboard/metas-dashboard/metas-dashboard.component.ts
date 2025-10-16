@@ -32,11 +32,14 @@ export class MetasDashboardComponent implements OnInit {
 
   metas: any[] = [];
   vendedores: any[] = [];
+  vendedoresOriginal: any[] = [];
   selectedMeta: any = null;
   loading = false;
   errorMsg = '';
   chartOptions: any = null;
   filterText = '';
+  mostrandoTop5 = false;
+  ordenActual: 'asc' | 'desc' | null = null;
 
   private readonly colorPalette = [
     "#14192e", "#29142e", "#2e2914", "#192e14", 
@@ -80,18 +83,61 @@ export class MetasDashboardComponent implements OnInit {
   onMetaChange(): void {
     this.filterText = '';
     this.chartOptions = null;
+    this.mostrandoTop5 = false;
+    this.ordenActual = null;
     
     if (!this.selectedMeta) {
       this.vendedores = [];
+      this.vendedoresOriginal = [];
       return;
     }
 
     try {
       this.vendedores = JSON.parse(this.selectedMeta.vendedoresJson || '[]');
+      this.vendedoresOriginal = [...this.vendedores];
       this.buildChartOptions();
     } catch {
       this.vendedores = [];
+      this.vendedoresOriginal = [];
     }
+  }
+
+  ordenarPorProgreso(descendente: boolean): void {
+    this.ordenActual = descendente ? 'desc' : 'asc';
+    const tipo = this.selectedMeta.meta_Tipo;
+    const isIngresos = ['IM', 'IT', 'IP', 'PC'].includes(tipo);
+    const objetivo = isIngresos ? this.selectedMeta.meta_Ingresos : this.selectedMeta.meta_Unidades;
+
+    this.vendedores.sort((a, b) => {
+      const progresoA = isIngresos ? a.MeEm_ProgresoIngresos : a.MeEm_ProgresoUnidades;
+      const progresoB = isIngresos ? b.MeEm_ProgresoIngresos : b.MeEm_ProgresoUnidades;
+      const porcentajeA = objetivo ? (progresoA / objetivo) * 100 : 0;
+      const porcentajeB = objetivo ? (progresoB / objetivo) * 100 : 0;
+      
+      return descendente 
+        ? porcentajeB - porcentajeA 
+        : porcentajeA - porcentajeB;
+    });
+
+    this.buildChartOptions();
+  }
+
+  toggleTop5(): void {
+    this.mostrandoTop5 = !this.mostrandoTop5;
+    
+    if (this.mostrandoTop5) {
+      if (this.ordenActual !== 'desc') {
+        this.ordenarPorProgreso(true);
+      }
+      this.vendedores = this.vendedores.slice(0, 5);
+    } else {
+      this.vendedores = [...this.vendedoresOriginal];
+      if (this.ordenActual) {
+        this.ordenarPorProgreso(this.ordenActual === 'desc');
+      }
+    }
+    
+    this.buildChartOptions();
   }
 
   private buildChartOptions(): void {
@@ -105,15 +151,12 @@ export class MetasDashboardComponent implements OnInit {
     const actualValues = filtered.map(v => 
       isIngresos ? v.MeEm_ProgresoIngresos : v.MeEm_ProgresoUnidades
     );
-    const percentValues = actualValues.map(val => 
-      objetivo ? Math.min((val / objetivo) * 100, 100) : 0
-    );
     const categories = filtered.map(v => v.Vend_NombreCompleto);
 
-    // Calculate dynamic height based on number of items with minimum height
-    const itemHeight = 40; // Height per bar
-    const minHeight = 350; // Minimum chart height
-    const calculatedHeight = Math.max(minHeight, filtered.length * itemHeight);
+    const barHeight = 40;
+    const spacing = 15;
+    const minHeight = 350;
+    const calculatedHeight = Math.max(minHeight, filtered.length * (barHeight + spacing));
 
     this.chartOptions = {
       series: [{
@@ -124,12 +167,12 @@ export class MetasDashboardComponent implements OnInit {
         height: calculatedHeight,
         type: "bar",
         toolbar: { show: false },
-        fontFamily: 'inherit',
+        fontFamily: 'inherit'
       },
       plotOptions: {
         bar: {
           horizontal: true,
-          barHeight: '32', // Fixed bar height
+          barHeight: barHeight,
           distributed: true,
           borderRadius: 4,
           dataLabels: {
@@ -138,74 +181,42 @@ export class MetasDashboardComponent implements OnInit {
         }
       },
       colors: this.colorPalette,
-      // dataLabels: {
-      //   enabled: true,
-      //   formatter: (val: number, opts: any) => {
-      //     const percent = objetivo ? (val / objetivo) * 100 : 0;
-      //     if (isIngresos) {
-      //       return `${val.toLocaleString('es-HN', { 
-      //         style: 'currency', 
-      //         currency: 'HNL',
-      //         maximumFractionDigits: 2 
-      //       })} (${percent.toFixed(1)}%)`;
-      //     }
-      //     return `${val.toLocaleString('es-HN')} (${percent.toFixed(1)}%)`;
-      //   },
-      //   style: {
-      //     fontSize: '13px',
-      //     fontWeight: 500,
-      //     colors: ['#fff']
-      //   },
-      //   background: {
-      //     enabled: true,
-      //     foreColor: '#14192e',
-      //     padding: 4,
-      //     borderRadius: 2,
-      //     borderWidth: 1,
-      //     borderColor: 'rgba(255,255,255,0.2)',
-      //     opacity: 0.9,
-      //   },
-      //   textAnchor: 'middle'
-      // },
-      
-      // In buildChartOptions(), update the dataLabels configuration:
-dataLabels: {
-  enabled: true,
-  formatter: (val: number, opts: any) => {
-    const percent = objetivo ? (val / objetivo) * 100 : 0;
-    if (isIngresos) {
-      return `${val.toLocaleString('es-HN', { 
-        style: 'currency', 
-        currency: 'HNL',
-        maximumFractionDigits: 2 
-      })} (${percent.toFixed(1)}%)`;
-    }
-    return `${val.toLocaleString('es-HN')} (${percent.toFixed(1)}%)`;
-  },
-  style: {
-    fontSize: '13px',
-    fontWeight: 700,
-    colors: ['#fff'],
-    textShadow: `
-      -2px -2px 0 #14192e,
-       2px -2px 0 #14192e,
-      -2px  2px 0 #14192e,
-       2px  2px 0 #14192e,
-      -2.5px 0 0 #14192e,
-       2.5px 0 0 #14192e,
-       0 -2.5px 0 #14192e,
-       0 2.5px 0 #14192e
-    `
-  },
-  background: {
-    enabled: false
-  },
-  textAnchor: 'middle',
-  position: 'center',
-  offsetY: 0
-},
-
-
+      dataLabels: {
+        enabled: true,
+        formatter: (val: number, opts: any) => {
+          const percent = objetivo ? (val / objetivo) * 100 : 0;
+          if (isIngresos) {
+            return `${val.toLocaleString('es-HN', { 
+              style: 'currency', 
+              currency: 'HNL',
+              maximumFractionDigits: 2 
+            })} (${percent.toFixed(1)}%)`;
+          }
+          return `${val.toLocaleString('es-HN')} (${percent.toFixed(1)}%)`;
+        },
+        style: {
+          fontSize: '13px',
+          fontWeight: 600,
+          colors: ['#fff']
+        },
+        background: {
+          enabled: true,
+          foreColor: '#14192e',
+          padding: 2,
+          opacity: 0.9,
+          borderWidth: 1,
+          borderColor: '#fff',
+          borderRadius: 2
+        },
+        textAnchor: 'middle',
+        position: 'center'
+      },
+      grid: {
+        borderColor: '#f1f1f1',
+        xaxis: { lines: { show: true } },
+        yaxis: { lines: { show: false } },
+        padding: { left: 10, right: 10 }
+      },
       xaxis: {
         categories: categories,
         max: objetivo,
@@ -244,12 +255,6 @@ dataLabels: {
           }
         }
       },
-      grid: {
-        borderColor: '#f1f1f1',
-        xaxis: { lines: { show: true } },
-        yaxis: { lines: { show: false } },
-        padding: { left: 10, right: 10 }
-      },
       tooltip: {
         theme: 'light',
         style: { fontSize: '13px' },
@@ -260,7 +265,6 @@ dataLabels: {
               return `${val.toLocaleString('es-HN', {
                 style: 'currency',
                 currency: 'HNL',
-                
                 minimumFractionDigits: 2
               })} (${percent.toFixed(1)}%)`;
             }
