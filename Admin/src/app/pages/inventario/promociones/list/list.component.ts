@@ -345,7 +345,7 @@ export class ListComponent implements OnInit {
   }
 
   editar(producto: Producto): void {
-  
+  console.log('Producto a editar:', producto);
     this.productoEditando = { ...producto }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto

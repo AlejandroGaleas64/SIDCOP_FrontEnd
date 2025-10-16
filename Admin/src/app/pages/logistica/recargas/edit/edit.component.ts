@@ -193,7 +193,7 @@ export class EditRecargaComponent implements OnChanges {
         Reca_FechaModificacion: new Date().toISOString()
     };
 
-    console.log('Datos a enviar:', JSON.stringify(body, null, 2));
+    //console.log('Datos a enviar:', JSON.stringify(body, null, 2));
 
     this.http.put<any>(`${environment.apiBaseUrl}/Recargas/Confirmar`, body, {
         headers: {
@@ -203,7 +203,7 @@ export class EditRecargaComponent implements OnChanges {
         }
     }).subscribe({
         next: (response) => {
-            console.log('Respuesta del servidor:', response);
+            //console.log('Respuesta del servidor:', response);
             if (response?.data?.code_Status === 1) {
                 this.mostrarExito(response.data.message_Status);
                 setTimeout(() => this.onSave.emit(this.recarga), 3000);

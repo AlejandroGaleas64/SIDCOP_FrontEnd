@@ -237,12 +237,12 @@ export class CreateComponent {
               lastModified: Date.now()
             });
             
-            console.log('Iniciando subida de imagen...');
+            //console.log('Iniciando subida de imagen...');
             const imagePath = await this.imageUploadService.uploadImageAsync(croppedFile);
-            console.log('Imagen subida exitosamente. Ruta:', imagePath);
+            //console.log('Imagen subida exitosamente. Ruta:', imagePath);
             this.configFactura.coFa_Logo = imagePath;
             this.logoSeleccionado = true;
-            console.log('Logo asignado a configFactura.coFa_Logo:', this.configFactura.coFa_Logo);
+            //console.log('Logo asignado a configFactura.coFa_Logo:', this.configFactura.coFa_Logo);
             this.cerrarModalCropper();
           }
         }, this.selectedFile.type, 0.9);
@@ -360,7 +360,7 @@ export class CreateComponent {
       coFa_FechaCreacion: new Date().toISOString()
     };
 
-    console.log('Enviando body:', body);
+    //console.log('Enviando body:', body);
 
     this.http.post<any>(`${environment.apiBaseUrl}/ConfiguracionFactura/Insertar`, body, {
       headers: {
@@ -401,8 +401,8 @@ export class CreateComponent {
               messageStatus = 'Operación exitosa';
             }
             
-            console.log('Code Status determinado:', codeStatus);
-            console.log('Message Status:', messageStatus);
+            //console.log('Code Status determinado:', codeStatus);
+            //console.log('Message Status:', messageStatus);
             
             if (codeStatus === 1 || codeStatus === true) {
               this.mensajeExito = 'Configuración guardada exitosamente';
@@ -502,12 +502,12 @@ export class CreateComponent {
   }
 
   private debugResponse(response: any, isError: boolean): void {
-    console.log(isError ? 'Error Response:' : 'Success Response:', response);
+    //console.log(isError ? 'Error Response:' : 'Success Response:', response);
     if (response && response.body) {
-      console.log('Response Body:', response.body);
+      //console.log('Response Body:', response.body);
     }
     if (response && response.status) {
-      console.log('Response Status:', response.status);
+      //console.log('Response Status:', response.status);
     }
   }
 

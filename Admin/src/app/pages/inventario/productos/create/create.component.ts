@@ -141,7 +141,7 @@ export class CreateComponent {
       this.producto.subc_Id = 0;
       return;
     }
-    console.log('Filtrando subcategorías para categoría:', categoriaId);
+    //console.log('Filtrando subcategorías para categoría:', categoriaId);
     this.filtrarSubcategoriasPorCategoria(categoriaId);
   }
 
@@ -208,7 +208,7 @@ export class CreateComponent {
   isCargandoSubcategorias: boolean = false;
 
   filtrarSubcategoriasPorCategoria(categoriaId: number) {
-    console.log('Filtrando subcategorías para categoría:', categoriaId);
+    //console.log('Filtrando subcategorías para categoría:', categoriaId);
     if (!categoriaId) {
       this.subcategoriasFiltradas = [];
       this.producto.subc_Id = 0;
@@ -238,9 +238,9 @@ export class CreateComponent {
           'accept': '*/*'
         }
     }).subscribe(response  => {
-      console.log('Subcategorías recibidas:', response);
+      //console.log('Subcategorías recibidas:', response);
       this.subcategoriasFiltradas = response.data;
-      console.log('Subcategorías filtradas:', this.subcategoriasFiltradas);
+      //console.log('Subcategorías filtradas:', this.subcategoriasFiltradas);
       this.producto.subc_Id = 0; // Reset subcategory selection
       this.isCargandoSubcategorias = false; // terminó carga
     }, error => {
@@ -306,7 +306,7 @@ export class CreateComponent {
   }
 
   guardar(): void {
-    console.log('guardar() llamado');
+    //console.log('guardar() llamado');
     this.mostrarErrores = true;
     if (this.producto.prod_Codigo.trim() && this.producto.prod_Descripcion.trim() && this.producto.prod_DescripcionCorta.trim() && this.producto.marc_Id && this.producto.prov_Id && this.producto.subc_Id
       && this.producto.prod_PrecioUnitario != null && this.producto.prod_PrecioUnitario > 0 && this.producto.prod_Peso >= 0 && this.producto.unPe_Id)
@@ -346,11 +346,11 @@ export class CreateComponent {
         usuarioCreacion: '',
         usuarioModificacion: '',
       };
-      console.log(productoGuardar);
+      //console.log(productoGuardar);
       if (this.producto.prod_PagaImpuesto) {
         productoGuardar.impu_Id = Number(this.producto.impu_Id);
       }
-      console.log('Datos a enviar:', productoGuardar);
+      //console.log('Datos a enviar:', productoGuardar);
       this.http.post<any>(`${environment.apiBaseUrl}/Productos/Insertar`, productoGuardar, {
         headers: { 
           'X-Api-Key': environment.apiKey,
@@ -359,7 +359,7 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          console.log('Respuesta del servidor:', response);
+          //console.log('Respuesta del servidor:', response);
 
           this.mostrarAlertaExito = true;
           this.mensajeExito = `Producto creado exitosamente.`;
@@ -415,7 +415,7 @@ export class CreateComponent {
           this.producto.prod_Imagen = imagePath;
           // Actualizar la previsualización con la URL completa
           this.imagenPreview = imagePath.includes('https') ? imagePath : environment.apiBaseUrl + imagePath;
-          console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
+          //console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
           this.mostrarOverlayCarga = false;
         })
         .catch(error => {

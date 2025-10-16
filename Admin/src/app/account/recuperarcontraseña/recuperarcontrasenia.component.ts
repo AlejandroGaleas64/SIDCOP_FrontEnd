@@ -119,12 +119,12 @@ export class RecuperarcontraseniaComponent {
                 }
             }).subscribe({
                 next: (response) => {
-                    console.log('Respuesta del servidor:', response);
+                    //console.log('Respuesta del servidor:', response);
                     if (response.data && response.data[0] && response.data[0].correo !== null) {   
                         this.correo = response.data[0].correo;
                         this.usuario.usua_Id = response.data[0].usua_Id;
                         this.enviarcorreo();
-                        console.log('Correo enviado a:', this.correo);
+                        //console.log('Correo enviado a:', this.correo);
                     } else {
                         this.mostrarOverlayCarga = false;
                         this.mostrarAlertaWarning = true;
@@ -148,7 +148,7 @@ export class RecuperarcontraseniaComponent {
             });
         } else {
               this.mostrarOverlayCarga = false
-            console.log('El campo de usuario está vacío:', this.usuario.usua_Usuario);
+            //console.log('El campo de usuario está vacío:', this.usuario.usua_Usuario);
             this.mostrarAlertaWarning = true;
             this.mensajeWarning = 'El campo Usuario es requerido.';
             setTimeout(() => {
@@ -163,7 +163,7 @@ export class RecuperarcontraseniaComponent {
     enviarcorreo(): void {
 
       this.codigoGenerado = this.generarCodigo();
-      console.log('Código generado:', this.codigoGenerado);
+      //console.log('Código generado:', this.codigoGenerado);
       const payload = {
         to_email: this.correo,
         codigo: this.codigoGenerado
@@ -176,7 +176,7 @@ export class RecuperarcontraseniaComponent {
         }
       }).subscribe({
         next: (response) => {
-          console.log('Respuesta de envío de correo:', response);
+          //console.log('Respuesta de envío de correo:', response);
           if (response.mensaje && response.mensaje === 'Correo enviado exitosamente') {
             this.mostrarOverlayCarga = false;
             this.mostrarAlertaExito = true;

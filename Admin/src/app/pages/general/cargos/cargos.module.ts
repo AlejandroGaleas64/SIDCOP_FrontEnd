@@ -4,7 +4,8 @@ import { CargosRoutingModule } from './cargos-routing.module';
 
 
 @NgModule({
-  
+  // Módulo contenedor del feature "Cargos".
+  // Exporta solo el enrutamiento; los componentes son standalone y se cargan bajo demanda.
   imports: [
     CommonModule,
     CargosRoutingModule

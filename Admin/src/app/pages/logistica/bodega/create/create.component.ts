@@ -214,7 +214,7 @@ export class CreateComponent  {
   };
 
   onSucursalChange(): void {
-    console.log('Sucursal cambiada a:', this.bodega.sucu_Id, typeof this.bodega.sucu_Id);
+    ////console.log('Sucursal cambiada a:', this.bodega.sucu_Id, typeof this.bodega.sucu_Id);
     
     this.bodega.vend_Id = 0;
     
@@ -235,7 +235,7 @@ export class CreateComponent  {
 
   // Nueva función para manejar el cambio de marca
   onMarcaChange(): void {
-    console.log('Marca cambiada a:', this.marcaSeleccionada);
+    ////console.log('Marca cambiada a:', this.marcaSeleccionada);
     
     // Resetear el modelo seleccionado
     this.bodega.mode_Id = 0;
@@ -342,7 +342,7 @@ export class CreateComponent  {
         usuarioModificacion: "" 
       };
 
-      console.log('Guardando bodega:', bodegaGuardar);
+      ////console.log('Guardando bodega:', bodegaGuardar);
       this.http.post<any>(`${environment.apiBaseUrl}/Bodega/Insertar`, bodegaGuardar, {
         headers: { 
           'X-Api-Key': environment.apiKey,

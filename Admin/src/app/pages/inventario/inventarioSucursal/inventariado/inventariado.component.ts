@@ -73,23 +73,26 @@ export class InventariadoComponent implements OnInit {
   // NUEVA PROPIEDAD PARA CONTROLAR EL VISOR PDF
   mostrarVisorPDF = false;
 
+  //Constructor e inyección de dependencias
   constructor(
     private http: HttpClient,
     private sanitizer: DomSanitizer,
     private pdfService: PdfReportService
   ) { }
 
+  // Ciclo de vida del componente
   ngOnInit(): void {
     this.cargarSucursales();
   }
 
+  // Metodo de cargar datos para el ddl 
   cargarSucursales(): void {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Sucursales/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (data) => {
         this.sucursales = data;
-        console.log('Sucursales cargadas:', this.sucursales);
+        //console.log('Sucursales cargadas:', this.sucursales);
       },
       error: (error) => {
         this.mostrarAlertaError = true;
@@ -99,6 +102,7 @@ export class InventariadoComponent implements OnInit {
     });
   }
 
+  // Método al cambiar la sucursal seleccionada
   onSucursalChange(sucuId: number): void {
     const id = Number(sucuId);
     if (id && id > 0) {
@@ -122,6 +126,7 @@ export class InventariadoComponent implements OnInit {
     }
   }
 
+  // Método para cargar el inventario de la sucursal seleccionada
   cargarInventarioSucursal(sucuId: number): void {
     this.http.get<any[]>(`${environment.apiBaseUrl}/InventarioSucursales/ListarPorSucursal/${sucuId}`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -382,6 +387,7 @@ cerrarVisorPDF(): void {
     }
   }
 
+  // Método al cambiar cantidad en el input
   onCantidadChange(index: number, nuevaCantidad: number): void {
     if (nuevaCantidad < 0) {
       nuevaCantidad = 0;
@@ -396,6 +402,7 @@ cerrarVisorPDF(): void {
     }
   }
 
+  // Método para filtrar el inventario
   filtrarInventario(): void {
     if (!this.terminoBusqueda.trim()) {
       this.inventarioFiltrado = [...this.inventarioSucursal];
@@ -407,11 +414,13 @@ cerrarVisorPDF(): void {
     }
   }
 
+  // Métodos para manejar la confirmación y actualización
   confirmarActualizarCantidades(): void {
     this.mostrarModalConfirmacion = false;
     this.abrirModalClave('cantidades');
   }
 
+  // Método para abrir el modal de contraseña
   abrirModalClave(accion: string): void {
     if (!this.sucursalSeleccionada) {
       this.mostrarAlertaWarning = true;
@@ -425,12 +434,14 @@ cerrarVisorPDF(): void {
     this.mostrarModal = true;
   }
 
+  // Método para cerrar el modal de contraseña
   cerrarModal(): void {
     this.mostrarModal = false;
     this.claveIngresada = '';
     this.accionPendiente = '';
   }
 
+  // Método para validar la clave ingresada
   validarClave(): void {
     if (!this.claveIngresada.trim()) {
       this.mostrarAlertaWarning = true;
@@ -482,6 +493,7 @@ cerrarVisorPDF(): void {
     });
   }
 
+  // Método para mostrar el modal de confirmación si hay cambios
   mostrarConfirmacionCantidades(): void {
     this.productosModificados = this.inventarioSucursal
       .filter(item => {
@@ -506,6 +518,7 @@ cerrarVisorPDF(): void {
     }
   }
 
+  // Método para actualizar el inventario desde el servidor
   actualizarInventario(): void {
     if (!this.sucursalSeleccionada) return;
 
@@ -537,6 +550,7 @@ cerrarVisorPDF(): void {
     });
   }
 
+  // Método para actualizar las cantidades modificadas
   actualizarCantidades(): void {
     if (!this.sucursalSeleccionada) return;
 
@@ -585,6 +599,7 @@ cerrarVisorPDF(): void {
     });
   }
 
+  // Método para verificar si hay cambios en las cantidades
   tienenCambios(): boolean {
     return this.inventarioSucursal.some((item, index) => {
       const original = this.inventarioOriginal.find(orig => orig.inSu_Id === item.inSu_Id);
@@ -592,6 +607,7 @@ cerrarVisorPDF(): void {
     });
   }
 
+  // Métodos para manejar las alertas
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mostrarAlertaError = false;
@@ -601,6 +617,7 @@ cerrarVisorPDF(): void {
     this.mensajeWarning = '';
   }
 
+  // Ocultar alertas después de un tiempo
   private ocultarAlertas(delay: number): void {
     setTimeout(() => {
       this.cerrarAlerta();

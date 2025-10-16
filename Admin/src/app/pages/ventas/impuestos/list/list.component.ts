@@ -136,7 +136,7 @@ private readonly exportConfig = {
       { label: 'Impuestos', active: true }
     ];
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
+    //console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
   // ===== MÉTODOS DE EXPORTACIÓN OPTIMIZADOS =====
@@ -393,7 +393,7 @@ private readonly exportConfig = {
    * Métodos de respuesta de componentes hijos
    */
   actualizarImpuesto(impuesto: Impuestos): void {
-    console.log('Impuesto actualizado exitosamente desde edit component:', impuesto);
+    //console.log('Impuesto actualizado exitosamente desde edit component:', impuesto);
     this.cargardatos(false);
     this.cerrarFormularioEdicion();
     this.mostrarMensaje('success', 'Impuesto actualizado exitosamente');
@@ -494,7 +494,7 @@ private readonly exportConfig = {
    */
   private cargarAccionesUsuario(): void {
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+    //console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     
     if (permisosRaw) {
@@ -522,7 +522,7 @@ private readonly exportConfig = {
       .filter(a => typeof a === 'string' && a.length > 0)
       .map(a => a.trim().toLowerCase());
     
-    console.log('Acciones finales:', this.accionesDisponibles);
+    //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   /**

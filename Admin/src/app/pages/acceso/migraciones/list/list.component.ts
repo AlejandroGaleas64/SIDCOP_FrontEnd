@@ -143,14 +143,14 @@ export class ListComponent implements OnInit {
 
     // Obtener acciones disponibles del usuario (ejemplo: desde API o localStorage)
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
+    //console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
   // Cierra el dropdown si se hace click fuera
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
+    //console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -173,11 +173,8 @@ migracionPendiente: Migracion | null = null;
         (data) => {
           this.infoconfiguracion = data;
 
-          console.log(
-            'Datos de configuración recibidos:',
-            this.infoconfiguracion.map((config) => config.coFa_RutaMigracion)
-          );
-          console.log('Configuraciones cargadas:', this.infoconfiguracion);
+        
+          //console.log('Configuraciones cargadas:', this.infoconfiguracion);
         },
         (error) => {
           console.error('Error al cargar las configuraciones:', error);
@@ -211,7 +208,7 @@ migracionPendiente: Migracion | null = null;
   }
 
   confirmarMigracion(migracionesinfo: Migracion): void {
-  console.log('Solicitando confirmación para migrar:', migracionesinfo);
+  //console.log('Solicitando confirmación para migrar:', migracionesinfo);
   this.migracionPendiente = migracionesinfo;
   this.mostrarConfirmacionMigrar = true;
   this.activeActionRow = null; // Cerrar menú de acciones
@@ -253,8 +250,8 @@ confirmarMigrarGeneral(): void {
       (config) => config.coFa_RutaMigracion
     );
     const rutaFisica = config?.[0] || '';
-    console.log('Ruta física encontrada:', rutaFisica);
-    console.log('Migrando paquete:', migracionesinfo.coMi_Tabla);
+    //console.log('Ruta física encontrada:', rutaFisica);
+    //console.log('Migrando paquete:', migracionesinfo.coMi_Tabla);
     const paquete = migracionesinfo.coMi_Tabla;
 
     const body = {
@@ -274,7 +271,7 @@ confirmarMigrarGeneral(): void {
       .subscribe({
         next: (response: any) => {
           this.mostrarOverlayCarga = false;
-          console.log('Respuesta al migrar :', response);
+          //console.log('Respuesta al migrar :', response);
 
           if (response?.message) {
             this.descargarLogMigracion(response.message, paquete);
@@ -301,7 +298,7 @@ confirmarMigrarGeneral(): void {
             this.descargarLogMigracion(error, paquete);
           }
 
-          console.log('Error', error);
+          //console.log('Error', error);
 
           this.mensajeError = `Error al intentar migrar "${paquete}".`;
           setTimeout(() => this.cerrarAlerta(), 5000);
@@ -546,7 +543,7 @@ confirmarMigrarGeneral(): void {
   }
 
   confirmarEliminar(migracionesinfo: Migracion): void {
-    console.log('Solicitando confirmación para eliminar:', migracionesinfo);
+    //console.log('Solicitando confirmación para eliminar:', migracionesinfo);
     //this.PEEliminar = migracionesinfo;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones
@@ -569,7 +566,7 @@ confirmarMigrarGeneral(): void {
   private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+    //console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -596,7 +593,7 @@ confirmarMigrarGeneral(): void {
     this.accionesDisponibles = accionesArray
       .filter((a) => typeof a === 'string' && a.length > 0)
       .map((a) => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
+    //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   migrarGeneral(): void {
@@ -621,7 +618,7 @@ confirmarMigrarGeneral(): void {
       })
       .subscribe({
         next: (response: any) => {
-          console.log('Respuesta al migrar General:', response);
+          //console.log('Respuesta al migrar General:', response);
 
           setTimeout(() => {
             this.mostrarOverlayCarga = false;
@@ -674,7 +671,7 @@ confirmarMigrarGeneral(): void {
         // const datosFiltrados = tienePermisoListar
         //   ? data
         //   : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
-        console.log('Datos recibidos del servidor:', data);
+        //console.log('Datos recibidos del servidor:', data);
         const datosTransformados = data.map((item) => ({
           ...item,
           coMi_Tabla:

@@ -41,9 +41,11 @@
         <div class="mb-3">
           
           
+          <label class="form-label d-block">Foto del empleado <span class="text-danger">*</span></label>
           <!-- Dropzone Circular -->
           <div class="circular-dropzone" 
               [class.dragover]="isDragOver"
+              [class.is-invalid]="mostrarErrores && !selectedFile && !uploadedFiles.length"
               (click)="fileInput.click()"
               (dragover)="onDragOver($event)"
               (dragleave)="onDragLeave($event)"
@@ -76,6 +78,13 @@
                 style="display: none;"
                 (change)="onFileSelected($event)">
           
+          <!-- Mensaje de error para la imagen -->
+          @if (mostrarErrores && !selectedFile && !uploadedFiles.length) {
+            <div class="invalid-feedback d-block text-center">
+              La imagen es obligatoria
+            </div>
+          }
+
           <!-- Información del archivo -->
           @if (selectedFile) {
             <div class="file-info mt-3 text-center">
@@ -219,23 +228,31 @@
       </div><!--end col-->
 
       <div class="col-lg-6">
-            <div class="mb-3">
-                <label for="correo-input"  class="form-label">Correo electrónico<span class="text-danger">*</span></label>
-                <div class="d-flex align-items-center">
-                  <i class="ri-mail-line"
-                  [ngStyle]="{
-                  border: (!empleado.empl_Correo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                  backgroundColor: (!empleado.empl_Correo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-                </i>
-                <input type="email"  id="correo-input"  [(ngModel)]="empleado.empl_Correo"  class="form-control" [class.is-invalid]="!empleado.empl_Correo.trim() && mostrarErrores" placeholder="Ingrese el correo del empleado" required>
-                </div>
-                <div class="text-danger" *ngIf="!empleado.empl_Correo.trim() && mostrarErrores">
-                    <small>El correo es requerido</small>
-                </div>
+        <div class="mb-3">
+            <label for="correo-input" class="form-label">Correo electrónico<span class="text-danger">*</span></label>
+            <div class="d-flex align-items-center">
+              <i class="ri-mail-line"
+              [ngStyle]="{
+              border: ((!empleado.empl_Correo.trim() || correoInvalido) && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: ((!empleado.empl_Correo.trim() || correoInvalido) && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <input type="email" id="correo-input" [(ngModel)]="empleado.empl_Correo" 
+                class="form-control" 
+                [ngClass]="{'is-invalid': ((!empleado.empl_Correo.trim() || correoInvalido) && mostrarErrores)}" 
+                placeholder="Ingrese el correo del empleado" 
+                (input)="correoInvalido = false"
+                required>
             </div>
-            
-      </div><!--end col-->
+            <div class="text-danger" *ngIf="!empleado.empl_Correo.trim() && mostrarErrores">
+                <small>El correo es requerido</small>
+            </div>
+            <div class="text-danger" *ngIf="correoInvalido && mostrarErrores && empleado.empl_Correo.trim()">
+                <small>Por favor ingrese un correo electrónico válido</small>
+            </div>
+        </div>
+        
+  </div>
 
       <div class="col-lg-6">
             <div class="mb-3">

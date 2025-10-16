@@ -36,7 +36,7 @@ export class ReporteClientesMasFacturadosComponent implements OnDestroy {
     if (this.fechaInicio) params.fechaInicio = this.fechaInicio;
     if (this.fechaFin) params.fechaFin = this.fechaFin;
 
-    console.log('Generando reporte con parámetros:', params);
+    //console.log('Generando reporte con parámetros:', params);
 
     this.http.get<any[]>(`${environment.apiBaseUrl}/Reportes/ReporteClientesMasFacturados`, {
       headers: { 'x-api-key': environment.apiKey },

@@ -110,7 +110,7 @@ export class DetailsComponent implements OnChanges {
     setTimeout(() => {
       try {
         this.RegistroCAIDetalle = { ...data };
-        console.log('Detalles cargados:', this.RegistroCAIDetalle);
+        //////console.log('Detalles cargados:', this.RegistroCAIDetalle);
         this.cargando = false;
         // Generar número de factura después de cargar los detalles
         setTimeout(() => this.generarNumeroFactura(), 100);

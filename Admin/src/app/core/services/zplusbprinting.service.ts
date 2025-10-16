@@ -112,7 +112,7 @@ export class UsbZplPrintingService {
       });
 
       this.connectedPrinter.connected = true;
-      console.log('Conectado exitosamente a la impresora USB');
+      //console.log('Conectado exitosamente a la impresora USB');
       return true;
 
     } catch (error) {
@@ -130,7 +130,7 @@ export class UsbZplPrintingService {
       try {
         await this.connectedPrinter.port.close();
         this.connectedPrinter.connected = false;
-        console.log('Desconectado de la impresora USB');
+        //console.log('Desconectado de la impresora USB');
       } catch (error) {
         console.error('Error al desconectar:', error);
       }
@@ -164,7 +164,7 @@ export class UsbZplPrintingService {
       await writer.write(data);
       await writer.close();
 
-      console.log('Código ZPL enviado exitosamente');
+      //console.log('Código ZPL enviado exitosamente');
       return true;
 
     } catch (error) {

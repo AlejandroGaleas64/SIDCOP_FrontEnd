@@ -173,7 +173,7 @@ export class ListComponent implements OnInit {
   private cargarDatosSesion(): void {
     try {
       const userId = getUserId();
-      console.log('User ID from getUserId():', userId);
+      //console.log('User ID from getUserId():', userId);
       
       // Get the currentUser object from localStorage
       const currentUserStr = localStorage.getItem('currentUser');
@@ -184,8 +184,8 @@ export class ListComponent implements OnInit {
         try {
           currentUser = JSON.parse(currentUserStr);
           esAdmin = currentUser?.usua_EsAdmin === true;
-          console.log('Current user from localStorage:', currentUser);
-          console.log('Is admin from currentUser:', esAdmin);
+          //console.log('Current user from localStorage:', currentUser);
+          //console.log('Is admin from currentUser:', esAdmin);
         } catch (e) {
           console.error('Error parsing currentUser:', e);
         }
@@ -208,8 +208,8 @@ export class ListComponent implements OnInit {
       this.EsAdmin = this.currentUser.usua_EsAdmin;
       
       // Debug log to verify the value
-      console.log('Final admin status:', this.EsAdmin);
-      console.log('Current user object:', this.currentUser);
+      //console.log('Final admin status:', this.EsAdmin);
+      //console.log('Current user object:', this.currentUser);
     } catch (error) {
       console.error('Error al cargar datos de sesión:', error);
       this.mostrarMensaje('error', 'Error al cargar configuración del usuario');
@@ -418,7 +418,7 @@ export class ListComponent implements OnInit {
     // Opcional: scroll hacia arriba para ver el formulario
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
-    console.log('Editando recarga:', this.recargaSeleccionada);
+    //console.log('Editando recarga:', this.recargaSeleccionada);
   }
 
   // MÉTODO DETALLES ACTUALIZADO
@@ -433,7 +433,7 @@ export class ListComponent implements OnInit {
     // Opcional: scroll hacia arriba para ver los detalles
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
-    console.log('Mostrando detalles de recarga:', this.recargaSeleccionada);
+    //console.log('Mostrando detalles de recarga:', this.recargaSeleccionada);
   }
 
   // Métodos para cerrar formularios 
@@ -553,15 +553,15 @@ private cargardatos(state: boolean): void {
   // Usar los datos del usuario actual
   const sucuId = this.currentUser.sucu_Id || 0;
   const esAdmin = this.currentUser.usua_EsAdmin || false;
-  console.log(`Cargando datos para Sucursal ID: ${sucuId}, Es Admin: ${esAdmin}`);
+  //console.log(`Cargando datos para Sucursal ID: ${sucuId}, Es Admin: ${esAdmin}`);
 
   this.http.get<Recargas[]>(`${environment.apiBaseUrl}/Recargas/ListarsPorSucursal/${sucuId}/${esAdmin}`, {
     headers: { 'x-api-key': environment.apiKey }
   }).subscribe({
     
     next: (data) => {
-      console.log("Datos recibidos:", data);
-      console.log("XML de primera recarga:", data[0]?.detalleProductos);
+      //console.log("Datos recibidos:", data);
+      //console.log("XML de primera recarga:", data[0]?.detalleProductos);
       
       // Agregar secuencia a cada recarga
       data.forEach((recarga, index) => {

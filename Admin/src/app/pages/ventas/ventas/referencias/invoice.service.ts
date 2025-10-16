@@ -35,13 +35,19 @@ interface ExportResult {
 @Injectable({
   providedIn: 'root'
 })
+/**
+ * Servicio para la gestión y exportación de facturas.
+ * Permite generar PDF, exportar datos, manejar configuración de empresa y formatear información relevante.
+ */
 export class InvoiceService {
 
+  /** Detalle completo de la factura actual */
   facturaDetalle: FacturaCompleta | null = null;
 
+  /** Configuración de la empresa para encabezados y logos */
   private configuracionEmpresa: any = null;
 
-  // Colores del tema (mismos del PdfReportService)
+  /** Colores del tema para PDF y reportes */
   private readonly COLORES = {
     dorado: '#D6B68A',
     azulOscuro: '#141a2f',
@@ -50,10 +56,17 @@ export class InvoiceService {
     grisTexto: '#666666'
   };
 
+  /**
+   * Constructor del servicio. Carga la configuración de la empresa.
+   * @param http Cliente HTTP para llamadas a la API
+   */
   constructor(private http: HttpClient) {
     this.cargarConfiguracionEmpresa();
   }
 
+  /**
+   * Carga la configuración de la empresa desde la API para encabezados y logos.
+   */
   private cargarConfiguracionEmpresa() {
     this.http.get<any[]>(`${environment.apiBaseUrl}/ConfiguracionFactura/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -69,6 +82,11 @@ export class InvoiceService {
     });
   }
 
+  /**
+   * Exporta los datos proporcionados en formato PDF usando jsPDF y autoTable.
+   * @param config Configuración de exportación (título, columnas, datos, metadatos)
+   * @returns Resultado de la exportación
+   */
   async exportToPDF(config: ExportConfig): Promise<ExportResult> {
     try {
       this.validateConfig(config);
@@ -91,9 +109,13 @@ export class InvoiceService {
     }
   }
 
+  /**
+   * Carga el logo de la empresa y lo convierte a DataURL para usar en PDF.
+   * @returns DataURL del logo o null si no se puede cargar
+   */
   private async cargarLogo(): Promise<string | null> {
     if (!this.configuracionEmpresa?.coFa_Logo) {
-      console.log('No hay logo configurado');
+      //console.log('No hay logo configurado');
       return null;
     }
 
@@ -134,7 +156,7 @@ export class InvoiceService {
           ctx.drawImage(img, 0, 0, width, height);
 
           const dataUrl = canvas.toDataURL('image/png', 0.8);
-          console.log('Logo procesado correctamente desde URL');
+          //console.log('Logo procesado correctamente desde URL');
           resolve(dataUrl);
         } catch (e) {
           console.error('Error al procesar el logo:', e);
@@ -149,7 +171,7 @@ export class InvoiceService {
 
       try {
         const logoUrl = this.configuracionEmpresa.coFa_Logo;
-        console.log('Intentando cargar logo desde:', logoUrl);
+        //console.log('Intentando cargar logo desde:', logoUrl);
 
         if (logoUrl.startsWith('http')) {
           img.src = logoUrl;
@@ -165,6 +187,12 @@ export class InvoiceService {
     });
   }
 
+  /**
+   * Crea el encabezado del PDF con logo, nombre de empresa y metadatos.
+   * @param doc Instancia de jsPDF
+   * @param config Configuración de exportación
+   * @returns Posición Y donde debe comenzar la tabla
+   */
   private async crearEncabezado(doc: jsPDF, config: ExportConfig): Promise<number> {
     // Línea separadora en la parte inferior del encabezado
     doc.setFontSize(20);
@@ -176,7 +204,7 @@ export class InvoiceService {
     if (this.facturaDetalle?.coFa_Logo) {
       try {
         doc.addImage(this.facturaDetalle?.coFa_Logo, 'PNG', 20, 5, 30, 25);
-        console.log('Logo agregado al PDF correctamente');
+        //console.log('Logo agregado al PDF correctamente');
       } catch (e) {
         console.error('Error al agregar imagen al PDF:', e);
       }
@@ -214,6 +242,11 @@ export class InvoiceService {
     return yPos;
   }
 
+  /**
+   * Crea el pie de página del PDF con usuario, fecha y paginación.
+   * @param doc Instancia de jsPDF
+   * @param data Datos de la página actual
+   */
   private crearPiePagina(doc: jsPDF, data: any) {
     doc.setFontSize(8);
     doc.setTextColor(this.COLORES.grisTexto);
@@ -231,6 +264,12 @@ export class InvoiceService {
     doc.text(`Página ${data.pageNumber}/${totalPages}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 12, { align: 'right' });
   }
 
+  /**
+   * Crea la tabla de datos en el PDF usando autoTable.
+   * @param doc Instancia de jsPDF
+   * @param config Configuración de exportación
+   * @param startY Posición Y inicial para la tabla
+   */
   private async crearTabla(doc: jsPDF, config: ExportConfig, startY: number) {
     // Preparar datos de la tabla
     const tableData = this.prepararDatosTabla(config);
@@ -272,6 +311,11 @@ export class InvoiceService {
     });
   }
 
+  /**
+   * Prepara los datos y encabezados para la tabla del PDF.
+   * @param config Configuración de exportación
+   * @returns Encabezados y filas para la tabla
+   */
   private prepararDatosTabla(config: ExportConfig): { headers: string[], rows: any[][] } {
     const headers = config.columns.map(col => col.header);
     const rows = config.data.map(item =>
@@ -284,6 +328,11 @@ export class InvoiceService {
     return { headers, rows };
   }
 
+  /**
+   * Formatea un valor para mostrar en la tabla del PDF.
+   * @param valor Valor a formatear
+   * @returns Valor formateado como string
+   */
   private formatearValor(valor: any): string {
     if (valor === null || valor === undefined) {
       return '';
@@ -292,6 +341,10 @@ export class InvoiceService {
     return String(valor).trim();
   }
 
+  /**
+   * Obtiene el nombre del usuario actual desde localStorage.
+   * @returns Nombre del usuario o 'Sistema' si no se encuentra
+   */
   private obtenerUsuarioActual(): string {
     // Intentar obtener el usuario del localStorage o usar un valor por defecto
     try {
@@ -306,6 +359,10 @@ export class InvoiceService {
     return 'Sistema';
   }
 
+  /**
+   * Valida la configuración de exportación antes de generar el PDF.
+   * @param config Configuración de exportación
+   */
   private validateConfig(config: ExportConfig): void {
     if (!config.title) {
       throw new Error('El título del reporte es requerido');
@@ -324,12 +381,23 @@ export class InvoiceService {
     }
   }
 
+  /**
+   * Genera un nombre de archivo único usando la fecha y hora actual.
+   * @param baseName Nombre base
+   * @param extension Extensión del archivo
+   * @returns Nombre de archivo generado
+   */
   private generateFilename(baseName: string, extension: string): string {
     const fecha = new Date();
     const timestamp = fecha.toISOString().slice(0, 19).replace(/[-:T]/g, '');
     return `${baseName}_${timestamp}.${extension}`;
   }
 
+  /**
+   * Convierte un color hexadecimal a formato RGB.
+   * @param hex Color hexadecimal
+   * @returns Array RGB
+   */
   private hexToRgb(hex: string): [number, number, number] {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     if (result) {
@@ -343,11 +411,19 @@ export class InvoiceService {
   }
 
   // Método para recibir y almacenar la factura completa
+  /**
+   * Recibe y almacena la factura completa para exportación y generación de PDF.
+   * @param facturaCompleta Objeto de factura completa
+   */
   setFacturaCompleta(facturaCompleta: FacturaCompleta): void {
     this.facturaDetalle = facturaCompleta;
   }
 
   // Método para generar PDF de factura
+  /**
+   * Genera el PDF de la factura actual usando los datos almacenados.
+   * @returns Resultado de la exportación
+   */
   async generarFacturaPDF(): Promise<ExportResult> {
     if (!this.facturaDetalle) {
       return { success: false, message: 'No hay datos de factura para imprimir' };
@@ -382,6 +458,10 @@ export class InvoiceService {
   }
   
   // Método para agregar numeración de páginas en todas las páginas
+  /**
+   * Agrega numeración de páginas y fecha en todas las páginas del PDF.
+   * @param doc Instancia de jsPDF
+   */
   private agregarNumeracionPaginas(doc: jsPDF): void {
     const pageCount = doc.getNumberOfPages();
     const fecha = new Date();
@@ -401,6 +481,11 @@ export class InvoiceService {
     }
   }
 
+  /**
+   * Crea el encabezado específico para el PDF de factura.
+   * @param doc Instancia de jsPDF
+   * @returns Posición Y donde debe comenzar la tabla de productos
+   */
   private async crearEncabezadoFactura(doc: jsPDF): Promise<number> {
     if (!this.facturaDetalle) return 30;
 
@@ -537,6 +622,12 @@ export class InvoiceService {
     return yPos;
   }
 
+  /**
+   * Crea la tabla de productos en el PDF de factura, con paginación automática.
+   * @param doc Instancia de jsPDF
+   * @param startY Posición Y inicial para la tabla
+   * @returns Posición Y final después de la tabla
+   */
   private async crearTablaProductos(doc: jsPDF, startY: number) {
     if (!this.facturaDetalle || !this.facturaDetalle.detalleFactura.length) return startY;
 
@@ -656,6 +747,11 @@ export class InvoiceService {
     return finalY;
   }
 
+  /**
+   * Crea el pie de factura con totales y observaciones en el PDF.
+   * @param doc Instancia de jsPDF
+   * @param yPos Posición Y inicial para el pie
+   */
   private crearPieFactura(doc: jsPDF, yPos: number) {
     if (!this.facturaDetalle) return;
 
@@ -755,6 +851,11 @@ export class InvoiceService {
   }
 
 
+  /**
+   * Formatea una fecha a formato legible para mostrar en el PDF.
+   * @param fecha Fecha a formatear
+   * @returns Fecha formateada como string
+   */
   private formatearFecha(fecha: Date | string): string {
     if (!fecha) return 'N/A';
     const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
@@ -773,6 +874,12 @@ export class InvoiceService {
    * @param numeroFactura Número de factura completo (ej: "111-004-01-00002121")
    * @returns Rango formateado (ej: "111-004-01-00002000")
    */
+  /**
+   * Formatea un rango autorizado añadiendo el prefijo del número de factura y asegurando 8 dígitos.
+   * @param rangoNumerico Número del rango
+   * @param numeroFactura Número de factura completo
+   * @returns Rango formateado
+   */
   private formatearRangoAutorizado(rangoNumerico: string, numeroFactura: string): string {
     if (!rangoNumerico || !numeroFactura) return rangoNumerico || '';
     
@@ -788,6 +895,11 @@ export class InvoiceService {
   
   /**
    * Convierte el código de tipo de venta a su formato legible
+   * @param tipo Código del tipo de venta ('co' para Contado, 'cr' para Crédito)
+   * @returns Texto formateado del tipo de venta
+   */
+  /**
+   * Convierte el código de tipo de venta a su formato legible.
    * @param tipo Código del tipo de venta ('co' para Contado, 'cr' para Crédito)
    * @returns Texto formateado del tipo de venta
    */
