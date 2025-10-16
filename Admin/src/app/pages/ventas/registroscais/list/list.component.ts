@@ -81,6 +81,8 @@ import { set } from 'lodash';
   //Animaciones para collapse
 })
 export class ListComponent implements OnInit {
+
+  // ===== MODELO DE DATOS =====
   registroCai: RegistroCAI = {
     regC_Id: 0,
     regC_Descripcion: '',
@@ -130,6 +132,7 @@ export class ListComponent implements OnInit {
     this.registroCai.regC_FechaFinalEmision = new Date(value);
   }
 
+  // ===== CONFIGURACIÓN DE EXPORTACIÓN =====
   private readonly exportConfig = {
     // Configuración básica
     title: 'Listado de Registros CAI', // Título del reporte
@@ -214,13 +217,10 @@ export class ListComponent implements OnInit {
     return `${dia}/${mes}/${anio}`; // <-- formato dd/MM/yyyy
   }
 
+  // ===== PROPIEDADES GENERALES =====
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
-
-  // bread crumb items
   breadCrumbItems!: Array<{}>;
-
-  // Acciones disponibles para el usuario en esta pantalla
   accionesDisponibles: string[] = [];
 
   // Método robusto para validar si una acción está permitida
@@ -273,17 +273,19 @@ export class ListComponent implements OnInit {
     this.showEditForm = false; // Cerrar edit si está abierto
     this.activeActionRow = null; // Cerrar menú de acciones
   }
+
+  // ===== CONTROL DE FORMULARIOS =====
   activeActionRow: number | null = null;
   showEdit = true;
   showDetails = true;
   showDelete = true;
-  showCreateForm = false; // Control del collapse
-  showEditForm = false; // Control del collapse de edición
-  showDetailsForm = false; // Control del collapse de detalles
+  showCreateForm = false;
+  showEditForm = false;
+  showDetailsForm = false;
   RegistroCAIEditando: RegistroCAI | null = null;
   RegistroCAIDetalle: RegistroCAI | null = null;
 
-  // Propiedades para alertas
+  // ===== PROPIEDADES PARA ALERTAS =====
   mostrarOverlayCarga = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -291,8 +293,6 @@ export class ListComponent implements OnInit {
   mensajeError = '';
   mostrarAlertaWarning = false;
   mensajeWarning = '';
-
-  // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
   RegistroCAIAEliminar: RegistroCAI | null = null;
 
@@ -307,6 +307,7 @@ export class ListComponent implements OnInit {
     this.cargardatos(true);
   }
 
+  // ===== MÉTODOS DE EXPORTACIÓN =====
   async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
     if (this.exportando) {
       this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
@@ -494,10 +495,7 @@ export class ListComponent implements OnInit {
     return this.table.data$.value?.length > 0;
   }
 
-  // (navigateToCreate eliminado, lógica movida a crear)
-
-  // (navigateToEdit y navigateToDetails eliminados, lógica movida a editar y detalles)
-
+  // ===== CONTROL DE FORMULARIOS =====
   cerrarFormulario(): void {
     this.showCreateForm = false;
   }
@@ -540,6 +538,7 @@ export class ListComponent implements OnInit {
     }, 1000);
   }
 
+  // ===== MÉTODOS CRUD =====
   confirmarEliminar(registroCai: RegistroCAI): void {
     console.log('Solicitando confirmación para eliminar:', registroCai);
     this.RegistroCAIAEliminar = registroCai;
@@ -680,6 +679,7 @@ export class ListComponent implements OnInit {
     this.mensajeWarning = '';
   }
 
+  // ===== MÉTODOS PRIVADOS =====
   private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
@@ -714,6 +714,9 @@ export class ListComponent implements OnInit {
     console.log('Acciones finales:', this.accionesDisponibles);
   }
 
+  //Declaramos un estado en el cargarDatos, esto para hacer el overlay
+  //segun dicha funcion de recargar, ya que si vienes de hacer una accion
+  //es innecesario mostrar el overlay de carga
   private cargardatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
 
