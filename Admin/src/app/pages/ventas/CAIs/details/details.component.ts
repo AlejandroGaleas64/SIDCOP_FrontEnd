@@ -19,13 +19,25 @@ export class DetailsComponent implements OnChanges {
   mostrarAlertaError = false;
   mensajeError = '';
 
+  /**
+   * Detecta cambios en las propiedades de entrada del componente
+   * @param changes - Objeto con los cambios detectados
+   * - Carga los detalles cuando se reciben nuevos datos del CAI
+   */
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['caiData'] && changes['caiData'].currentValue) {
       this.cargarDetallesSimulado(changes['caiData'].currentValue);
     }
   }
 
-  // Simulación de carga
+  /**
+   * Simula la carga de detalles del CAI
+   * @param data - Datos del CAI a mostrar
+   * - Muestra indicador de carga
+   * - Crea una copia de los datos para visualización
+   * - Maneja errores durante la carga
+   * - Simula tiempo de respuesta del servidor
+   */
   cargarDetallesSimulado(data: CAIs): void {
     this.cargando = true;
     this.mostrarAlertaError = false;
@@ -43,15 +55,32 @@ export class DetailsComponent implements OnChanges {
     }, 500); // Simula tiempo de carga
   }
 
+  /**
+   * Cierra la vista de detalles
+   * - Emite evento para cerrar el componente de detalles
+   */
   cerrar(): void {
     this.onClose.emit();
   }
 
+  /**
+   * Cierra las alertas de error
+   * - Oculta la alerta de error
+   * - Limpia el mensaje de error
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaError = false;
     this.mensajeError = '';
   }
 
+  /**
+   * Formatea una fecha para mostrar en la interfaz
+   * @param fecha - Fecha a formatear (string, Date o null)
+   * @returns Fecha formateada en español hondureño o 'N/A' si es inválida
+   * - Maneja diferentes tipos de entrada (string, Date, null)
+   * - Valida que la fecha sea válida
+   * - Aplica formato local hondureño (es-HN)
+   */
   formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
     const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;

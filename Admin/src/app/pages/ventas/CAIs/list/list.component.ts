@@ -89,7 +89,12 @@ private readonly exportConfig = {
     //console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
-  // Métodos para los botones de acción principales (crear, editar, detalles)
+  /**
+   * Abre el formulario para crear un nuevo CAI
+   * - Alterna la visibilidad del formulario de creación
+   * - Cierra otros formularios abiertos (edición, detalles)
+   * - Cierra el menú de acciones activo
+   */
   crear(): void {
     //console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
@@ -98,6 +103,13 @@ private readonly exportConfig = {
     this.activeActionRow = null; // Cerrar menú de acciones
   }
 
+  /**
+   * Abre el formulario para editar un CAI existente
+   * @param cai - El objeto CAI a editar
+   * - Crea una copia del CAI para edición
+   * - Muestra el formulario de edición
+   * - Cierra otros formularios abiertos
+   */
   editar(cai: CAIs): void {
     //console.log('Abriendo formulario de edición para:', cai);
   
@@ -108,6 +120,13 @@ private readonly exportConfig = {
     this.activeActionRow = null; // Cerrar menú de acciones
   }
 
+  /**
+   * Abre la vista de detalles de un CAI
+   * @param cai - El objeto CAI del cual mostrar detalles
+   * - Crea una copia del CAI para visualización
+   * - Muestra el formulario de detalles
+   * - Cierra otros formularios abiertos
+   */
   detalles(cai: CAIs): void {
     //console.log('Abriendo detalles para:', cai);
     this.caiDetalle = { ...cai }; // Hacer copia profunda
@@ -131,7 +150,12 @@ private readonly exportConfig = {
 // ===== MÉTODOS DE EXPORTACIÓN OPTIMIZADOS =====
 
   /**
-   * Método unificado para todas las exportaciones
+   * Método unificado para exportar datos a diferentes formatos
+   * @param tipo - Tipo de exportación: 'excel', 'pdf' o 'csv'
+   * - Valida que no haya otra exportación en progreso
+   * - Verifica que existan datos para exportar
+   * - Ejecuta la exportación según el tipo seleccionado
+   * - Maneja errores y muestra mensajes al usuario
    */
   async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
     if (this.exportando) {
@@ -175,22 +199,35 @@ private readonly exportConfig = {
   }
 
   /**
-   * Métodos específicos para cada tipo (para usar en templates)
+   * Exporta los datos a formato Excel (.xlsx)
+   * Método específico que utiliza la función exportar general
    */
   async exportarExcel(): Promise<void> {
     await this.exportar('excel');
   }
 
+  /**
+   * Exporta los datos a formato PDF
+   * Método específico que utiliza la función exportar general
+   */
   async exportarPDF(): Promise<void> {
     await this.exportar('pdf');
   }
 
+  /**
+   * Exporta los datos a formato CSV (valores separados por comas)
+   * Método específico que utiliza la función exportar general
+   */
   async exportarCSV(): Promise<void> {
     await this.exportar('csv');
   }
 
   /**
-   * Verifica si se puede exportar un tipo específico
+   * Verifica si se puede realizar una exportación
+   * @param tipo - Tipo específico de exportación (opcional)
+   * @returns true si se puede exportar, false en caso contrario
+   * - Verifica que no haya exportación en progreso
+   * - Confirma que existan datos en la tabla
    */
   puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
     if (this.exportando) {
@@ -340,20 +377,40 @@ private readonly exportConfig = {
   mostrarConfirmacionEliminar = false;
   caiAEliminar: CAIs | null = null;
 
+  /**
+   * Cierra el formulario de creación de CAI
+   * - Oculta el formulario de creación
+   */
   cerrarFormulario(): void {
     this.showCreateForm = false;
   }
 
+  /**
+   * Cierra el formulario de edición de CAI
+   * - Oculta el formulario de edición
+   * - Limpia la referencia al CAI que se estaba editando
+   */
   cerrarFormularioEdicion(): void {
     this.showEditForm = false;
     this.caiEditando = null;
   }
 
+  /**
+   * Cierra el formulario de detalles de CAI
+   * - Oculta el formulario de detalles
+   * - Limpia la referencia al CAI del cual se mostraban detalles
+   */
   cerrarFormularioDetalles(): void {
     this.showDetailsForm = false;
     this.caiDetalle = null;
   }
 
+  /**
+   * Maneja el evento de guardado exitoso de un nuevo CAI
+   * @param cai - El CAI que fue guardado
+   * - Recarga los datos de la tabla para mostrar el nuevo registro
+   * - Cierra el formulario de creación
+   */
   guardarCai(cai: CAIs): void {
     //console.log('CAI guardado exitosamente desde create component:', cai);
     // Recargar los datos de la tabla
@@ -361,6 +418,12 @@ private readonly exportConfig = {
     this.cerrarFormulario();
   }
 
+  /**
+   * Maneja el evento de actualización exitosa de un CAI
+   * @param cai - El CAI que fue actualizado
+   * - Recarga los datos de la tabla para mostrar los cambios
+   * - Cierra el formulario de edición
+   */
   actualizarCai(cai: CAIs): void {
     //console.log('CAI actualizado exitosamente desde edit component:', cai);
     // Recargar los datos de la tabla
@@ -368,6 +431,13 @@ private readonly exportConfig = {
     this.cerrarFormularioEdicion();
   }
 
+  /**
+   * Solicita confirmación para eliminar un CAI
+   * @param cai - El CAI que se desea eliminar
+   * - Guarda referencia al CAI a eliminar
+   * - Muestra modal de confirmación
+   * - Cierra el menú de acciones
+   */
   confirmarEliminar(cai: CAIs): void {
     //console.log('Solicitando confirmación para eliminar:', cai);
     this.caiAEliminar = cai;
@@ -375,11 +445,24 @@ private readonly exportConfig = {
     this.activeActionRow = null; // Cerrar menú de acciones
   }
 
+  /**
+   * Cancela la operación de eliminación
+   * - Oculta el modal de confirmación
+   * - Limpia la referencia al CAI a eliminar
+   */
   cancelarEliminar(): void {
     this.mostrarConfirmacionEliminar = false;
     this.caiAEliminar = null;
   }
 
+  /**
+   * Ejecuta la eliminación de un CAI
+   * - Verifica que exista un CAI seleccionado para eliminar
+   * - Envía petición HTTP PUT al backend
+   * - Maneja diferentes tipos de respuesta (exitosa, en uso, error)
+   * - Muestra mensajes apropiados según el resultado
+   * - Recarga los datos si la eliminación fue exitosa
+   */
   eliminar(): void {
   if (!this.caiAEliminar) return;
   
@@ -469,6 +552,11 @@ private readonly exportConfig = {
   });
 }
 
+  /**
+   * Cierra todas las alertas de notificación
+   * - Oculta alertas de éxito, error y advertencia
+   * - Limpia todos los mensajes de alerta
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -478,7 +566,13 @@ private readonly exportConfig = {
     this.mensajeWarning = '';
   }
 
-  // Método para cargar las acciones disponibles del usuario
+  /**
+   * Carga las acciones disponibles para el usuario desde localStorage
+   * - Obtiene los permisos del usuario desde localStorage
+   * - Busca el módulo de CAIs por ID de pantalla
+   * - Extrae las acciones permitidas para este módulo
+   * - Normaliza los nombres de las acciones
+   */
   private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
@@ -510,6 +604,12 @@ private readonly exportConfig = {
     //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
+  /**
+   * Carga los datos de CAIs desde el backend
+   * - Realiza petición HTTP GET al endpoint de listado
+   * - Actualiza la tabla con los datos obtenidos
+   * - Se ejecuta al inicializar el componente y después de operaciones CRUD
+   */
   private cargarDatos(): void {
     this.http.get<CAIs[]>(`${environment.apiBaseUrl}/CAIs/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
