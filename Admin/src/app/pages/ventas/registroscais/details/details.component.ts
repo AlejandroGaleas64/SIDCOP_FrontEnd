@@ -12,16 +12,19 @@ import { environment } from 'src/environments/environment.prod';
   styleUrl: './details.component.scss'
 })
 export class DetailsComponent implements OnChanges {
+  // ===== PROPIEDADES DE ENTRADA Y SALIDA =====
   @Input() registroCaiData: RegistroCAI | null = null;
   @Output() onClose = new EventEmitter<void>();
 
+  // ===== PROPIEDADES DE DATOS =====
   RegistroCAIDetalle: RegistroCAI | null = null;
   cargando = false;
 
+  // ===== PROPIEDADES PARA ALERTAS =====
   mostrarAlertaError = false;
   mensajeError = '';
 
-  // Propiedades para el rango de facturas
+  // ===== PROPIEDADES PARA VISTA PREVIA =====
   numeroFacturaFormateado: string = '';
   Sucursales: any[] = [];
   PE: any[] = [];
@@ -37,6 +40,7 @@ export class DetailsComponent implements OnChanges {
     }
   }
 
+  // ===== MÉTODOS AUXILIARES =====
   // Función para obtener el valor numérico sin máscara
   private getUnmaskedValue(maskedValue: string): string {
     if (!maskedValue) return '';
@@ -102,6 +106,7 @@ export class DetailsComponent implements OnChanges {
       });
   }
 
+  // ===== MÉTODOS DE CARGA DE DATOS =====
   // Simulación de carga
   cargarDetallesSimulado(data: RegistroCAI): void {
     this.cargando = true;
@@ -123,6 +128,7 @@ export class DetailsComponent implements OnChanges {
     }, 500); // Simula tiempo de carga
   }
 
+  // ===== MÉTODOS DE CONTROL DEL COMPONENTE =====
   cerrar(): void {
     this.onClose.emit();
   }
@@ -132,6 +138,7 @@ export class DetailsComponent implements OnChanges {
     this.mensajeError = '';
   }
 
+  // ===== MÉTODOS DE FORMATO =====
   formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
     const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
