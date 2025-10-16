@@ -15,14 +15,11 @@ import { NgSelectModule } from '@ng-select/ng-select';
   styleUrl: './create.component.scss',
 })
 export class CreateComponent {
-  // Valida que el código tenga exactamente 3 dígitos
-  codigoValido(): boolean {
-    return /^[0-9]{3}$/.test(this.puntoEmision.puEm_Codigo);
-  }
- 
+  // ===== PROPIEDADES DE SALIDA =====
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<PuntoEmision>();
 
+  // ===== PROPIEDADES PARA ALERTAS =====
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -31,6 +28,7 @@ export class CreateComponent {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
 
+  // ===== MÉTODOS AUXILIARES =====
   ordenarPorMunicipioYDepartamento(sucursales: any[]): any[] {
     return sucursales.sort((a, b) => {
       if (a.depa_Descripcion < b.depa_Descripcion) return -1;
@@ -50,6 +48,7 @@ export class CreateComponent {
     );
   };
 
+  // ===== LISTAS PARA DROPDOWNS =====
   Sucursales: any[] = [];
 
   cargarSucursales() {
@@ -67,7 +66,13 @@ export class CreateComponent {
     this.cargarSucursales();
   }
 
-   // Solo permite números en el campo Código
+  // ===== MÉTODOS DE VALIDACIÓN =====
+  // Valida que el código tenga exactamente 3 dígitos
+  codigoValido(): boolean {
+    return /^[0-9]{3}$/.test(this.puntoEmision.puEm_Codigo);
+  }
+
+  // Solo permite números en el campo Código
   soloNumeros(event: KeyboardEvent): void {
     const charCode = event.key.charCodeAt(0);
     if (charCode < 48 || charCode > 57 || this.puntoEmision.puEm_Codigo.length >= 3) {
@@ -87,6 +92,7 @@ export class CreateComponent {
     }
   }
 
+  // ===== MODELO DE DATOS =====
   puntoEmision: PuntoEmision = {
     puEm_Id: 0,
     puEm_Codigo: '',
@@ -105,6 +111,7 @@ export class CreateComponent {
     estado: '',
   };
 
+  // ===== MÉTODOS DE CONTROL DE FORMULARIO =====
   cancelar(): void {
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
@@ -142,6 +149,7 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
+  // ===== MÉTODOS CRUD =====
   guardar(): void {
     this.mostrarErrores = true;
 

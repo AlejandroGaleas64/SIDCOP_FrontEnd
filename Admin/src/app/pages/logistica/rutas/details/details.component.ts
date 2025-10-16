@@ -1,3 +1,4 @@
+// ESTOS SON TODOS LOS IMPORTS NECESARIOS
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Ruta } from 'src/app/Modelos/logistica/Rutas.Model';
@@ -11,6 +12,7 @@ import { forkJoin } from 'rxjs';
 @Component({
   selector: 'app-details',
   standalone: true,
+  // CONFIRMAMOS LOS IMPORTS A UTILIZAR
   imports: [
     CommonModule,
     MapaSelectorComponent
@@ -27,6 +29,7 @@ export class DetailsComponent implements OnChanges {
   mostrarAlertaError = false;
   mensajeError = '';
 
+  // ESTO ES PARA EL MAPA
   puntosVista: { lat: number; lng: number; nombre?: string; cliente?: string; nombrenegocio?: string }[] = [];
 
   cliente: Cliente[] = [];
@@ -59,6 +62,7 @@ export class DetailsComponent implements OnChanges {
     }, 500);
   }
 
+  // CARGAMOS LOS CLIENTES PARA OBTENER SUS DIRECCIONES Y MOSTRARLAS EN EL MAPA
   cargarClientes(): void {
     this.http.get<Cliente[]>(`${environment.apiBaseUrl}/Cliente/Listar/`, {
       headers: { 'x-api-key': environment.apiKey }

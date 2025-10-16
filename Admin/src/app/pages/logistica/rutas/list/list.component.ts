@@ -1,3 +1,4 @@
+// ESTOS SON TODOS LOS IMPORTS NECESARIOS
 import { Component, OnInit } from '@angular/core';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
@@ -22,6 +23,7 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
 @Component({
   selector: 'app-list',
   standalone: true,
+  // CONFIRMAMOS LOS IMPORTS A UTILIZAR
   imports: [
     CommonModule,
     FormsModule,
@@ -514,10 +516,10 @@ export class ListComponent implements OnInit {
     if (permisosRaw) {
       try {
         const permisos = JSON.parse(permisosRaw);
-        // BUSCAMOS EL MÓDULO DE ESTADOS CIVILES
+        // BUSCAMOS EL MÓDULO DE RUTAS
         let modulo = null;
         if (Array.isArray(permisos)) {
-          // BUSCAMOS EL MÓDULO DE ESTADOS CIVILES POR ID
+          // BUSCAMOS EL MÓDULO DE RUTAS POR ID
           modulo = permisos.find((m: any) => m.Pant_Id === 14);
         } else if (typeof permisos === 'object' && permisos !== null) {
           // ESTO ES PARA CUANDO LOS PERMISOS ESTÁN EN UN OBJETO CON CLAVES

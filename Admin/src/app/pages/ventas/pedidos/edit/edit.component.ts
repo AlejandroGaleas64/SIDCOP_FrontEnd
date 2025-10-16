@@ -273,6 +273,8 @@ export class EditComponent implements OnInit, OnChanges {
   
 
   cargarProductosPorCliente(clienteId: number): void {
+    this.mostrarOverlayCarga = true; // Activar el overlay
+    
     this.http
       .get<any>(
         `${environment.apiBaseUrl}/Productos/ListaPrecio/${clienteId}`,
@@ -318,6 +320,7 @@ export class EditComponent implements OnInit, OnChanges {
           });
 
           this.aplicarFiltros();
+          this.mostrarOverlayCarga = false; // Desactivar el overlay
        
         },
         error: (error) => {
@@ -325,6 +328,7 @@ export class EditComponent implements OnInit, OnChanges {
           this.mostrarAlertaWarning = true;
           this.mensajeWarning =
             'No se pudieron obtener los productos para el cliente seleccionado.';
+          this.mostrarOverlayCarga = false; // Desactivar el overlay en caso de error
         },
       });
   }
@@ -380,6 +384,9 @@ export class EditComponent implements OnInit, OnChanges {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
+
+  // Variable para el overlay de carga (mismo patrón que list)
+  mostrarOverlayCarga = false;
 
   trackByProducto(index: number, producto: any): number {
     return producto.prod_Id;
@@ -744,6 +751,8 @@ export class EditComponent implements OnInit, OnChanges {
   }
 
   cargarListados(): void {
+    this.mostrarOverlayCarga = true; // Activar el overlay
+    
     this.http
       .get<any>(`${environment.apiBaseUrl}/Cliente/Listar`, {
         headers: { 'x-api-key': environment.apiKey },
@@ -764,9 +773,18 @@ export class EditComponent implements OnInit, OnChanges {
                 //console.log('Direcciones cargadas:', direcciones);
                 this.TodasDirecciones = direcciones;
                 this.configurarUbicacionInicial();
+                this.mostrarOverlayCarga = false; // Desactivar el overlay cuando todo esté cargado
               },
+              error: (error) => {
+                console.error('Error al cargar direcciones:', error);
+                this.mostrarOverlayCarga = false; // Desactivar el overlay en caso de error
+              }
             });
         },
+        error: (error) => {
+          console.error('Error al cargar clientes:', error);
+          this.mostrarOverlayCarga = false; // Desactivar el overlay en caso de error
+        }
       });
   }
 

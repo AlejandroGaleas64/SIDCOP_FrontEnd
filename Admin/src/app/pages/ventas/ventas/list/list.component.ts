@@ -18,9 +18,18 @@ import {
   ExportConfig,
   ExportColumn,
 } from 'src/app/shared/exportHori.service';
-import { Factura, VentaInsertar, VentaDetalle } from 'src/app/Modelos/ventas/Facturas.model';
+import {
+  Factura,
+  VentaInsertar,
+  VentaDetalle,
+} from 'src/app/Modelos/ventas/Facturas.model';
 import { Respuesta } from 'src/app/Modelos/apiresponse.model';
 
+/**
+ * Componente para la gestión y visualización de ventas (facturas).
+ * Permite listar, filtrar, exportar, crear, ver detalles y controlar acciones según permisos del usuario.
+ * Incluye paginación, overlay de carga y sistema de alertas.
+ */
 @Component({
   selector: 'app-list',
   standalone: true,
@@ -32,7 +41,7 @@ import { Respuesta } from 'src/app/Modelos/apiresponse.model';
     TableModule,
     PaginationModule,
     CreateComponent,
-    DetailsComponent 
+    DetailsComponent,
   ],
   templateUrl: './list.component.html',
   styleUrl: './list.component.scss',
@@ -125,9 +134,15 @@ export class ListComponent implements OnInit {
   };
 
   // bread crumb items
+  /**
+   * Items para el breadcrumb de navegación.
+   */
   breadCrumbItems!: Array<{}>;
 
   // Acciones disponibles para el usuario en esta pantalla
+  /**
+   * Acciones permitidas para el usuario en la pantalla.
+   */
   accionesDisponibles: string[] = [];
 
   // METODO PARA VALIDAR SI UNA ACCIÓN ESTÁ PERMITIDA
@@ -138,6 +153,9 @@ export class ListComponent implements OnInit {
   }
 
   // Estado de exportación
+  /**
+   * Estado de exportación y tipo de exportación actual.
+   */
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
 
@@ -162,10 +180,7 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null; // Cerrar menú de acciones
   }
 
-
   detalles(factura: Factura): void {
-
-
     // Usar el ID para cargar datos actualizados desde el API
     this.facturaIdDetalle = factura.fact_Id;
     this.facturaDetalle = null; // Limpiar datos previos
@@ -351,9 +366,7 @@ export class ListComponent implements OnInit {
   private limpiarTexto(texto: any): string {
     if (!texto) return '';
 
-    return String(texto)
-      .trim()
-      .substring(0, 150);
+    return String(texto).trim().substring(0, 150);
   }
 
   /**
@@ -389,21 +402,39 @@ export class ListComponent implements OnInit {
     }
   }
 
+  /**
+   * Fila activa para mostrar acciones flotantes.
+   */
   activeActionRow: number | null = null;
   showEdit = true;
   showDetails = true;
   showDelete = true;
-  showCreateForm = false; // Control del collapse
-  showEditForm = false; // Control del collapse de edición
-  showDetailsForm = false; // Control del collapse de detalles
+  /**
+   * Control de visibilidad para los formularios de creación, edición y detalles.
+   */
+  showCreateForm = false;
+  showEditForm = false;
+  showDetailsForm = false;
+  /**
+   * Factura en edición y factura en detalles.
+   */
   facturaEditando: Factura | null = null;
   facturaDetalle: Factura | null = null;
-  facturaIdDetalle: number | null = null; // Nuevo: para pasar ID al componente de detalles
+  /**
+   * Identificador de la factura para el componente de detalles.
+   */
+  facturaIdDetalle: number | null = null;
 
   // Propiedades para overlay de carga
+  /**
+   * Muestra el overlay de carga mientras se obtienen datos.
+   */
   mostrarOverlayCarga = false;
 
   // Propiedades para alertas
+  /**
+   * Control de visibilidad y mensajes para alertas de éxito, error y advertencia.
+   */
   mostrarAlertaExito = false;
   mensajeExito = '';
   mostrarAlertaError = false;
@@ -411,48 +442,58 @@ export class ListComponent implements OnInit {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
 
-
-
+  /**
+   * Cierra el formulario de creación de factura.
+   */
   cerrarFormulario(): void {
     this.showCreateForm = false;
   }
 
+  /**
+   * Cierra el formulario de edición de factura.
+   */
   cerrarFormularioEdicion(): void {
     this.showEditForm = false;
     this.facturaEditando = null;
   }
 
+  /**
+   * Cierra el formulario de detalles de factura.
+   */
   cerrarFormularioDetalles(): void {
     this.showDetailsForm = false;
     this.facturaDetalle = null;
     this.facturaIdDetalle = null; // Limpiar también el ID
   }
 
+  /**
+   * Guarda una factura nueva y recarga los datos de la tabla.
+   * Si se solicita, muestra el formulario de detalles.
+   * @param datos Datos de la factura guardada
+   */
   guardarFactura(datos: any): void {
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
-      
       // Recargar los datos de la tabla
       this.cargardatos();
-      
+
       // Cerrar el formulario de creación
       this.showCreateForm = false;
-      
+
       // Mostrar mensaje de éxito
       this.mensajeExito = `Factura guardada exitosamente`;
       this.mostrarAlertaExito = true;
-      
+
       // Si se solicitó mostrar detalles y tenemos un ID válido
       if (datos.mostrarDetalles && datos.fact_Id > 0) {
-        
         // Configurar el ID para el componente de detalles
         this.facturaIdDetalle = datos.fact_Id;
         this.facturaDetalle = null; // Limpiar datos previos
-        
+
         // Mostrar el formulario de detalles
         this.showDetailsForm = true;
       }
-      
+
       // Ocultar el mensaje de éxito después de un tiempo
       setTimeout(() => {
         this.mostrarAlertaExito = false;
@@ -461,8 +502,9 @@ export class ListComponent implements OnInit {
     }, 1000);
   }
 
-
-
+  /**
+   * Cierra todas las alertas activas.
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -473,10 +515,13 @@ export class ListComponent implements OnInit {
   }
 
   // AQUI EMPIEZA LO BUENO PARA LAS ACCIONES
+  /**
+   * Carga las acciones permitidas para el usuario desde los permisos almacenados.
+   */
   private cargarAccionesUsuario(): void {
     // OBTENEMOS PERMISOSJSON DEL LOCALSTORAGE
     const permisosRaw = localStorage.getItem('permisosJson');
-     let accionesArray: string[] = [];
+    let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
         const permisos = JSON.parse(permisosRaw);
@@ -495,8 +540,7 @@ export class ListComponent implements OnInit {
             (a: any) => typeof a === 'string'
           );
         }
-      } catch (e) {
-      }
+      } catch (e) {}
     }
     // AQUI FILTRAMOS Y NORMALIZAMOS LAS ACCIONES
     this.accionesDisponibles = accionesArray
@@ -507,6 +551,9 @@ export class ListComponent implements OnInit {
   // Declaramos un estado en el cargarDatos, esto para hacer el overlay
   // segun dicha funcion de recargar, ya que si vienes de hacer una accion
   // es innecesario mostrar el overlay de carga
+  /**
+   * Carga los datos de ventas (facturas) desde el API y los prepara para la tabla.
+   */
   private cargardatos(): void {
     this.mostrarOverlayCarga = true;
 

@@ -64,6 +64,51 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
+  // Función para formatear el código CAI con la máscara
+  formatCaiCode(event: any): void {
+    let value = event.target.value;
+    
+    // Remover todos los caracteres que no sean letras o números
+    value = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    
+    // Limitar a 32 caracteres (5 grupos de 6 + 1 grupo de 2)
+    if (value.length > 32) {
+      value = value.substring(0, 32);
+    }
+    
+    // Aplicar la máscara: XXXXXX-XXXXXX-XXXXXX-XXXXXX-XXXXXX-XX
+    let formatted = '';
+    for (let i = 0; i < value.length; i++) {
+      // Agregar guión después de cada grupo de 6 caracteres, excepto al final
+      if (i > 0 && i % 6 === 0 && i < 30) {
+        formatted += '-';
+      }
+      // Agregar guión antes del último grupo de 2 caracteres
+      else if (i === 30 && value.length > 30) {
+        formatted += '-';
+      }
+      formatted += value[i];
+    }
+    
+    // Actualizar el valor del modelo
+    this.cai.nCai_Codigo = formatted;
+    
+    // Actualizar el valor del input
+    event.target.value = formatted;
+  }
+
+  // Función para manejar el pegado de texto
+  onPasteCaiCode(event: ClipboardEvent): void {
+    event.preventDefault();
+    const pastedText = event.clipboardData?.getData('text') || '';
+    
+    // Simular el evento de input con el texto pegado
+    const target = event.target as HTMLInputElement;
+    target.value = pastedText;
+    
+    this.formatCaiCode({ target });
+  }
+
   guardar(): void {
   this.mostrarErrores = true;
 

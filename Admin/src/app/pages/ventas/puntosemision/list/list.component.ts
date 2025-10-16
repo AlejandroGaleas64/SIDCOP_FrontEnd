@@ -14,9 +14,7 @@ import { CreateComponent } from '../create/create.component';
 import { EditComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
-// Importar el servicio de exportación optimizado
-import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
-
+//Importaciones de Animaciones
 import {
   trigger,
   state,
@@ -25,6 +23,8 @@ import {
   animate
 } from '@angular/animations';
 import { set } from 'lodash';
+// Importar el servicio de exportación optimizado
+import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
 
 @Component({
   selector: 'app-list',
@@ -77,8 +77,8 @@ import { set } from 'lodash';
   //Animaciones para collapse
 })
 export class ListComponent implements OnInit {
- // ===== CONFIGURACIÓN FÁCIL DE EXPORTACIÓN =====
-  // 🔧 PERSONALIZA AQUÍ TU CONFIGURACIÓN DE EXPORTACIÓN 🔧
+
+  // ===== CONFIGURACIÓN DE EXPORTACIÓN =====
   private readonly exportConfig = {
     // Configuración básica
     title: 'Listado de Puntos de Emision',                    // Título del reporte
@@ -107,17 +107,15 @@ export class ListComponent implements OnInit {
     })
   };
 
-  
-
-  // Estado de exportación
+  // ===== PROPIEDADES DE EXPORTACIÓN =====
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
-
-
-  // bread crumb items
+  
+  // ===== PROPIEDADES GENERALES =====
   breadCrumbItems!: Array<{}>;
-
-   // Acciones disponibles para el usuario en esta pantalla
+  
+  // ===== CONTROL DE ACCIONES Y PERMISOS =====
+  // Acciones disponibles para el usuario en esta pantalla
   accionesDisponibles: string[] = [];
 
   // Método robusto para validar si una acción está permitida
@@ -170,6 +168,7 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null; // Cerrar menú de acciones
   }
 
+  // ===== CONTROL DE FORMULARIOS Y ACCIONES =====
   activeActionRow: number | null = null;
   showEdit = true;
   showDetails = true;
@@ -180,8 +179,8 @@ export class ListComponent implements OnInit {
   PEEditando: PuntoEmision | null = null;
   PEDetalle: PuntoEmision | null = null;
   
-  // Propiedades para alertas
-      mostrarOverlayCarga = false;
+  // ===== PROPIEDADES PARA ALERTAS =====
+  mostrarOverlayCarga = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
   mostrarAlertaError = false;
@@ -189,7 +188,7 @@ export class ListComponent implements OnInit {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
   
-  // Propiedades para confirmación de eliminación
+  // ===== PROPIEDADES PARA CONFIRMACIÓN DE ELIMINACIÓN =====
   mostrarConfirmacionEliminar = false;
   PEEliminar: PuntoEmision | null = null;
 
@@ -205,7 +204,11 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
   }   
 
 
-  //Info async para exportar
+  // ===== MÉTODOS PRINCIPALES DE EXPORTACIÓN =====
+  /**
+   * Método principal para exportar datos en diferentes formatos
+   * @param tipo - Tipo de exportación: 'excel' | 'pdf' | 'csv'
+   */
   async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
     if (this.exportando) {
       this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
@@ -387,17 +390,11 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
     return this.table.data$.value?.length > 0;
   }
 
-
-
-  // (navigateToCreate eliminado, lógica movida a crear)
-
-  // (navigateToEdit y navigateToDetails eliminados, lógica movida a editar y detalles)
-
+  // ===== MÉTODOS DE CONTROL DE FORMULARIOS =====
   cerrarFormulario(): void {
     this.showCreateForm = false;
   }
 
-  
   cerrarFormularioEdicion(): void {
     this.showEditForm = false;
     this.PEEditando = null;
@@ -408,6 +405,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
     this.PEDetalle = null;
   }
 
+  // ===== MÉTODOS CRUD =====
   guardarPE(puntodeemision: PuntoEmision): void {
     this.mostrarOverlayCarga = true;
     setTimeout(()=> {
@@ -556,6 +554,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
     this.mensajeWarning = '';
   }
 
+  // ===== MÉTODOS PRIVADOS =====
   private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
@@ -585,9 +584,9 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
     //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
-
- 
-
+  //Declaramos un estado en el cargarDatos, esto para hacer el overlay
+  //segun dicha funcion de recargar, ya que si vienes de hacer una accion
+  //es innecesario mostrar el overlay de carga
   private cargardatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
 
