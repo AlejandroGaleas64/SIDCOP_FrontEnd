@@ -22,11 +22,13 @@ import { NgSelectModule } from '@ng-select/ng-select';
   styleUrl: './edit.component.scss',
 })
 export class EditComponent implements OnChanges {
+  // ===== PROPIEDADES DE ENTRADA Y SALIDA =====
   @Input() PEData: PuntoEmision | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<PuntoEmision>();
   @Output() onOverlayChange = new EventEmitter<boolean>();
 
+  // ===== MODELO DE DATOS =====
   puntoEmision: PuntoEmision = {
     puEm_Id: 0,
     puEm_Codigo: '',
@@ -45,6 +47,7 @@ export class EditComponent implements OnChanges {
     estado: '',
   };
 
+  // ===== PROPIEDADES PARA ALERTAS =====
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -53,9 +56,12 @@ export class EditComponent implements OnChanges {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
+  
+  // ===== LISTAS PARA DROPDOWNS =====
   Sucursales: any[] = [];
   PEOriginal: any = {};
 
+  // ===== MÉTODOS AUXILIARES =====
   ordenarPorMunicipioYDepartamento(sucursales: any[]): any[] {
     return sucursales.sort((a, b) => {
       if (a.depa_Descripcion < b.depa_Descripcion) return -1;
@@ -90,7 +96,8 @@ export class EditComponent implements OnChanges {
     this.cargarSucursales();
   }
 
-   // Solo permite números en el campo Código
+  // ===== MÉTODOS DE VALIDACIÓN =====
+  // Solo permite números en el campo Código
   soloNumeros(event: KeyboardEvent): void {
     const charCode = event.key.charCodeAt(0);
     if (charCode < 48 || charCode > 57 || this.puntoEmision.puEm_Codigo.length >= 3) {
@@ -114,6 +121,7 @@ export class EditComponent implements OnChanges {
     return /^[0-9]{3}$/.test(this.puntoEmision.puEm_Codigo);
   }
 
+  // ===== CICLO DE VIDA DEL COMPONENTE =====
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['PEData'] && changes['PEData'].currentValue) {
       this.puntoEmision = { ...changes['PEData'].currentValue };
@@ -124,6 +132,7 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // ===== MÉTODOS DE CONTROL DE FORMULARIO =====
   cancelar(): void {
     this.cerrarAlerta();
     this.onCancel.emit();
@@ -162,6 +171,7 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // ===== DETECCIÓN DE CAMBIOS =====
   obtenerListaCambios(): any[] {
     return Object.values(this.cambiosDetectados);
   }
@@ -219,6 +229,7 @@ export class EditComponent implements OnChanges {
     this.guardar();
   }
 
+  // ===== MÉTODOS PRIVADOS =====
   private guardar(): void {
     this.mostrarErrores = true;
 
