@@ -16,8 +16,23 @@ import { ViewChild } from '@angular/core';
 import { CdkStepper } from '@angular/cdk/stepper';
 import { CurrencyMaskModule } from "ng2-currency-mask";
 
-
-
+/**
+ * Componente para crear descuentos en el sistema de inventario.
+ * 
+ * Este componente permite:
+ * - Crear descuentos por porcentaje o monto fijo
+ * - Aplicar descuentos a productos, categorías, subcategorías o marcas
+ * - Asignar descuentos a clientes específicos
+ * - Definir escalas de descuento progresivas
+ * - Validar conflictos con descuentos existentes
+ * 
+ * @remarks
+ * El componente utiliza un stepper de 4 pasos:
+ * 1. Información general del descuento
+ * 2. Selección de items (productos, categorías, etc.)
+ * 3. Selección de clientes
+ * 4. Configuración de escalas de descuento
+ */
 @Component({
   selector: 'app-create',
   standalone: true,
@@ -27,13 +42,17 @@ import { CurrencyMaskModule } from "ng2-currency-mask";
   styleUrl: './create.component.scss'
 })
 export class CreateComponent   {
+  /** Evento emitido cuando se cancela la creación del descuento */
   @Output() onCancel = new EventEmitter<void>();
+  
+  /** Evento emitido cuando se guarda exitosamente el descuento */
   @Output() onSave = new EventEmitter<Descuento>();
-    @ViewChild('cdkStepper') cdkStepper!: CdkStepper;
+  
+  /** Referencia al componente stepper para navegación programática */
+  /** Referencia al componente stepper para navegación programática */
+  @ViewChild('cdkStepper') cdkStepper!: CdkStepper;
 
-    tabActiva: string = 'productos';
-
-
+  tabActiva: string = 'productos';
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -45,113 +64,112 @@ export class CreateComponent   {
   filtro: string = '';
   seleccionados: number[] = [];
   clientesAgrupados: { canal: string, clientes: any[], filtro: string, collapsed: boolean }[] = [];
-clientesSeleccionados: number[] = [];
-descuentosExistentes: any[] = [];
-activeTab: number = 1;
-change(event: any) {
-  }
-
+  clientesSeleccionados: number[] = [];
+  descuentosExistentes: any[] = [];
+  activeTab: number = 1;
   seleccionContado: boolean = false;
-seleccionCredito: boolean = false;
-formaPago: string = ''; // Aquí se guardará "CO", "CR" o "AM"
+  seleccionCredito: boolean = false;
+  /** Forma de pago: 'CO' (Contado), 'CR' (Crédito), 'AM' (Ambos) */
+  formaPago: string = '';
+  hoy: string;
+  tieneAyudante: boolean = false;
+  mostrarOverlayCarga = false;
+  validado = true;
 
-actualizarFormaPago(): void {
-  if (this.seleccionContado && this.seleccionCredito) {
-    this.formaPago = 'AM'; // Ambos
-  } else if (this.seleccionContado) {
-    this.formaPago = 'CO'; // Solo contado
-  } else if (this.seleccionCredito) {
-    this.formaPago = 'CR'; // Solo crédito
-  } else {
-    this.formaPago = ''; // Ninguno seleccionado
+  change(event: any) {
   }
 
-
-}
-
-get itemsDisponibles(): any[] {
-  switch (this.seccionVisible) {
-    case 'productos': return this.productos;
-    case 'categorias': return this.categorias;
-    case 'subcategorias': return this.subcategorias;
-    case 'marcas': return this.marcas;
-    default: return [];
+  actualizarFormaPago(): void {
+    if (this.seleccionContado && this.seleccionCredito) {
+      this.formaPago = 'AM';
+    } else if (this.seleccionContado) {
+      this.formaPago = 'CO';
+    } else if (this.seleccionCredito) {
+      this.formaPago = 'CR';
+    } else {
+      this.formaPago = '';
+    }
   }
-}
 
-getId(item: any): number {
-  if (this.seccionVisible === 'productos') return item.prod_Id;
-  if (this.seccionVisible === 'categorias') return item.cate_Id;
-  if (this.seccionVisible === 'subcategorias') return item.subc_Id;
-  if (this.seccionVisible === 'marcas') return item.marc_Id;
-  return 0;
-}
-
-getNombre(item: any): string {
-  if (this.seccionVisible === 'productos') return item.prod_DescripcionCorta;
-  if (this.seccionVisible === 'categorias') return item.cate_Descripcion;
-  if (this.seccionVisible === 'subcategorias') return item.subc_Descripcion;
-  if (this.seccionVisible === 'marcas') return item.marc_Descripcion;
-  return '';
-}
-
-mostrarSeccion(seccion: string) {
-  this.seccionVisible = seccion;
-  this.filtro = '';
-  this.seleccionados = []; // Limpiar al cambiar sección
-  this.descuentoDetalle.idReferencias = []; // También limpiar la propiedad relacionada
-  this.tabActiva = seccion;
-
-  switch (seccion) {
-    case 'productos':
-      this.descuento.desc_Aplicar = 'P';
-      break;
-    case 'categorias':
-      this.descuento.desc_Aplicar = 'C';
-      break;
-    case 'subcategorias':
-      this.descuento.desc_Aplicar = 'S';
-      break;
-    case 'marcas':
-      this.descuento.desc_Aplicar = 'M';
-      break;
+  get itemsDisponibles(): any[] {
+    switch (this.seccionVisible) {
+      case 'productos': return this.productos;
+      case 'categorias': return this.categorias;
+      case 'subcategorias': return this.subcategorias;
+      case 'marcas': return this.marcas;
+      default: return [];
+    }
   }
-}
 
-getItemsFiltrados() {
-  return this.itemsDisponibles.filter(item =>
-    this.getNombre(item).toLowerCase().includes(this.filtro.toLowerCase())
-  );
-}
-
-alternarSeleccion(id: number) {
-  const index = this.seleccionados.indexOf(id);
-  if (index > -1) {
-    this.seleccionados.splice(index, 1);
-  } else {
-    this.seleccionados.push(id);
+  getId(item: any): number {
+    if (this.seccionVisible === 'productos') return item.prod_Id;
+    if (this.seccionVisible === 'categorias') return item.cate_Id;
+    if (this.seccionVisible === 'subcategorias') return item.subc_Id;
+    if (this.seccionVisible === 'marcas') return item.marc_Id;
+    return 0;
   }
-  this.descuentoDetalle.idReferencias = [...this.seleccionados]; // actualizar modelo
-}
 
-todosSeleccionados(): boolean {
-  const items = this.getItemsFiltrados();
-  return items.length > 0 && items.every(item => this.seleccionados.includes(this.getId(item)));
-}
+  getNombre(item: any): string {
+    if (this.seccionVisible === 'productos') return item.prod_DescripcionCorta;
+    if (this.seccionVisible === 'categorias') return item.cate_Descripcion;
+    if (this.seccionVisible === 'subcategorias') return item.subc_Descripcion;
+    if (this.seccionVisible === 'marcas') return item.marc_Descripcion;
+    return '';
+  }
 
-seleccionarTodos(event: any) {
-  const items = this.getItemsFiltrados();
-  if (event.target.checked) {
-    this.seleccionados = items.map(item => this.getId(item));
-  } else {
+  mostrarSeccion(seccion: string) {
+    this.seccionVisible = seccion;
+    this.filtro = '';
     this.seleccionados = [];
+    this.descuentoDetalle.idReferencias = [];
+    this.tabActiva = seccion;
+
+    switch (seccion) {
+      case 'productos':
+        this.descuento.desc_Aplicar = 'P';
+        break;
+      case 'categorias':
+        this.descuento.desc_Aplicar = 'C';
+        break;
+      case 'subcategorias':
+        this.descuento.desc_Aplicar = 'S';
+        break;
+      case 'marcas':
+        this.descuento.desc_Aplicar = 'M';
+        break;
+    }
   }
-  this.descuentoDetalle.idReferencias = [...this.seleccionados];
-}
 
-hoy: string;
+  getItemsFiltrados() {
+    return this.itemsDisponibles.filter(item =>
+      this.getNombre(item).toLowerCase().includes(this.filtro.toLowerCase())
+    );
+  }
 
+  alternarSeleccion(id: number) {
+    const index = this.seleccionados.indexOf(id);
+    if (index > -1) {
+      this.seleccionados.splice(index, 1);
+    } else {
+      this.seleccionados.push(id);
+    }
+    this.descuentoDetalle.idReferencias = [...this.seleccionados];
+  }
 
+  todosSeleccionados(): boolean {
+    const items = this.getItemsFiltrados();
+    return items.length > 0 && items.every(item => this.seleccionados.includes(this.getId(item)));
+  }
+
+  seleccionarTodos(event: any) {
+    const items = this.getItemsFiltrados();
+    if (event.target.checked) {
+      this.seleccionados = items.map(item => this.getId(item));
+    } else {
+      this.seleccionados = [];
+    }
+    this.descuentoDetalle.idReferencias = [...this.seleccionados];
+  }
 
   constructor(private http: HttpClient) {
     this.listarcategorias();
@@ -160,312 +178,308 @@ hoy: string;
     this.listarSubcategorias();
     this.listarClientes();
     this.listarDescuentos();
-     const today = new Date();
-    this.hoy = today.toISOString().split('T')[0]; // "YYYY-MM-DD"
+    const today = new Date();
+    this.hoy = today.toISOString().split('T')[0];
     this.mostrarSeccion('productos');
-    
   }
-
-
 
   descuento: Descuento = {
     desc_Id:  0,
-  desc_Descripcion:  '',
-  desc_Tipo: false, 
-  desc_Aplicar:  '',
-  desc_FechaInicio:  new Date(),
-  desc_FechaFin: new Date(),
-  desc_Observaciones:  '',
-  usua_Creacion:  0,
-  desc_FechaCreacion:  new Date(),
-  usua_Modificacion: 0,
-  desc_FechaModificacion: new Date(),
-  desc_Estado: false,
-  usuarioCreacion:  '',
-  usuarioModificacion: '',
-  code_Status:  0,
-  message_Status:'',
+    desc_Descripcion:  '',
+    desc_Tipo: false, 
+    desc_Aplicar:  '',
+    desc_FechaInicio:  new Date(),
+    desc_FechaFin: new Date(),
+    desc_Observaciones:  '',
+    usua_Creacion:  0,
+    desc_FechaCreacion:  new Date(),
+    usua_Modificacion: 0,
+    desc_FechaModificacion: new Date(),
+    desc_Estado: false,
+    usuarioCreacion:  '',
+    usuarioModificacion: '',
+    code_Status:  0,
+    message_Status:'',
     clientes: '',
-  referencias: '',
-  escalas: '',
-  desc_TipoFactura: '',
+    referencias: '',
+    escalas: '',
+    desc_TipoFactura: '',
   }
 
   descuentoDetalle: DescuentoDetalle = {
     desc_Id:  0,
-  desD_Id:  0,
-  desD_IdReferencia: 0, 
-  idReferencias: [],
-  usua_Creacion:  0,
-  desD_FechaCreacion:  new Date(),
-  usua_Modificacion: 0,
-  desD_FechaModificacion: new Date(),
-  desD_Estado: false,
-  usuarioCreacion:  '',
-  usuarioModificacion: '',
-  code_Status:  0,
-  message_Status:''
+    desD_Id:  0,
+    desD_IdReferencia: 0, 
+    idReferencias: [],
+    usua_Creacion:  0,
+    desD_FechaCreacion:  new Date(),
+    usua_Modificacion: 0,
+    desD_FechaModificacion: new Date(),
+    desD_Estado: false,
+    usuarioCreacion:  '',
+    usuarioModificacion: '',
+    code_Status:  0,
+    message_Status:''
   }
 
   descuentoPorCliente: DescuentoPorCliente = {
     desc_Id:  0,
-  deCl_Id:  0,
-  clie_Id: 0, 
-  idClientes: [],
-  usua_Creacion:  0,
-  deEs_FechaCreacion:  new Date(),
-  usua_Modificacion: 0,
-  deEs_FechaModificacion: new Date(),
-  deCl_Estado: false,
-  usuarioCreacion:  '',
-  usuarioModificacion: '',
-  code_Status:  0,
-  message_Status:''
+    deCl_Id:  0,
+    clie_Id: 0, 
+    idClientes: [],
+    usua_Creacion:  0,
+    deEs_FechaCreacion:  new Date(),
+    usua_Modificacion: 0,
+    deEs_FechaModificacion: new Date(),
+    deCl_Estado: false,
+    usuarioCreacion:  '',
+    usuarioModificacion: '',
+    code_Status:  0,
+    message_Status:''
   }
 
   descuentoPorEscala: DescuentoPorEscala = {
     desc_Id:  0,
-  deEs_Id:  0,
-  deEs_InicioEscala: 0, 
-  deEs_FinEscala: 0, 
-  deEs_Valor: 0, 
-  escalas_JSON: '',
-  escalas: [],
-  usua_Creacion:  0,
-  deEs_FechaCreacion:  new Date(),
-  usua_Modificacion: 0,
-  deEs_FechaModificacion: new Date(),
-  deEs_Estado: false,
-  usuarioCreacion:  '',
-  usuarioModificacion: '',
-  code_Status:  0,
-  message_Status:''
+    deEs_Id:  0,
+    deEs_InicioEscala: 0, 
+    deEs_FinEscala: 0, 
+    deEs_Valor: 0, 
+    escalas_JSON: '',
+    escalas: [],
+    usua_Creacion:  0,
+    deEs_FechaCreacion:  new Date(),
+    usua_Modificacion: 0,
+    deEs_FechaModificacion: new Date(),
+    deEs_Estado: false,
+    usuarioCreacion:  '',
+    usuarioModificacion: '',
+    code_Status:  0,
+    message_Status:''
   }
 
-    categorias: any[] = [];
-    marcas: any[] = [];
-    productos: any[] = [];
-    subcategorias: any[] = [];
-    clientes: any[] = [];
+  categorias: any[] = [];
+  marcas: any[] = [];
+  productos: any[] = [];
+  subcategorias: any[] = [];
+  clientes: any[] = [];
 
-
-    
-
- listarcategorias(): void {
+  listarcategorias(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Categorias/Listar`, {
-        headers: { 'x-api-key': environment.apiKey }
-      }).subscribe((data) => this.categorias = data);
-    };
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe((data) => this.categorias = data);
+  }
 
+  /**
+   * Obtiene el listado de descuentos existentes para validar conflictos
+   */
   listarDescuentos(): void {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Descuentos/Listar`, {
-    headers: {
-      'X-Api-Key': environment.apiKey
-    }
-  }).subscribe(res => {
-    this.descuentosExistentes = res;
-  });
-    };
+      headers: {
+        'X-Api-Key': environment.apiKey
+      }
+    }).subscribe(res => {
+      this.descuentosExistentes = res;
+    });
+  }
 
+  /**
+   * Obtiene el listado de marcas desde el servidor
+   */
   listarmarcass(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Marcas/Listar`, {
-        headers: { 'x-api-key': environment.apiKey }
-      }).subscribe((data) => this.marcas = data);
-    };
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe((data) => this.marcas = data);
+  }
 
+  /**
+   * Obtiene el listado de productos desde el servidor
+   */
   listarPorductos(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Productos/Listar`, {
-        headers: { 'x-api-key': environment.apiKey }
-      }).subscribe((data) => this.productos = data);
-    };
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe((data) => this.productos = data);
+  }
 
-
-
+  /**
+   * Obtiene el listado de subcategorías desde el servidor
+   */
   listarSubcategorias(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Subcategoria/Listar`, {
-        headers: { 'x-api-key': environment.apiKey }
-      }).subscribe((data) => this.subcategorias = data);
-    };
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe((data) => this.subcategorias = data);
+  }
 
-   listarClientes(): void {
+  /**
+   * Obtiene el listado de clientes desde el servidor y los agrupa por canal
+   */
+  listarClientes(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Cliente/Listar`, {
-        headers: { 'x-api-key': environment.apiKey }
-      }).subscribe((data) => {
-    const agrupados: { [canal: string]: any[] } = {};
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe((data) => {
+      const agrupados: { [canal: string]: any[] } = {};
 
-    for (const cliente of data) {
-      const canal = cliente.cana_Descripcion || 'Sin canal';
-      if (!agrupados[canal]) {
-        agrupados[canal] = [];
+      for (const cliente of data) {
+        const canal = cliente.cana_Descripcion || 'Sin canal';
+        if (!agrupados[canal]) {
+          agrupados[canal] = [];
+        }
+        agrupados[canal].push(cliente);
       }
-      agrupados[canal].push(cliente);
+
+      this.clientesAgrupados = Object.keys(agrupados).map(canal => ({
+        canal,
+        filtro: '', // Se agrega filtro para el buscador individual
+        clientes: agrupados[canal],
+        collapsed: true // Inicialmente todos los canales están colapsados
+      }));
+    });
+  }
+
+  escalas: {
+    deEs_InicioEscala: number;
+    deEs_FinEscala: number;
+    deEs_Valor: number;
+  }[] = [
+    {
+      deEs_InicioEscala: 0,
+      deEs_FinEscala: 0,
+      deEs_Valor: 0
+    }
+  ];
+
+  agregarEscala() {
+    this.escalas.push({
+      deEs_InicioEscala: 0,
+      deEs_FinEscala: 0,
+      deEs_Valor: 0
+    });
+  }
+
+  eliminarEscala(index: number) {
+    this.escalas.splice(index, 1);
+  }
+
+  getClientesFiltrados(grupo: any): any[] {
+    if (!grupo.filtro) return grupo.clientes;
+    return grupo.clientes.filter((c: any) => {
+      const searchText = (
+        c.clie_NombreNegocio || 
+        c.clie_NombreComercial || 
+        c.clie_NombreCompleto || 
+        ''
+      ).toLowerCase();
+      return searchText.includes(grupo.filtro.toLowerCase());
+    });
+  }
+
+  alternarCliente(clienteId: number, checked: boolean): void {
+    if (checked) {
+      const conflicto = this.hayConflicto(clienteId);
+      
+      if (conflicto) {
+        this.mostrarPopup("El cliente ya tiene un descuento vigente en alguno de los ítems seleccionados.");
+        setTimeout(() => {
+          this.clientesSeleccionados = this.clientesSeleccionados.filter(id => id !== clienteId);
+        }, 0);
+        return;
+      }
+
+      this.clientesSeleccionados.push(clienteId);
+    } else {
+      this.clientesSeleccionados = this.clientesSeleccionados.filter(id => id !== clienteId);
+    }
+  }
+
+  onClickCheckbox(event: MouseEvent, clienteId: number) {
+    const input = event.target as HTMLInputElement;
+    const isChecked = input.checked;
+
+    if (isChecked) {
+      const conflicto = this.hayConflicto(clienteId);
+
+      if (conflicto) {
+        this.mostrarPopup("El cliente ya tiene un descuento vigente en alguno de los ítems seleccionados.");
+
+        setTimeout(() => {
+          input.checked = false;
+        }, 0);
+
+        return;
+      }
+
+      this.clientesSeleccionados.push(clienteId);
+    } else {
+      this.clientesSeleccionados = this.clientesSeleccionados.filter(id => id !== clienteId);
+    }
+  }
+
+  /**
+   * Verifica si un cliente ya tiene descuentos conflictivos vigentes
+   * con los items seleccionados en el descuento actual
+   */
+  hayConflicto(clienteId: number): boolean {
+    const hoy = new Date();
+    let referenciasSeleccionadas: number[] = [];
+
+    switch (this.descuento.desc_Aplicar) {
+      case 'P':
+      case 'C':
+      case 'M':
+      case 'S':
+        referenciasSeleccionadas = this.seleccionados;
+        break;
+      default:
+        return false;
     }
 
-    this.clientesAgrupados = Object.keys(agrupados).map(canal => ({
-      canal,
-      filtro: '', // Se agrega filtro para el buscador individual
-      clientes: agrupados[canal],
-      collapsed: true // Inicialmente todos los canales están expandidos
-    }));
-  });
-}
+    const descuentosMismoTipo = this.descuentosExistentes.filter(
+      d => d.desc_Aplicar === this.descuento.desc_Aplicar
+    );
 
+    return descuentosMismoTipo.some(descuento => {
+      const clientes: { id: number }[] = JSON.parse(descuento.clientes || '[]');
+      const referencias: { id: number }[] = JSON.parse(descuento.referencias || '[]');
 
-escalas: {
-  deEs_InicioEscala: number;
-  deEs_FinEscala: number;
-  deEs_Valor: number;
+      const clienteIncluido = clientes.some(c => c.id === clienteId);
+      const fechaInicio = new Date(descuento.desc_FechaInicio);
+      const fechaFin = new Date(descuento.desc_FechaFin);
+      const descuentoVigente = hoy >= fechaInicio && hoy <= fechaFin;
 
-}[] = [
-  {
-    deEs_InicioEscala: 0,
-    deEs_FinEscala: 0,
-    deEs_Valor: 0
+      if (!clienteIncluido || !descuentoVigente) return false;
+
+      return referencias.some(ref => referenciasSeleccionadas.includes(ref.id));
+    });
+  }
+
+  mostrarPopup(mensaje: string): void {
+    this.mostrarAlertaWarning = true;
+    this.mensajeWarning = mensaje || 'cliente utilizado en otro descuento';
     
+    setTimeout(() => {
+      this.mostrarAlertaWarning = false;
+      this.mensajeWarning = '';
+    }, 5000);
   }
-];
 
-agregarEscala() {
-  this.escalas.push({
-    deEs_InicioEscala: 0,
-    deEs_FinEscala: 0,
-    deEs_Valor: 0
-  });
-}
+  estanTodosSeleccionados(grupo: any): boolean {
+    return grupo.clientes.every((c: { clie_Id: number; }) => this.clientesSeleccionados.includes(c.clie_Id));
+  }
 
-eliminarEscala(index: number) {
-  this.escalas.splice(index, 1);
-}
+  seleccionarTodosClientes(grupo: any, seleccionar: boolean): void {
+    grupo.clientes.forEach((cliente: { clie_Id: number; }) => {
+      this.alternarCliente(cliente.clie_Id, seleccionar);
+    });
+  }
 
-getClientesFiltrados(grupo: any): any[] {
-  if (!grupo.filtro) return grupo.clientes;
-  return grupo.clientes.filter((c: any) => {
-    const searchText = (
-      c.clie_NombreNegocio || 
-      c.clie_NombreComercial || 
-      c.clie_NombreCompleto || 
-      ''
-    ).toLowerCase();
-    return searchText.includes(grupo.filtro.toLowerCase());
-  });
-}
+  toggleCanal(grupo: any): void {
+    grupo.collapsed = !grupo.collapsed;
+  }
 
-alternarCliente(clienteId: number, checked: boolean): void {
- if (checked) {
-    const conflicto = this.hayConflicto(clienteId);
-    
-    if (conflicto) {
-      this.mostrarPopup("El cliente ya tiene un descuento vigente en alguno de los ítems seleccionados.");
-      // Para forzar refresco del checkbox, ejecuta fuera del flujo actual:
-      setTimeout(() => {
-        this.clientesSeleccionados = this.clientesSeleccionados.filter(id => id !== clienteId);
-      }, 0);
-      return;
+  /** Obtiene el precio más bajo de los items seleccionados (usado para limitar descuentos en monto fijo) */
+  getPrecioMinimoSeleccionados(): number {
+    if (!this.descuento.desc_Tipo) {
+      return Infinity;
     }
-
-    this.clientesSeleccionados.push(clienteId);
-  } else {
-    this.clientesSeleccionados = this.clientesSeleccionados.filter(id => id !== clienteId);
-  }
-}
-
-onClickCheckbox(event: MouseEvent, clienteId: number) {
-  const input = event.target as HTMLInputElement;
-  const isChecked = input.checked;
-
-  if (isChecked) {
-    const conflicto = this.hayConflicto(clienteId);
-
-    if (conflicto) {
-      this.mostrarPopup("El cliente ya tiene un descuento vigente en alguno de los ítems seleccionados.");
-
-      // Aquí revertimos el cambio visual con setTimeout
-      setTimeout(() => {
-        input.checked = false;  // Desmarca el checkbox
-      }, 0);
-
-      // También no agregamos al array
-      return;
-    }
-
-    this.clientesSeleccionados.push(clienteId);
-  } else {
-    // Si estaba desmarcando, solo actualizar modelo
-    this.clientesSeleccionados = this.clientesSeleccionados.filter(id => id !== clienteId);
-  }
-}
-
-
-hayConflicto(clienteId: number): boolean {
-  const hoy = new Date();
-   let referenciasSeleccionadas: number[] = [];
-
-  // Asignamos según el tipo de descuento
-   switch (this.descuento.desc_Aplicar) {
-    case 'P': // Productos
-    case 'C': // Categorías
-    case 'M': // Marcas
-    case 'S': // Subcategorías
-      referenciasSeleccionadas = this.seleccionados;
-      break;
-    default:
-      return false;
-  }
-
-  // Filtrar descuentos del mismo tipo (P, C, M o S)
-  const descuentosMismoTipo = this.descuentosExistentes.filter(
-    d => d.desc_Aplicar === this.descuento.desc_Aplicar
-  );
-
-  // Verificar conflicto
-  return descuentosMismoTipo.some(descuento => {
-    const clientes: { id: number }[] = JSON.parse(descuento.clientes || '[]');
-    const referencias: { id: number }[] = JSON.parse(descuento.referencias || '[]');
-
-    const clienteIncluido = clientes.some(c => c.id === clienteId);
-    const fechaInicio = new Date(descuento.desc_FechaInicio);
-    const fechaFin = new Date(descuento.desc_FechaFin);
-    const descuentoVigente = hoy >= fechaInicio && hoy <= fechaFin;
-
-    if (!clienteIncluido || !descuentoVigente) return false;
-
-    // Verificar si hay alguna referencia en común
-    return referencias.some(ref => referenciasSeleccionadas.includes(ref.id));
-  });
-}
-
-mostrarPopup(mensaje: string): void {
-  this.mostrarAlertaWarning = true;
-          this.mensajeWarning = mensaje || 'cliente utilizado en otro descuento';
-          
-          setTimeout(() => {
-            this.mostrarAlertaWarning = false;
-            this.mensajeWarning = '';
-          }, 5000);
-}
-
-// Verificar si todos los clientes de un canal están seleccionados
-estanTodosSeleccionados(grupo: any): boolean {
-  return grupo.clientes.every((c: { clie_Id: number; }) => this.clientesSeleccionados.includes(c.clie_Id));
-}
-
-// Seleccionar/deseleccionar todos los clientes de un canal
-seleccionarTodosClientes(grupo: any, seleccionar: boolean): void {
-  grupo.clientes.forEach((cliente: { clie_Id: number; }) => {
-    this.alternarCliente(cliente.clie_Id, seleccionar);
-  });
-}
-
-// Alternar el estado colapsado/expandido de un canal
-toggleCanal(grupo: any): void {
-  grupo.collapsed = !grupo.collapsed;
-}
-
-// Obtener el precio más bajo de todos los items seleccionados
-getPrecioMinimoSeleccionados(): number {
-  if (!this.descuento.desc_Tipo) { // Si es porcentaje, no hay límite de precio
-    return Infinity;
-  }
 
   let precios: number[] = [];
 
@@ -512,7 +526,10 @@ getPrecioMinimoSeleccionados(): number {
   return Math.min(...precios);
 }
 
-// Obtener el valor máximo permitido para mostrar en la UI
+/**
+ * Getter que devuelve el valor máximo permitido en formato de texto para mostrar en la UI
+ * @returns Texto formateado con el límite (ej: "100%" o "L. 150.00")
+ */
 get valorMaximoPermitido(): string {
   if (!this.descuento.desc_Tipo) {
     return '100%'; // Para porcentajes
@@ -526,7 +543,10 @@ get valorMaximoPermitido(): string {
   return `L. ${precioMinimo.toFixed(2)}`;
 }
 
-// Obtener el valor máximo permitido como número para comparaciones
+/**
+ * Getter que devuelve el valor máximo permitido como número para validaciones
+ * @returns Número con el límite máximo (100 para porcentajes, precio mínimo para monto fijo)
+ */
 get valorMaximoNumerico(): number {
   if (!this.descuento.desc_Tipo) {
     return 100; // Para porcentajes
@@ -535,23 +555,43 @@ get valorMaximoNumerico(): number {
   return this.getPrecioMinimoSeleccionados();
 }
 
+/**
+ * Getter para obtener la fecha de inicio en formato YYYY-MM-DD
+ * @returns Fecha de inicio formateada
+ */
 get fechaInicioFormato(): string {
   return new Date(this.descuento.desc_FechaInicio).toISOString().split('T')[0];
 }
 
+/**
+ * Setter para actualizar la fecha de inicio desde un string
+ * @param value - Fecha en formato YYYY-MM-DD
+ */
 set fechaInicioFormato(value: string) {
   this.descuento.desc_FechaInicio = new Date(value);
 }
 
+/**
+ * Getter para obtener la fecha de fin en formato YYYY-MM-DD
+ * @returns Fecha de fin formateada
+ */
 get fechaFinFormato(): string {
   return new Date(this.descuento.desc_FechaFin).toISOString().split('T')[0];
 }
 
+/**
+ * Setter para actualizar la fecha de fin desde un string
+ * @param value - Fecha en formato YYYY-MM-DD
+ */
 set fechaFinFormato(value: string) {
   this.descuento.desc_FechaFin = new Date(value);
 }
 
-// Maneja el cambio de tipo de descuento desde el select (Porcentaje vs Monto Fijo)
+/**
+ * Maneja el cambio de tipo de descuento (Porcentaje vs Monto Fijo)
+ * Recalcula y ajusta los valores de las escalas según el nuevo tipo
+ * @param valor - Valor del tipo de descuento (true = Monto Fijo, false = Porcentaje)
+ */
 onTipoCambio(valor: any): void {
   // Normalizar a boolean: true = Monto Fijo, false = Porcentaje
   const nuevoTipo = String(valor) === 'true';
@@ -572,9 +612,13 @@ onTipoCambio(valor: any): void {
   });
 }
 
-tieneAyudante: boolean = false;
-  
+  // ============================================================
+  // MÉTODOS DE GESTIÓN DE FORMULARIO
+  // ============================================================
 
+  /**
+   * Cancela la creación del descuento y resetea el formulario
+   */
   cancelar(): void {
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
@@ -584,24 +628,23 @@ tieneAyudante: boolean = false;
     this.mostrarAlertaWarning = false;
     this.mensajeWarning = '';
     this.descuento = {
-       desc_Id:  0,
-  desc_Descripcion:  '',
-  desc_Tipo: false, 
-  desc_Aplicar:  '',
-  desc_FechaInicio:  new Date(),
-  desc_FechaFin: new Date(),
-  desc_Observaciones:  '',
-  usua_Creacion:  0,
-  desc_FechaCreacion:  new Date(),
-  usua_Modificacion: 0,
-  desc_FechaModificacion: new Date(),
-  desc_Estado: false,
-  usuarioCreacion:  '',
-  usuarioModificacion: '',
-  code_Status:  0,
-  message_Status:'',
-  desc_TipoFactura:''
-
+      desc_Id:  0,
+      desc_Descripcion:  '',
+      desc_Tipo: false, 
+      desc_Aplicar:  '',
+      desc_FechaInicio:  new Date(),
+      desc_FechaFin: new Date(),
+      desc_Observaciones:  '',
+      usua_Creacion:  0,
+      desc_FechaCreacion:  new Date(),
+      usua_Modificacion: 0,
+      desc_FechaModificacion: new Date(),
+      desc_Estado: false,
+      usuarioCreacion:  '',
+      usuarioModificacion: '',
+      code_Status:  0,
+      message_Status:'',
+      desc_TipoFactura:''
     };
     this.activeTab = 1;
     this.seleccionados = [];
@@ -610,6 +653,9 @@ tieneAyudante: boolean = false;
     this.onCancel.emit();
   }
 
+  /**
+   * Cierra todas las alertas visibles
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -619,20 +665,21 @@ tieneAyudante: boolean = false;
     this.mensajeWarning = '';
   }
 
-  mostrarOverlayCarga = false;
-
+  /**
+   * Guarda el descuento completo después de validar todos los campos requeridos
+   */
   guardar(): void {
-  this.mostrarErrores = true;
+    this.mostrarErrores = true;
 
-  if (
-    this.descuento.desc_Descripcion.trim() &&
-     this.descuento.desc_Aplicar.trim() &&
-    this.descuento.desc_FechaInicio && this.descuento.desc_FechaFin 
-  ) {
-    this.mostrarAlertaWarning = false;
-    this.mostrarAlertaError = false;
+    if (
+      this.descuento.desc_Descripcion.trim() &&
+      this.descuento.desc_Aplicar.trim() &&
+      this.descuento.desc_FechaInicio && this.descuento.desc_FechaFin 
+    ) {
+      this.mostrarAlertaWarning = false;
+      this.mostrarAlertaError = false;
 
-    this.mostrarOverlayCarga = true;
+      this.mostrarOverlayCarga = true;
   
 
     // Construir el objeto para guardar
@@ -853,8 +900,11 @@ getNombrePaso(paso: number): string {
   }
 }
 
-validado = true;
-
+/**
+ * Limita el valor de una escala de descuento según el tipo y validaciones aplicables
+ * @param valor - Valor ingresado para la escala
+ * @param escala - Escala de descuento a validar
+ */
 limitarValor(valor: number, escala: any): void {
   if (this.descuento.desc_Tipo === false && valor > 100) {
     // Porcentaje no puede ser mayor a 100%
@@ -881,6 +931,11 @@ limitarValor(valor: number, escala: any): void {
   }
 }
 
+/**
+ * Verifica si se puede agregar una nueva escala de descuento
+ * Valida que todas las escalas existentes estén correctamente configuradas
+ * @returns true si se puede agregar una nueva escala, false en caso contrario
+ */
 puedeAgregarNuevaEscala(): boolean {
   if (!this.escalas || this.escalas.length === 0) return true;
 
@@ -891,9 +946,8 @@ puedeAgregarNuevaEscala(): boolean {
       escala.deEs_FinEscala == null ||
       escala.deEs_Valor == null ||
       escala.deEs_FinEscala <= escala.deEs_InicioEscala ||
-        escala.deEs_Valor == 0 ||
-        escala.deEs_Valor >= this.valorMaximoNumerico
-
+      escala.deEs_Valor == 0 ||
+      escala.deEs_Valor >= this.valorMaximoNumerico
     ) {
       return false;
     }
@@ -914,8 +968,11 @@ puedeAgregarNuevaEscala(): boolean {
   return true;
 }
 
+// ============================================================
+// CONFIGURACIÓN DE MÁSCARAS DE MONEDA
+// ============================================================
 
-// Opciones dinámicas para currencyMask
+/** Opciones de máscara para montos fijos en lempiras */
 opcionesMontoFijo: any = {
   prefix: 'L. ',
   suffix: '',
@@ -926,6 +983,7 @@ opcionesMontoFijo: any = {
   align: 'right'
 };
 
+/** Opciones de máscara para porcentajes */
 opcionesPorcentaje: any = {
   prefix: '',
   suffix: ' %',
@@ -935,8 +993,5 @@ opcionesPorcentaje: any = {
   allowNegative: false,
   align: 'right'
 };
-
-
-
 
 }
