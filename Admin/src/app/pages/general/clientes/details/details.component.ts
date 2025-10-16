@@ -5,6 +5,7 @@ import { DireccionPorCliente } from 'src/app/Modelos/general/DireccionPorCliente
 import { environment } from 'src/environments/environment.prod';
 import { HttpClient } from '@angular/common/http';
 import { MapaSelectorComponent } from '../mapa-selector/mapa-selector.component';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   selector: 'app-details',
@@ -58,8 +59,8 @@ export class DetailsComponent implements OnChanges {
 
         this.cargarDirecciones();
         this.cargarAvales();
+        this.cargarUltimaVisita();
       } catch (error) {
-        console.error('Error al cargar detalles del cliente:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los detalles del cliente.';
         this.cargando = false;
@@ -69,7 +70,7 @@ export class DetailsComponent implements OnChanges {
 
   cerrar(): void {
     this.onClose.emit();
-    this.puntosVista=[];
+    this.puntosVista = [];
   }
 
   cerrarAlerta(): void {
@@ -90,7 +91,27 @@ export class DetailsComponent implements OnChanges {
     });
   }
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private imageUploadService: ImageUploadService
+  ) { }
+
+  /**
+   * Construye la URL completa para mostrar la imagen
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
+  }
+
+  /**
+   * Obtiene la imagen a mostrar (la subida o la por defecto)
+   */
+  getImageToDisplay(): string {
+    if (this.clienteDetalle?.clie_ImagenDelNegocio && this.clienteDetalle.clie_ImagenDelNegocio.trim()) {
+      return this.getImageDisplayUrl(this.clienteDetalle.clie_ImagenDelNegocio);
+    }
+    return 'assets/images/users/32/user-svg.svg';
+  }
   direcciones: DireccionPorCliente[] = [];
   avales: any = [];
 
@@ -166,15 +187,37 @@ export class DetailsComponent implements OnChanges {
   vendedores: any[] = [];
 
   obtenerVendedoresPorCliente(vend_Id: number): void {
-  this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/MostrarVendedor/${vend_Id}`)
-  
-    .subscribe({
-      next: (data) => {
-        this.vendedores = data;
-      },
-      error: (err) => {
-        this.mostrarAlertaError = true;
-        this.mensajeError = 'Error al cargar los vendedores.';
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/MostrarVendedor/${vend_Id}`)
+
+      .subscribe({
+        next: (data) => {
+          this.vendedores = data;
+        },
+        error: (err) => {
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error al cargar los vendedores.';
+        }
+      });
+  }
+
+  ultimaVisita: string | null = null;
+
+  cargarUltimaVisita() {
+    if (!this.clienteDetalle || !this.clienteDetalle.clie_Id) {
+      this.ultimaVisita = null;
+      return;
+    }
+    this.http.get<any[]>(
+      `${environment.apiBaseUrl}/ClientesVisitaHistorial/ListarVisitasPorCliente`,
+      {
+        headers: { 'x-api-key': environment.apiKey },
+        params: { clie_Id: this.clienteDetalle.clie_Id }
+      }
+    ).subscribe(visitas => {
+      if (visitas && visitas.length > 0) {
+        this.ultimaVisita = visitas[0].clVi_Fecha; // Ajusta el campo si es necesario
+      } else {
+        this.ultimaVisita = null;
       }
     });
   }

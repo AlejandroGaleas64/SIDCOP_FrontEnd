@@ -21,7 +21,7 @@
             <div class="col-md-4">
                 <div class="card h-100 shadow-sm   employee-photo-card position-relative">
                     <ng-container *ngIf=" configuracionFacturaDetalle?.coFa_Logo; else noImage">
-                        <img [src]=" configuracionFacturaDetalle.coFa_Logo" alt="Foto del empleado" class="  employee-img-card" />
+                        <img [src]="getImageDisplayUrl(configuracionFacturaDetalle.coFa_Logo)" alt="Logo de la empresa" class="  employee-img-card" />
                         <div class="  employee-img-overlay">
                             <span class="  employee-img-name">{{  configuracionFacturaDetalle.coFa_NombreEmpresa || 'N/A' }}</span>
                         </div>
@@ -105,6 +105,26 @@
                                         <div class="detail-label">Ubicación</div>
                                         <div class="detail-value">{{configuracionFacturaDetalle.muni_Descripcion + ', '
                                          + configuracionFacturaDetalle.colo_Descripcion || 'N/A' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white"><i class="ri-calendar-event-fill"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Días de Devolución </div>
+                                        <div class="detail-value">{{ configuracionFacturaDetalle.coFa_DiasDevolucion || 'N/A' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <div class="detail-item">
+                                    <div class="detail-icon bg-dark-blue text-white"><i class="ri-file-cloud-line"></i>
+                                    </div>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Ruta de Migración </div>
+                                        <div class="detail-value">{{ configuracionFacturaDetalle.coFa_RutaMigracion || 'N/A' }}</div>
                                     </div>
                                 </div>
                             </div>

@@ -1,3 +1,7 @@
+<!--
+  Componente de Breadcrumbs
+  Muestra la navegación jerárquica y el ícono de cuentas por cobrar.
+-->
 <app-breadcrumbs
   [title]="'Cuentas por Cobrar'"
   [breadcrumbItems]="breadCrumbItems"
@@ -10,12 +14,20 @@
   />
 </app-breadcrumbs>
 
+<!--
+  Contenedor principal de la vista de cuentas por cobrar.
+  Incluye pestañas para clientes y resumen de antigüedad, tablas, exportación, búsqueda y paginación.
+-->
 <div class="row">
   <div class="col-lg-12">
     <div class="card">
       <div class="card-body">
         <div class="flex-grow-1">
-          <!-- Aquí empiezan las pestañas -->
+          <!--
+            Navegación por pestañas:
+            - Clientes: muestra la tabla principal de cuentas por cobrar.
+            - Antigüedad: muestra el resumen de antigüedad de saldos.
+          -->
           <ul class="nav nav-tabs mb-3" role="tablist">
             <li class="nav-item" role="presentation">
               <button
@@ -25,7 +37,7 @@
                 type="button"
                 role="tab"
               >
-                Resumen Clientes
+                Clientes
               </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -36,56 +48,141 @@
                 type="button"
                 role="tab"
               >
-                Resumen Antigüedad
+                Antigüedad
               </button>
             </li>
           </ul>
 
+          <!--
+            Contenido de las pestañas
+            Cada tab contiene su propia tabla, exportación y búsqueda.
+          -->
           <div class="tab-content">
-            <!-- TAB CUENTAS POR COBRAR -->
+            <!--
+              TAB 1: Tabla principal de cuentas por cobrar
+              Incluye exportación, búsqueda, acciones y paginación.
+            -->
             <div *ngIf="activeTab === 1">
               <div class="d-flex justify-content-between mb-3 flex-wrap">
-                <!-- Botón de agregar si tiene permisos -->
-                <div class="mb-2" *ngIf="accionPermitida('agregar')">
-                  <button
-                    type="button"
-                    class="btn btn-primary"
-                    routerLink="/ventas/cuentasporcobrar/add"
-                  >
-                    <i class="ri-add-line me-1"></i> Agregar
-                  </button>
-                </div>
-
-                <!-- Búsqueda -->
-                <div class="search-box mb-2">
-                  <div class="d-flex align-items-center">
-                    <i
-                      class="ri-search-line"
-                      [ngStyle]="{
-                        border: '1px solid #e9ecf5',
-                        backgroundColor: '#f2f3f9',
-                        padding: '0.525rem 0.525rem',
-                        position: 'relative',
-                        left: '7px',
-                        borderTopLeftRadius: '8px',
-                        borderBottomLeftRadius: '8px'
-                      }"
+                <div></div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <!--
+                    Botones para exportar la tabla principal en Excel, PDF o CSV.
+                  -->
+                  <div class="export-buttons d-flex gap-1 mb-2">
+                    <button
+                      type="button"
+                      class="btn btn-primary gold btn-sm btn-minw-5-1"
+                      (click)="exportar('excel')"
+                      [disabled]="exportando"
+                      title="Exportar a Excel"
                     >
-                    </i>
+                      <span
+                        class="btn-text"
+                        *ngIf="!exportando || tipoExportacion !== 'excel'"
+                        >Excel</span
+                      >
+                      <span
+                        class="btn-text"
+                        *ngIf="exportando && tipoExportacion === 'excel'"
+                      >
+                        <span
+                          class="spinner-border spinner-border-sm me-1"
+                          role="status"
+                        ></span>
+                        Exportando...
+                      </span>
+                      <span class="btn-icon"
+                        ><i
+                          class="ri-file-excel-2-line"
+                          style="font-weight: 100"
+                        ></i
+                      ></span>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="btn btn-primary gold btn-sm btn-minw-5-1"
+                      (click)="exportar('pdf')"
+                      [disabled]="exportando"
+                      title="Exportar a PDF"
+                    >
+                      <span
+                        class="btn-text"
+                        *ngIf="!exportando || tipoExportacion !== 'pdf'"
+                        >PDF</span
+                      >
+                      <span
+                        class="btn-text"
+                        *ngIf="exportando && tipoExportacion === 'pdf'"
+                      >
+                        <span
+                          class="spinner-border spinner-border-sm me-1"
+                          role="status"
+                        ></span>
+                        Exportando...
+                      </span>
+                      <span class="btn-icon"
+                        ><i
+                          class="ri-file-pdf-line"
+                          style="font-weight: 100"
+                        ></i
+                      ></span>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="btn btn-primary gold btn-sm btn-minw-5-1"
+                      (click)="exportar('csv')"
+                      [disabled]="exportando"
+                      title="Exportar a CSV"
+                    >
+                      <span
+                        class="btn-text"
+                        *ngIf="!exportando || tipoExportacion !== 'csv'"
+                        >CSV</span
+                      >
+                      <span
+                        class="btn-text"
+                        *ngIf="exportando && tipoExportacion === 'csv'"
+                      >
+                        <span
+                          class="spinner-border spinner-border-sm me-1"
+                          role="status"
+                        ></span>
+                        Exportando...
+                      </span>
+                      <span class="btn-icon"
+                        ><i
+                          class="ri-file-text-line"
+                          style="font-weight: 100"
+                        ></i
+                      ></span>
+                    </button>
+                  </div>
+
+                  <!--
+                    Campo de búsqueda para filtrar clientes en la tabla principal.
+                  -->
+                  <div class="search-box mb-2">
                     <input
                       type="text"
-                      class="form-control"
+                      class="form-control search"
                       placeholder="Buscar cliente..."
                       [(ngModel)]="table.searchTerm"
                       (ngModelChange)="table.setSearchTerm($event)"
                     />
+                    <i class="ri-search-line search-icon"></i>
                   </div>
                 </div>
               </div>
 
               <div class="table-radius-container">
                 <div class="table-responsive">
-                  <!-- TABLA COMPLETA -->
+                  <!--
+                    Tabla principal de cuentas por cobrar.
+                    Incluye columnas dinámicas, acciones y formato monetario.
+                  -->
                   <table class="table table-gridjs table-style">
                     <thead>
                       <tr>
@@ -375,34 +472,32 @@
                     </thead>
 
                     <tbody>
-                      <!-- Mensaje cuando no hay datos -->
+                      <!--
+                        Mensaje mostrado cuando no hay datos en la tabla principal.
+                      -->
                       <tr *ngIf="(table.data$ | async)?.length === 0">
                         <td [attr.colspan]="10" class="text-center">
                           No hay cuentas por cobrar disponibles
                         </td>
                       </tr>
 
-                      <!-- Filas de datos -->
+                      <!--
+                        Filas de datos de cuentas por cobrar.
+                        Incluye acciones de detalle y formato de columnas.
+                      -->
                       <tr *ngFor="let data of table.paginated$ | async">
                         <!-- Corregida la condición para mostrar acciones -->
-                        <td
-                          *ngIf="
-                            accionPermitida('consultar') ||
-                            accionPermitida('editar') ||
-                            accionPermitida('eliminar') ||
-                            accionPermitida('pagar')
-                          "
-                        >
-                          <div class="dropdown-action-list">
-                            <button
-                              type="button"
-                              class="dropdown-toggle"
-                              (click)="floatingMenuService.open($event, data)"
-                            >
-                              <span>Acciones</span>
-                              <i class="ri-settings-3-line"></i>
-                            </button>
-                          </div>
+                        <td *ngIf="accionPermitida('detalle')">
+                          <button
+                            type="button"
+                            class="btn btn-primary btn-sm"
+                            (click)="irADetalles(data.clie_Id)"
+                          >
+                            <span class="btn-text">Detalles</span>
+                            <span class="btn-icon"
+                              ><i class="ri-eye-line"></i
+                            ></span>
+                          </button>
                         </td>
                         <td>{{ data.secuencia }}</td>
                         <td>{{ data.cliente }}</td>
@@ -442,15 +537,39 @@
                 </div>
               </div>
 
-              <!-- Paginación corregida -->
+              <!--
+                Paginación para la tabla principal de cuentas por cobrar.
+                Muestra rango de registros y controles de página.
+              -->
               <div class="row justify-content-md-between align-items-md-center">
                 <ng-container *ngIf="table.paginated$ | async as paginados">
                   <div class="col-sm-12 col-md-5">
+                    <div
+                      class="dataTables_info mb-2"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      Mostrando
+                      {{ (table.page - 1) * table.pageSizeValue + 1 }}
+                      a
+                      {{
+                        (table.page - 1) * table.pageSizeValue +
+                          paginados.length
+                      }}
+                      de {{ table.total$ | async }}
+                      registros
+                    </div>
+                  </div>
+                  <div class="col-sm-12 col-md-7">
                     <div class="text-md-right float-md-end gridjs-pagination">
                       <pagination
                         [totalItems]="(table.total$ | async) || 0"
                         [ngModel]="table.page"
                         [itemsPerPage]="table.pageSizeValue"
+                        [maxSize]="5"
+                        [boundaryLinks]="true"
+                        [rotate]="true"
+                        (ngModelChange)="table.setPage($event)"
                         (pageChanged)="table.setPage($event.page)"
                       >
                       </pagination>
@@ -460,40 +579,184 @@
               </div>
             </div>
 
-            <!-- TAB RESUMEN ANTIGÜEDAD -->
+            <!--
+              TAB 2: Resumen de antigüedad de cuentas por cobrar
+              Incluye exportación, búsqueda, tabla y paginación.
+            -->
             <div *ngIf="activeTab === 2">
               <div class="d-flex justify-content-between mb-3 flex-wrap">
-                <div class="search-box mb-2">
-                  <div class="d-flex align-items-center">
-                    <i
-                      class="ri-search-line"
-                      [ngStyle]="{
-                        border: '1px solid #e9ecf5',
-                        backgroundColor: '#f2f3f9',
-                        padding: '0.525rem 0.525rem',
-                        position: 'relative',
-                        left: '7px',
-                        borderTopLeftRadius: '8px',
-                        borderBottomLeftRadius: '8px'
-                      }"
+                <div></div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <!--
+                    Botones para exportar el resumen de antigüedad en Excel, PDF o CSV.
+                  -->
+                  <div class="export-buttons d-flex gap-1 mb-2">
+                    <button
+                      type="button"
+                      class="btn btn-primary gold btn-sm btn-minw-5-1"
+                      (click)="exportarResumen('excel')"
+                      [disabled]="exportandoResumen"
+                      title="Exportar a Excel"
                     >
-                    </i>
+                      <span
+                        class="btn-text"
+                        *ngIf="
+                          !exportandoResumen ||
+                          tipoExportacionResumen !== 'excel'
+                        "
+                        >Excel</span
+                      >
+                      <span
+                        class="btn-text"
+                        *ngIf="
+                          exportandoResumen &&
+                          tipoExportacionResumen === 'excel'
+                        "
+                      >
+                        <span
+                          class="spinner-border spinner-border-sm me-1"
+                          role="status"
+                        ></span>
+                        Exportando...
+                      </span>
+                      <span class="btn-icon"
+                        ><i
+                          class="ri-file-excel-2-line"
+                          style="font-weight: 100"
+                        ></i
+                      ></span>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="btn btn-primary gold btn-sm btn-minw-5-1"
+                      (click)="exportarResumen('pdf')"
+                      [disabled]="exportandoResumen"
+                      title="Exportar a PDF"
+                    >
+                      <span
+                        class="btn-text"
+                        *ngIf="
+                          !exportandoResumen || tipoExportacionResumen !== 'pdf'
+                        "
+                        >PDF</span
+                      >
+                      <span
+                        class="btn-text"
+                        *ngIf="
+                          exportandoResumen && tipoExportacionResumen === 'pdf'
+                        "
+                      >
+                        <span
+                          class="spinner-border spinner-border-sm me-1"
+                          role="status"
+                        ></span>
+                        Exportando...
+                      </span>
+                      <span class="btn-icon"
+                        ><i
+                          class="ri-file-pdf-line"
+                          style="font-weight: 100"
+                        ></i
+                      ></span>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="btn btn-primary gold btn-sm btn-minw-5-1"
+                      (click)="exportarResumen('csv')"
+                      [disabled]="exportandoResumen"
+                      title="Exportar a CSV"
+                    >
+                      <span
+                        class="btn-text"
+                        *ngIf="
+                          !exportandoResumen || tipoExportacionResumen !== 'csv'
+                        "
+                        >CSV</span
+                      >
+                      <span
+                        class="btn-text"
+                        *ngIf="
+                          exportandoResumen && tipoExportacionResumen === 'csv'
+                        "
+                      >
+                        <span
+                          class="spinner-border spinner-border-sm me-1"
+                          role="status"
+                        ></span>
+                        Exportando...
+                      </span>
+                      <span class="btn-icon"
+                        ><i
+                          class="ri-file-text-line"
+                          style="font-weight: 100"
+                        ></i
+                      ></span>
+                    </button>
+                  </div>
+
+                  <!--
+                    Campo de búsqueda para filtrar clientes en el resumen de antigüedad.
+                  -->
+                  <div class="search-box mb-2">
                     <input
                       type="text"
-                      class="form-control"
+                      class="form-control search"
                       placeholder="Buscar cliente..."
                       [(ngModel)]="resumenSearchTerm"
                       (ngModelChange)="filtrarResumenAntiguedad()"
                     />
+                    <i class="ri-search-line search-icon"></i>
                   </div>
                 </div>
               </div>
 
               <div class="table-radius-container">
                 <div class="table-responsive">
+                  <!--
+                    Tabla de resumen de antigüedad de cuentas por cobrar.
+                    Incluye columnas de rangos de días y formato monetario.
+                  -->
                   <table class="table table-gridjs table-style">
                     <thead>
                       <tr>
+                        <!-- Columna de acciones para el resumen de antigüedad -->
+                        <th
+                          class="gridjs-th"
+                          *ngIf="accionPermitida('detalle')"
+                        >
+                          Acciones
+                        </th>
+                        <th
+                          class="gridjs-th"
+                          (click)="sortResumenBy('secuencia')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex">
+                            No.
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'secuencia' &&
+                                  resumenSortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'secuencia' &&
+                                  resumenSortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
                         <th
                           class="gridjs-th"
                           (click)="sortResumenBy('cliente')"
@@ -515,6 +778,35 @@
                                 class="ri-arrow-down-s-line icon-sort"
                                 [ngStyle]="
                                   resumenSortField === 'cliente' &&
+                                  resumenSortDirection === 'desc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                            </span>
+                          </span>
+                        </th>
+                        <th
+                          class="gridjs-th"
+                          (click)="sortResumenBy('clie_NombreNegocio')"
+                          style="cursor: pointer"
+                        >
+                          <span class="table-header-flex">
+                            Negocio
+                            <span style="display: flex; flex-direction: column">
+                              <i
+                                class="ri-arrow-up-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'clie_NombreNegocio' &&
+                                  resumenSortDirection === 'asc'
+                                    ? { color: '#D6B68A' }
+                                    : { color: 'white' }
+                                "
+                              ></i>
+                              <i
+                                class="ri-arrow-down-s-line icon-sort"
+                                [ngStyle]="
+                                  resumenSortField === 'clie_NombreNegocio' &&
                                   resumenSortDirection === 'desc'
                                     ? { color: '#D6B68A' }
                                     : { color: 'white' }
@@ -701,8 +993,27 @@
                     </thead>
 
                     <tbody>
-                      <tr *ngFor="let item of resumenAntiguedadFiltrado">
+                      <!--
+                        Filas de datos del resumen de antigüedad.
+                        Incluye acciones y formato de columnas.
+                      -->
+                      <tr *ngFor="let item of resumenAntiguedadPaginado">
+                        <!-- Celda de acciones para el resumen de antigüedad -->
+                        <td *ngIf="accionPermitida('detalle')">
+                          <button
+                            type="button"
+                            class="btn btn-primary btn-sm"
+                            (click)="irADetalles(item.clie_Id)"
+                          >
+                            <span class="btn-text">Detalles</span>
+                            <span class="btn-icon"
+                              ><i class="ri-eye-line"></i
+                            ></span>
+                          </button>
+                        </td>
+                        <td>{{ item.secuencia }}</td>
                         <td>{{ item.cliente }}</td>
+                        <td>{{ item.clie_NombreNegocio }}</td>
                         <td class="text-end">
                           {{
                             item.actual | currency : "LPS" : "symbol" : "1.2-2"
@@ -741,8 +1052,11 @@
                           }}
                         </td>
                       </tr>
-                      <tr *ngIf="!resumenAntiguedadFiltrado.length">
-                        <td colspan="7" class="text-center">
+                      <!--
+                        Mensaje mostrado cuando no hay datos en el resumen de antigüedad.
+                      -->
+                      <tr *ngIf="!resumenAntiguedadPaginado.length">
+                        <td colspan="10" class="text-center">
                           <span *ngIf="mostrarOverlayCarga"
                             >Cargando resumen de antigüedad...</span
                           >
@@ -757,17 +1071,44 @@
                 </div>
               </div>
 
+              <!--
+                Paginación para el resumen de antigüedad.
+                Muestra rango de registros y controles de página.
+              -->
               <div class="row justify-content-md-between align-items-md-center">
-                <div class="col-sm-12 col-md-5">
-                  <div
-                    class="dataTables_info mb-2"
-                    role="status"
-                    aria-live="polite"
-                  >
-                    Mostrando {{ resumenAntiguedadFiltrado.length }} de
-                    {{ resumenAntiguedad.length }} registros
+                <ng-container *ngIf="resumenAntiguedadPaginado as paginados">
+                  <div class="col-sm-12 col-md-5">
+                    <div
+                      class="dataTables_info mb-2"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      Mostrando
+                      {{ (resumenPaginaActual - 1) * resumenTamanoPagina + 1 }}
+                      a
+                      {{
+                        (resumenPaginaActual - 1) * resumenTamanoPagina +
+                          paginados.length
+                      }}
+                      de {{ resumenTotalItems }}
+                      registros
+                    </div>
                   </div>
-                </div>
+                  <div class="col-sm-12 col-md-7">
+                    <div class="text-md-right float-md-end gridjs-pagination">
+                      <pagination
+                        [totalItems]="resumenTotalItems"
+                        [ngModel]="resumenPaginaActual"
+                        [itemsPerPage]="resumenTamanoPagina"
+                        [maxSize]="5"
+                        [rotate]="true"
+                        (ngModelChange)="pageChangedResumen({ page: $event })"
+                        (pageChanged)="pageChangedResumen($event)"
+                      >
+                      </pagination>
+                    </div>
+                  </div>
+                </ng-container>
               </div>
             </div>
           </div>
@@ -782,7 +1123,10 @@
 </div>
 <!-- end row -->
 
-<!-- Overlay de carga -->
+<!--
+  Overlay de carga animado.
+  Se muestra mientras se obtienen datos del servidor.
+-->
 <div *ngIf="mostrarOverlayCarga" class="overlay-carga">
   <div class="typing-indicator">
     <div class="typing-circle"></div>
@@ -794,7 +1138,10 @@
   </div>
 </div>
 
-<!-- Contenedor de alertas flotantes -->
+<!--
+  Contenedor de alertas flotantes.
+  Muestra mensajes de éxito, advertencia y error.
+-->
 <div class="alert-container">
   <div
     *ngIf="mostrarAlertaExito"
@@ -842,7 +1189,10 @@
   </div>
 </div>
 
-<!-- Modal de confirmación para eliminar -->
+<!--
+  Modal de confirmación para eliminar una cuenta por cobrar.
+  Solicita confirmación antes de proceder con la eliminación.
+-->
 <div
   class="modal fade custom-modal"
   [ngClass]="{ show: mostrarConfirmacionEliminar }"
@@ -894,41 +1244,13 @@
   </div>
 </div>
 
-<!-- Overlay para el modal -->
+<!--
+  Overlay para el modal de confirmación de eliminación.
+-->
 <div
   class="modal-backdrop fade"
   [ngClass]="{ show: mostrarConfirmacionEliminar }"
   *ngIf="mostrarConfirmacionEliminar"
 ></div>
 
-<!-- Menú flotante de acciones -->
-<ul
-  *ngIf="floatingMenuService.show"
-  class="dropdown-menu show"
-  [ngStyle]="{
-    position: 'absolute',
-    top: floatingMenuService.top + 'px',
-    left: floatingMenuService.left + 'px',
-    'z-index': 1050
-  }"
->
-  <li *ngIf="accionPermitida('detalle')">
-    <button
-      type="button"
-      class="dropdown-action-btn"
-      (click)="irADetalles(floatingMenuService.data.clie_Id)"
-    >
-      Detalles <i class="ri-eye-line"></i>
-    </button>
-  </li>
-  <li *ngIf="accionPermitida('pagar')">
-    <button
-      type="button"
-      class="dropdown-action-btn"
-      (click)="irARegistrarPago(floatingMenuService.data.clie_Id)"
-    >
-      Registrar Pago <i class="ri-money-dollar-circle-line"></i>
-    </button>
-  </li>
-
-</ul>
+<!-- El menú flotante ha sido reemplazado por botones directos -->

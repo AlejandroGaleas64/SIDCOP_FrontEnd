@@ -26,9 +26,9 @@
         <div class="col-md-6">
           <!-- Descripción -->
           <div class="mb-3">
-            <label for="cana_Descripcion" class="form-label">Descripción<span class="text-danger">*</span></label>
+            <label for="cana_Descripcion" class="form-label">Descripción<span class="text-danger" *ngIf="mostrarErrores">*</span></label>
             <div class="d-flex align-items-center">
-              <i class="ri-share-line" [ngStyle]="{
+              <i class="ri-building-line" [ngStyle]="{
                 border: (!canal.cana_Descripcion.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
                 backgroundColor: (!canal.cana_Descripcion.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
@@ -36,33 +36,30 @@
               <input
                 type="text"
                 class="form-control"
+                [class.is-invalid]="!canal.cana_Descripcion.trim() && mostrarErrores"
                 id="cana_Descripcion"
                 [(ngModel)]="canal.cana_Descripcion"
                 name="cana_Descripcion"
                 placeholder="Ingrese la descripción del canal"
-                [class.is-invalid]="mostrarErrores && !canal.cana_Descripcion.trim()"
                 required />
-              <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
             </div>
             <div class="text-danger mt-1" *ngIf="mostrarErrores && !canal.cana_Descripcion.trim()">
               <small>El campo Descripción es requerido</small>
             </div>
           </div>
+        </div>
+        <div class="col-md-6">
           <!-- Observaciones -->
           <div class="mb-3">
-            <label for="cana_Observaciones" class="form-label">Observaciones<span class="text-danger">*</span></label>
+            <label for="cana_Observaciones" class="form-label">Observaciones</label>
             <textarea
               class="form-control"
               id="cana_Observaciones"
               [(ngModel)]="canal.cana_Observaciones"
               name="cana_Observaciones"
               placeholder="Ingrese observaciones"
-              [class.is-invalid]="mostrarErrores && !canal.cana_Observaciones.trim()"
               rows="3"
-              required></textarea>
-            <div class="text-danger mt-1" *ngIf="mostrarErrores && !canal.cana_Observaciones.trim()">
-              <small>El campo Observaciones es requerido</small>
-            </div>
+            ></textarea>
           </div>
         </div>
       </div>

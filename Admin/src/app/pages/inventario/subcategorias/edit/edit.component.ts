@@ -1,4 +1,3 @@
-
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -51,6 +50,8 @@ export class EditComponent implements OnChanges {
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
 
+  // Objeto para rastrear cambios
+  cambiosDetectados: any = {};
 
   Categorias: any[] = [];
 
@@ -99,7 +100,7 @@ export class EditComponent implements OnChanges {
     this.mostrarErrores = true;
 
     if (this.subcategoria.subc_Descripcion.trim()) {
-      if (this.subcategoria.subc_Descripcion.trim() !== this.subcategoriaOriginal || this.subcategoria.cate_Id !== this.categoriaOriginal) {
+      if (this.hayDiferencias()) {
         this.mostrarConfirmacionEditar = true;
       } else {
         this.mostrarAlertaWarning = true;
@@ -120,6 +121,37 @@ export class EditComponent implements OnChanges {
   confirmarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
     this.guardar();
+  }
+
+  private hayDiferencias(): boolean {
+    if (!this.subcategoria || !this.subcategoriaOriginal) return false;
+
+    this.cambiosDetectados = {};
+
+    // Verificar cambio en la descripción de la subcategoría
+    if (this.subcategoria.subc_Descripcion.trim() !== this.subcategoriaOriginal) {
+      this.cambiosDetectados.descripcion = {
+        anterior: this.subcategoriaOriginal || 'Sin descripción',
+        nuevo: this.subcategoria.subc_Descripcion.trim(),
+        label: 'Descripción de la Subcategoría'
+      };
+    }
+
+    // Verificar cambio en la categoría
+    if (this.subcategoria.cate_Id !== this.categoriaOriginal) {
+      this.cambiosDetectados.categoria = {
+        anterior: this.getCategoriaNombre(this.categoriaOriginal) || 'Sin categoría',
+        nuevo: this.getCategoriaNombre(this.subcategoria.cate_Id) || 'Sin categoría',
+        label: 'Categoría'
+      };
+    }
+
+    return Object.keys(this.cambiosDetectados).length > 0;
+  }
+
+  // Método para obtener la lista de cambios en formato para mostrar en el modal
+  obtenerListaCambios(): any[] {
+    return Object.values(this.cambiosDetectados);
   }
 
   private guardar(): void {
@@ -170,4 +202,16 @@ export class EditComponent implements OnChanges {
       setTimeout(() => this.cerrarAlerta(), 4000);
     }
   }
+
+
+getCategoriaNombre(cateId: number): string {
+  if (!cateId) return 'Sin especificar';
+  if (!this.Categorias || this.Categorias.length === 0) {
+    return `Categoría ${cateId}`;
+  }
+  const categoria = this.Categorias.find(c => c.cate_Id === cateId);
+  return categoria ? categoria.cate_Descripcion : `Categoría ${cateId} (no encontrada)`;
+}
+
+
 }

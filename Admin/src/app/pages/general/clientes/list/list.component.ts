@@ -26,6 +26,7 @@ import {
 } from '@angular/animations';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/exportHori.service';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   standalone: true,
@@ -86,12 +87,12 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
 })
 
 export class ListComponent {
+  mostrarErrores: boolean = false;
   private readonly exportConfig = {
     // Configuración básica
     title: 'Listado de Clientes',                    // Título del reporte
     filename: 'Clientes',                           // Nombre base del archivo
     department: 'General',                         // Departamento
-    additionalInfo: 'Sistema de Gestión',         // Información adicional
 
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
@@ -101,7 +102,7 @@ export class ListComponent {
       { key: 'Nombres', header: 'Nombres', width: 50, align: 'left' as const },
       { key: 'Apellidos', header: 'Apellidos', width: 50, align: 'left' as const },
       { key: 'Nombre del Negocio', header: 'Nombre del Negocio', width: 50, align: 'left' as const },
-      { key: 'Telefono', header: 'Telefono', width: 30, align: 'left' as const }
+      { key: 'Telefono', header: 'Teléfono', width: 30, align: 'left' as const }
     ] as ExportColumn[],
 
     // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
@@ -113,8 +114,6 @@ export class ListComponent {
       'Apellidos': this.limpiarTexto(cliente?.clie_Apellidos),
       'Nombre del Negocio': this.limpiarTexto(cliente?.clie_NombreNegocio),
       'Telefono': this.limpiarTexto(cliente?.clie_Telefono)
-      // Agregar más campos aquí según necesites:
-      // 'Campo': this.limpiarTexto(modelo?.campo),
     })
   };
 
@@ -203,6 +202,7 @@ export class ListComponent {
       status: ['', [Validators.required]],
       img: ['']
     });
+
     this.cargarAccionesUsuario();
     this.cargarDatos(true);
     this.contador();
@@ -247,7 +247,6 @@ export class ListComponent {
       this.manejarResultadoExport(resultado);
 
     } catch (error) {
-      console.error(`Error en exportación ${tipo}:`, error);
       this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
     } finally {
       this.exportando = false;
@@ -292,8 +291,7 @@ export class ListComponent {
       data: this.obtenerDatosExport(),
       columns: this.exportConfig.columns,
       metadata: {
-        department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
+        department: this.exportConfig.department
       }
     };
   }
@@ -303,7 +301,7 @@ export class ListComponent {
    */
   private obtenerDatosExport(): any[] {
     try {
-      const datos = this.clientes; // Use the array for cards
+      const datos = this.clientesFiltrados;
 
       if (!Array.isArray(datos) || datos.length === 0) {
         throw new Error('No hay datos disponibles para exportar');
@@ -313,7 +311,6 @@ export class ListComponent {
         this.exportConfig.dataMapping.call(this, modelo, index)
       );
     } catch (error) {
-      console.error('Error obteniendo datos:', error);
       throw error;
     }
   }
@@ -359,8 +356,6 @@ export class ListComponent {
     if (!texto) return '';
 
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }
@@ -425,7 +420,7 @@ export class ListComponent {
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
         }
       } catch (e) {
-        console.error('Error al parsear permisosJson:', e);
+        // console.error('Error al parsear permisosJson:', e);
       }
     }
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLocaleLowerCase());
@@ -465,6 +460,8 @@ export class ListComponent {
       this.clientesFiltrados = this.clienteGrid.filter((cliente: any) =>
         (cliente.clie_Codigo || '').toLowerCase().includes(termino) ||
         (cliente.clie_Nombres || '').toLowerCase().includes(termino) ||
+        (cliente.clie_Apellidos || '').toLowerCase().includes(termino) ||
+        (cliente.clie_DNI || '').toLowerCase().includes(termino) ||
         (cliente.clie_NombreNegocio || '').toLowerCase().includes(termino)
       );
     }
@@ -520,7 +517,8 @@ export class ListComponent {
     private router: Router,
     private route: ActivatedRoute,
     private formBuilder: UntypedFormBuilder,
-    private exportService: ExportService) {
+    private exportService: ExportService,
+    private imageUploadService: ImageUploadService) {
     this.cargarDatos(true);
   }
 
@@ -617,7 +615,7 @@ export class ListComponent {
     this.clienteDetalle = null;
   }
 
-  activar(cliente: Cliente):void{
+  activar(cliente: Cliente): void {
     this.clienteSeleccionado = cliente;
     this.mostrarModalActivacion = true;
   }
@@ -636,30 +634,30 @@ export class ListComponent {
 
   guardarCliente(cliente: Cliente): void {
     this.mostrarOverlayCarga = true;
-    setTimeout(() => {
+    // setTimeout(() => {
       this.cargarDatos(true);
-      this.mostrarOverlayCarga = false;
-      this.mensajeExito = 'Cliente guardado exitosamente.';
-      this.mostrarAlertaExito = true;
-      setTimeout(() => {
-        this.mostrarAlertaExito = false;
-        this.mensajeExito = '';
-      }, 3000);
-    }, 1000);
+      // this.mostrarOverlayCarga = false;
+      // this.mensajeExito = 'Cliente guardado exitosamente.';
+      // this.mostrarAlertaExito = true;
+      // setTimeout(() => {
+      //   this.mostrarAlertaExito = false;
+      //   this.mensajeExito = '';
+      // }, 3000);
+    // }, 1000);
   }
 
   actualizarCliente(cliente: Cliente): void {
     this.mostrarOverlayCarga = true;
-    setTimeout(() => {
+    // setTimeout(() => {
       this.cargarDatos(true);
-      this.mostrarOverlayCarga = false;
-      this.mensajeExito = 'Cliente actualizado exitosamente.';
-      this.mostrarAlertaExito = true;
-      setTimeout(() => {
-        this.mostrarAlertaExito = false;
-        this.mensajeExito = '';
-      }, 3000);
-    }, 1000);
+      // this.mostrarOverlayCarga = false;
+      // this.mensajeExito = `Cliente "${cliente.clie_Nombres} ${cliente.clie_Apellidos}" actualizado exitosamente.`;
+      // this.mostrarAlertaExito = true;
+      // setTimeout(() => {
+      //   this.mostrarAlertaExito = false;
+      //   this.mensajeExito = '';
+      // }, 3000);
+    // }, 1000);
   }
 
   confirmarEliminar(cliente: Cliente): void {
@@ -686,8 +684,16 @@ export class ListComponent {
       next: (resp) => {
         if (resp.code_Status === 1) {
           // Éxito: muestra mensaje y refresca la lista
-          this.mostrarAlertaExito = true;
-          this.mensajeExito = resp.message_Status || 'Estado cambiado correctamente.';
+          const nuevoEstado = !this.esClienteActivo(this.clienteAEliminar); // Cambia el estado actual
+        const accion = nuevoEstado ? 'activó' : 'desactivó';
+        this.mensajeExito = `Cliente "${this.clienteAEliminar?.clie_Nombres} ${this.clienteAEliminar?.clie_Apellidos}" se ${accion} exitosamente`;
+        this.mostrarAlertaExito = true;
+        this.mostrarErrores = false;
+
+            setTimeout(() => {
+              this.mostrarAlertaExito = false;
+              this.mensajeExito = '';
+            }, 4000);
           this.cargarDatos(true);
           this.cancelarEliminar();
         } else {
@@ -707,4 +713,22 @@ export class ListComponent {
   esClienteActivo(cliente: any): boolean {
     return cliente.clie_Estado === 1 || cliente.clie_Estado === true;
   }
+
+  /**
+   * Construye la URL completa para mostrar la imagen
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
+  }
+
+  /**
+   * Obtiene la imagen a mostrar para un cliente
+   */
+  getClienteImageToDisplay(cliente: any): string {
+    if (cliente?.clie_ImagenDelNegocio && cliente.clie_ImagenDelNegocio.trim()) {
+      return this.getImageDisplayUrl(cliente.clie_ImagenDelNegocio);
+    }
+    return 'assets/images/imagenes/full-logo.png';
+  }
+
 }

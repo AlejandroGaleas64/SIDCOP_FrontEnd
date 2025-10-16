@@ -1,8 +1,13 @@
+<!--
+  Componente visual para la creación de una nueva venta.
+  Incluye alertas, navegación por tabs, formulario de datos, selección de productos,
+  resumen, controles de navegación y estilos reutilizados.
+-->
 <div class="d-flex flex-column" style="height: 100%; min-height: 250px">
-  <!-- Título del componente -->
+  <!-- Título principal del formulario de creación de venta -->
   <h5 class="card-title mb-4">Crear Nueva Venta</h5>
 
-  <!-- Contenedor de alertas flotantes -->
+  <!-- Sección de alertas flotantes para mostrar éxito, advertencia y error -->
   <div class="alert-container">
     <!-- Alerta de éxito -->
     <div
@@ -53,7 +58,7 @@
     </div>
   </div>
 
-  <!-- Navegación de Tabs -->
+  <!-- Navegación por pestañas: Datos/Productos y Resumen -->
   <ul class="nav nav-tabs mb-3 justify-content-center" role="tablist">
     <li class="nav-item" role="presentation">
       <button
@@ -80,6 +85,7 @@
     </li>
   </ul>
 
+  <!-- Contenido principal de los tabs -->
   <div class="flex-grow-1">
     <!-- TAB 1: Datos y Productos -->
     <div class="tab-content" id="nav-tabContent">
@@ -90,10 +96,10 @@
         id="nav-datos"
         role="tabpanel"
       >
-        <!-- Formulario de datos básicos -->
+  <!-- Formulario de datos básicos de la venta -->
         <div class="row mb-4">
-          <!-- Dropdown de Sucursal -->
-          <div class="col-md-6">
+          <!-- Selector de sucursal (solo administradores) -->
+          <div class="col-md-6 mb-3" *ngIf="esAdmin">
             <label class="form-label"
               >Sucursal<span class="text-danger">*</span></label
             >
@@ -103,11 +109,13 @@
                   class="ri-store-2-line"
                   [ngStyle]="{
                     border:
-                      (!venta.regC_Id || venta.regC_Id == 0) && mostrarErrores
+                      (!sucursalSeleccionada || sucursalSeleccionada == 0) &&
+                      mostrarErrores
                         ? '1px solid #f9bcc4'
                         : '1px solid #e9ecf5',
                     backgroundColor:
-                      (!venta.regC_Id || venta.regC_Id == 0) && mostrarErrores
+                      (!sucursalSeleccionada || sucursalSeleccionada == 0) &&
+                      mostrarErrores
                         ? '#fff5f6'
                         : '#f2f3f9',
                     padding: '0.525rem 0.525rem',
@@ -122,9 +130,10 @@
                   name="sucursal"
                   class="form-select"
                   [class.is-invalid]="
-                    (!venta.regC_Id || venta.regC_Id == 0) && mostrarErrores
+                    (!sucursalSeleccionada || sucursalSeleccionada == 0) &&
+                    mostrarErrores
                   "
-                  [(ngModel)]="venta.regC_Id"
+                  [(ngModel)]="sucursalSeleccionada"
                   (change)="onSucursalChange()"
                   required
                 >
@@ -152,14 +161,251 @@
             </div>
             <div
               class="text-danger mt-1"
-              *ngIf="(!venta.regC_Id || venta.regC_Id == 0) && mostrarErrores"
+              *ngIf="
+                (!sucursalSeleccionada || sucursalSeleccionada == 0) &&
+                mostrarErrores
+              "
             >
               <small>La sucursal es requerida</small>
             </div>
           </div>
 
-          <!-- Tipo de Venta -->
-          <div class="col-md-6">
+          <!-- Visualización de sucursal (solo para no administradores) -->
+          <div class="col-md-6 mb-3" *ngIf="!esAdmin">
+            <label class="form-label">Sucursal</label>
+            <div class="form-control bg-light">
+              <i class="ri-store-2-line me-2"></i>
+              {{ getNombreSucursal() }}
+            </div>
+          </div>
+
+          <!-- Selector de vendedor (solo administradores) -->
+          <div class="col-md-6 mb-3" *ngIf="esAdmin">
+            <label class="form-label"
+              >Vendedor<span class="text-danger">*</span></label
+            >
+            <div class="mb-3">
+              <div class="d-flex align-items-center">
+                <i
+                  class="ri-user-star-line"
+                  [ngStyle]="{
+                    border:
+                      (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
+                        ? '1px solid #f9bcc4'
+                        : '1px solid #e9ecf5',
+                    backgroundColor:
+                      (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
+                        ? '#fff5f6'
+                        : '#f2f3f9',
+                    padding: '0.525rem 0.525rem',
+                    position: 'relative',
+                    left: '7px',
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px'
+                  }"
+                ></i>
+                <select
+                  id="vendedor"
+                  name="vendedor"
+                  class="form-select"
+                  [class.is-invalid]="
+                    (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
+                  "
+                  [(ngModel)]="venta.vend_Id"
+                  (change)="onVendedorChange()"
+                  [disabled]="
+                    !sucursalSeleccionada ||
+                    sucursalSeleccionada === 0 ||
+                    getVendedoresPorSucursal().length === 0
+                  "
+                  required
+                >
+                  <option value="0" disabled selected>
+                    Seleccione vendedor
+                  </option>
+                  <option
+                    *ngFor="let vendedor of getVendedoresPorSucursal()"
+                    [value]="vendedor.vend_Id"
+                  >
+                    {{ vendedor.vend_Nombres }} {{ vendedor.vend_Apellidos }}
+                  </option>
+                </select>
+                <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              </div>
+            </div>
+            <div
+              class="text-danger mt-1"
+              *ngIf="(!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores"
+            >
+              <small>El vendedor es requerido</small>
+            </div>
+          </div>
+
+          <!-- Visualización de vendedor (solo para no administradores) -->
+          <div class="col-md-6 mb-3" *ngIf="!esAdmin">
+            <label class="form-label">Vendedor</label>
+            <div class="form-control bg-light">
+              <i class="ri-user-star-line me-2"></i>
+              {{ getNombreVendedor() }}
+            </div>
+          </div>
+
+          <!-- Selector de cliente -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-semibold">
+              Cliente<span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <span
+                class="input-group-text"
+                [ngClass]="{
+                  'border-danger bg-danger bg-opacity-10':
+                    (!clienteSeleccionado || clienteSeleccionado == 0) &&
+                    mostrarErrores,
+                  'border-secondary-subtle bg-light':
+                    !mostrarErrores ||
+                    (clienteSeleccionado && clienteSeleccionado > 0)
+                }"
+              >
+                <i class="ri-user-line"></i>
+              </span>
+              <ng-select
+                id="cliente"
+                name="cliente"
+                class="form-control p-0"
+                [items]="clientes"
+                bindLabel="clie_NombreNegocio"
+                bindValue="clie_Id"
+                placeholder="Seleccione un cliente..."
+                [searchable]="true"
+                [clearable]="false"
+                [(ngModel)]="clienteSeleccionado"
+                (ngModelChange)="cargarDireccionesCliente($event)"
+                [ngClass]="{
+                  'is-invalid':
+                    (!clienteSeleccionado || clienteSeleccionado == 0) &&
+                    mostrarErrores
+                }"
+                required
+              >
+                <ng-template ng-label-tmp let-item="item">
+                  <div class="d-flex align-items-center">
+                    <strong class="me-2">{{ item.clie_NombreNegocio }}</strong>
+                    <small class="text-muted"
+                      >{{ item.clie_Nombres }} {{ item.clie_Apellidos }}</small
+                    >
+                  </div>
+                </ng-template>
+                <ng-template ng-option-tmp let-item="item">
+                  <div class="py-1">
+                    <div class="fw-semibold">{{ item.clie_NombreNegocio }}</div>
+                    <small class="text-muted"
+                      >{{ item.clie_Nombres }} {{ item.clie_Apellidos }}</small
+                    >
+                  </div>
+                </ng-template>
+              </ng-select>
+            </div>
+            <div
+              class="invalid-feedback d-block"
+              *ngIf="
+                (!clienteSeleccionado || clienteSeleccionado == 0) &&
+                mostrarErrores
+              "
+            >
+              <i class="ri-error-warning-line me-1"></i>
+              El cliente es requerido
+            </div>
+          </div>
+
+          <!-- Selector de dirección del cliente -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-semibold">
+              Dirección del Cliente<span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <span
+                class="input-group-text"
+                [ngClass]="{
+                  'border-danger bg-danger bg-opacity-10':
+                    (!venta.direccionId || venta.direccionId == 0) &&
+                    mostrarErrores,
+                  'border-secondary-subtle bg-light':
+                    !mostrarErrores ||
+                    (venta.direccionId && venta.direccionId > 0),
+                  'border-secondary bg-secondary bg-opacity-25':
+                    !clienteSeleccionado ||
+                    clienteSeleccionado === 0 ||
+                    direccionesCliente.length === 0
+                }"
+              >
+                <i class="ri-map-pin-line"></i>
+              </span>
+              <ng-select
+                class="form-control p-0"
+                name="direccion"
+                [items]="direccionesCliente"
+                bindLabel="diCl_DireccionExacta"
+                bindValue="diCl_Id"
+                placeholder="Seleccione una dirección..."
+                [searchable]="true"
+                [clearable]="false"
+                [(ngModel)]="venta.direccionId"
+                (ngModelChange)="actualizarDireccionSeleccionada($event)"
+                [ngClass]="{
+                  'is-invalid':
+                    (!venta.direccionId || venta.direccionId == 0) &&
+                    mostrarErrores
+                }"
+                [disabled]="
+                  !clienteSeleccionado ||
+                  clienteSeleccionado === 0 ||
+                  direccionesCliente.length === 0
+                "
+                required
+              >
+                <ng-template ng-option-tmp let-item="item">
+                  <div class="py-1">
+                    <div class="fw-medium">{{ item.diCl_DireccionExacta }}</div>
+                    <small class="text-muted" *ngIf="item.diCl_Referencia">
+                      <i class="ri-information-line me-1"></i
+                      >{{ item.diCl_Referencia }}
+                    </small>
+                  </div>
+                </ng-template>
+              </ng-select>
+            </div>
+            <div
+              class="invalid-feedback d-block"
+              *ngIf="
+                (!venta.direccionId || venta.direccionId == 0) && mostrarErrores
+              "
+            >
+              <i class="ri-error-warning-line me-1"></i>
+              La dirección es requerida
+            </div>
+            <div
+              class="form-text text-muted"
+              *ngIf="!clienteSeleccionado || clienteSeleccionado === 0"
+            >
+              <i class="ri-information-line me-1"></i>
+              Primero seleccione un cliente
+            </div>
+            <div
+              class="form-text text-warning"
+              *ngIf="
+                clienteSeleccionado &&
+                clienteSeleccionado > 0 &&
+                direccionesCliente.length === 0
+              "
+            >
+              <i class="ri-alert-line me-1"></i>
+              Este cliente no tiene direcciones registradas
+            </div>
+          </div>
+
+          <!-- Selector de tipo de venta (Contado/Crédito) -->
+          <div class="col-md-6 mb-3">
             <label class="form-label"
               >Tipo de Venta<span class="text-danger">*</span></label
             >
@@ -189,11 +435,12 @@
                   class="form-select"
                   [class.is-invalid]="!venta.fact_TipoVenta && mostrarErrores"
                   [(ngModel)]="venta.fact_TipoVenta"
+                  (change)="cambiarTipoVenta()"
                   required
                 >
                   <option value="" disabled selected>Seleccione tipo</option>
-                  <option value="CONTADO">Contado</option>
-                  <option value="CREDITO">Crédito</option>
+                  <option value="CO">Contado</option>
+                  <option value="CR" [disabled]="!puedeUsarCredito()">Crédito</option>
                 </select>
                 <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
               </div>
@@ -207,117 +454,8 @@
           </div>
 
 
-
-          <div class="col-md-6">
-            <label class="form-label">Cliente<span class="text-danger">*</span></label>
-            <div class="mb-3">
-              <div class="d-flex align-items-center">
-                <i
-                  class="ri-user-line"
-                  [ngStyle]="{
-                    border:
-                      (!venta.clie_Id || venta.clie_Id == 0) && mostrarErrores
-                        ? '1px solid #f9bcc4'
-                        : '1px solid #e9ecf5',
-                    backgroundColor:
-                      (!venta.clie_Id || venta.clie_Id == 0) && mostrarErrores
-                        ? '#fff5f6'
-                        : '#f2f3f9',
-                    padding: '0.525rem 0.525rem',
-                    position: 'relative',
-                    left: '7px',
-                    borderTopLeftRadius: '8px',
-                    borderBottomLeftRadius: '8px'
-                  }"
-                ></i>
-                <select
-                  id="cliente"
-                  name="cliente"
-                  class="form-select"
-                  [class.is-invalid]="
-                    (!venta.clie_Id || venta.clie_Id == 0) && mostrarErrores
-                  "
-                  [(ngModel)]="venta.clie_Id"
-                  required
-                >
-                  <option value="0" disabled selected>
-                    Seleccione cliente
-                  </option>
-                  <option
-                    *ngFor="let cliente of clientes"
-                    [value]="cliente.clie_Id"
-                  >
-                    {{cliente.clie_NombreNegocio}}
- ({{ cliente.clie_Nombres }} {{ cliente.clie_Apellidos }} )                  </option>
-                </select>
-                <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-              </div>
-            </div>
-            <div
-              class="text-danger mt-1"
-              *ngIf="(!venta.clie_Id || venta.clie_Id == 0) && mostrarErrores"
-            >
-              <small>El cliente es requerido</small>
-            </div>
-          </div>
-          
-          <!-- Selector de Vendedor -->
-          <div class="col-md-6">
-            <label class="form-label">Vendedor<span class="text-danger">*</span></label>
-            <div class="mb-3">
-              <div class="d-flex align-items-center">
-                <i
-                  class="ri-user-star-line"
-                  [ngStyle]="{
-                    border:
-                      (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
-                        ? '1px solid #f9bcc4'
-                        : '1px solid #e9ecf5',
-                    backgroundColor:
-                      (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
-                        ? '#fff5f6'
-                        : '#f2f3f9',
-                    padding: '0.525rem 0.525rem',
-                    position: 'relative',
-                    left: '7px',
-                    borderTopLeftRadius: '8px',
-                    borderBottomLeftRadius: '8px'
-                  }"
-                ></i>
-                <select
-                  id="vendedor"
-                  name="vendedor"
-                  class="form-select"
-                  [class.is-invalid]="
-                    (!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores
-                  "
-                  [(ngModel)]="venta.vend_Id"
-                  [disabled]="!venta.regC_Id || venta.regC_Id === 0 || getVendedoresPorSucursal().length === 0"
-                  required
-                >
-                  <option value="0" disabled selected>
-                    Seleccione vendedor
-                  </option>
-                  <option
-                    *ngFor="let vendedor of getVendedoresPorSucursal()"
-                    [value]="vendedor.vend_Id"
-                  >
-                    {{ vendedor.vend_Nombres }} {{ vendedor.vend_Apellidos }}
-                  </option>
-                </select>
-                <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-              </div>
-            </div>
-            <div
-              class="text-danger mt-1"
-              *ngIf="(!venta.vend_Id || venta.vend_Id == 0) && mostrarErrores"
-            >
-              <small>El vendedor es requerido</small>
-            </div>
-          </div>
-          
-          <!-- Campo de Referencia -->
-          <div class="col-md-6">
+          <!-- Campo de referencia para la venta -->
+          <div class="col-md-6 mb-3">
             <label class="form-label">Referencia</label>
             <div class="mb-3">
               <div class="d-flex align-items-center">
@@ -343,9 +481,9 @@
               </div>
             </div>
           </div>
-          
-          <!-- Información de Ubicación -->
-          <div class="col-md-6">
+
+          <!-- Información y controles de ubicación geográfica -->
+          <div class="col-md-6 mb-3">
             <label class="form-label">Ubicación</label>
             <div class="mb-3">
               <div class="d-flex align-items-center">
@@ -361,22 +499,30 @@
                     borderBottomLeftRadius: '8px'
                   }"
                 ></i>
-                <div class="form-control d-flex justify-content-between align-items-center">
+                <div
+                  class="form-control d-flex justify-content-between align-items-center"
+                >
                   <span *ngIf="!obteniendoUbicacion && !errorUbicacion">
                     <i class="ri-checkbox-circle-line text-success me-1"></i>
                     Ubicación obtenida
                   </span>
                   <span *ngIf="obteniendoUbicacion">
-                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                    <div
+                      class="spinner-border spinner-border-sm text-primary me-2"
+                      role="status"
+                    ></div>
                     Obteniendo ubicación...
                   </span>
-                  <span *ngIf="!obteniendoUbicacion && errorUbicacion" class="text-danger">
+                  <span
+                    *ngIf="!obteniendoUbicacion && errorUbicacion"
+                    class="text-danger"
+                  >
                     <i class="ri-error-warning-line me-1"></i>
                     {{ errorUbicacion }}
                   </span>
-                  <button 
-                    type="button" 
-                    class="btn btn-sm btn-outline-primary" 
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
                     (click)="obtenerUbicacionActual()"
                     [disabled]="obteniendoUbicacion"
                   >
@@ -386,9 +532,93 @@
               </div>
             </div>
           </div>
+
+                    <!-- Información de crédito del cliente (solo visible cuando se selecciona crédito) -->
+                    <div class="col-md-6 mb-3" *ngIf="mostrarInfoCredito">
+                      <label class="form-label">Información de crédito</label>
+                      <div class="form-control bg-light p-2" [ngClass]="{'text-danger': tieneSaldoVencido()}">
+                        <div *ngIf="!clienteActual" class="text-muted">Seleccione un cliente</div>
+                        <div *ngIf="clienteActual && !tieneCredito()" class="text-warning">Cliente sin crédito habilitado</div>
+                        <div *ngIf="clienteActual && tieneCredito()">
+                          <div class="d-flex justify-content-between mb-1">
+                            <span>Límite de crédito:</span>
+                            <span class="fw-bold">L. {{ getLimiteCredito() | number:'1.2-2' }}</span>
+                          </div>
+                          <div class="d-flex justify-content-between mb-1">
+                            <span>Saldo actual:</span>
+                            <span class="fw-bold">L. {{ getSaldoCliente() | number:'1.2-2' }}</span>
+                          </div>
+                          <div class="d-flex justify-content-between mb-1">
+                            <span>Saldo disponible:</span>
+                            <span class="fw-bold">L. {{ getSaldoDisponible() | number:'1.2-2' }}</span>
+                          </div>
+                          <div class="d-flex justify-content-between">
+                            <span>Días de crédito:</span>
+                            <span class="fw-bold">{{ getDiasCredito() }} días</span>
+                          </div>
+                          
+                          <!-- Indicador visual de crédito disponible vs total de venta -->
+                          <div class="mt-3 border rounded p-3 bg-light shadow-sm" *ngIf="getTotalGeneral() > 0">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                              <h6 class="mb-0"><i class="ri-bank-card-line me-1"></i> Indicador de Crédito</h6>
+                              <span class="badge" [ngClass]="{
+                                'bg-success': getPorcentajeCredito() < 70, 
+                                'bg-warning': getPorcentajeCredito() >= 70 && getPorcentajeCredito() < 90,
+                                'bg-danger': getPorcentajeCredito() >= 90
+                              }">
+                                {{ getEstadoCredito() }}
+                              </span>
+                            </div>
+                            
+                            <div class="row align-items-center mb-2">
+                              <div class="col-6 col-md-5">
+                                <span>Total de venta:</span>
+                              </div>
+                              <div class="col-6 col-md-7 text-end">
+                                <span class="fw-bold fs-6" [ngClass]="{'text-danger': excedeCreditoDisponible(), 'text-success': !excedeCreditoDisponible()}">L. {{ getTotalGeneral() | number:'1.2-2' }}</span>
+                              </div>
+                            </div>
+                            
+                            <!-- Barra de progreso mejorada con animación -->
+                            <div class="position-relative mb-2">
+                              <div class="progress" style="height: 18px; border-radius: 10px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" 
+                                  [ngClass]="{
+                                    'bg-success': getPorcentajeCredito() < 70, 
+                                    'bg-warning': getPorcentajeCredito() >= 70 && getPorcentajeCredito() < 90,
+                                    'bg-danger': getPorcentajeCredito() >= 90
+                                  }"
+                                  [style.width.%]="getPorcentajeCredito()" 
+                                  [attr.aria-valuenow]="getPorcentajeCredito()" 
+                                  aria-valuemin="0" 
+                                  aria-valuemax="100">
+                                  <span *ngIf="getPorcentajeCredito() > 25" class="ms-1">{{ getPorcentajeCredito() | number:'1.0-0' }}%</span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                              <small class="text-muted">{{ getPorcentajeCredito() | number:'1.1-1' }}% del crédito disponible</small>
+                              <small class="text-muted">Disponible: <span class="fw-bold">L. {{ getSaldoDisponible() | number:'1.2-2' }}</span></small>
+                            </div>
+                          </div>
+                          
+                          <div *ngIf="tieneSaldoVencido()" class="text-danger fw-bold mt-1">
+                            <i class="ri-error-warning-line"></i> Cliente con saldo vencido
+                          </div>
+                          <div *ngIf="excedeCreditoDisponible()" class="text-danger fw-bold mt-1">
+                            <i class="ri-error-warning-line"></i> Total excede crédito disponible
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Espacio en blanco cuando no se muestra la información de crédito -->
+                    <div class="col-md-6 mb-3" *ngIf="!mostrarInfoCredito"></div>
+                    
         </div>
 
-        <!-- Sección de Productos -->
+  <!-- Sección de selección de productos -->
         <div class="row">
           <div class="col-12">
             <h6 class="mb-3">
@@ -396,10 +626,10 @@
               Seleccionar Productos
             </h6>
 
-            <!-- Mensaje informativo -->
+            <!-- Mensaje informativo si no hay sucursal seleccionada -->
             <div
               class="alert alert-info d-flex align-items-center mb-3"
-              *ngIf="!venta.regC_Id || venta.regC_Id === 0"
+              *ngIf="!sucursalSeleccionada || sucursalSeleccionada === 0"
             >
               <i class="ri-information-fill me-2"></i>
               <span
@@ -409,7 +639,10 @@
             </div>
 
             <!-- Buscador de productos -->
-            <div class="row mb-3" *ngIf="venta.regC_Id && venta.regC_Id > 0">
+            <div
+              class="row mb-3"
+              *ngIf="sucursalSeleccionada && sucursalSeleccionada > 0"
+            >
               <div class="col-md-6">
                 <div class="search-container">
                   <div class="input-group">
@@ -452,10 +685,10 @@
               </div>
             </div>
 
-            <!-- Contenedor de tarjetas de productos -->
+            <!-- Tarjetas de productos disponibles para la venta -->
             <div
               class="productos-container"
-              *ngIf="venta.regC_Id && venta.regC_Id > 0"
+              *ngIf="sucursalSeleccionada && sucursalSeleccionada > 0"
             >
               <div class="row g-3">
                 <div
@@ -533,11 +766,23 @@
 
                       <!-- Nombre del producto -->
                       <h6
-                        class="producto-titulo-premium mb-3"
+                        class="producto-titulo-premium mb-2"
                         [class.text-muted]="!producto.tieneStock"
                       >
                         {{ producto.prod_Descripcion }}
                       </h6>
+
+                      <!-- Precio del producto -->
+                      <div class="precio-producto-premium mb-3">
+                        <span
+                          class="precio-valor"
+                          [class.text-muted]="!producto.tieneStock"
+                        >
+                          L.
+                          {{ producto.prod_PrecioUnitario | number : "1.2-2" }}
+                        </span>
+                        <span class="precio-unidad text-muted">/ unidad</span>
+                      </div>
 
                       <!-- Controles de cantidad -->
                       <div class="cantidad-controls-premium">
@@ -605,7 +850,7 @@
                 </div>
               </div>
 
-              <!-- Mensaje cuando no hay productos -->
+              <!-- Mensaje cuando no hay productos disponibles -->
               <div
                 class="text-center py-5"
                 *ngIf="productosFiltrados.length === 0"
@@ -623,13 +868,13 @@
               </div>
             </div>
 
-            <!-- Paginación -->
+            <!-- Paginación de productos -->
             <div
               class="d-flex justify-content-between align-items-center mt-4"
               *ngIf="
                 productosFiltrados.length > productosPorPagina &&
-                venta.regC_Id &&
-                venta.regC_Id > 0
+                sucursalSeleccionada &&
+                sucursalSeleccionada > 0
               "
             >
               <div class="pagination-info">
@@ -688,7 +933,7 @@
         </div>
       </div>
 
-      <!-- TAB 2: Resumen -->
+  <!-- TAB 2: Resumen de la venta -->
       <div
         class="tab-pane fade"
         [class.show]="tabActivo === 2"
@@ -696,43 +941,132 @@
         id="nav-resumen"
         role="tabpanel"
       >
-        <!-- Resumen de datos básicos -->
+  <!-- Resumen de datos básicos de la venta -->
         <div class="row mb-4">
           <div class="col-12">
             <div class="card resumen-card border-0">
               <div class="card-header resumen-header">
-                <h6 class="mb-0 resumen-title">
-                  <i class="ri-information-line me-2"></i>
-                  Información de la Venta
-                </h6>
+                <p class="resumen-title">
+                  <strong>Información de la Venta</strong>
+                </p>
               </div>
               <div class="card-body resumen-body">
-                <div class="row">
-                  <div class="col-md-3">
-                    <div class="info-item">
-                      <strong class="info-label">Sucursal:</strong>
-                      <p class="info-value">{{ getNombreSucursal() }}</p>
+                <!-- Primera fila: Sucursal, Tipo de Venta, Fecha -->
+                <div class="row g-4">
+                  <div class="col-12 col-md-4">
+                    <div
+                      class="info-item text-center d-flex flex-column align-items-center"
+                    >
+                      <i class="ri-building-line text-primary fs-3 mb-0"></i>
+                      <h6 class="info-title mb-0">Sucursal</h6>
+                      <p class="info-description mb-0">
+                        {{ getNombreSucursal() }}
+                      </p>
                     </div>
                   </div>
-                  <div class="col-md-3">
-                    <div class="info-item">
-                      <strong class="info-label">Tipo:</strong>
-                      <p class="info-value">{{ venta.fact_TipoVenta }}</p>
+
+                  <div class="col-12 col-md-4">
+                    <div
+                      class="info-item text-center d-flex flex-column align-items-center"
+                    >
+                      <i class="ri-price-tag-3-line text-success fs-3 mb-0"></i>
+                      <h6 class="info-title mb-0">Tipo de Venta</h6>
+                      <p class="info-description mb-0">
+                        {{ venta.fact_TipoVenta }}
+                      </p>
                     </div>
                   </div>
-                  <div class="col-md-3">
-                    <div class="info-item">
-                      <strong class="info-label">Fecha:</strong>
-                      <p class="info-value">
+
+                  <div class="col-12 col-md-4">
+                    <div
+                      class="info-item text-center d-flex flex-column align-items-center"
+                    >
+                      <i class="ri-calendar-line text-info fs-3 mb-0"></i>
+                      <h6 class="info-title mb-0">Fecha de Emisión</h6>
+                      <p class="info-description mb-0">
                         {{ venta.fact_FechaEmision | date : "dd/MM/yyyy" }}
                       </p>
                     </div>
                   </div>
-                  <div class="col-md-3">
-                    <div class="info-item">
-                      <strong class="info-label">Total Productos:</strong>
-                      <p class="info-value highlight">
+                </div>
+
+                <!-- Segunda fila: Cliente, Dirección, Total Productos -->
+                <div class="row g-4 mt-1">
+                  <div class="col-12 col-md-4">
+                    <div
+                      class="info-item text-center d-flex flex-column align-items-center"
+                    >
+                      <i class="ri-user-line text-warning fs-3 mb-0"></i>
+                      <h6 class="info-title mb-0">Cliente</h6>
+                      <p class="info-description mb-0">
+                        {{ getNombreCliente() }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-4">
+                    <div
+                      class="info-item text-center d-flex flex-column align-items-center"
+                    >
+                      <i class="ri-map-pin-line text-danger fs-3 mb-0"></i>
+                      <h6 class="info-title mb-0">Dirección</h6>
+                      <p class="info-description mb-0">
+                        {{ getNombreDireccion() }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-4">
+                    <div
+                      class="info-item text-center d-flex flex-column align-items-center"
+                    >
+                      <i
+                        class="ri-shopping-cart-line text-purple fs-3 mb-0"
+                      ></i>
+                      <h6 class="info-title mb-0">Total Productos</h6>
+                      <p class="info-description highlight mb-0">
                         {{ getTotalProductosSeleccionados() }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tercera fila: Vendedor, Subtotal, Total General -->
+                <div class="row g-4 mt-1">
+                  <div class="col-12 col-md-4">
+                    <div
+                      class="info-item text-center d-flex flex-column align-items-center"
+                    >
+                      <i class="ri-user-star-line text-secondary fs-3 mb-0"></i>
+                      <h6 class="info-title mb-0">Vendedor Asignado</h6>
+                      <p class="info-description mb-0">
+                        {{ getNombreVendedor() }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-4">
+                    <div
+                      class="info-item text-center d-flex flex-column align-items-center"
+                    >
+                      <i
+                        class="ri-money-dollar-circle-line text-success fs-3 mb-0"
+                      ></i>
+                      <h6 class="info-title mb-0">Subtotal</h6>
+                      <p class="info-description mb-0">
+                        L. {{ getSubtotal() | number : "1.2-2" }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-4">
+                    <div
+                      class="info-item text-center d-flex flex-column align-items-center"
+                    >
+                      <i class="ri-calculator-line text-warning fs-3 mb-0"></i>
+                      <h6 class="info-title mb-0">Total General</h6>
+                      <p class="info-description highlight mb-0">
+                        L. {{ getTotalGeneral() | number : "1.2-2" }}
                       </p>
                     </div>
                   </div>
@@ -742,7 +1076,7 @@
           </div>
         </div>
 
-        <!-- Resumen de productos seleccionados -->
+  <!-- Tabla resumen de productos seleccionados -->
         <div class="row">
           <div class="col-12">
             <div class="card resumen-card border-0">
@@ -840,7 +1174,7 @@
                   </table>
                 </div>
 
-                <ng-template #noProductos>
+                <!-- Mensaje si no hay productos seleccionados -->
                   <div class="text-center py-4 no-productos">
                     <i class="ri-box-3-line display-4 no-productos-icon"></i>
                     <p class="text-muted mt-2">
@@ -856,7 +1190,7 @@
     </div>
   </div>
 
-  <!-- Botones de navegación -->
+  <!-- Botones de navegación para cancelar, avanzar, guardar -->
   <div class="mt-auto pt-3">
     <div class="row">
       <div class="col-12">
@@ -912,7 +1246,7 @@
   </div>
 </div>
 
-<!-- Estilos reutilizados -->
+<!-- Estilos reutilizados para inventario y productos -->
 <style>
   /* Estilos adicionales para el manejo de inventario */
   .producto-card-premium.sin-stock {

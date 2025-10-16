@@ -19,6 +19,7 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 import { isTrustedHtml } from 'ngx-editor/lib/trustedTypesUtil';
 import { Empleado } from 'src/app/Modelos/general/Empleado.Model';
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 import { ReactiveTableService } from 'src/app/shared/reactive-table.service';
 
@@ -65,7 +66,6 @@ import { EditComponent } from '../edit/edit.component';
     SimplebarAngularModule,
     DropzoneModule,
     BreadcrumbsComponent,
-
     CreateComponent,
     DetailsComponent,
     EditComponent
@@ -73,45 +73,42 @@ import { EditComponent } from '../edit/edit.component';
   ]
 })
 
-// Grid Component
-
 export class ListComponent {
 
   private readonly exportConfig = {
-      // Configuración básica
-      title: 'Listado de Empleados',                    // Título del reporte
-      filename: 'Empleados',                           // Nombre base del archivo
-      department: 'General',                         // Departamento
-      additionalInfo: 'Sistema de Gestión',         // Información adicional
-      
-      // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
-      columns: [
-        { key: 'No', header: 'No.', width: 3, align: 'center' as const },
-        { key: 'Codigo', header: 'Codigo', width: 15, align: 'left' as const },
-        { key: 'DNI', header: 'DNI', width: 40, align: 'left' as const },
-        { key: 'Nombres', header: 'Nombres', width: 50, align: 'left' as const },
-        { key: 'Apellidos', header: 'Apellidos', width: 50, align: 'left' as const },
-        { key: 'Telefono', header: 'Telefono', width: 40, align: 'left' as const }
-      ] as ExportColumn[],
-      
-      // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
-      dataMapping: (empleado: Empleado, index: number) => ({
-        'No': empleado?.empl_Id || (index + 1),
-        'Codigo': this.limpiarTexto(empleado?.empl_Codigo),
-        'DNI': this.limpiarTexto(empleado?.empl_DNI),
-        'Nombres': this.limpiarTexto(empleado?.empl_Nombres),
-        'Apellidos': this.limpiarTexto(empleado?.empl_Apellidos),
-        'Telefono': this.limpiarTexto(empleado?.empl_Telefono)
-        // Agregar más campos aquí según necesites:
-        // 'Campo': this.limpiarTexto(modelo?.campo),
-      })
-    };
+    // Configuración básica
+    title: 'Listado de Empleados',                    // Título del reporte
+    filename: 'Empleados',                           // Nombre base del archivo
+    department: 'General',                         // Departamento
+    additionalInfo: 'Sistema de Gestión',         // Información adicional
+        
+    // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
+    columns: [
+      { key: 'No', header: 'No.', width: 3, align: 'center' as const },
+      { key: 'Codigo', header: 'Codigo', width: 15, align: 'left' as const },
+      { key: 'DNI', header: 'DNI', width: 40, align: 'left' as const },
+      { key: 'Nombres', header: 'Nombres', width: 50, align: 'left' as const },
+      { key: 'Apellidos', header: 'Apellidos', width: 50, align: 'left' as const },
+      { key: 'Telefono', header: 'Telefono', width: 40, align: 'left' as const }
+    ] as ExportColumn[],
+    
+    // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
+    dataMapping: (empleado: Empleado, index: number) => ({
+      'No': empleado?.empl_Id || (index + 1),
+      'Codigo': this.limpiarTexto(empleado?.empl_Codigo),
+      'DNI': this.limpiarTexto(empleado?.empl_DNI),
+      'Nombres': this.limpiarTexto(empleado?.empl_Nombres),
+      'Apellidos': this.limpiarTexto(empleado?.empl_Apellidos),
+      'Telefono': this.limpiarTexto(empleado?.empl_Telefono)
+      // Agregar más campos aquí según necesites:
+      // 'Campo': this.limpiarTexto(modelo?.campo),
+    })
+  };
 
 
 
 
   accionesDisponibles: string [] = [];
-
   activeActionRow: number | null = null;
   showEdit = true;
   showDetails = true;
@@ -130,13 +127,13 @@ export class ListComponent {
   mensajeWarning = '';
   
 
-
+  // Propiedades para detalles y edición
   empleadoDetalle: Empleado | null = null;
   empleadoEditando: Empleado | null = null;
 
   // Propiedades para confirmación de eliminación
-    mostrarConfirmacionEliminar = false;
-    empleadoAEliminar: Empleado | null = null;
+  mostrarConfirmacionEliminar = false;
+  empleadoAEliminar: Empleado | null = null;
 
   onDocumentClick(event: MouseEvent, rowIndex: number) {
     const target = event.target as HTMLElement;
@@ -154,18 +151,15 @@ export class ListComponent {
   }
 
 
-  term: any;
-  // bread crumb items
+  term: string = '';
   breadCrumbItems!: Array<{}>;
   instuctoractivity: any;
   files: File[] = [];
   deleteID: any;
 
-// Estado de exportación
+  // Estado de exportación
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
-
-
   GridForm!: UntypedFormGroup;
   submitted = false;
   masterSelected: boolean = false;
@@ -175,11 +169,13 @@ export class ListComponent {
   @ViewChild('deleteRecordModal', { static: false }) deleteRecordModal?: ModalDirective;
   editData: any = null;
 
-  constructor(private formBuilder: UntypedFormBuilder, private http: HttpClient, private exportService: ExportService) {}
-  
-
-  ngOnInit(): void {
-    /**
+  constructor(
+    private http: HttpClient, 
+    private exportService: ExportService,
+    private reactiveTableService: ReactiveTableService<Empleado>,
+    private imageUploadService: ImageUploadService,
+    private formBuilder: UntypedFormBuilder
+  ) { /**
      * BreadCrumb
      */
     this.breadCrumbItems = [
@@ -203,13 +199,11 @@ export class ListComponent {
     });
     this.cargarAccionesUsuario();
     this.cargardatos();
-    document.getElementById('elmLoader')?.classList.add('d-none');
   }
 
-   private cargarAccionesUsuario(): void {
+  private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -232,18 +226,29 @@ export class ListComponent {
       }
     }
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   private cargardatos(): void {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Empleado/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
-      this.instructorGrid = data || [];
-      this.usuarioGrid = data || [];
-      this.instructors = cloneDeep(this.instructorGrid.slice(0, 10));
+      // Filtrar solo los empleados con Empl_Estado igual a true
+      this.usuarioGrid = (data || []).filter(empleado => empleado.empl_Estado === true);
+      this.instructorGrid = [...this.usuarioGrid];
+      this.updateInstructors();
       this.isLoading = false;
     });
+  }
+
+  private updateInstructors(): void {
+    if (!this.instructorGrid || this.instructorGrid.length === 0) {
+      this.instructors = [];
+      return;
+    }
+    
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    this.instructors = [...this.instructorGrid.slice(start, end)];
   }
 
   // File Upload
@@ -286,8 +291,6 @@ export class ListComponent {
     }
   }
 
-  
-
   // Delete Product
   removeItem(id: any) {
     this.deleteID = id;
@@ -299,25 +302,40 @@ export class ListComponent {
   }
 
   // filterdata
-  filterdata() {
-    if (this.term && this.term.trim() !== '') {
-      const termLower = this.term.toLowerCase();
-      this.instructors = this.instructorGrid.filter((el: any) =>
-        (el.empl_Nombres && el.empl_Nombres.toLowerCase().includes(termLower)) ||
-        (el.empl_Apellidos && el.empl_Apellidos.toLowerCase().includes(termLower)) ||
-        (el.empl_Correo && el.empl_Correo.toLowerCase().includes(termLower)) ||
-        (el.empl_Codigo && el.empl_Codigo.toLowerCase().includes(termLower))
-      );
+  filterdata(): void {
+    if (!this.term || this.term.trim() === '') {
+      // Si no hay término de búsqueda, mostramos todos los datos
+      this.instructorGrid = [...this.usuarioGrid];
+      this.currentPage = 1; // Reset to first page when clearing search
     } else {
-      // Mostrar la página actual completa si no hay término de búsqueda
-      const startItem = (this.currentPage - 1) * this.itemsPerPage;
-      const endItem = this.currentPage * this.itemsPerPage;
-      this.instructors = this.instructorGrid.slice(startItem, endItem);
+      const termLower = this.term.trim().toLowerCase();
+      // Filtramos los resultados sin modificar usuarioGrid
+      this.instructorGrid = this.usuarioGrid.filter((empleado: any) => {
+        return (
+          (empleado.empl_Nombres && empleado.empl_Nombres.toLowerCase().includes(termLower)) ||
+          (empleado.empl_Apellidos && empleado.empl_Apellidos.toLowerCase().includes(termLower)) ||
+          (empleado.empl_Correo && empleado.empl_Correo.toLowerCase().includes(termLower)) ||
+          (empleado.empl_Codigo && empleado.empl_Codigo.toString().toLowerCase().includes(termLower))
+        );
+      });
+      this.currentPage = 1; // Always go to first page on new search
     }
+    
+    // Forzar la actualización de la vista
+    this.updateInstructors();
     this.updateNoResultDisplay();
+    
+    // Disparar un evento de cambio de página para actualizar la paginación
+    setTimeout(() => {
+      const paginationEvent = {
+        page: this.currentPage,
+        itemsPerPage: this.itemsPerPage
+      };
+      this.pageChanged(paginationEvent);
+    });
   }
 
-  // no result 
+  //No se obtiene un resultado al buscar el formulario de edicion
   updateNoResultDisplay() {
     const noResultElement = document.querySelector('.noresult') as HTMLElement;
     const paginationElement = document.getElementById('pagination-element') as HTMLElement;
@@ -334,9 +352,26 @@ export class ListComponent {
 
   // Page Changed
   pageChanged(event: any): void {
-    const startItem = (event.page - 1) * event.itemsPerPage;
-    const endItem = event.page * event.itemsPerPage;
-    this.instructors = this.instructorGrid.slice(startItem, endItem);
+    if (event && event.page) {
+      this.currentPage = event.page;
+    } else if (event && event.itemsPerPage) {
+      this.itemsPerPage = event.itemsPerPage;
+    }
+    
+    // Asegurarse de que la página actual sea válida
+    const totalPages = Math.ceil(this.instructorGrid.length / this.itemsPerPage);
+    if (this.currentPage > totalPages && totalPages > 0) {
+      this.currentPage = totalPages;
+    } else if (this.currentPage < 1) {
+      this.currentPage = 1;
+    }
+    
+    this.updateInstructors();
+    // Desplazamiento suave a la parte superior de la tabla
+    const tableElement = document.getElementById('pagination-element');
+    if (tableElement) {
+      tableElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   // Abre/cierra el menú de acciones para la fila seleccionada
@@ -344,12 +379,8 @@ export class ListComponent {
     this.activeActionRow = this.activeActionRow === rowIndex ? null : rowIndex;
   }
 
-
-
-
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -365,18 +396,13 @@ export class ListComponent {
     this.empleadoDetalle = null;
   }
 
-
-
-
   guardarEmpleado(empleado: Empleado): void {
-    console.log('Estado civil guardado exitosamente desde create component:', empleado);
     // Recargar los datos de la tabla
     this.cargardatos();
     this.cerrarFormulario();
   }
 
   confirmarEliminar(empleado: Empleado): void {
-    console.log('Solicitando confirmación para eliminar:', empleado);
     this.empleadoAEliminar = empleado;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones
@@ -399,8 +425,6 @@ export class ListComponent {
   eliminar(): void {
     if (!this.empleadoAEliminar) return;
     
-    console.log('Eliminando estado civil:', this.empleadoAEliminar);
-    
     this.http.post(`${environment.apiBaseUrl}/Empleado/Eliminar/${this.empleadoAEliminar.empl_Id}`, {}, {
       headers: { 
         'X-Api-Key': environment.apiKey,
@@ -408,7 +432,6 @@ export class ListComponent {
       }
     }).subscribe({
       next: (response: any) => {
-        console.log('Respuesta del servidor:', response);
         
         // Verificar el código de estado en la respuesta
         if (response.success && (!response.data || response.data.code_Status === 1)) {
@@ -468,64 +491,56 @@ export class ListComponent {
 
   //Detailss
   detalles(empleado: Empleado): void {
-      console.log('Abriendo detalles para:', empleado);
-      this.empleadoDetalle = { ...empleado }; // Hacer copia profunda
-      this.showDetailsForm = true;
-      this.showCreateForm = false; // Cerrar create si está abierto
-      this.showEditForm = false; // Cerrar edit si está abierto
-      this.activeActionRow = null; // Cerrar menú de acciones
-    }
+    this.empleadoDetalle = { ...empleado }; // Hacer copia profunda
+    this.showDetailsForm = true;
+    this.showCreateForm = false; // Cerrar create si está abierto
+    this.showEditForm = false; // Cerrar edit si está abierto
+    this.activeActionRow = null; // Cerrar menú de acciones
+  }
 
+  editar(empleado: Empleado): void {
+    // Crear una copia profunda asegurando que todos los campos estén presentes y sin sobrescribir
+    this.empleadoEditando = {
+      empl_Id: empleado.empl_Id ?? undefined,
+      empl_DNI: empleado.empl_DNI || '',
+      empl_Codigo: empleado.empl_Codigo || '',
+      empl_Nombres: empleado.empl_Nombres || '',
+      empl_Apellidos: empleado.empl_Apellidos || '',
+      empl_Sexo: empleado.empl_Sexo || '',
+      
+      empl_FechaNacimiento: new Date(empleado.empl_FechaNacimiento) || '',
+      empl_Correo: empleado.empl_Correo || '',
+      empl_Telefono: empleado.empl_Telefono || '',
+      sucu_Id: empleado.sucu_Id ?? undefined,
+      esCv_Id: empleado.esCv_Id ?? undefined,
+      carg_Id: empleado.carg_Id ?? undefined,
+      colo_Id: empleado.colo_Id ?? undefined,
+      empl_DireccionExacta: empleado.empl_DireccionExacta || '',
+      empl_Estado: empleado.empl_Estado ?? 1,
+      usua_Creacion: empleado.usua_Creacion ?? 0,
+      empl_FechaCreacion: empleado.empl_FechaCreacion ?? '',
+      empl_Imagen: empleado.empl_Imagen || '', // Asegura que la imagen actual se pase al editar
+    };
+    this.showEditForm = true;
+    this.showCreateForm = false; // Cerrar create si está abierto
+    this.showDetailsForm = false; // Cerrar details si está abierto
+    this.activeActionRow = null; // Cerrar menú de acciones
+  }
 
+  actualizarEmpleado(empleado: Empleado): void {
+    // Recargar los datos de la tabla
+    this.cargardatos();
+    this.cerrarFormularioEdicion();
+  }
 
+  cerrarFormularioEdicion(): void {
+    this.showEditForm = false;
+    this.empleadoEditando = null;
+  }
 
-    editar(empleado: Empleado): void {
-      console.log('Abriendo formulario de edición para:', empleado);
-      // Crear una copia profunda asegurando que todos los campos estén presentes y sin sobrescribir
-      this.empleadoEditando = {
-        empl_Id: empleado.empl_Id ?? undefined,
-        empl_DNI: empleado.empl_DNI || '',
-        empl_Codigo: empleado.empl_Codigo || '',
-        empl_Nombres: empleado.empl_Nombres || '',
-        empl_Apellidos: empleado.empl_Apellidos || '',
-        empl_Sexo: empleado.empl_Sexo || '',
-        
-        empl_FechaNacimiento: new Date(empleado.empl_FechaNacimiento) || '',
-        empl_Correo: empleado.empl_Correo || '',
-        empl_Telefono: empleado.empl_Telefono || '',
-        sucu_Id: empleado.sucu_Id ?? undefined,
-        esCv_Id: empleado.esCv_Id ?? undefined,
-        carg_Id: empleado.carg_Id ?? undefined,
-        colo_Id: empleado.colo_Id ?? undefined,
-        empl_DireccionExacta: empleado.empl_DireccionExacta || '',
-        empl_Estado: empleado.empl_Estado ?? 1,
-        usua_Creacion: empleado.usua_Creacion ?? 0,
-        empl_FechaCreacion: empleado.empl_FechaCreacion ?? '',
-        empl_Imagen: empleado.empl_Imagen || '', // Asegura que la imagen actual se pase al editar
-      };
-      this.showEditForm = true;
-      this.showCreateForm = false; // Cerrar create si está abierto
-      this.showDetailsForm = false; // Cerrar details si está abierto
-      this.activeActionRow = null; // Cerrar menú de acciones
-    }
-
-    actualizarEmpleado(empleado: Empleado): void {
-      console.log('Empleado actualizado exitosamente desde edit component:', empleado);
-      // Recargar los datos de la tabla
-      this.cargardatos();
-      this.cerrarFormularioEdicion();
-    }
-
-    cerrarFormularioEdicion(): void {
-      this.showEditForm = false;
-      this.empleadoEditando = null;
-    }
-
-       
-
-    // Paginacion
-    usuarioGrid: any = [];
-    currentPage: number = 1;
+  // Paginacion
+  usuarioGrid: any = [];
+  currentPage: number = 1;
   itemsPerPage: number = 12;
 
   get startIndex(): number {
@@ -543,8 +558,6 @@ export class ListComponent {
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
   }
-
-
 
 
   //Exportar reportes
@@ -640,22 +653,22 @@ export class ListComponent {
   /**
    * Obtiene y prepara los datos para exportación
    */
- private obtenerDatosExport(): any[] {
-  try {
-    const datos = this.instructors; // Use the array for cards
+  private obtenerDatosExport(): any[] {
+    try {
+      const datos = this.instructors; // Use the array for cards
 
-    if (!Array.isArray(datos) || datos.length === 0) {
-      throw new Error('No hay datos disponibles para exportar');
+      if (!Array.isArray(datos) || datos.length === 0) {
+        throw new Error('No hay datos disponibles para exportar');
+      }
+
+      return datos.map((modelo, index) =>
+        this.exportConfig.dataMapping.call(this, modelo, index)
+      );
+    } catch (error) {
+      console.error('Error obteniendo datos:', error);
+      throw error;
     }
-
-    return datos.map((modelo, index) =>
-      this.exportConfig.dataMapping.call(this, modelo, index)
-    );
-  } catch (error) {
-    console.error('Error obteniendo datos:', error);
-    throw error;
   }
-}
 
 
   /**
@@ -734,4 +747,8 @@ export class ListComponent {
     }
   }
 
+  // Método para obtener la URL completa de la imagen para mostrarla
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
+  }
 }

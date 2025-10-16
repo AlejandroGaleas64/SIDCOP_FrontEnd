@@ -32,7 +32,8 @@
           
           <div style="position: relative; margin-top: 10px;">
             <img
-              [src]="producto.prod_Imagen"
+              [src]="producto.prod_Imagen?.includes('http') ? producto.prod_Imagen : environment.apiBaseUrl + producto.prod_Imagen"
+              (error)="onImgError($event)"
               alt="Foto de producto"
               class="rounded"
               style="width: 100%; height: 10%; object-fit: cover; border: 3px solid #d6b68a; background: #f5f5f5;"
@@ -76,17 +77,14 @@
             <!-- Codigo de Barras -->
             <div class="col-md-6">
               <div class="mb-3">
-                <label for="prod_CodigoBarra" class="form-label">Código de Barras<span class="text-danger">*</span></label>
+                <label for="prod_CodigoBarra" class="form-label">Código de Barras <span class="text-light-emphasis" style="font-size: smaller;"> (Opcional)</span></label>
                 <div class="d-flex align-items-center">
                   <i class="ri-barcode-line" [ngStyle]="{
-                      border: (!producto.marc_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                      backgroundColor: (!producto.marc_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                      border: '1px solid #e9ecf5',
+                      backgroundColor: '#f2f3f9',
                       padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                   </i>
-                  <input type="text" class="form-control" id="prod_CodigoBarra" [(ngModel)]="producto.prod_CodigoBarra" [class.is-invalid]="!producto.prod_CodigoBarra.trim() && mostrarErrores" placeholder="Ingrese el código de barras" required/>
-                </div>
-                <div class="text-danger mt-1" *ngIf="!producto.prod_CodigoBarra.trim() && mostrarErrores">
-                  <small>El campo Código de Barras es requerido</small>
+                  <input type="text" class="form-control" id="prod_CodigoBarra" [(ngModel)]="producto.prod_CodigoBarra" placeholder="Ingrese el código de barras"/>
                 </div>
               </div>
             </div>
@@ -203,7 +201,7 @@
             <!-- Marca -->
             <div class="col-md-6">
               <div class="mb-3">
-                <label for="marc_Id" class="form-label">Marca<span class="text-danger">*</span></label>
+                <label for="marc_Id" class="form-label">Marcas<span class="text-danger">*</span></label>
                 <div class="d-flex align-items-center">
                   <i class="ri-price-tag-3-line" [ngStyle]="{
                         border: (!producto.marc_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
@@ -224,7 +222,7 @@
             <!-- Proveedor -->
             <div class="col-md-6">
               <div class="mb-3">
-                <label for="prov_Id" class="form-label">Proveedor<span class="text-danger">*</span></label>
+                <label for="prov_Id" class="form-label">Proveedores<span class="text-danger">*</span></label>
                 <div class="d-flex align-items-center">
                   <i class="ri-truck-line" [ngStyle]="{
                       border: (!producto.prov_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
@@ -242,10 +240,54 @@
               </div>
             </div>
 
+            <!-- Unidad de Peso -->
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="unPe_Id" class="form-label">Unidades de Peso<span class="text-danger">*</span></label>
+                <div class="d-flex align-items-center">
+                  <i class="ri-ruler-line" [ngStyle]="{
+                    border: (!producto.unPe_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                    backgroundColor: (!producto.unPe_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                  </i>
+                  <select id="unPe_Id" class="form-select" [(ngModel)]="producto.unPe_Id" (change)="onPesoChange($event)" [class.is-invalid]="!producto.unPe_Id && mostrarErrores" required>
+                    <option value=0 disabled selected>Seleccione una unidad de peso</option>
+                    <option *ngFor="let peso of Pesos" [value]="peso.unPe_Id">{{ peso.unPe_Descripcion }} ({{ peso.unPe_Abreviatura }})</option>
+                  </select>
+                </div>
+                <div class="text-danger mt-1" *ngIf="!producto.unPe_Id && mostrarErrores">
+                  <small>El campo Unidades de Peso es requerido</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cantidad de Peso -->
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="prod_Peso" class="form-label">Cantidad de Peso<span class="text-danger">*</span></label>
+                <div class="d-flex align-items-center">
+                  <i class="ri-scales-2-line" [ngStyle]="{
+                    border: (!producto.prod_Peso && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                    backgroundColor: (!producto.prod_Peso && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
+                  <input type="number" class="form-control" id="prod_Peso" [(ngModel)]="producto.prod_Peso" [class.is-invalid]="!producto.prod_Peso && mostrarErrores" placeholder="0.00" required/>
+                </div>
+                <div class="text-danger mt-1" *ngIf="!producto.prod_Peso && mostrarErrores">
+                  <small>El campo Cantidad de Peso es requerido</small>
+                </div>
+                <div class="text-danger mt-1" *ngIf="producto.prod_Peso && !precioFormatoValido">
+                  <small>Máximo permitido: 8 enteros y 2 decimales</small>
+                </div>
+                <div class="text-danger mt-1" *ngIf="producto.prod_Peso && producto.prod_Peso < 0">
+                  <small>El peso debe ser mayor a 0</small>
+                </div>
+              </div>
+            </div>
+
             <!-- Precio Unitario -->
             <div class="col-md-6">
               <div class="mb-3">
-                <label for="prod_PrecioUnitario" class="form-label">Precio Unitario<span class="text-danger">*</span></label>
+                <label for="prod_PrecioUnitario" class="form-label">Precio<span class="text-danger">*</span></label>
                 <div class="d-flex align-items-center">
                   <span [ngStyle]="{
                     border: (!producto.prod_PrecioUnitario && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
@@ -261,33 +303,6 @@
                 </div>
                 <div class="text-danger mt-1" *ngIf="producto.prod_PrecioUnitario && producto.prod_PrecioUnitario < 0">
                   <small>El precio debe ser mayor o igual 0</small>
-                </div>
-              </div>
-            </div>
-
-            <!-- Costo Total -->
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="prod_CostoTotal" class="form-label">Costo Total<span class="text-danger">*</span></label>
-                <div class="d-flex align-items-center">
-                  <span [ngStyle]="{
-                    border: (!producto.prod_CostoTotal && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                    backgroundColor: (!producto.prod_CostoTotal && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">L.</span>
-                  <input
-                    type="number"
-                    class="form-control"
-                    id="prod_CostoTotal"
-                    [(ngModel)]="producto.prod_CostoTotal"
-                    [class.is-invalid]="producto.prod_CostoTotal <= 0 && mostrarErrores"
-                    placeholder="Ingrese el costo total"
-                    min="0.01"
-                    step="0.01"
-                    required
-                  />
-                </div>
-                <div class="text-danger mt-1" *ngIf="producto.prod_CostoTotal <= 0 && mostrarErrores">
-                  <small>El campo Costo Total es requerido y debe ser mayor a 0</small>
                 </div>
               </div>
             </div>
@@ -325,6 +340,23 @@
                     <option value="0" disabled selected>Seleccione un impuesto</option>
                     <option *ngFor="let imp of impuestos" [value]="imp.impu_Id">{{ imp.impu_Descripcion }}</option>
                   </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">¿Impulsar?</label>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="prod_Impulsado"
+                    [(ngModel)]="producto.prod_Impulsado"
+                  />
+                  <label class="form-check-label" for="prod_Impulsado">
+                    {{ producto.prod_Impulsado ? 'Sí' : 'No' }}
+                  </label>
                 </div>
               </div>
             </div>
@@ -488,7 +520,8 @@
             <div class="text-center">
               <small class="text-muted d-block">Anterior</small>
               <img *ngIf="productoOriginal.prod_Imagen" 
-                   [src]="productoOriginal.prod_Imagen" 
+                   [src]="productoOriginal.prod_Imagen?.includes('http') ? productoOriginal.prod_Imagen : environment.apiBaseUrl + productoOriginal.prod_Imagen" 
+                   (error)="onImgError($event)"
                    alt="Imagen anterior"
                    style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6;">
               <div *ngIf="!productoOriginal.prod_Imagen" 
@@ -500,7 +533,8 @@
             <div class="text-center">
               <small class="text-muted d-block">Nuevo</small>
               <img *ngIf="producto.prod_Imagen" 
-                   [src]="producto.prod_Imagen" 
+                   [src]="producto.prod_Imagen?.includes('http') ? producto.prod_Imagen : environment.apiBaseUrl + producto.prod_Imagen" 
+                   (error)="onImgError($event)"
                    alt="Imagen nueva"
                    style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6;">
               <div *ngIf="!producto.prod_Imagen" 

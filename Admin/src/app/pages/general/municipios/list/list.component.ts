@@ -80,7 +80,6 @@ export class ListComponent implements OnInit {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
 
-  // Overlay de carga
   mostrarOverlayCarga = false;
   
   // Acciones disponibles para el usuario
@@ -110,7 +109,6 @@ export class ListComponent implements OnInit {
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -118,12 +116,6 @@ export class ListComponent implements OnInit {
   }
 
   editar(municipio: Municipio): void {
-    console.log('Abriendo formulario de edición para:', municipio);
-    console.log('Datos específicos:', {
-      codigo: municipio.muni_Codigo,
-      descripcion: municipio.muni_Descripcion,
-      completo: municipio
-    });
     this.municipioEditando = { ...municipio }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -132,7 +124,6 @@ export class ListComponent implements OnInit {
   }
 
    detalles(municipio: Municipio): void {
-    console.log('Abriendo detalles para:', municipio);
     const depto = this.departamentos.find(d => d.depa_Codigo === municipio.depa_Codigo);
     this.municipioDetalle = { 
       ...municipio, 
@@ -151,19 +142,20 @@ export class ListComponent implements OnInit {
   municipioAEliminar: Municipio | null = null;
 
   private cargardatos(mostrarOverlay: boolean = true): void {
-    if (mostrarOverlay) this.mostrarOverlayCarga = true;
+    this.mostrarOverlayCarga = true;
     this.http.get<Municipio[]>(`${environment.apiBaseUrl}/Municipios/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (data) => {
         const tienePermisoListar = this.accionPermitida('listar');
-        const userId = getUserId();
+        const userId = getUserId();        
 
         const datosFiltrados = tienePermisoListar
           ? data
           : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
 
         this.table.setData(datosFiltrados);
+        
         this.mostrarOverlayCarga = false;
       },
       error: (error) => {
@@ -192,16 +184,18 @@ export class ListComponent implements OnInit {
     title: 'Listado de Municipios',
     filename: 'Municipios',
     department: 'General',
-    additionalInfo: 'Sistema de Gestión',
+    additionalInfo: '',
     columns: [
       { key: 'No', header: 'No.', width: 8, align: 'center' as const },
       { key: 'Código', header: 'Código', width: 25, align: 'left' as const },
-      { key: 'Descripción', header: 'Descripción', width: 50, align: 'left' as const }
+      { key: 'Municipio', header: 'Municipio', width: 50, align: 'left' as const },
+      { key: 'Departamento', header: 'Departamento', width: 50, align: 'left' as const }
     ] as ExportColumn[],
     dataMapping: (muni: Municipio, index: number) => ({
       'No': muni?.secuencia || (index + 1),
       'Código': this.limpiarTexto(muni?.muni_Codigo),
-      'Descripción': this.limpiarTexto(muni?.muni_Descripcion)
+      'Municipio': this.limpiarTexto(muni?.muni_Descripcion),
+      'Departamento': this.limpiarTexto(muni?.depa_Descripcion)
     })
   };
 
@@ -235,7 +229,6 @@ export class ListComponent implements OnInit {
       }
       this.manejarResultadoExport(resultado);
     } catch (error) {
-      console.error(`Error en exportación ${tipo}:`, error);
       this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
     } finally {
       this.exportando = false;
@@ -271,7 +264,6 @@ export class ListComponent implements OnInit {
       }
       return datos.map((muni, index) => this.exportConfig.dataMapping.call(this, muni, index));
     } catch (error) {
-      console.error('Error obteniendo datos:', error);
       throw error;
     }
   }
@@ -364,11 +356,9 @@ export class ListComponent implements OnInit {
             .filter((a: string) => a.length > 0);
         }
       } catch (e) {
-        console.error('Error al parsear permisosJson:', e);
       }
     }
     this.accionesDisponibles = accionesArray;
-    console.log('Acciones disponibles para municipios:', this.accionesDisponibles);
   }
 
   // Inicializar componente
@@ -388,7 +378,6 @@ export class ListComponent implements OnInit {
     }).subscribe(data => {
       this.departamentos = data;
     }, error => {
-      console.error('Error al cargar los departamentos', error);
     });
   }
 
@@ -412,90 +401,29 @@ export class ListComponent implements OnInit {
 
   guardarMunicipio(municipio: Municipio): void {
     this.mostrarOverlayCarga = true;
-    this.http.post(`${environment.apiBaseUrl}/Municipios/Crear`, municipio, {
-      headers: { 
-        'X-Api-Key': environment.apiKey,
-        'accept': '*/*'
-      }
-    }).subscribe({
-      next: (response: any) => {
-        setTimeout(() => {
-          this.cargardatos(false);
-          if (response.success && response.data && response.data.code_Status === 1) {
-            this.mensajeExito = 'Municipio creado exitosamente';
-            this.mostrarAlertaExito = true;
-            setTimeout(() => {
-              this.mostrarAlertaExito = false;
-              this.mensajeExito = '';
-            }, 3000);
-            this.cargardatos(false);
-            this.cerrarFormulario();
-          } else {
-            this.mostrarAlertaError = true;
-            this.mensajeError = response.data?.message_Status || 'Error al crear el municipio.';
-            setTimeout(() => {
-              this.mostrarAlertaError = false;
-              this.mensajeError = '';
-            }, 5000);
-          }
-        }, 1000);
-      },
-      error: (error) => {
-        this.mostrarOverlayCarga = false;
-        this.mostrarAlertaError = true;
-        this.mensajeError = 'Error inesperado al crear el municipio.';
-        setTimeout(() => {
-          this.mostrarAlertaError = false;
-          this.mensajeError = '';
-        }, 5000);
-      }
-    });
+    setTimeout(()=> {
+      this.cargardatos(false);
+      this.showCreateForm = false;
+      setTimeout(() => {
+        this.mostrarAlertaExito = false;
+        this.mensajeExito = '';
+      }, 3000);
+    }, 1000);
   }
 
   actualizarMunicipio(municipio: Municipio): void {
     this.mostrarOverlayCarga = true;
-    this.http.post(`${environment.apiBaseUrl}/Municipios/Actualizar`, municipio, {
-      headers: { 
-        'X-Api-Key': environment.apiKey,
-        'accept': '*/*'
-      }
-    }).subscribe({
-      next: (response: any) => {
-        setTimeout(() => {
-          this.cargardatos(false);
-          if (response.success && response.data && response.data.code_Status === 1) {
-            this.mensajeExito = 'Municipio actualizado exitosamente';
-            this.mostrarAlertaExito = true;
-            setTimeout(() => {
-              this.mostrarAlertaExito = false;
-              this.mensajeExito = '';
-            }, 3000);
-            this.cargardatos(false);
-            this.cerrarFormularioEdicion();
-          } else {
-            this.mostrarAlertaError = true;
-            this.mensajeError = response.data?.message_Status || 'Error al actualizar el municipio.';
-            setTimeout(() => {
-              this.mostrarAlertaError = false;
-              this.mensajeError = '';
-            }, 5000);
-          }
-        }, 1000);
-      },
-      error: (error) => {
-        this.mostrarOverlayCarga = false;
-        this.mostrarAlertaError = true;
-        this.mensajeError = 'Error inesperado al actualizar el municipio.';
-        setTimeout(() => {
-          this.mostrarAlertaError = false;
-          this.mensajeError = '';
-        }, 5000);
-      }
-    });
+    setTimeout(()=> {
+      this.cargardatos(false);
+      this.showEditForm = false;
+      setTimeout(() => {
+        this.mostrarAlertaExito = false;
+        this.mensajeExito = '';
+      }, 3000);
+    }, 1000);
   }
 
   confirmarEliminar(municipio: Municipio): void {
-    console.log('Solicitando confirmación para eliminar:', municipio);
     this.municipioAEliminar = municipio;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones

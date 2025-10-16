@@ -1,0 +1,302 @@
+<app-breadcrumbs [title]="'Migraciones'" [breadcrumbItems]="[
+    { label: 'Acceso' },
+    { label: 'Migraciones', active: true }
+  ]">
+  <img class="icon-breadcrumb" style="width: 10vh; height: 10vh" src="assets/images/imagenes/db-copy-svgrepo-com.svg"
+    alt="breadcrumb icon" />
+</app-breadcrumbs>
+
+<div class="row">
+  <div class="col-lg-12">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-3 flex-wrap"
+          *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+         <button *ngIf="accionPermitida('migrar')" type="button" class="btn btn-primary me-2 mb-2"
+  (click)="confirmarMigracionGeneral()">
+  <span class="btn-text">Migrar Todo</span>
+  <span class="btn-icon"><i class="bi-send-fill"></i></span>
+</button>
+
+
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <!-- Botones de exportación -->
+            <!-- <div class="export-buttons d-flex gap-1 mb-2">
+              <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarExcel()"
+                title="Exportar a Excel">
+                <span class="btn-text">Excel</span>
+                <span class="btn-icon"><i class="ri-file-excel-2-line" style="font-weight: 100;"></i></span>
+              </button>
+              <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarPDF()"
+                title="Exportar a PDF">
+                <span class="btn-text">PDF</span>
+                <span class="btn-icon"><i class="ri-file-ppt-line" style="font-weight: 100;"></i></span>
+              </button>
+              <button type="button" class="btn btn-primary gold btn-sm btn-minw-5-1" (click)="exportarCSV()"
+                title="Exportar a CSV">
+                <span class="btn-text">CSV</span>
+                <span class="btn-icon"><i class="ri-file-text-line" style="font-weight: 100;"></i></span>
+              </button>
+            </div> -->
+
+
+            <!-- Campo de búsqueda -->
+            <div class="search-box mb-2">
+              <input type="text" class="form-control search" placeholder="Buscar..." [(ngModel)]="table.searchTerm"
+                (ngModelChange)="table.setSearchTerm($event)">
+              <i class="ri-search-line search-icon"></i>
+            </div>
+          </div>
+        </div>
+
+
+
+        <!-- Collapse para el formulario de edición -->
+
+
+
+        <!-- Collapse para el formulario de detalles -->
+
+
+        <!--Tabla-->
+        <div class="table-radius-container">
+          <div class="table-responsive" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+            <table class="table table-gridjs table-style">
+              <thead>
+                <tr>
+                  <th class="gridjs-th" *ngIf="accionPermitida('migrar')">
+                    Migrar
+                  </th>
+                  <!-- no es necesario ordenar todas la columnas-->
+                  <th class="gridjs-th" (click)="table.sortBy('coMi_Tabla')" style="cursor: pointer">
+                    <span class="table-header-flex">
+                      Tablas
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column">
+                        <i class="ri-arrow-up-s-line icon-sort" [ngStyle]="
+                            table.sortField === 'coMi_Tabla' &&
+                            table.sortDirection === 'asc'
+                              ? { color: '#D6B68A' }
+                              : { color: 'white' }
+                          ">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort" [ngStyle]="
+                            table.sortField === 'coMi_Tabla' &&
+                            table.sortDirection === 'desc'
+                              ? { color: '#D6B68A' }
+                              : { color: 'white' }
+                          ">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+                  <th class="gridjs-th" (click)="table.sortBy('coMi_UltimaFechaMigracion')" style="cursor: pointer">
+                    <span style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                        gap: 4px;
+                      ">
+                      Última Fecha de Migración
+                      <!-- iconos para ordenar -->
+                      <span style="
+                          display: flex;
+                          flex-direction: column;
+                          margin-left: 6px;
+                        ">
+                        <i class="ri-arrow-up-s-line icon-sort" [ngStyle]="
+                            table.sortField === 'coMi_UltimaFechaMigracion' &&
+                            table.sortDirection === 'asc'
+                              ? { color: '#D6B68A' }
+                              : { color: 'white' }
+                          ">
+                        </i>
+                        <i class="ri-arrow-down-s-line icon-sort" [ngStyle]="
+                            table.sortField === 'coMi_UltimaFechaMigracion' &&
+                            table.sortDirection === 'desc'
+                              ? { color: '#D6B68A' }
+                              : { color: 'white' }
+                          ">
+                        </i>
+                      </span>
+                    </span>
+                  </th>
+
+
+                </tr>
+                <tr class="gridjs-th" *ngFor="let data of table.paginated$ | async; let i = index">
+                  <!-- ...existing code... -->
+                  <td *ngIf="accionPermitida('migrar')" class="text-center align-middle" style="width: 140px;">
+                    <button type="button"
+                      class="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
+                      style="min-width: 120px; height: 38px;" (click)="confirmarMigracion(data)">
+                      <span class="btn-text me-2">Migrar</span>
+                      <span class="btn-icon"><i class="bi-send-fill"></i></span>
+                    </button>
+                  </td>
+                  <!-- ...existing code... -->
+
+                  <td>
+                    {{ data.coMi_Tabla === 'CXC' ? 'Cuentas por Cobrar' : data.coMi_Tabla }}
+                  </td>
+                  <td>{{ data.coMi_UltimaFechaMigracion | date:'dd/MM/yyyy hh:mm:ss a' }}</td>
+
+                </tr>
+              </thead>
+            </table>
+          </div>
+        </div>
+
+        <div class="row justify-content-md-between align-items-md-center"
+          *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+          <ng-container *ngIf="table.paginated$ | async as paginados">
+            <div class="col-sm-12 col-md-5">
+              <div class="dataTables_info mb-2" role="status" aria-live="polite">
+                Mostrando
+                {{ (table.page - 1) * table.pageSizeValue + paginados.length }}
+                de {{ table.total$ | async }}
+                registros
+              </div>
+            </div>
+            <div class="col-sm-12 col-md-5">
+              <div class="text-md-right float-md-end gridjs-pagination">
+                <pagination [totalItems]="(table.total$ | async) || 0" [(ngModel)]="table.page"
+                  [itemsPerPage]="table.pageSizeValue" (pageChanged)="table.setPage($event.page)"></pagination>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Contenedor de alertas flotantes -->
+<div class="alert-container">
+  <!-- Alerta de éxito -->
+  <div *ngIf="mostrarAlertaExito"
+    class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+    <strong>¡Éxito!</strong> {{ mensajeExito }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
+
+  <!-- Alerta de advertencia -->
+  <div *ngIf="mostrarAlertaWarning"
+    class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+    <strong>¡Atención!</strong> {{ mensajeWarning }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
+
+  <!-- Alerta de error -->
+  <div *ngIf="mostrarAlertaError"
+    class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+    <strong>¡Error!</strong> {{ mensajeError }}
+    <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+  </div>
+</div>
+
+<!-- Modal de confirmación para eliminar -->
+
+
+<!-- Overlay para el modal -->
+<div class="modal-backdrop fade" [ngClass]="{ show: mostrarConfirmacionEliminar }" *ngIf="mostrarConfirmacionEliminar">
+</div>
+
+<!-- end row -->
+<ul *ngIf="floatingMenuService.show" class="dropdown-menu show" [ngStyle]="{
+    position: 'absolute',
+    top: floatingMenuService.top + 'px',
+    left: floatingMenuService.left + 'px',
+  }">
+  <li *ngIf="accionPermitida('migrar')">
+    <button type="button" class="dropdown-action-btn"
+      (click)="confirmarMigracion(floatingMenuService.data); floatingMenuService.close()">
+      Migrar <i class="bi-send-fill"></i>
+    </button>
+  </li>
+</ul>
+
+<!-- Modal de confirmación para migrar -->
+<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionMigrar }"
+  [style.display]="mostrarConfirmacionMigrar ? 'block' : 'none'" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
+        <span>Confirmación</span>
+        <i class="ri-close-line custom-modal-close" (click)="cancelarMigrar()"></i>
+      </div>
+      <hr class="custom-modal-divider">
+      <div class="modal-body custom-modal-body">
+        <div class="text-center">
+          <p class="mt-2 custom-modal-text">
+            <i class="ri-database-2-line me-2 custom-modal-alert-icon"></i>¿Está seguro(a) que desea migrar la tabla <strong>{{ migracionPendiente?.coMi_Tabla }}</strong>?
+          </p>
+          <p class="text-muted small">Esta acción iniciará el proceso de migración de datos.</p>
+        </div>
+      </div>
+      <div class="modal-footer custom-modal-footer">
+        <button type="button" class="btn btn-primary gray btn-sm btn-minw-5" (click)="cancelarMigrar()">
+          <span class="btn-text">No</span><span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+        </button>
+        <button type="button" class="btn btn-primary btn-sm btn-minw-5" (click)="confirmarMigrar()">
+          <span class="btn-text">Sí</span>
+          <span class="btn-icon"><i class="bi-send-fill"></i></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay para el modal -->
+<div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionMigrar }" *ngIf="mostrarConfirmacionMigrar"></div>
+
+
+
+<!-- Modal de confirmación para migrar todo -->
+<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionMigrarGeneral }"
+  [style.display]="mostrarConfirmacionMigrarGeneral ? 'block' : 'none'" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
+        <span>Confirmación</span>
+        <i class="ri-close-line custom-modal-close" (click)="cancelarMigrarGeneral()"></i>
+      </div>
+      <hr class="custom-modal-divider">
+      <div class="modal-body custom-modal-body">
+        <div class="text-center">
+          <p class="mt-2 custom-modal-text">
+            <i class="ri-database-2-line me-2 custom-modal-alert-icon"></i>¿Está seguro(a) que desea migrar TODAS las tablas?
+          </p>
+          <p class="text-muted small">Esta acción iniciará el proceso de migración completa de todos los datos. Este proceso puede tomar varios minutos.</p>
+        </div>
+      </div>
+      <div class="modal-footer custom-modal-footer">
+        <button type="button" class="btn btn-primary gray btn-sm btn-minw-5" (click)="cancelarMigrarGeneral()">
+          <span class="btn-text">No</span><span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+        </button>
+        <button type="button" class="btn btn-primary btn-sm btn-minw-5" (click)="confirmarMigrarGeneral()">
+          <span class="btn-text">Sí</span>
+          <span class="btn-icon"><i class="bi-send-fill"></i></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay para el modal -->
+<div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionMigrarGeneral }" *ngIf="mostrarConfirmacionMigrarGeneral"></div>
+
+
+<div *ngIf="mostrarOverlayCarga" class="overlay-carga">
+  <div class="typing-indicator">
+    <div class="typing-circle"></div>
+    <div class="typing-circle"></div>
+    <div class="typing-circle"></div>
+    <div class="typing-shadow"></div>
+    <div class="typing-shadow"></div>
+    <div class="typing-shadow"></div>
+  </div>
+</div>

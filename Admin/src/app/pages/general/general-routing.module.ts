@@ -106,6 +106,13 @@ const routes: Routes = [
       import('./estadosVisita/estadosVisita.module').then(m => m.EstadosVisitaModule),
     canActivate: [PermisoGuard],
     data: { pantallaId: 78 } 
+  },
+  {
+    path: 'unidadesDePeso',
+    loadChildren: () =>
+      import('./unidadesDeMedida/unidadesDePeso.module').then(m => m.UnidadesDePesoModule),
+    canActivate: [PermisoGuard],
+    data: { pantallaId: 81 } 
   }
 ];
 

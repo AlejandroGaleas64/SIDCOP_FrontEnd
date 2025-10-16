@@ -7,7 +7,8 @@
       "TEXT": "Acceso",
       "LIST": {
         "USUARIOS": "Usuarios",
-        "ROLES": "Roles"
+        "ROLES": "Roles",
+        "MIGRACIONES": "Migraciones"
       }
     },
     "GENERAL": {
@@ -27,7 +28,8 @@
         "EMPLEADOS": "Empleados",
         "CARGOS": "Cargos",
         "VISITASCLIENTES": "Visitas",
-        "ESTADOSVISITA": "Estados de Visita"
+        "ESTADOSVISITA": "Estados de Visita",
+        "UNIDADESDEPESO": "Unidades de Peso"
       }
     },
     "INVENTARIO": {
@@ -53,7 +55,8 @@
         "PEDIDOS": "Pedidos",
         "LISTASPRECIOS": "Listas de Precios",
         "DEVOLUCIONES": "Devoluciones",
-        "VENTA": "Ventas"
+        "VENTA": "Ventas",
+        "METAS": "Metas"
       }
     },
     "LOGISTICA": {
@@ -84,7 +87,9 @@
         "ECOMMERCE": "Ecommerce",
         "LEARNING": "Learning",
         "REALESTATE": "Real Estate",
-        "DASHBOARD": "Dashboard"
+        "DASHBOARD": "Dashboard",
+        "METAS": "Metas",
+        "METASVENDEDOR": "Metas de Vendedor"
       }
     },
     "APPS": {

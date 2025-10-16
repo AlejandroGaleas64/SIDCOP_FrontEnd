@@ -98,11 +98,9 @@ export class ListComponent implements OnInit {
 
     // OBTENER ACCIONES DISPONIBLES DEL USUARIO
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
   }
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -110,12 +108,6 @@ export class ListComponent implements OnInit {
   }
 
   editar(estadoVisita: EstadoVisita): void {
-    console.log('Abriendo formulario de edición para:', estadoVisita);
-    console.log('Datos específicos:', {
-      id: estadoVisita.esVi_Id,
-      descripcion: estadoVisita.esVi_Descripcion,
-      completo: estadoVisita
-    });
     this.estadoVisitaEditando = { ...estadoVisita }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -124,7 +116,6 @@ export class ListComponent implements OnInit {
   }
 
   detalles(estadoVisita: EstadoVisita): void {
-    console.log('Abriendo detalles para:', estadoVisita);
     this.estadoVisitaDetalle = { ...estadoVisita }; // Hacer copia profunda
     this.showDetailsForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -180,21 +171,23 @@ export class ListComponent implements OnInit {
   }
 
   guardarEstadoVisita(estadoVisita: EstadoVisita): void {
-    console.log('Estado civil guardado exitosamente desde create component:', estadoVisita);
     // Recargar los datos de la tabla sin overlay
     this.cargardatos(false);
     this.cerrarFormulario();
   }
 
+  estadosVisitaFiltrados: any[] = [];
   actualizarEstadoVisita(estadoVisita: EstadoVisita): void {
-    console.log('Estado civil actualizado exitosamente desde edit component:', estadoVisita);
     // Recargar los datos de la tabla sin overlay
     this.cargardatos(false);
     this.cerrarFormularioEdicion();
+
+    // const startItem = (this.currentPage - 1) * this.itemsPerPage;
+    // const endItem = this.currentPage * this.itemsPerPage;
+    // this.estadoVisita = this.estadosVisitaFiltrados.slice(startItem, endItem);
   }
 
   confirmarEliminar(estadoVisita: EstadoVisita): void {
-    console.log('Solicitando confirmación para eliminar:', estadoVisita);
     this.estadoVisitaAEliminar = estadoVisita;
     this.mostrarConfirmacionEliminar = true;
   }
@@ -207,8 +200,6 @@ export class ListComponent implements OnInit {
   eliminar(): void {
     if (!this.estadoVisitaAEliminar) return;
     
-    console.log('Eliminando estado civil:', this.estadoVisitaAEliminar);
-    
     this.http.post(`${environment.apiBaseUrl}/EstadoVisita/Eliminar/${this.estadoVisitaAEliminar.esVi_Id}`, {}, {
       headers: { 
         'X-Api-Key': environment.apiKey,
@@ -216,14 +207,12 @@ export class ListComponent implements OnInit {
       }
     }).subscribe({
       next: (response: any) => {
-        console.log('Respuesta del servidor:', response);
         
         // Verificar el código de estado en la respuesta
         if (response.success && response.data) {
           if (response.data.code_Status === 1) {
             // Éxito: eliminado correctamente
-            console.log('Estado civil eliminado exitosamente');
-            this.mensajeExito = `Estado civil "${this.estadoVisitaAEliminar!.esVi_Descripcion}" eliminado exitosamente`;
+            this.mensajeExito = `Estado de Visita "${this.estadoVisitaAEliminar!.esVi_Descripcion}" eliminado exitosamente`;
             this.mostrarAlertaExito = true;
             
             // Ocultar la alerta después de 3 segundos
@@ -237,9 +226,8 @@ export class ListComponent implements OnInit {
             this.cancelarEliminar();
           } else if (response.data.code_Status === -1) {
             //result: está siendo utilizado
-            console.log('Estado civil está siendo utilizado');
             this.mostrarAlertaError = true;
-            this.mensajeError = response.data.message_Status || 'No se puede eliminar: el estado civil está siendo utilizado.';
+            this.mensajeError = response.data.message_Status || 'No se puede eliminar: el estado de visita está siendo utilizado.';
             
             setTimeout(() => {
               this.mostrarAlertaError = false;
@@ -250,9 +238,8 @@ export class ListComponent implements OnInit {
             this.cancelarEliminar();
           } else if (response.data.code_Status === 0) {
             // Error general
-            console.log('Error general al eliminar');
             this.mostrarAlertaError = true;
-            this.mensajeError = response.data.message_Status || 'Error al eliminar el estado civil.';
+            this.mensajeError = response.data.message_Status || 'Error al eliminar el estado de visita.';
             
             setTimeout(() => {
               this.mostrarAlertaError = false;
@@ -264,9 +251,8 @@ export class ListComponent implements OnInit {
           }
         } else {
           // Respuesta inesperada
-          console.log('Respuesta inesperada del servidor');
           this.mostrarAlertaError = true;
-          this.mensajeError = response.message || 'Error inesperado al eliminar el estado civil.';
+          this.mensajeError = response.message || 'Error inesperado al eliminar el estado de visita.';
           
           setTimeout(() => {
             this.mostrarAlertaError = false;
@@ -289,9 +275,8 @@ export class ListComponent implements OnInit {
     title: 'Listado de Estados de Visita',
     filename: 'EstadosdeVisita',
     columns: [
-      { header: 'No.', key: 'secuencia' },
-      { header: 'Descripción', key: 'esVi_Descripcion' },
-      { header: 'Fecha Creación', key: 'esVi_FechaCreacion' },
+      { header: 'No.', key: 'secuencia', width: 20, align: 'left' as const },
+      { header: 'Descripción', key: 'esVi_Descripcion', width: 80, align: 'left' as const },
     ],
     data: [] as any[]
   };
@@ -362,7 +347,6 @@ export class ListComponent implements OnInit {
         this.manejarResultadoExport(resultado);
         
       } catch (error) {
-        console.error(`Error en exportación ${tipo}:`, error);
         this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
       } finally {
         this.exportando = false;
@@ -396,12 +380,10 @@ export class ListComponent implements OnInit {
         // Usar el mapeo configurado
         return datos.map((estadovisita, index) => ({
           secuencia: estadovisita.secuencia,
-          esVi_Descripcion: this.limpiarTexto(estadovisita.esVi_Descripcion),
-          esVi_FechaCreacion: estadovisita.esVi_FechaCreacion          
+          esVi_Descripcion: this.limpiarTexto(estadovisita.esVi_Descripcion)       
         }));
         
       } catch (error) {
-        console.error('Error obteniendo datos:', error);
         throw error;
       }
     }
@@ -478,7 +460,6 @@ export class ListComponent implements OnInit {
   private cargarAccionesUsuario(): void {
     // OBTENEMOS PERMISOSJSON DEL LOCALSTORAGE
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -487,23 +468,21 @@ export class ListComponent implements OnInit {
         let modulo = null;
         if (Array.isArray(permisos)) {
           // BUSCAMOS EL MÓDULO DE ESTADOS CIVILES POR ID
-          modulo = permisos.find((m: any) => m.Pant_Id === 14);
+          modulo = permisos.find((m: any) => m.Pant_Id === 78);
         } else if (typeof permisos === 'object' && permisos !== null) {
           // ESTO ES PARA CUANDO LOS PERMISOS ESTÁN EN UN OBJETO CON CLAVES
-          modulo = permisos['Estados Civiles'] || permisos['estados civiles'] || null;
+          modulo = permisos['Estados de Visita'] || permisos['estados de visita'] || null;
         }
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
           // AQUI SACAMOS SOLO EL NOMBRE DE LA ACCIÓN
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
-          console.log('Acciones del módulo:', accionesArray);
         }
       } catch (e) {
-        console.error('Error al parsear permisosJson:', e);
+        // console.error('Error al parsear permisosJson:', e);
       }
     } 
     // AQUI FILTRAMOS Y NORMALIZAMOS LAS ACCIONES
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
   }
 
   private cargardatos(state: boolean): void {
@@ -525,4 +504,23 @@ export class ListComponent implements OnInit {
       }, 500);
     });
   }
+
+  // filtradorClientes(): void {
+  //   const termino = this.busqueda.trim().toLowerCase();
+  //   if (!termino) {
+  //     this.estadosVisitaFiltrados = [...this.estadoVisita];
+  //   } else {
+  //     this.estadosVisitaFiltrados = this.estadoVisita.filter((cliente: any) =>
+  //       (cliente.clie_Codigo || '').toLowerCase().includes(termino) ||
+  //       (cliente.clie_Nombres || '').toLowerCase().includes(termino) ||
+  //       (cliente.clie_Apellidos || '').toLowerCase().includes(termino) ||
+  //       (cliente.clie_DNI || '').toLowerCase().includes(termino) ||
+  //       (cliente.clie_NombreNegocio || '').toLowerCase().includes(termino)
+  //     );
+  //   }
+  //   this.currentPage = 1;
+  //   this.actualizarEstadoVisita();
+  // }
+
+  
 }

@@ -32,6 +32,19 @@
         </div>
         <div class="card-body">
           <div class="row g-3">
+            <!-- Vista previa del rango de facturas - Resaltado especial -->
+           <div class="col-12" *ngIf="numeroFacturaFormateado">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white"><i class=" ri-arrow-up-down-line"></i></div>
+                <div class="detail-content">
+                  <div class="detail-label">Rango de Facturas</div>
+                  <div class="detail-value text-center fs-5 fw-bold">
+                    {{ numeroFacturaFormateado }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="col-12 col-sm-6">
               <div class="detail-item">
                 <div class="detail-icon bg-dark-blue text-white"><i class="ri-attachment-line"></i></div>
@@ -46,7 +59,7 @@
                 <div class="detail-icon bg-dark-blue text-white"><i class="ri-building-2-line"></i></div>
                 <div class="detail-content">
                   <div class="detail-label">Sucursal</div>
-                  <div class="detail-value"> {{ RegistroCAIDetalle.sucu_Descripcion || 'N/A' }}</div>
+                  <div class="detail-value">{{ obtenerSucursalCompleta() }}</div>
                 </div>
               </div>
             </div>
@@ -76,7 +89,7 @@
 
             <div class="col-12 col-sm-6">
               <div class="detail-item">
-                <div class="detail-icon bg-dark-blue text-white"><i class="ri-arrow-up-down-line"></i></div>
+                <div class="detail-icon bg-dark-blue text-white"><i class=" ri-arrow-left-right-line"></i></div>
                 <div class="detail-content">
                   <div class="detail-label">Rango</div>
                   <div class="detail-value"> {{ RegistroCAIDetalle.regC_RangoInicial }} - {{

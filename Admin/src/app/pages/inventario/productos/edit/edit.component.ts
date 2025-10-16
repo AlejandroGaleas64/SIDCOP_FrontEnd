@@ -6,6 +6,7 @@ import { Producto } from 'src/app/Modelos/inventario/Producto.Model';
 import { Categoria } from 'src/app/Modelos/inventario/CategoriaModel';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   selector: 'app-edit',
@@ -19,13 +20,14 @@ export class EditComponent implements OnChanges {
   @Input() productoData: Producto | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Producto>();
-
+  environment = environment;
   subcategorias: Categoria[] = [];
   categorias: any[] = [];
   subcategoriasFiltradas: Categoria[] = [];
   categoriaSeleccionada: number = 0;
   marcas: any[] = [];
   proveedores: any[] = [];
+  Pesos: any[] = [];
   impuestos: any[] = [];
   subcategoriaOriginalDescripcion: string = '';
   categoriaOriginalId: number = 0;
@@ -55,14 +57,16 @@ export class EditComponent implements OnChanges {
     prod_Imagen: 'assets/images/users/32/agotado.png',
     cate_Id: 0,
     cate_Descripcion: '',
+    prod_Peso: 0,
+    unPe_Id: 0,
     subc_Id: 0,
     marc_Id: 0,
     prov_Id: 0,
     impu_Id: 0,
     prod_PrecioUnitario: 0,
-    prod_CostoTotal: 0,
     prod_PagaImpuesto: "",
     prod_EsPromo: "",
+    prod_Impulsado: false,
     prod_Estado: true,
     usua_Creacion: 0,
     prod_FechaCreacion: new Date(),
@@ -72,7 +76,9 @@ export class EditComponent implements OnChanges {
     prov_NombreEmpresa: '',
     subc_Descripcion: '',
     impu_Descripcion: '',
-    promDesc: '',
+    impulsacion: '',
+    unPe_Descripcion: '',
+    unPe_Abreviatura: '',
     secuencia: 0,
     code_Status: 0,
     message_Status: '',
@@ -89,9 +95,10 @@ export class EditComponent implements OnChanges {
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {
     this.cargarMarcas();
     this.cargarProveedores();
+    this.cargarPesos();
     this.cargarImpuestos();
   }
 
@@ -101,11 +108,20 @@ export class EditComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['productoData'] && changes['productoData'].currentValue) {
       this.producto = { ...changes['productoData'].currentValue };
+      
+      // Limpiar la concatenación de URL de la imagen si existe
+      if (this.producto.prod_Imagen && this.producto.prod_Imagen.includes(environment.apiBaseUrl)) {
+        this.producto.prod_Imagen = this.producto.prod_Imagen.replace(environment.apiBaseUrl, '');
+      }
+      
       // Obtener descripción de marca a partir del id al cargar producto
       const marcaActual = this.marcas.find(m => m.marc_Id === this.producto.marc_Id);
       this.producto.marc_Descripcion = marcaActual ? marcaActual.marc_Descripcion : '';
       const proveedorActual = this.proveedores.find(p => p.prov_Id === this.producto.prov_Id);
       this.producto.prov_NombreEmpresa = proveedorActual ? proveedorActual.prov_NombreEmpresa : '';
+      const pesoActual = this.Pesos.find(p => p.unPe_Id === this.producto.unPe_Id);
+      this.producto.unPe_Descripcion = pesoActual ? pesoActual.unPe_Descripcion : '';
+      this.producto.unPe_Abreviatura = pesoActual ? pesoActual.unPe_Abreviatura : '';
       this.productoOriginal = { ...this.productoData };
       this.subcategoriaOriginalDescripcion = this.productoData?.subc_Descripcion ?? '';
       this.categoriaOriginalId = this.productoData?.cate_Id ?? 0;
@@ -138,6 +154,18 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  onPesoChange(event: any) {
+    const selectedId = +event.target.value;
+    const pesoSeleccionado = this.Pesos.find(p => p.unPe_Id === selectedId);
+    if (pesoSeleccionado) {
+      this.producto.unPe_Descripcion = pesoSeleccionado.unPe_Descripcion;
+      this.producto.unPe_Abreviatura = pesoSeleccionado.unPe_Abreviatura;
+    } else {
+      this.producto.unPe_Descripcion = '';
+      this.producto.unPe_Abreviatura = '';
+    }
+  }
+
   validarPrecioUnitario() {
     const valor = this.producto.prod_PrecioUnitario;
     // Convertir a string para validar con regex
@@ -162,7 +190,7 @@ export class EditComponent implements OnChanges {
       this.producto.subc_Id = 0;
       return;
     }
-    console.log('Filtrando subcategorías para categoría:', categoriaId);
+    //console.log('Filtrando subcategorías para categoría:', categoriaId);
     this.filtrarSubcategoriasPorCategoria(categoriaId, true);
   }
 
@@ -188,6 +216,16 @@ export class EditComponent implements OnChanges {
     }).subscribe(data => {this.proveedores = data;},
       error => {
         console.error('Error al cargar los proveedores:', error);
+      }
+    );
+  }
+
+  cargarPesos() {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/UnidadDePeso/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(data => {this.Pesos = data;},
+      error => {
+        console.error('Error al cargar las unidades de peso:', error);
       }
     );
   }
@@ -249,7 +287,7 @@ export class EditComponent implements OnChanges {
   isCargandoSubcategorias: boolean = false;
 
   filtrarSubcategoriasPorCategoria(categoriaId: number, limpiarSubcategoria: boolean = false) {
-    console.log('Filtrando subcategorías para categoría:', categoriaId);
+    //console.log('Filtrando subcategorías para categoría:', categoriaId);
     if (!categoriaId) {
       this.subcategoriasFiltradas = [];
       this.producto.subc_Id = 0;
@@ -293,7 +331,7 @@ export class EditComponent implements OnChanges {
         this.producto.subc_Id = unica.subc_Id;
         this.producto.subc_Descripcion = unica.subC_Descripcion;
       }
-      console.log('Subcategorías filtradas:', this.subcategoriasFiltradas);
+      //console.log('Subcategorías filtradas:', this.subcategoriasFiltradas);
       // this.producto.subc_Id = 0; // Reset subcategory selection
       this.isCargandoSubcategorias = false; // terminó carga
     }, error => {
@@ -407,19 +445,27 @@ export class EditComponent implements OnChanges {
       };
     }
 
+    if (a.unPe_Id !== b.unPe_Id) {
+      this.cambiosDetectados.unidadPeso = {
+        anterior: b.unPe_Descripcion + ' (' + b.unPe_Abreviatura + ')',
+        nuevo: a.unPe_Descripcion + ' (' + a.unPe_Abreviatura + ')',
+        label: 'Unidad de Peso'
+      };
+    }
+
+    if (a.prod_Peso !== b.prod_Peso) {
+      this.cambiosDetectados.peso = {
+        anterior: b.prod_Peso,
+        nuevo: a.prod_Peso,
+        label: 'Peso'
+      };
+    }
+
     if (a.prod_PrecioUnitario !== b.prod_PrecioUnitario) {
       this.cambiosDetectados.precioUnitario = {
         anterior: b.prod_PrecioUnitario,
         nuevo: a.prod_PrecioUnitario,
         label: 'Precio Unitario'
-      };
-    }
-
-    if (a.prod_CostoTotal !== b.prod_CostoTotal) {
-      this.cambiosDetectados.costoTotal = {
-        anterior: b.prod_CostoTotal,
-        nuevo: a.prod_CostoTotal,
-        label: 'Costo Total'
       };
     }
 
@@ -439,6 +485,14 @@ export class EditComponent implements OnChanges {
       };
     }
 
+    if( a.prod_Impulsado !== b.prod_Impulsado) {
+      this.cambiosDetectados.impulsado = {
+        anterior: b.prod_Impulsado ? 'Sí' : 'No',
+        nuevo: a.prod_Impulsado ? 'Sí' : 'No',
+        label: 'Producto Impulsado'
+      };
+    }
+
     return Object.keys(this.cambiosDetectados).length > 0;
   }
 
@@ -452,22 +506,12 @@ export class EditComponent implements OnChanges {
       this.producto.subc_Id &&
       this.producto.marc_Id &&
       this.producto.prov_Id &&
+      this.producto.unPe_Id &&
       this.producto.prod_PrecioUnitario != null &&
-      this.producto.prod_CostoTotal != null &&
-      this.producto.prod_PrecioUnitario >= 0 &&
-      this.producto.prod_CostoTotal >= 0 &&
-      this.producto.prod_PrecioUnitario >= this.producto.prod_CostoTotal
+      this.producto.prod_Peso != null &&
+      this.producto.prod_PrecioUnitario > 0 &&
+      this.producto.prod_Peso >= 0
     ) {
-      // const hayCambios = 
-      //   this.producto.prod_Imagen !== this.productoData?.prod_Imagen ||
-      //   this.producto.prod_Codigo.trim() !== this.productoData?.prod_Codigo?.trim() ||
-      //   this.producto.prod_Descripcion.trim() !== this.productoData?.prod_Descripcion?.trim() ||
-      //   this.producto.prod_DescripcionCorta.trim() !== this.productoData?.prod_DescripcionCorta?.trim() ||
-      //   this.producto.subc_Id !== this.productoData?.subc_Id ||
-      //   this.producto.marc_Id !== this.productoData?.marc_Id ||
-      //   this.producto.prov_Id !== this.productoData?.prov_Id ||
-      //   this.producto.prod_PrecioUnitario !== this.productoData?.prod_PrecioUnitario ||
-      //   this.producto.prod_CostoTotal !== this.productoData?.prod_CostoTotal
       if (this.hayDiferencias()) {
         this.mostrarConfirmacionEditar = true;
       } else {
@@ -501,11 +545,11 @@ export class EditComponent implements OnChanges {
       this.producto.subc_Id &&
       this.producto.marc_Id &&
       this.producto.prov_Id &&
+      this.producto.unPe_Id &&
       this.producto.prod_PrecioUnitario != null &&
-      this.producto.prod_CostoTotal != null &&
-      this.producto.prod_PrecioUnitario >= 0 &&
-      this.producto.prod_CostoTotal >= 0 &&
-      this.producto.prod_PrecioUnitario >= this.producto.prod_CostoTotal
+      this.producto.prod_Peso != null &&
+      this.producto.prod_PrecioUnitario > 0 &&
+      this.producto.prod_Peso >= 0
     ) {
       const productoActualizar = {
         ...this.producto,
@@ -569,27 +613,29 @@ export class EditComponent implements OnChanges {
     // Obtenemos el archivo seleccionado desde el input tipo file
     const file = event.target.files[0];
 
-    if (file) {
-      // para enviar la imagen a Cloudinary
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'subidas_usuarios');
-      //Subidas usuarios Carpeta identificadora en Cloudinary
-      //dwiprwtmo es el nombre de la cuenta de Cloudinary
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
 
+    if (file) {
+      // Mostrar indicador de carga
       
-      fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        this.producto.prod_Imagen = data.secure_url;
-      })
-      .catch(error => {
-        console.error('Error al subir la imagen a Cloudinary:', error);
-      });
+      this.mostrarOverlayCarga = true;
+      
+      // Usar el servicio de carga de imágenes
+      this.imageUploadService.uploadImageAsync(file)
+        .then(imagePath => {
+          this.producto.prod_Imagen = imagePath;
+          //console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
+          this.mostrarOverlayCarga = false;
+        })
+        .catch(error => {
+          console.error('Error al subir la imagen:', error);
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error al subir la imagen. Por favor, intente nuevamente.';
+          this.mostrarOverlayCarga = false;
+          setTimeout(() => {
+            this.mostrarAlertaError = false;
+            this.mensajeError = '';
+          }, 3000);
+        });
     }
   }
 

@@ -14,9 +14,7 @@ import { CreateComponent } from '../create/create.component';
 import { EditComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
-// Importar el servicio de exportación optimizado
-import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
-
+//Importaciones de Animaciones
 import {
   trigger,
   state,
@@ -25,6 +23,8 @@ import {
   animate
 } from '@angular/animations';
 import { set } from 'lodash';
+// Importar el servicio de exportación optimizado
+import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
 
 @Component({
   selector: 'app-list',
@@ -77,21 +77,22 @@ import { set } from 'lodash';
   //Animaciones para collapse
 })
 export class ListComponent implements OnInit {
- // ===== CONFIGURACIÓN FÁCIL DE EXPORTACIÓN =====
-  // 🔧 PERSONALIZA AQUÍ TU CONFIGURACIÓN DE EXPORTACIÓN 🔧
+
+  // ===== CONFIGURACIÓN DE EXPORTACIÓN =====
   private readonly exportConfig = {
     // Configuración básica
     title: 'Listado de Puntos de Emision',                    // Título del reporte
     filename: 'Puntos de Emisión',                           // Nombre base del archivo
     department: 'Ventas',                         // Departamento
-    additionalInfo: 'Sistema de Gestión',         // Información adicional
+    additionalInfo: '',         // Información adicional
     
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
       { key: 'No', header: 'No.', width: 8, align: 'center' as const },
       { key: 'Codigo', header: 'Codigo', width: 25, align: 'left' as const },
       { key: 'Descripción', header: 'Descripción', width: 50, align: 'left' as const },
-        { key: 'Sucursal', header: 'Sucursal', width: 75, align: 'left' as const }
+        { key: 'Sucursal', header: 'Sucursal', width: 75, align: 'left' as const },
+        { key: 'Estado', header: 'Estado', width: 75, align: 'left' as const }
     ] as ExportColumn[],
     
     // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
@@ -99,21 +100,22 @@ export class ListComponent implements OnInit {
       'No': modelo?.secuencia || (index + 1),
       'Codigo': this.limpiarTexto(modelo?.puEm_Codigo),
       'Descripción': this.limpiarTexto(modelo?.puEm_Descripcion),
-       'Sucursal': this.limpiarTexto(modelo?.sucu_Descripcion)
+       'Sucursal': this.limpiarTexto(modelo?.sucu_Descripcion),
+       'Estado': this.limpiarTexto(modelo?.estado)
       // Agregar más campos aquí según necesites:
       // 'Campo': this.limpiarTexto(modelo?.campo),
     })
   };
 
-  // Estado de exportación
+  // ===== PROPIEDADES DE EXPORTACIÓN =====
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
-
-
-  // bread crumb items
+  
+  // ===== PROPIEDADES GENERALES =====
   breadCrumbItems!: Array<{}>;
-
-   // Acciones disponibles para el usuario en esta pantalla
+  
+  // ===== CONTROL DE ACCIONES Y PERMISOS =====
+  // Acciones disponibles para el usuario en esta pantalla
   accionesDisponibles: string[] = [];
 
   // Método robusto para validar si una acción está permitida
@@ -133,14 +135,14 @@ export class ListComponent implements OnInit {
 
        // Obtener acciones disponibles del usuario (ejemplo: desde API o localStorage)
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
+    //console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
   // Cierra el dropdown si se hace click fuera
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
+    //console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -148,13 +150,8 @@ export class ListComponent implements OnInit {
   }
 
   editar(puntodeemision: PuntoEmision): void {
-    console.log('Abriendo formulario de edición para:', puntodeemision);
-    console.log('Datos específicos:', {
-      id: puntodeemision.puEm_Id,
-      codigo: puntodeemision.puEm_Codigo,
-      descripcion: puntodeemision.puEm_Descripcion,
-      completo: puntodeemision
-    });
+    //console.log('Abriendo formulario de edición para:', puntodeemision);
+
     this.PEEditando = { ...puntodeemision }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -163,7 +160,7 @@ export class ListComponent implements OnInit {
   }
 
   detalles(puntodeemision: PuntoEmision): void {
-    console.log('Abriendo detalles para:', puntodeemision);
+    //console.log('Abriendo detalles para:', puntodeemision);
     this.PEDetalle = { ...puntodeemision }; // Hacer copia profunda
     this.showDetailsForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -171,6 +168,7 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null; // Cerrar menú de acciones
   }
 
+  // ===== CONTROL DE FORMULARIOS Y ACCIONES =====
   activeActionRow: number | null = null;
   showEdit = true;
   showDetails = true;
@@ -181,8 +179,8 @@ export class ListComponent implements OnInit {
   PEEditando: PuntoEmision | null = null;
   PEDetalle: PuntoEmision | null = null;
   
-  // Propiedades para alertas
-      mostrarOverlayCarga = false;
+  // ===== PROPIEDADES PARA ALERTAS =====
+  mostrarOverlayCarga = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
   mostrarAlertaError = false;
@@ -190,7 +188,7 @@ export class ListComponent implements OnInit {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
   
-  // Propiedades para confirmación de eliminación
+  // ===== PROPIEDADES PARA CONFIRMACIÓN DE ELIMINACIÓN =====
   mostrarConfirmacionEliminar = false;
   PEEliminar: PuntoEmision | null = null;
 
@@ -206,7 +204,11 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
   }   
 
 
-  //Info async para exportar
+  // ===== MÉTODOS PRINCIPALES DE EXPORTACIÓN =====
+  /**
+   * Método principal para exportar datos en diferentes formatos
+   * @param tipo - Tipo de exportación: 'excel' | 'pdf' | 'csv'
+   */
   async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
     if (this.exportando) {
       this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
@@ -329,8 +331,6 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
     if (!texto) return '';
     
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }
@@ -390,17 +390,11 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
     return this.table.data$.value?.length > 0;
   }
 
-
-
-  // (navigateToCreate eliminado, lógica movida a crear)
-
-  // (navigateToEdit y navigateToDetails eliminados, lógica movida a editar y detalles)
-
+  // ===== MÉTODOS DE CONTROL DE FORMULARIOS =====
   cerrarFormulario(): void {
     this.showCreateForm = false;
   }
 
-  
   cerrarFormularioEdicion(): void {
     this.showEditForm = false;
     this.PEEditando = null;
@@ -411,6 +405,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
     this.PEDetalle = null;
   }
 
+  // ===== MÉTODOS CRUD =====
   guardarPE(puntodeemision: PuntoEmision): void {
     this.mostrarOverlayCarga = true;
     setTimeout(()=> {
@@ -426,7 +421,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
   }
 
   actualizarPE(puntodeemision: PuntoEmision): void {
-    console.log('Estado civil actualizado exitosamente desde edit component:', puntodeemision);
+    //console.log('Estado civil actualizado exitosamente desde edit component:', puntodeemision);
     // Recargar los datos de la tabla
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
@@ -442,7 +437,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
   }
 
   confirmarEliminar(puntodeemision: PuntoEmision): void {
-    console.log('Solicitando confirmación para eliminar:', puntodeemision);
+    //console.log('Solicitando confirmación para eliminar:', puntodeemision);
     this.PEEliminar = puntodeemision;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones
@@ -456,7 +451,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
   eliminar(): void {
     if (!this.PEEliminar) return;
     
-    console.log('Eliminando estado civil:', this.PEEliminar);
+    //console.log('Eliminando estado civil:', this.PEEliminar);
 
     const PEeliminado = {
         puEm_Id: this.PEEliminar.puEm_Id,
@@ -481,13 +476,13 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
       }
     }).subscribe({
       next: (response: any) => {
-        console.log('Respuesta del servidor:', response);
+        //console.log('Respuesta del servidor:', response);
         setTimeout(() => {
         // Verificar el código de estado en la respuesta
         if (response.success && response.data) {
           if (response.data.code_Status === 1) {
             // Éxito: eliminado correctamente
-            console.log('Punto de Emision exitosamente');
+            //console.log('Punto de Emision exitosamente');
              const accion = this.PEEliminar?.estado === 'Activo' ? 'desactivado' : 'activado';
             this.mensajeExito = `Punto de Emision "${this.PEEliminar!.puEm_Descripcion}" ${accion} exitosamente`;
             this.mostrarAlertaExito = true;
@@ -501,9 +496,10 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
 
             this.cargardatos(false);
             this.cancelarEliminar();
+            this.mostrarOverlayCarga = false;
           } else if (response.data.code_Status === -1) {
             //result: está siendo utilizado
-            console.log('Punto de emisión está siendo utilizado');
+            //console.log('Punto de emisión está siendo utilizado');
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'No se puede eliminar: el punto de emisión está siendo utilizado.';
             
@@ -514,9 +510,10 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
             
             // Cerrar el modal de confirmación
             this.cancelarEliminar();
+            this.mostrarOverlayCarga = false;
           } else if (response.data.code_Status === 0) {
             // Error general
-            console.log('Error general al eliminar');
+            //console.log('Error general al eliminar');
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'Error al eliminar el punto de emisión.';
             
@@ -527,10 +524,11 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
             
             // Cerrar el modal de confirmación
             this.cancelarEliminar();
+            this.mostrarOverlayCarga = false;
           }
         } else {
           // Respuesta inesperada
-          console.log('Respuesta inesperada del servidor');
+          //console.log('Respuesta inesperada del servidor');
           this.mostrarAlertaError = true;
           this.mensajeError = response.message || 'Error inesperado al eliminar el punto de emision.';
           
@@ -556,10 +554,11 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
     this.mensajeWarning = '';
   }
 
+  // ===== MÉTODOS PRIVADOS =====
   private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+    //console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -568,7 +567,7 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
         let modulo = null;
         if (Array.isArray(permisos)) {
           // Buscar por ID de pantalla (ajusta el ID si cambia en el futuro)
-          modulo = permisos.find((m: any) => m.Pant_Id === 14);
+          modulo = permisos.find((m: any) => m.Pant_Id === 40);
         } else if (typeof permisos === 'object' && permisos !== null) {
           // Si es objeto, buscar por clave
           modulo = permisos['Estados Civiles'] || permisos['estados civiles'] || null;
@@ -582,12 +581,12 @@ constructor(public table: ReactiveTableService<PuntoEmision>,
       }
     }
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
+    //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
-
- 
-
+  //Declaramos un estado en el cargarDatos, esto para hacer el overlay
+  //segun dicha funcion de recargar, ya que si vienes de hacer una accion
+  //es innecesario mostrar el overlay de carga
   private cargardatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
 

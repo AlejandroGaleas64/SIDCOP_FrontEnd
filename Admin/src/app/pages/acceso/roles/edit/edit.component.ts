@@ -14,6 +14,7 @@ interface TreeItem {
   expanded: boolean;
   children?: TreeItem[];
   parent?: TreeItem;
+  esReporte?: boolean;
 }
 
 interface Permiso {
@@ -132,7 +133,7 @@ export class EditComponent implements OnChanges {
         this.cargarPermisos();
       },
       error: (err) => {
-        console.error('Error cargando acciones por pantalla:', err);
+        // console.error('Error cargando acciones por pantalla:', err);
         this.accionesPorPantalla = [];
         this.cargarPermisos();
       }
@@ -171,21 +172,29 @@ export class EditComponent implements OnChanges {
                 children: []
               };
 
-              pantallaNode.children = pantalla.Acciones.map((accion: Accion) => {
-                const accionIdCompuesto = `${pantalla.Pant_Id}_${accion.Acci_Id}`;
-                const selected = this.permisosDelRol.includes(accionIdCompuesto);
-                return {
-                  id: accionIdCompuesto,
-                  name: accion.Accion,
-                  type: 'accion',
-                  selected: selected,
-                  expanded: false,
-                  parent: pantallaNode
-                };
-              });
+              const esReporte = esquema.Esquema === 'Reportes';
+              pantallaNode.esReporte = esReporte;
 
-              pantallaNode.selected = pantallaNode.children.some(c => c.selected);
-              pantallaNode.expanded = pantallaNode.selected;
+              if (!esReporte) {
+                pantallaNode.children = pantalla.Acciones.map((accion: Accion) => {
+                  const selected = this.permisosDelRol.includes(`${pantalla.Pant_Id}_${accion.Acci_Id}`);
+                  return {
+                    id: `${pantalla.Pant_Id}_${accion.Acci_Id}`,
+                    name: accion.Accion,
+                    type: 'accion',
+                    selected: selected,
+                    expanded: false,
+                    parent: pantallaNode
+                  };
+                });
+                pantallaNode.selected = pantallaNode.children.some(c => c.selected) ?? false;
+                pantallaNode.expanded = pantallaNode.selected;
+              } else {
+                // Para reportes, selecciona el nodo pantalla si tiene permisos
+                pantallaNode.selected = this.permisosDelRol.some(p => p.startsWith(`${pantalla.Pant_Id}_`));
+                pantallaNode.expanded = false;
+              }
+
               return pantallaNode;
             });
 
@@ -197,10 +206,10 @@ export class EditComponent implements OnChanges {
           this.updateSelectedItems();
 
         } catch (e) {
-          console.error('No se pudo parsear:', e);
+          // console.error('No se pudo parsear:', e);
         }
       },
-      error: err => console.error('Error al cargar pantallas:', err)
+      // error: err => console.error('Error al cargar pantallas:', err)
     });
   }
 
@@ -236,7 +245,7 @@ export class EditComponent implements OnChanges {
         this.hayCambiosPermisos = false;
       },
       error: (err) => {
-        console.error('Error al cargar permisos del rol:', err);
+        // console.error('Error al cargar permisos del rol:', err);
         this.cargarPantallas();
       }
     });
@@ -308,7 +317,8 @@ export class EditComponent implements OnChanges {
 
   private getAllSelectedItems(items: TreeItem[]): TreeItem[] {
     return items.reduce<TreeItem[]>((acc, item) => {
-      if (item.selected && item.type === 'accion') acc.push(item);
+      // Incluir acciones seleccionadas y pantallas tipo reporte seleccionadas
+      if (item.selected && (item.type === 'accion' || (item.type === 'pantalla' && item.esReporte))) acc.push(item);
       if (item.children) acc.push(...this.getAllSelectedItems(item.children));
       return acc;
     }, []);
@@ -438,38 +448,50 @@ export class EditComponent implements OnChanges {
   }
 
   private getPermisosSeleccionados(): PermisoInsertar[] {
-    return this.selectedItems
-      .filter(item => item.type === 'accion')
-      .map(item => {
-        const pantallaId = item.parent ? Number(item.parent.id.split('_').pop()) : undefined;
-        const accionId = Number(item.id.split('_').pop());
+    return this.selectedItems.map(item => {
+      let pantallaId: number | undefined;
+      let accionId: number | undefined;
 
-        if (!pantallaId || !accionId) {
-          console.warn(`No se pudo obtener Pant_Id o Accion_Id para item:`, item);
-          return null;
+      if (item.type === 'accion') {
+        pantallaId = item.parent ? Number(item.parent.id.split('_').pop()) : undefined;
+        accionId = Number(item.id.split('_').pop());
+      }
+
+      // Pantalla tipo reporte
+      if (item.type === 'pantalla' && item.esReporte) {
+        pantallaId = Number(item.id.split('_').pop());
+        const acc = this.accionesPorPantalla.find(ap => ap.Pant_Id === pantallaId);
+        if (acc) {
+          return {
+            acPa_Id: acc.AcPa_Id,
+            role_Id: this.rol.role_Id,
+            usua_Creacion: getUserId(),
+            perm_FechaCreacion: new Date().toISOString()
+          };
         }
+        return null;
+      }
 
-        const acPa = this.accionesPorPantalla.find(ap => ap.Pant_Id === pantallaId && ap.Acci_Id === accionId);
-        if (!acPa) {
-          console.warn(`No existe AcPa_Id para Pant_Id=${pantallaId} y Acci_Id=${accionId}`);
-          return null;
-        }
+      if (!pantallaId || !accionId) return null;
 
-        return {
-          acPa_Id: acPa.AcPa_Id,
-          role_Id: this.rol.role_Id,
-          usua_Creacion: getUserId(),
-          perm_FechaCreacion: new Date().toISOString()
-        };
-      })
-      .filter(p => p !== null) as PermisoInsertar[];
+      const acPa = this.accionesPorPantalla.find(ap => ap.Pant_Id === pantallaId && ap.Acci_Id === accionId);
+      if (!acPa) return null;
+
+      return {
+        acPa_Id: acPa.AcPa_Id,
+        role_Id: this.rol.role_Id,
+        usua_Creacion: getUserId(),
+        perm_FechaCreacion: new Date().toISOString()
+      };
+    }).filter((permiso): permiso is PermisoInsertar => permiso !== null);
   }
 
   private guardar(): void {
     this.mostrarErrores = true;
 
     const descripcionVacia = !this.rol.role_Descripcion.trim();
-    const permisosVacios = !this.selectedItems.some(item => item.type === 'accion');
+    // Permitir acciones seleccionadas o pantallas tipo reporte seleccionadas
+    const permisosVacios = !this.selectedItems.some(item => item.type === 'accion' || (item.type === 'pantalla' && item.esReporte));
 
     if (descripcionVacia || permisosVacios) {
       this.mostrarAlertaWarning = true;
@@ -572,14 +594,14 @@ export class EditComponent implements OnChanges {
             }, 3000);
           })
           .catch(error => {
-            console.error('Error al actualizar permisos:', error);
+            // console.error('Error al actualizar permisos:', error);
             this.mostrarAlertaError = true;
             this.mensajeError = 'Error al actualizar los permisos. Por favor intente nuevamente.';
             setTimeout(() => this.cerrarAlerta(), 5000);
           });
       },
       error: (error) => {
-        console.error('Error al actualizar rol:', error);
+        // console.error('Error al actualizar rol:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al actualizar el rol. Por favor, intente nuevamente.';
         setTimeout(() => this.cerrarAlerta(), 5000);

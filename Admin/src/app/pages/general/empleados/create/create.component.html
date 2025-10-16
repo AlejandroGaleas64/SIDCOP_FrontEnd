@@ -25,9 +25,76 @@
       <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
     </div>
   </div>
+
+  <div class="container-fluid">
+    <div class="row align-items-center">
+      <div class="col-12 col-md-8">
+        <div class="row">
+        </div>
+    </div>
+  </div>
   
   <div class="flex-grow-1">
     <div class="row">
+
+      <div class="col-lg-12">
+        <div class="mb-3">
+          
+          
+          <label class="form-label d-block">Foto del empleado <span class="text-danger">*</span></label>
+          <!-- Dropzone Circular -->
+          <div class="circular-dropzone" 
+              [class.dragover]="isDragOver"
+              [class.is-invalid]="mostrarErrores && !selectedFile && !uploadedFiles.length"
+              (click)="fileInput.click()"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave($event)"
+              (drop)="onDrop($event)">
+            
+            <!-- Contenido cuando no hay imagen -->
+            @if (!selectedFile) {
+              <div class="dropzone-content">
+                <i class="ph ph-user-plus dropzone-icon"></i>
+              </div>
+            }
+            
+            <!-- Preview de la imagen -->
+            @if (selectedFile) {
+              <img [src]="imagePreview" 
+                  alt="Preview" 
+                  class="preview-image">
+              <button class="remove-btn" 
+                      (click)="removeFile($event)"
+                      type="button">
+                <i class="ri-delete-bin-line"></i>
+              </button>
+            }
+          </div>
+          
+          <!-- Input file oculto -->
+          <input #fileInput 
+                type="file" 
+                accept="image/*" 
+                style="display: none;"
+                (change)="onFileSelected($event)">
+          
+          <!-- Mensaje de error para la imagen -->
+          @if (mostrarErrores && !selectedFile && !uploadedFiles.length) {
+            <div class="invalid-feedback d-block text-center">
+              La imagen es obligatoria
+            </div>
+          }
+
+          <!-- Información del archivo -->
+          @if (selectedFile) {
+            <div class="file-info mt-3 text-center">
+              <div class="file-name">{{ selectedFile.name }}</div>
+              <div class="file-size">{{ formatFileSize(selectedFile.size) }}</div>
+            </div>
+          }
+        </div>
+      </div>
+
       <div class="col-lg-6 ">
         <div class="mb-1">
         <label for="empl_DNI"  class="form-label">DNI<span class="text-danger">*</span></label>
@@ -43,11 +110,13 @@
               class="form-control" 
               id="empl_DNI"
               mask="0000-0000-00000"
+              [dropSpecialCharacters]="false"
               maxlength="15"
               [class.is-invalid]="!empleado.empl_DNI.trim() && mostrarErrores"
               [(ngModel)]="empleado.empl_DNI"
               placeholder="0000-0000-00000"
-              required>
+              required
+              autocomplete="off">
         </div>
           <div class="text-danger" *ngIf="!empleado.empl_DNI.trim() && mostrarErrores">
             <small>El campo DNI es requerido</small>
@@ -159,23 +228,31 @@
       </div><!--end col-->
 
       <div class="col-lg-6">
-            <div class="mb-3">
-                <label for="correo-input"  class="form-label">Correo electrónico<span class="text-danger">*</span></label>
-                <div class="d-flex align-items-center">
-                  <i class="ri-mail-line"
-                  [ngStyle]="{
-                  border: (!empleado.empl_Correo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                  backgroundColor: (!empleado.empl_Correo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-                </i>
-                <input type="email"  id="correo-input"  [(ngModel)]="empleado.empl_Correo"  class="form-control" [class.is-invalid]="!empleado.empl_Correo.trim() && mostrarErrores" placeholder="Ingrese el correo del empleado" required>
-                </div>
-                <div class="text-danger" *ngIf="!empleado.empl_Correo.trim() && mostrarErrores">
-                    <small>El correo es requerido</small>
-                </div>
+        <div class="mb-3">
+            <label for="correo-input" class="form-label">Correo electrónico<span class="text-danger">*</span></label>
+            <div class="d-flex align-items-center">
+              <i class="ri-mail-line"
+              [ngStyle]="{
+              border: ((!empleado.empl_Correo.trim() || correoInvalido) && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: ((!empleado.empl_Correo.trim() || correoInvalido) && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <input type="email" id="correo-input" [(ngModel)]="empleado.empl_Correo" 
+                class="form-control" 
+                [ngClass]="{'is-invalid': ((!empleado.empl_Correo.trim() || correoInvalido) && mostrarErrores)}" 
+                placeholder="Ingrese el correo del empleado" 
+                (input)="correoInvalido = false"
+                required>
             </div>
-            
-      </div><!--end col-->
+            <div class="text-danger" *ngIf="!empleado.empl_Correo.trim() && mostrarErrores">
+                <small>El correo es requerido</small>
+            </div>
+            <div class="text-danger" *ngIf="correoInvalido && mostrarErrores && empleado.empl_Correo.trim()">
+                <small>Por favor ingrese un correo electrónico válido</small>
+            </div>
+        </div>
+        
+  </div>
 
       <div class="col-lg-6">
             <div class="mb-3">
@@ -330,43 +407,7 @@
             
       </div><!--end col-->
 
-      <div class="col-lg-12">
-        <div class="mb-3">
-          <label class="form-label">Imagen del empleado<span class="text-danger">*</span></label>
-          <dropzone class="dropzone" [config]="dropzoneConfig" [message]="'Selecciona una imagen para subir.'" (success)="onFileSelected($event)"></dropzone>
-          @if (uploadedFiles) {
-          <ul class="list-unstyled mb-0" id="dropzone-preview">
-              @for (file of uploadedFiles; track $index) {
-              <li class="mt-2" id="dropzone-preview-list">
-                  <div class="border rounded">
-                      <div class="d-flex flex-wrap gap-2 p-2">
-                          <div class="flex-shrink-0 me-3">
-                              <div class="avatar-sm bg-light rounded p-2">
-                                  @if (file.dataURL) {
-                                  <img class="img-fluid rounded d-block" [src]="file.dataURL" alt="Dropzone-Image" />
-                                  }@else {
-                                  <img class="img-fluid rounded d-block" [src]="file" alt="Dropzone-Image" />
-                                  }
-                              </div>
-                          </div>
-                          <div class="flex-grow-1">
-                              <div class="pt-1">
-                                  @if (file.name) {<h5 class="fs-md mb-1">{{ file.name }}</h5>}
-                                  @if (file.size) {<p class="fs-sm text-muted mb-0">{{ file.size }}</p>}
-                              </div>
-                          </div>
-                          <div class="flex-shrink-0 ms-3">
-                              <button (click)="removeFile(file)" class="btn btn-sm btn-danger">Eliminar</button>
-                          </div>
-                      </div>
-                  </div>
-              </li>
-          }
-          </ul>
-          }
-        </div>
-        
-      </div>
+      
       
 
 

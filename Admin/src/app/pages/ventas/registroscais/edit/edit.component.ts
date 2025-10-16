@@ -13,11 +13,15 @@ import { RegistroCAI } from 'src/app/Modelos/ventas/RegistroCAI.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { DatePipe } from '@angular/common';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+
 
 @Component({
   selector: 'app-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule, NgxMaskDirective],
+  providers: [DatePipe, provideNgxMask()],
   templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss',
 })
@@ -65,6 +69,16 @@ export class EditComponent implements OnChanges {
   mostrarConfirmacionEditar = false;
   RCOriginal: any = {};
 
+  // Información para el número de factura
+  numeroFacturaFormateado: string = '';
+
+  // Función para obtener el valor numérico sin máscara
+  private getUnmaskedValue(maskedValue: string): string {
+    if (!maskedValue) return '';
+    // Convertir a string si no lo es y eliminar todos los caracteres no numéricos
+    return maskedValue.toString().replace(/\D/g, '');
+  }
+
   CAI: any[] = [];
   PE: any[] = [];
   searchCAI = (term: string, item: any) => {
@@ -80,7 +94,11 @@ export class EditComponent implements OnChanges {
       .get<any>(`${environment.apiBaseUrl}/CaiS/Listar`, {
         headers: { 'x-api-key': environment.apiKey },
       })
-      .subscribe((data) => (this.CAI = data));
+      .subscribe((data) => {
+        this.CAI = data;
+        // Actualizar vista previa cuando se cargan los datos
+        setTimeout(() => this.actualizarNumeroFactura(), 50);
+      });
   }
 
   searchPuntoEmision = (term: string, item: any) => {
@@ -97,9 +115,13 @@ export class EditComponent implements OnChanges {
       .get<any>(`${environment.apiBaseUrl}/PuntoEmision/Listar`, {
         headers: { 'x-api-key': environment.apiKey },
       })
-      .subscribe((data) => (this.PE = data));
+      .subscribe((data) => {
+        this.PE = data;
+        // Actualizar vista previa cuando se cargan los datos
+        setTimeout(() => this.actualizarNumeroFactura(), 50);
+      });
 
-    console.log('Puntos Emision', this.PE);
+    //.log('Puntos Emision', this.PE);
   }
 
   ordenarPorMunicipioYDepartamento(sucursales: any[]): any[] {
@@ -129,15 +151,75 @@ export class EditComponent implements OnChanges {
         headers: { 'x-api-key': environment.apiKey },
       })
       .subscribe(
-        (data) =>
-          (this.Sucursales = this.ordenarPorMunicipioYDepartamento(data))
+        (data) => {
+          this.Sucursales = this.ordenarPorMunicipioYDepartamento(data);
+          // Actualizar vista previa cuando se cargan los datos
+          setTimeout(() => this.actualizarNumeroFactura(), 50);
+        }
       );
   }
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private datePipe: DatePipe) {
     this.cargarCAI();
     this.cargarSucursales();
     this.cargarPE();
+  }
+
+  actualizarNumeroFactura(): void {
+    try {
+      // Verificar que las listas estén cargadas antes de proceder
+      if (!this.Sucursales || !this.PE || this.Sucursales.length === 0 || this.PE.length === 0) {
+        this.numeroFacturaFormateado = '--- - --- - 01 - 00000000 al --- - --- - 01 - 00000000';
+        return;
+      }
+
+      const sucursalSeleccionada = this.Sucursales.find(s => s.sucu_Id === this.registroCai.sucu_Id);
+      const puntoEmisionSeleccionado = this.PE.find(pe => pe.puEm_Id === this.registroCai.puEm_Id);
+      
+      // Usar valores por defecto más seguros
+      const codigoSucursal = sucursalSeleccionada?.sucu_Codigo || '___';
+      const codigoPuntoEmision = puntoEmisionSeleccionado?.puEm_Codigo || '___';
+      
+      let formato = '';
+      
+      // Verificar que los rangos existan y no sean nulos/undefined
+      const rangoInicialTexto = this.registroCai.regC_RangoInicial?.toString() || '';
+      const rangoFinalTexto = this.registroCai.regC_RangoFinal?.toString() || '';
+      
+      if (rangoInicialTexto.trim() && rangoFinalTexto.trim()) {
+        // Obtener valores sin máscara y formatear con ceros a la izquierda (8 dígitos)
+        const rangoInicial = this.getUnmaskedValue(rangoInicialTexto).padStart(8, '0');
+        const rangoFinal = this.getUnmaskedValue(rangoFinalTexto).padStart(8, '0');
+        
+        // Número de factura inicial completo
+        const facturaInicial = `${codigoSucursal} - ${codigoPuntoEmision} - 01 - ${rangoInicial}`;
+        
+        // Número de factura final completo
+        const facturaFinal = `${codigoSucursal} - ${codigoPuntoEmision} - 01 - ${rangoFinal}`;
+        
+        formato = `${facturaInicial} al ${facturaFinal}`;
+      } else {
+        formato = `${codigoSucursal} - ${codigoPuntoEmision} - 01 - 00000000 al ${codigoSucursal} - ${codigoPuntoEmision} - 01 - 00000000`;
+      }
+      
+      this.numeroFacturaFormateado = formato;
+    } catch (error) {
+      // En caso de error, mostrar formato por defecto
+      console.warn('Error al actualizar número de factura:', error);
+      this.numeroFacturaFormateado = '--- - --- - 01 - 00000000 al --- - --- - 01 - 00000000';
+    }
+  }
+
+  onSucursalChange(): void {
+    this.actualizarNumeroFactura();
+  }
+
+  onPuntoEmisionChange(): void {
+    this.actualizarNumeroFactura();
+  }
+
+  onRangoChange(): void {
+    this.actualizarNumeroFactura();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -146,6 +228,12 @@ export class EditComponent implements OnChanges {
       this.RCOriginal = { ...this.RegistroCaiData };
       this.mostrarErrores = false;
       this.cerrarAlerta();
+      
+      // Actualizar vista previa después de cargar los datos con un delay más largo
+      // para asegurar que todas las listas estén cargadas
+      setTimeout(() => {
+        this.actualizarNumeroFactura();
+      }, 200);
     }
   }
 
@@ -165,6 +253,31 @@ export class EditComponent implements OnChanges {
 
   validarEdicion(): void {
     this.mostrarErrores = true;
+
+    // Validar que el rango inicial no sea mayor que el rango final
+    const rangoInicial = parseInt(this.getUnmaskedValue(this.registroCai.regC_RangoInicial)) || 0;
+    const rangoFinal = parseInt(this.getUnmaskedValue(this.registroCai.regC_RangoFinal)) || 0;
+    
+    if (rangoInicial >= rangoFinal) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'El rango inicial no puede ser mayor o igual que el rango final.';
+      setTimeout(() => {
+        this.mostrarAlertaWarning = false;
+        this.mensajeWarning = '';
+      }, 4000);
+      return;
+    }
+
+    // Validar que la fecha inicial no sea mayor que la fecha final
+    if (new Date(this.registroCai.regC_FechaInicialEmision) >= new Date(this.registroCai.regC_FechaFinalEmision)) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'La fecha inicial no puede ser mayor o igual que la fecha final.';
+      setTimeout(() => {
+        this.mostrarAlertaWarning = false;
+        this.mensajeWarning = '';
+      }, 4000);
+      return;
+    }
 
     if (
       this.registroCai.regC_Descripcion.trim() &&
@@ -260,37 +373,38 @@ export class EditComponent implements OnChanges {
       };
     }
 
-    if (a.regC_RangoInicial !== b.regC_RangoInicial) {
+    if (this.getUnmaskedValue(a.regC_RangoInicial) !== this.getUnmaskedValue(b.regC_RangoInicial)) {
       this.cambiosDetectados.RangoInicial = {
-        anterior: b.regC_RangoInicial,
-        nuevo: a.regC_RangoInicial,
+        anterior: this.getUnmaskedValue(b.regC_RangoInicial),
+        nuevo: this.getUnmaskedValue(a.regC_RangoInicial),
         label: 'Rango Inicial',
       };
     }
 
-    if (a.regC_RangoFinal !== b.regC_RangoFinal) {
+    if (this.getUnmaskedValue(a.regC_RangoFinal) !== this.getUnmaskedValue(b.regC_RangoFinal)) {
       this.cambiosDetectados.RangoFinal = {
-        anterior: b.regC_RangoFinal,
-        nuevo: a.regC_RangoFinal,
+        anterior: this.getUnmaskedValue(b.regC_RangoFinal),
+        nuevo: this.getUnmaskedValue(a.regC_RangoFinal),
         label: 'Rango Final',
       };
     }
 
-    if (a.regC_FechaInicialEmision !== b.regC_FechaInicialEmision) {
-      this.cambiosDetectados.FechaInical = {
-        anterior: b.regC_FechaInicialEmision,
-        nuevo: a.regC_FechaInicialEmision,
-        label: 'Fecha Inicial',
-      };
-    }
+   if (a.regC_FechaInicialEmision !== b.regC_FechaInicialEmision) {
+  this.cambiosDetectados.FechaInical = {
+    anterior: this.datePipe.transform(b.regC_FechaInicialEmision, 'dd/MM/yyyy'),
+    nuevo: this.datePipe.transform(a.regC_FechaInicialEmision, 'dd/MM/yyyy'),
+    label: 'Fecha Inicial',
+  };
+}
 
-    if (a.regC_FechaFinalEmision !== b.regC_FechaFinalEmision) {
-      this.cambiosDetectados.FechaFinal = {
-        anterior: b.regC_FechaFinalEmision,
-        nuevo: a.regC_FechaFinalEmision,
-        label: 'Fecha Final',
-      };
-    }
+if (a.regC_FechaFinalEmision !== b.regC_FechaFinalEmision) {
+  this.cambiosDetectados.FechaFinal = {
+    anterior: this.datePipe.transform(b.regC_FechaFinalEmision, 'dd/MM/yyyy'),
+    nuevo: this.datePipe.transform(a.regC_FechaFinalEmision, 'dd/MM/yyyy'),
+    label: 'Fecha Final',
+  };
+}
+
 
     return Object.keys(this.cambiosDetectados).length > 0;
   }
@@ -343,8 +457,8 @@ export class EditComponent implements OnChanges {
         sucu_Id: this.registroCai.sucu_Id,
         puEm_Id: this.registroCai.puEm_Id,
         nCai_Id: this.registroCai.nCai_Id,
-        regC_RangoInicial: this.registroCai.regC_RangoInicial,
-        regC_RangoFinal: this.registroCai.regC_RangoFinal,
+        regC_RangoInicial: this.getUnmaskedValue(this.registroCai.regC_RangoInicial),
+        regC_RangoFinal: this.getUnmaskedValue(this.registroCai.regC_RangoFinal),
         regC_FechaInicialEmision: this.registroCai.regC_FechaInicialEmision,
         regC_FechaFinalEmision: this.registroCai.regC_FechaFinalEmision,
         regC_Estado: true,
@@ -393,8 +507,7 @@ export class EditComponent implements OnChanges {
             }
           },
           error: (error) => {
-            console.error('Error al actualizar el Registro CAI:', error);
-            //console.log('Atualizar el Registro CAI:', RegistroCAIActualizar);
+        
             this.mostrarAlertaError = true;
             this.mensajeError = 'Por favor, intente nuevamente.';
             setTimeout(() => this.cerrarAlerta(), 5000);

@@ -96,7 +96,7 @@ export class CreateComponent {
         usuarioModificacion: "" 
       };
 
-      console.log('Guardando marca:', marcaGuardar);
+      //console.log('Guardando marca:', marcaGuardar);
       
       this.http.post<any>(`${environment.apiBaseUrl}/MarcasVehiculos/Insertar`, marcaGuardar, {
         headers: { 
@@ -106,8 +106,8 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          console.log('Marca guardada exitosamente:', response);
-          this.mensajeExito = `Marca "${this.marca.maVe_Marca}" guardada exitosamente`;
+          //console.log('Marca guardada exitosamente:', response);
+          this.mensajeExito = `Marca de Vehiculo "${this.marca.maVe_Marca}" guardada exitosamente`;
           this.mostrarAlertaExito = true;
           this.mostrarErrores = false;
           

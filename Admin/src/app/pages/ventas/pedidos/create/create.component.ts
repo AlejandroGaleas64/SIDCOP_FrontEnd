@@ -131,14 +131,13 @@ export class CreateComponent {
     return paginas;
   }
 
-  getInicioRegistro(): number {
-    return (this.paginaActual - 1) * this.productosPorPagina + 1;
-  }
+getInicioRegistro(): number {
+  return this.productosFiltrados.length === 0 ? 0 : (this.paginaActual - 1) * this.productosPorPagina + 1;
+}
 
-  getFinRegistro(): number {
-    const fin = this.paginaActual * this.productosPorPagina;
-    return Math.min(fin, this.productosFiltrados.length);
-  }
+getFinRegistro(): number {
+  return this.productosFiltrados.length === 0 ? 0 : Math.min(this.paginaActual * this.productosPorPagina, this.productosFiltrados.length);
+}
 
   // Método para obtener el índice real del producto en el array principal
   getProductoIndex(prodId: number): number {
@@ -288,15 +287,65 @@ export class CreateComponent {
     return producto ? producto.cantidad || 0 : 0;
   }
 
+  getPrecioBasePorCantidad(producto: any, cantidad: number): number {
+    let precioBase = producto.prod_PrecioUnitario || 0;
+
+    if (producto.listasPrecio_JSON && cantidad > 0) {
+      let escalaAplicada = null;
+
+      for (const lp of producto.listasPrecio_JSON) {
+        if (cantidad >= lp.PreP_InicioEscala && cantidad <= lp.PreP_FinEscala) {
+          escalaAplicada = lp;
+          break;
+        }
+      }
+
+      if (!escalaAplicada && producto.listasPrecio_JSON.length > 0) {
+        const ultimaEscala =
+          producto.listasPrecio_JSON[producto.listasPrecio_JSON.length - 1];
+        if (cantidad > ultimaEscala.PreP_FinEscala) {
+          escalaAplicada = ultimaEscala;
+        }
+      }
+
+      if (escalaAplicada) {
+        precioBase = escalaAplicada.PreP_PrecioContado;
+      }
+    }
+
+    return precioBase;
+  }
+
   obtenerProductosSeleccionados(): any[] {
     return this.productos
       .filter((p) => p.cantidad > 0)
-      .map((p) => ({
-        prod_Id: p.prod_Id,
-        peDe_Cantidad: p.cantidad,
-        peDe_ProdPrecio: p.prod_PrecioUnitario || 0, // Precio unitario base
-        peDe_ProdPrecioFinal: this.getPrecioPorCantidad(p, p.cantidad), // Precio final con descuento/escalas
-      }));
+      .map((p) => {
+        const cantidad = p.cantidad;
+
+        // Precio base puro, sin descuento ni impuesto
+        const precioBase = this.getPrecioBasePorCantidad(p, cantidad);
+
+        // Precio final con descuentos aplicados, sin impuesto
+        const precioFinalSinImpuesto = this.getPrecioPorCantidad(p, cantidad);
+
+        // Impuesto si corresponde
+        const aplicaImpuesto = p.impu_Valor && p.prod_PagaImpuesto === 'S';
+        const impuesto = aplicaImpuesto
+          ? precioFinalSinImpuesto * p.impu_Valor
+          : 0;
+
+        const subtotal = precioFinalSinImpuesto * cantidad;
+
+        return {
+          prod_Id: p.prod_Id,
+          peDe_Cantidad: cantidad,
+          peDe_ProdPrecio: precioBase, // este es el base sin descuentos ni impuestos
+          peDe_Impuesto: impuesto,
+          peDe_Subtotal: subtotal,
+          peDe_ProdPrecioFinal: precioFinalSinImpuesto + impuesto, // unitario final con impuesto
+          // Otros campos si necesitas
+        };
+      });
   }
 
   // ========== MÉTODOS DE CLIENTES (SIN CAMBIOS) ==========
@@ -311,6 +360,81 @@ export class CreateComponent {
     );
   };
 
+  pedidos: any[] = [];
+
+  cargarPedidos() {
+    this.http
+      .get<any[]>(`${environment.apiBaseUrl}/Pedido/Listar`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe(
+        (data) => {
+          this.pedidos = data;
+          this.generarSiguienteCodigo();
+        },
+        (error) => {
+          //.error('Error al cargar las pedios:', error);
+        }
+      );
+  }
+
+  generarSiguienteCodigo(): void {
+    const direccionSeleccionada = this.Direccines.find(
+      (d) => d.diCl_Id === this.pedido.diCl_Id
+    );
+    if (!direccionSeleccionada) {
+      //.error('Dirección no encontrada.');
+      return;
+    }
+
+    const clienteId = direccionSeleccionada.clie_Id;
+
+    const cliente = this.Clientes.find((c) => c.clie_Id === clienteId);
+    if (!cliente || !cliente.ruta_Id) {
+      //.error('Cliente no encontrado o sin ruta_Id.');
+      return;
+    }
+
+    const rutaId = cliente.ruta_Id;
+
+    // Obtener la ruta del backend
+    this.http
+      .get<any>(`${environment.apiBaseUrl}/Rutas/Buscar/${rutaId}`, {
+        headers: { 'x-api-key': environment.apiKey },
+      })
+      .subscribe({
+        next: (ruta) => {
+          const rutaCodigo = ruta.ruta_Codigo; // ej: RT-012
+          const rutaCodigoNumerico = rutaCodigo.split('-')[1]; // extrae "012"
+
+          // Filtrar códigos existentes de esta ruta
+          const codigosRuta = this.pedidos
+            .map((p) => p.pedi_Codigo)
+            .filter((c) =>
+              new RegExp(`^PED-${rutaCodigoNumerico}-\\d{7}$`).test(c)
+            );
+
+          let siguienteNumero = 1;
+          if (codigosRuta.length > 0) {
+            const ultimoNumero = codigosRuta
+              .map((codigo) => parseInt(codigo.split('-')[2], 10)) // extraer solo el número final
+              .sort((a, b) => b - a)[0]; // ordenar descendentemente y tomar el mayor
+
+            siguienteNumero = ultimoNumero + 1;
+          }
+
+          const nuevoCodigo = `PED-${rutaCodigoNumerico}-${siguienteNumero
+            .toString()
+            .padStart(7, '0')}`;
+          this.pedido.pedi_Codigo = nuevoCodigo;
+          //.log('Código generado:', nuevoCodigo);
+        },
+        error: (error) => {
+          //.error('Error al obtener ruta:', error);
+        },
+      });
+  }
+
   cargarClientes() {
     this.http
       .get<any>(`${environment.apiBaseUrl}/Cliente/Listar`, {
@@ -319,10 +443,10 @@ export class CreateComponent {
       .subscribe({
         next: (data) => {
           this.Clientes = data;
-          console.log('Clientes cargados:', this.Clientes);
+          //.log('Clientes cargados:', this.Clientes);
         },
         error: (error) => {
-          console.error('Error al cargar clientes:', error);
+          //.error('Error al cargar clientes:', error);
           this.mostrarAlertaError = true;
           this.mensajeError =
             'Error al cargar clientes. Por favor, intente nuevamente.';
@@ -339,13 +463,32 @@ export class CreateComponent {
         }
       )
       .subscribe((data) => (this.Direccines = data));
+
+    //this.cargarPedidos();
   }
 
   onClienteSeleccionado(clienteId: number) {
     this.cargarDirecciones(clienteId);
     this.pedido.diCl_Id = 0; // Reiniciar dirección seleccionada
-
+    this.pedido.pedi_Codigo = '';
     this.cargarProductosPorCliente(clienteId);
+  }
+
+  onDireccionSeleccionada(direccionId: number) {
+    this.pedido.diCl_Id = parseInt(direccionId.toString());
+     this.http
+    .get<any[]>(`${environment.apiBaseUrl}/Pedido/Listar`, {
+      headers: { 'x-api-key': environment.apiKey },
+    })
+    .subscribe({
+      next: (data) => {
+        this.pedidos = data;
+        this.generarSiguienteCodigo(); // ✅ Ahora sí se llama con los pedidos cargados
+      },
+      error: (error) => {
+        //.error('Error al cargar los pedidos:', error);
+      },
+    });
   }
 
   cargarProductosPorCliente(clienteId: number): void {
@@ -358,6 +501,11 @@ export class CreateComponent {
       )
       .subscribe({
         next: (productos) => {
+          // Aplicar corrección de URLs de imágenes
+          productos.forEach((item: any) => {
+            item.prod_Imagen = item.prod_Imagen.includes("http") ? item.prod_Imagen : environment.apiBaseUrl + item.prod_Imagen;
+          });
+
           // Mapear productos para agregar cantidad y precio
           this.productos = productos.map((producto: any) => ({
             ...producto,
@@ -377,12 +525,12 @@ export class CreateComponent {
                 : producto.desc_EspecificacionesJSON,
           }));
           this.aplicarFiltros();
-          console.log('Productos cargados para el cliente:', this.productos);
-          console.log('Productos cargados para el cliente:', this.productos);
-          // console.log("Listas de precio del producto:", productos.listasPrecio);
+          //.log('Productos cargados para el cliente:', this.productos);
+          //.log('Productos cargados para el cliente:', this.productos);
+          // //.log("Listas de precio del producto:", productos.listasPrecio);
         },
         error: (error) => {
-          console.error('Error al obtener productos:', error);
+          //.error('Error al obtener productos:', error);
           this.mostrarAlertaWarning = true;
           this.mensajeWarning =
             'No se pudieron obtener los productos para el cliente seleccionado.';
@@ -392,8 +540,17 @@ export class CreateComponent {
 
   constructor(private http: HttpClient) {
     this.cargarClientes();
+      (this.pedido.pedi_FechaEntrega as any) = this.getTodayAsDateInput();
     // this.listarProductos();
   }
+
+  private getTodayAsDateInput(): string {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
   // Agregar al componente TypeScript
   trackByProducto(index: number, producto: any): number {
@@ -402,6 +559,7 @@ export class CreateComponent {
 
   pedido: Pedido = {
     pedi_Id: 0,
+    pedi_Codigo: '',
     diCl_Id: 0,
     vend_Id: 0,
     pedi_FechaPedido: new Date(),
@@ -423,6 +581,10 @@ export class CreateComponent {
     peDe_Cantidad: 0,
     detalles: [],
     detallesJson: '',
+    // Propiedades adicionales para la factura
+    regC_Id: 0,
+    pedi_Latitud: 0,
+    pedi_Longitud: 0,
     usua_Creacion: 0,
     usua_Modificacion: 0,
     pedi_FechaCreacion: new Date(),
@@ -458,6 +620,11 @@ export class CreateComponent {
     });
     this.pedido = {
       pedi_Id: 0,
+      pedi_Codigo: '',
+      // Propiedades adicionales para la factura
+      regC_Id: 0,
+      pedi_Latitud: 0,
+      pedi_Longitud: 0,
       diCl_Id: 0,
       vend_Id: 0,
       pedi_FechaPedido: new Date(),
@@ -493,6 +660,60 @@ export class CreateComponent {
     this.onCancel.emit();
   }
 
+// ...existing code...
+onKeyDown(event: KeyboardEvent): void {
+  const input = event.target as HTMLInputElement;
+  const value = input.value;
+  
+  // Permitir teclas de control (backspace, delete, flechas, etc)
+  if (event.key === 'Backspace' || 
+      event.key === 'Delete' || 
+      event.key === 'ArrowLeft' || 
+      event.key === 'ArrowRight' ||
+      event.key === 'Tab') {
+    return;
+  }
+  
+  // Prevenir entrada de caracteres no numéricos
+  if (!/^\d$/.test(event.key)) {
+    event.preventDefault();
+    return;
+  }
+
+  // Prevenir entrada si ya hay 3 dígitos y no hay texto seleccionado
+  if (value.length >= 3 && !input.selectionStart && !input.selectionEnd) {
+    event.preventDefault();
+  }
+}
+
+onCantidadChange(prodId: number, valor: any): void {
+  const index = this.getProductoIndex(prodId);
+  if (index >= 0) {
+    // Convertir a string y remover caracteres no numéricos
+    let cantidad = String(valor).replace(/\D/g, '');
+    
+    // Limitar a 3 dígitos
+    if (cantidad.length > 3) {
+      cantidad = cantidad.slice(0, 3);
+    }
+    
+    // Convertir a número
+    let cantidadNum = parseInt(cantidad, 10);
+    
+    // Validar rango
+    if (isNaN(cantidadNum) || cantidadNum < 0) {
+      cantidadNum = 0;
+    } else if (cantidadNum > 999) {
+      cantidadNum = 999;
+    }
+    
+    // Actualizar el producto
+    this.productos[index].cantidad = cantidadNum;
+    this.actualizarPrecio(this.productos[index]);
+  }
+}
+// ...existing code...
+  
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -520,11 +741,13 @@ export class CreateComponent {
     if (this.pedido.diCl_Id && this.pedido.pedi_FechaEntrega) {
       // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
+
       this.mostrarAlertaError = false;
 
       const pedidoGuardar = {
         pedi_Id: 0,
         diCl_Id: this.pedido.diCl_Id,
+        pedi_Codigo: this.pedido.pedi_Codigo, //meter el codigo
         vend_Id: getUserId(), // Asumiendo que el usuario actual es el vendedor
         pedi_FechaPedido: new Date().toISOString(),
         pedi_FechaEntrega: this.pedido.pedi_FechaEntrega,
@@ -548,7 +771,7 @@ export class CreateComponent {
         secuencia: 0,
       };
 
-      console.log('Guardando pedido:', pedidoGuardar);
+      //.log('Guardando pedido:', pedidoGuardar);
 
       this.http
         .post<any>(`${environment.apiBaseUrl}/Pedido/Insertar`, pedidoGuardar, {
@@ -565,8 +788,8 @@ export class CreateComponent {
             this.cancelar();
           },
           error: (error) => {
-            console.log('Entro esto', this.pedido);
-            console.error('Error al guardar punto de emision:', error);
+            //.log('Entro esto', this.pedido);
+            //.error('Error al guardar punto de emision:', error);
             this.mostrarAlertaError = true;
             this.mensajeError =
               'Error al guardar el pedido. Por favor, intente nuevamente.';

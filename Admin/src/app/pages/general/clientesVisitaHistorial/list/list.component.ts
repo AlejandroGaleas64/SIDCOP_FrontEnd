@@ -12,16 +12,15 @@ import { FlatpickrModule } from 'angularx-flatpickr';
 import { SimplebarAngularModule } from 'simplebar-angular';
 import { DropzoneModule, DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
 import { HttpClient } from '@angular/common/http';
-import { cloneDeep } from 'lodash';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
-import { isTrustedHtml } from 'ngx-editor/lib/trustedTypesUtil';
 import { ClientesVisitaHistorial } from 'src/app/Modelos/general/ClientesVisitaHistorial.Model';
 import { DetailsComponent } from '../details/details.component';
-
 import { CreateComponent } from '../create/create.component';
-// import { DetailsComponent } from '../details/details.component';
-// import { EditComponent } from '../edit/edit.component';
+import { Router, ActivatedRoute } from '@angular/router';
+import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/exportHori.service';
+import { VisitaClientePorVendedorDto } from 'src/app/Modelos/general/VisitaClientePorVendedorDto.Model';
+import { Vendedor } from 'src/app/Modelos/ventas/Vendedor.Model';
 import {
   trigger,
   state,
@@ -29,10 +28,7 @@ import {
   transition,
   animate
 } from '@angular/animations';
-import { Router, ActivatedRoute } from '@angular/router';
-import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/exportHori.service';
-import { VisitaClientePorVendedorDto } from 'src/app/Modelos/general/VisitaClientePorVendedorDto.Model';
-import { Vendedor } from 'src/app/Modelos/ventas/Vendedor.Model';
+
 
 @Component({
   standalone: true,
@@ -105,23 +101,32 @@ export class ListComponent {
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
       { key: 'No', header: 'No.', width: 3, align: 'center' as const },
-      { key: 'Código Vendedor', header: 'Código Vendedor', width: 15, align: 'left' as const },
+      { key: 'Código', header: 'Código', width: 15, align: 'left' as const },
       { key: 'Vendedor', header: 'Vendedor', width: 30, align: 'left' as const },
       { key: 'Tipo', header: 'Tipo', width: 50, align: 'left' as const },
       { key: 'Ruta', header: 'Ruta', width: 50, align: 'left' as const },
-      { key: 'Días de la semana', header: 'Días de la semana', width: 50, align: 'left' as const },
+      { key: 'Días de la semana que visita', header: 'Días de la semana que visita', width: 50, align: 'left' as const },
     ] as ExportColumn[],
 
     // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
     dataMapping: (visita: VisitaClientePorVendedorDto, index: number) => ({
       'No': visita?.No || (index + 1),
       'Código Vendedor': this.limpiarTexto(visita?.vend_Codigo),
-      'Vendedor': this.limpiarTexto(visita?.vend_Nombres + visita.vend_Apellidos),
-      'Tipo': this.limpiarTexto(visita?.vend_Tipo),
-      'Ruta': this.limpiarTexto(visita?.ruta_Descripcion),
-      'Días de la semana': this.limpiarTexto(visita?.veRu_Dias),
+      'Vendedor': this.limpiarTexto(visita?.vend_Nombres + ' ' + visita?.vend_Apellidos),
+      'Tipo': this.obtenerTipoVendedor(visita?.vend_Tipo),
+      'Ruta': this.limpiarTexto(visita.ruta_Descripcion),
+      'Días de la semana que visita': this.limpiarTexto(visita.veRu_Dias),
     })
   };
+
+  private obtenerTipoVendedor(tipo: string): string {
+    switch ((tipo || '').toUpperCase()) {
+      case 'V': return 'Venta Directa';
+      case 'P': return 'Preventista';
+      case 'F': return 'Entregador';
+      default: return this.limpiarTexto(tipo);
+    }
+  }
 
 
   busqueda: string = '';
@@ -146,9 +151,7 @@ export class ListComponent {
 
   vendedorDetalle: VisitaClientePorVendedorDto | null = null;
   visitasDetalle: VisitaClientePorVendedorDto[] = [];
-  // Propiedades para confirmación de eliminación
-  mostrarConfirmacionEliminar = false;
-
+  vendedores: any[] = [];
 
   // Estado de exportación
   exportando = false;
@@ -172,7 +175,6 @@ export class ListComponent {
   vendedorGrid: any = [];
 
   term: any;
-  // bread crumb items
   breadCrumbItems!: Array<{}>;
   instuctoractivity: any;
   files: File[] = [];
@@ -253,7 +255,6 @@ export class ListComponent {
       this.manejarResultadoExport(resultado);
 
     } catch (error) {
-      console.error(`Error en exportación ${tipo}:`, error);
       this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
     } finally {
       this.exportando = false;
@@ -307,7 +308,7 @@ export class ListComponent {
   /**
    * Obtiene y prepara los datos para exportación
    */
-   private obtenerDatosExport(): any[] {
+  private obtenerDatosExport(): any[] {
     try {
       const datos = this.vendedores; // Use the array for cards
 
@@ -319,7 +320,6 @@ export class ListComponent {
         this.exportConfig.dataMapping.call(this, modelo, index)
       );
     } catch (error) {
-      console.error('Error obteniendo datos:', error);
       throw error;
     }
   }
@@ -401,6 +401,14 @@ export class ListComponent {
     }
   }
 
+  constructor(
+    private http: HttpClient,
+    private formBuilder: UntypedFormBuilder,
+    private exportService: ExportService
+  ) {
+    this.cargarDatos(true);
+  }
+
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -410,7 +418,6 @@ export class ListComponent {
     this.mensajeWarning = '';
   }
 
-  // constructor(private formBuilder: UntypedFormBuilder, private http: HttpClient) { }
   accionesDisponibles: string[] = [];
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
@@ -432,7 +439,7 @@ export class ListComponent {
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
         }
       } catch (e) {
-        console.error('Error al parsear permisosJson:', e);
+        // console.error('Error al parsear permisosJson:', e);
       }
     }
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLocaleLowerCase());
@@ -458,8 +465,6 @@ export class ListComponent {
           this.showDetailsForm = true;
           this.showCreateForm = false;
           this.activeActionRow = null;
-          console.log('Visitas Detalle cargadas:', this.visitasDetalle);
-          console.log('show:', this.showDetailsForm);
         } else {
           this.visitasDetalle = [];
           this.showDetailsForm = false;
@@ -467,7 +472,6 @@ export class ListComponent {
         }
       },
       error: (err) => {
-        console.error('Error al cargar visitas:', err);
         this.visitasDetalle = [];
         this.showDetailsForm = false;
         this.mostrarMensaje('error', 'No se pudo cargar el historial de visitas.');
@@ -486,49 +490,15 @@ export class ListComponent {
         (vendedor.vend_Apellidos || '').toLowerCase().includes(termino)
       );
     }
-
-    // Resetear la página actual a 1 cuando se filtra
     this.currentPage = 1;
-
-    // Actualizar los productos visibles basados en la paginación
     this.actualizarVendedoresVisibles();
   }
 
-  // Método auxiliar para actualizar los productos visibles
   private actualizarVendedoresVisibles(): void {
     const startItem = (this.currentPage - 1) * this.itemsPerPage;
     const endItem = this.currentPage * this.itemsPerPage;
     this.vendedores = this.vendedoresFiltrados.slice(startItem, endItem);
   }
-
-  pageChanged(event: any): void {
-    this.currentPage = event.page;
-    this.actualizarVendedoresVisibles();
-  }
-
-  // private cargarDatos(state: boolean): void {
-  //   this.mostrarOverlayCarga = state;
-  //   this.http.get<Vendedor[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
-  //     headers: { 'x-api-key': environment.apiKey }
-  //   }).subscribe(data => {
-  //     setTimeout(() => {
-  //       this.mostrarOverlayCarga = false;
-  //       const tienePermisoListar = this.accionPermitida('listar');
-  //       const userId = getUserId();
-  //       const datosFiltrados = tienePermisoListar
-  //         ? data
-  //         : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
-
-  //       this.vendedorGrid = datosFiltrados || [];
-  //       this.busqueda = '';
-  //       this.currentPage = 1;
-  //       this.itemsPerPage = 10;
-  //       this.vendedoresFiltrados = [...this.vendedorGrid];
-  //       console.log('vendedoresFiltrados', this.vendedoresFiltrados);
-  //       this.actualizarVendedoresVisibles();
-  //     }, 500);
-  //   });
-  // }
 
   private cargarDatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
@@ -543,27 +513,14 @@ export class ListComponent {
         const datosFiltrados = tienePermisoListar
           ? data
           : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
-
         this.vendedorGrid = datosFiltrados || [];
         this.busqueda = '';
         this.currentPage = 1;
         this.itemsPerPage = 10;
         this.vendedoresFiltrados = [...this.vendedorGrid];
-
         this.actualizarVendedoresVisibles();
       }, 500);
     });
-  }
-
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-    private route: ActivatedRoute,
-    private formBuilder: UntypedFormBuilder,
-    private exportService: ExportService
-  ) {
-    this.cargarDatos(true);
-    // this.cargarVendedores();
   }
 
   currentPage: number = 1;
@@ -579,75 +536,20 @@ export class ListComponent {
     return end > this.vendedoresFiltrados.length ? this.vendedoresFiltrados.length : end;
   }
 
+  pageChanged(event: any): void {
+    this.currentPage = event.page;
+    this.actualizarVendedoresVisibles();
+  }
+
   trackByVendedorId(index: number, item: any): any {
     return item.vend_Id;
   }
+
   onImgError(event: Event) {
     const target = event.target as HTMLImageElement;
     target.src = 'assets/images/users/32/user-dummy-img.jpg';
   }
 
-
-  // File Upload
-  public dropzoneConfig: DropzoneConfigInterface = {
-    clickable: true,
-    addRemoveLinks: true,
-    previewsContainer: false,
-  };
-
-  uploadedFiles: any[] = [];
-
-  // File Upload
-  imageURL: any;
-  onUploadSuccess(event: any) {
-    setTimeout(() => {
-      this.uploadedFiles.push(event[0]);
-      this.GridForm.controls['img'].setValue(event[0].dataURL);
-    }, 0);
-  }
-
-  // File Remove
-  removeFile(event: any) {
-    this.uploadedFiles.splice(this.uploadedFiles.indexOf(event), 1);
-  }
-
-  // Delete Product
-  removeItem(id: any) {
-    this.deleteID = id;
-    this.deleteRecordModal?.show();
-  }
-
-  confirmDelete() {
-    this.deleteRecordModal?.hide();
-  }
-
-  // filterdata
-  filterdata() {
-    if (this.term) {
-      this.vendedores = this.vendedorGrid.filter((el: any) => el.name?.toLowerCase().includes(this.term.toLowerCase()));
-    } else {
-      this.vendedores = this.vendedorGrid.slice(0, 10);
-    }
-    // noResultElement
-    this.updateNoResultDisplay();
-  }
-
-  // no result 
-  updateNoResultDisplay() {
-    const noResultElement = document.querySelector('.noresult') as HTMLElement;
-    const paginationElement = document.getElementById('pagination-element') as HTMLElement;
-    if (noResultElement && paginationElement) {
-      if (this.term && this.vendedores.length === 0) {
-        noResultElement.style.display = 'block';
-        paginationElement.classList.add('d-none');
-      } else {
-        noResultElement.style.display = 'none';
-        paginationElement.classList.remove('d-none');
-      }
-    }
-  }
-
-  // Abre/cierra el menú de acciones para la fila seleccionada
   onActionMenuClick(rowIndex: number) {
     this.activeActionRow = this.activeActionRow === rowIndex ? null : rowIndex;
   }
@@ -663,23 +565,7 @@ export class ListComponent {
 
 
   guardarVisita(visita: ClientesVisitaHistorial): void {
-    console.log('Visita guardada exitosamente desde create component:', visita);
     this.cargarDatos(false);
     this.cerrarFormulario();
   }
-
-  vendedores: any[] = [];
-  vendedorSeleccionado: any = null;
-  visitas: any[] = [];
-  mostrarDetalle: boolean = false;
-  nuevoRegistro: any = { /* campos necesarios */ };
-
-
-  // insertarVisita() {
-  //   this.http.post(`${environment.apiBaseUrl}/ClientesVisitaHistorial/Insertar`, this.nuevoRegistro).subscribe(() => {
-  //     if (this.vendedorSeleccionado) {
-  //       this.verDetalle(this.vendedorSeleccionado); // Refresca el detalle
-  //     }
-  //   });
-  // }
 }

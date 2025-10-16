@@ -35,16 +35,26 @@
         <label for="nombres-input" class="form-label">Descripcion<span class="text-danger">*</span></label>
         <div class="mb-3">
           <div class="d-flex align-items-center">
-            <i class="ri-attachment-line"
-              [ngStyle]="{
-                border: (!registroCai.regC_Descripcion.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!registroCai.regC_Descripcion.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            <i class="ri-attachment-line" [ngStyle]="{
+                border:
+                  !registroCai.regC_Descripcion.trim() && mostrarErrores
+                    ? '1px solid #f9bcc4'
+                    : '1px solid #e9ecf5',
+                backgroundColor:
+                  !registroCai.regC_Descripcion.trim() && mostrarErrores
+                    ? '#fff5f6'
+                    : '#f2f3f9',
+                padding: '0.525rem 0.525rem',
+                position: 'relative',
+                left: '7px',
+                borderTopLeftRadius: '8px',
+                borderBottomLeftRadius: '8px'
+              }">
             </i>
             <input type="text" class="form-control" [class.is-invalid]="
                 !registroCai.regC_Descripcion.trim() && mostrarErrores
               " id="PECod" [(ngModel)]="registroCai.regC_Descripcion" placeholder="Ingrese la Descripcion" required />
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+            
           </div>
           <div class="text-danger mt-1" *ngIf="!registroCai.regC_Descripcion.trim() && mostrarErrores">
             <small>El campo Codigo es requerido</small>
@@ -56,26 +66,36 @@
         <label class="form-label">Sucursal<span class="text-danger">*</span></label>
         <div class="mb-3">
           <div class="d-flex align-items-center">
-            <i class="ri-building-2-line"
-              [ngStyle]="{
-                border: (!registroCai.sucu_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!registroCai.sucu_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            <i class="ri-building-2-line" [ngStyle]="{
+                border:
+                  !registroCai.sucu_Id && mostrarErrores
+                    ? '1px solid #f9bcc4'
+                    : '1px solid #e9ecf5',
+                backgroundColor:
+                  !registroCai.sucu_Id && mostrarErrores
+                    ? '#fff5f6'
+                    : '#f2f3f9',
+                padding: '0.525rem 0.525rem',
+                position: 'relative',
+                left: '7px',
+                borderTopLeftRadius: '8px',
+                borderBottomLeftRadius: '8px'
+              }">
             </i>
             <ng-select class="w-100" [items]="Sucursales" bindLabel="sucu_Descripcion" bindValue="sucu_Id"
               [(ngModel)]="registroCai.sucu_Id" [searchable]="true" [clearable]="false"
               [class.is-invalid]="!registroCai.sucu_Id && mostrarErrores" placeholder="Seleccione una sucursal" required
-              [searchFn]="searchSucursal">
+              [searchFn]="searchSucursal" (ngModelChange)="onSucursalChange()">
               <ng-template ng-label-tmp let-item="item">
-                {{ item.sucu_Descripcion }} - {{ item.muni_Descripcion }} -
+                {{ item.sucu_Codigo }} - {{ item.sucu_Descripcion }} - {{ item.muni_Descripcion }} -
                 {{ item.depa_Descripcion }}
               </ng-template>
               <ng-template ng-option-tmp let-item="item">
-                {{ item.sucu_Descripcion }} - {{ item.muni_Descripcion }} -
+                {{ item.sucu_Codigo }} - {{ item.sucu_Descripcion }} - {{ item.muni_Descripcion }} -
                 {{ item.depa_Descripcion }}
               </ng-template>
             </ng-select>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+            
           </div>
           <div class="text-danger mt-1" *ngIf="!registroCai.sucu_Id && mostrarErrores">
             <small>El campo sucursal es requerido</small>
@@ -89,11 +109,21 @@
         </label>
         <div class="mb-3">
           <div class="d-flex align-items-center">
-            <i class="ri-voice-recognition-line"
-              [ngStyle]="{
-                border: (!registroCai.nCai_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!registroCai.nCai_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            <i class="ri-voice-recognition-line" [ngStyle]="{
+                border:
+                  !registroCai.nCai_Id && mostrarErrores
+                    ? '1px solid #f9bcc4'
+                    : '1px solid #e9ecf5',
+                backgroundColor:
+                  !registroCai.nCai_Id && mostrarErrores
+                    ? '#fff5f6'
+                    : '#f2f3f9',
+                padding: '0.525rem 0.525rem',
+                position: 'relative',
+                left: '7px',
+                borderTopLeftRadius: '8px',
+                borderBottomLeftRadius: '8px'
+              }">
             </i>
             <ng-select class="w-100" [items]="CAI" bindLabel="nCai_Descripcion" bindValue="nCai_Id"
               [(ngModel)]="registroCai.nCai_Id" [searchable]="true" [clearable]="false"
@@ -106,10 +136,10 @@
                 {{ item.nCai_Codigo }} - {{ item.nCai_Descripcion }}
               </ng-template>
             </ng-select>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+            
           </div>
           <div class="text-danger mt-1" *ngIf="!registroCai.nCai_Id && mostrarErrores">
-            <small>El campo punto CAI es requerido</small>
+            <small>El campo CAI es requerido</small>
           </div>
         </div>
       </div>
@@ -120,16 +150,26 @@
         </label>
         <div class="mb-3">
           <div class="d-flex align-items-center">
-            <i class="ri-price-tag-3-line"
-              [ngStyle]="{
-                border: (!registroCai.puEm_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!registroCai.puEm_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            <i class="ri-price-tag-3-line" [ngStyle]="{
+                border:
+                  !registroCai.puEm_Id && mostrarErrores
+                    ? '1px solid #f9bcc4'
+                    : '1px solid #e9ecf5',
+                backgroundColor:
+                  !registroCai.puEm_Id && mostrarErrores
+                    ? '#fff5f6'
+                    : '#f2f3f9',
+                padding: '0.525rem 0.525rem',
+                position: 'relative',
+                left: '7px',
+                borderTopLeftRadius: '8px',
+                borderBottomLeftRadius: '8px'
+              }">
             </i>
             <ng-select class="w-100" [items]="PE" bindLabel="puEm_Descripcion" bindValue="puEm_Id"
               [(ngModel)]="registroCai.puEm_Id" [searchable]="true" [clearable]="false"
               [class.is-invalid]="!registroCai.puEm_Id && mostrarErrores" placeholder="Seleccione un punto de emisión"
-              required [searchFn]="searchPuntoEmision">
+              required [searchFn]="searchPuntoEmision" (ngModelChange)="onPuntoEmisionChange()">
               <ng-template ng-label-tmp let-item="item">
                 {{ item.puEm_Codigo }} - {{ item.puEm_Descripcion }} -
                 {{ item.sucu_Descripcion }}
@@ -139,7 +179,7 @@
                 {{ item.sucu_Descripcion }}
               </ng-template>
             </ng-select>
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+            
           </div>
           <div class="text-danger mt-1" *ngIf="!registroCai.puEm_Id && mostrarErrores">
             <small>El campo punto de emisión es requerido</small>
@@ -151,17 +191,30 @@
         <label for="nombres-input" class="form-label">Rango Inicial<span class="text-danger">*</span></label>
         <div class="mb-3">
           <div class="d-flex align-items-center">
-            <i class=" ri-sort-desc"
-              [ngStyle]="{
-                border: (!registroCai.regC_RangoInicial.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!registroCai.regC_RangoInicial.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            <i class="ri-sort-desc" [ngStyle]="{
+                border:
+                  !registroCai.regC_RangoInicial.trim() && mostrarErrores
+                    ? '1px solid #f9bcc4'
+                    : '1px solid #e9ecf5',
+                backgroundColor:
+                  !registroCai.regC_RangoInicial.trim() && mostrarErrores
+                    ? '#fff5f6'
+                    : '#f2f3f9',
+                padding: '0.525rem 0.525rem',
+                position: 'relative',
+                left: '7px',
+                borderTopLeftRadius: '8px',
+                borderBottomLeftRadius: '8px'
+              }">
             </i>
             <input type="text" class="form-control" [class.is-invalid]="
                 !registroCai.regC_RangoInicial.trim() && mostrarErrores
-              " id="RInicial" [(ngModel)]="registroCai.regC_RangoInicial" placeholder="Ingrese el Rango Inicial"
-              required />
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              " id="RInicial" [(ngModel)]="registroCai.regC_RangoInicial" 
+              mask="00000000" 
+              [dropSpecialCharacters]="false"
+              placeholder="00000000" 
+              required (ngModelChange)="onRangoChange()" />
+            
           </div>
           <div class="text-danger mt-1" *ngIf="!registroCai.regC_RangoInicial.trim() && mostrarErrores">
             <small>El campo rango inicial es requerido</small>
@@ -173,17 +226,30 @@
         <label for="nombres-input" class="form-label">Rango Final<span class="text-danger">*</span></label>
         <div class="mb-3">
           <div class="d-flex align-items-center">
-            <i class=" ri-sort-asc"
-              [ngStyle]="{
-                border: (!registroCai.regC_RangoInicial.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!registroCai.regC_RangoInicial.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            <i class="ri-sort-asc" [ngStyle]="{
+                border:
+                  !registroCai.regC_RangoInicial.trim() && mostrarErrores
+                    ? '1px solid #f9bcc4'
+                    : '1px solid #e9ecf5',
+                backgroundColor:
+                  !registroCai.regC_RangoInicial.trim() && mostrarErrores
+                    ? '#fff5f6'
+                    : '#f2f3f9',
+                padding: '0.525rem 0.525rem',
+                position: 'relative',
+                left: '7px',
+                borderTopLeftRadius: '8px',
+                borderBottomLeftRadius: '8px'
+              }">
             </i>
             <input type="text" class="form-control" [class.is-invalid]="
                 !registroCai.regC_RangoFinal.trim() && mostrarErrores
-              " id="RInicial" [(ngModel)]="registroCai.regC_RangoFinal" placeholder="Ingrese el Rango Final"
-              required />
-            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+              " id="RFinal" [(ngModel)]="registroCai.regC_RangoFinal" 
+              mask="00000000" 
+              [dropSpecialCharacters]="false"
+              placeholder="00000000" 
+              required (ngModelChange)="onRangoChange()" />
+            
           </div>
           <div class="text-danger mt-1" *ngIf="!registroCai.regC_RangoFinal.trim() && mostrarErrores">
             <small>El campo rango final es requerido</small>
@@ -196,19 +262,29 @@
           <label for="inicial-input" class="form-label">Fecha Inicial de Emision<span
               class="text-danger">*</span></label>
           <div class="d-flex align-items-center">
-            <i class="ri-calendar-event-line"
-              [ngStyle]="{
-                border: (!registroCai.regC_RangoInicial.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!registroCai.regC_RangoInicial.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            <i class="ri-calendar-event-line" [ngStyle]="{
+                border:
+                  !fechaInicialEmision && mostrarErrores
+                    ? '1px solid #f9bcc4'
+                    : '1px solid #e9ecf5',
+                backgroundColor:
+                  !fechaInicialEmision && mostrarErrores
+                    ? '#fff5f6'
+                    : '#f2f3f9',
+                padding: '0.525rem 0.525rem',
+                position: 'relative',
+                left: '7px',
+                borderTopLeftRadius: '8px',
+                borderBottomLeftRadius: '8px'
+              }">
             </i>
-            <input type="date" id="inicial-input" [(ngModel)]="registroCai.regC_FechaInicialEmision"
-              class="form-control" [class.is-invalid]="
-              !registroCai.regC_FechaInicialEmision && mostrarErrores
-            " placeholder="Seleccione la fecha de emision inicial" required />
-            <div class="text-danger" *ngIf="!registroCai.regC_FechaInicialEmision && mostrarErrores">
-              <small>La fecha inicial de emision es requerida</small>
-            </div>
+            <input type="date" id="inicial-input" [(ngModel)]="fechaInicialEmision" class="form-control"
+              [class.is-invalid]="
+                !fechaInicialEmision && mostrarErrores
+              " placeholder="Seleccione la fecha de emision inicial" required />
+          </div>
+          <div class="text-danger" *ngIf="!fechaInicialEmision && mostrarErrores">
+            <small>La fecha inicial de emision es requerida</small>
           </div>
         </div>
       </div>
@@ -217,23 +293,48 @@
         <div class="mb-3">
           <label for="final-input" class="form-label">Fecha Final de Emision<span class="text-danger">*</span></label>
           <div class="d-flex align-items-center">
-            <i class="ri-calendar-event-line"
-              [ngStyle]="{
-                border: (!registroCai.regC_RangoInicial.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!registroCai.regC_RangoInicial.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            <i class="ri-calendar-event-line" [ngStyle]="{
+                border:
+                  !fechaFinalEmision && mostrarErrores
+                    ? '1px solid #f9bcc4'
+                    : '1px solid #e9ecf5',
+                backgroundColor:
+                  !fechaFinalEmision && mostrarErrores
+                    ? '#fff5f6'
+                    : '#f2f3f9',
+                padding: '0.525rem 0.525rem',
+                position: 'relative',
+                left: '7px',
+                borderTopLeftRadius: '8px',
+                borderBottomLeftRadius: '8px'
+              }">
             </i>
-            <input type="date" id="final-input" [(ngModel)]="registroCai.regC_FechaFinalEmision" class="form-control"
-              [class.is-invalid]="
-              !registroCai.regC_FechaFinalEmision && mostrarErrores
-            " placeholder="Seleccione la fecha de emision final" required />
-            <div class="text-danger" *ngIf="!registroCai.regC_FechaFinalEmision && mostrarErrores">
-              <small>La fecha final de emision es requerida</small>
+            <input type="date" id="final-input" [(ngModel)]="fechaFinalEmision" class="form-control" [class.is-invalid]="
+                !fechaFinalEmision && mostrarErrores
+              " placeholder="Seleccione la fecha de emision final" required />
+          </div>
+          <div class="text-danger" *ngIf="!fechaFinalEmision && mostrarErrores">
+            <small>La fecha final de emision es requerida</small>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Mostrar número de factura formateado -->
+      <div class="col-12" *ngIf="numeroFacturaFormateado">
+        <div class="mb-3">
+          <div class="alert alert-info alert-border-left d-flex align-items-center" style="background-color: #e7f3ff; border-left: 4px solid #0dcaf0;">
+            <i class="ri-information-line me-3 fs-lg" style="color: #0dcaf0;"></i>
+            <div>
+              <strong>Vista previa del número de factura:</strong>
+              <br>
+              <span class="fw-bold" style="font-family: 'Courier New', monospace; font-size: 1.1em; color: #0a58ca;">
+                {{ numeroFacturaFormateado }}
+              </span>
             </div>
           </div>
         </div>
       </div>
-      
     </div>
   </div>
 

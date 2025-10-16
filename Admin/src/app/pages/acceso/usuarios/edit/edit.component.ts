@@ -18,6 +18,7 @@ export class EditComponent implements OnChanges {
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Usuario>();
 
+  // Mensajes y Alertas
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -27,10 +28,12 @@ export class EditComponent implements OnChanges {
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
 
+  // Listas para los ddl
   roles: any[] = [];
   empleados: any[] = [];
   vendedores: any[] = [];
 
+  // Modelo de Usuario
   usuario: Usuario = {
     secuencia: 0,
     usua_Id: 0,
@@ -54,12 +57,14 @@ export class EditComponent implements OnChanges {
     message_Status: '',
   };
 
+  //Inyección de HttpClient
   constructor(private http: HttpClient) {
     this.cargarRoles();
     this.cargarEmpleados();
     this.cargarVendedores();
   }
 
+  // Detectar cambios en el Input usuarioData
   usuarioOriginal: any = {};
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['usuarioData'] && changes['usuarioData'].currentValue) {
@@ -68,12 +73,15 @@ export class EditComponent implements OnChanges {
       this.usuario.role_Descripcion = rolActual ? rolActual.role_Descripcion : '';
       const empleadoActual = this.empleados.find(m => m.empl_Id === this.usuario.usua_IdPersona);
       this.usuario.nombreCompleto = empleadoActual ? empleadoActual.empl_Nombres + ' ' + empleadoActual.empl_Apellidos : '';
+      const vendedorActual = this.vendedores.find(m => m.vend_Id === this.usuario.usua_IdPersona);
+      this.usuario.nombreCompleto = vendedorActual ? vendedorActual.vend_Nombres + ' ' + vendedorActual.vend_Apellidos : '';
       this.usuarioOriginal = { ...changes['usuarioData'].currentValue };
       this.mostrarErrores = false;
       this.cerrarAlerta();
     }
   }
 
+  // Manejar cambios en los ddl
   onRolChange(event: any) {
     const selectedId = +event.target.value;
     const rolSeleccionado = this.roles.find(rol => rol.role_Id === selectedId);
@@ -84,6 +92,7 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // Manejar cambios en los ddl
   onEmpleadoChange(event: any) {
     const selectedId = +event.target.value;
     const empleadoSeleccionado = this.empleados.find(emp => emp.empl_Id === selectedId);
@@ -94,29 +103,45 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // Manejar cambios en los ddl
+  onVendedorChange(event: any) {
+    const selectedId = +event.target.value;
+    const vendedorSeleccionado = this.vendedores.find(emp => emp.vend_Id === selectedId);
+    if (vendedorSeleccionado) {      
+      this.usuario.nombreCompleto = vendedorSeleccionado.vend_Nombres + ' ' + vendedorSeleccionado.vend_Apellidos;
+    } else {
+      this.usuario.nombreCompleto = '';
+    }
+  }
+
+  //Cargar datos para listas de los ddl
   cargarRoles() {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Roles/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => this.roles = data);
   }
 
+  //Cargar datos para listas de los ddl
   cargarEmpleados() {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Empleado/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => this.empleados = data);
   }
 
+  //Cargar datos para listas de los ddl
   cargarVendedores() {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => this.vendedores = data);
   }
 
+  // Para la accion del boton de cancelar
   cancelar(): void {
     this.cerrarAlerta();
     this.onCancel.emit();
   }
 
+  // Cerrar las alertas
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -126,15 +151,18 @@ export class EditComponent implements OnChanges {
     this.mensajeWarning = '';
   }
 
+  // Mostrar confirmación antes de editar
   cancelarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
   }
 
+  // Confirmar y proceder con la edición
   confirmarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
     this.guardar();
   }
 
+  // Si es admin, deshabilitar los ddl de rol y empleado
   onAdminToggle(): void {
     if (this.usuario.usua_EsAdmin) {
       this.usuario.role_Id = 1;
@@ -146,14 +174,17 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // Si es vendedor, deshabilitar el ddl de empleado
   onVendedorToggle(): void {
     if (!this.usuario.usua_EsVendedor) {
       this.usuario.usua_IdPersona = 0;
     }
   }
 
+  // Detectar diferencias entre el usuario original y el editado
   cambiosDetectados: any = {};
 
+  // Detectar diferencias entre el usuario original y el editado
   hayDiferencias(): boolean {
     const a = this.usuario;
     const b = this.usuarioOriginal;
@@ -213,7 +244,39 @@ export class EditComponent implements OnChanges {
         this.cambiosDetectados.empleado = {
           anterior: b.nombreCompleto = this.empleados.find(emp => emp.empl_Id === b.usua_IdPersona)?.empl_Nombres + ' ' + this.empleados.find(emp => emp.empl_Id === b.usua_IdPersona)?.empl_Apellidos || '',
           nuevo: a.nombreCompleto,
-          label: 'Empleado'
+          label: 'Empleado o Vendedor'
+        }
+      }
+    }
+    
+    if(!a.usua_EsAdmin)
+    {
+      if(!a.usua_EsVendedor){
+        if(a.usua_IdPersona !== b.usua_IdPersona){
+          this.cambiosDetectados.empleado = {
+            anterior: b.nombreCompleto = this.empleados.find(emp => emp.empl_Id === b.usua_IdPersona)?.empl_Nombres + ' ' + this.empleados.find(emp => emp.empl_Id === b.usua_IdPersona)?.empl_Apellidos || '',
+            nuevo: a.nombreCompleto,
+            label: 'Empleado o Vendedor'
+          }
+        }
+      }
+      if(a.usua_EsVendedor){
+        if(a.usua_IdPersona !== b.usua_IdPersona){
+          const vendedorAnterior = this.vendedores.find(vend => vend.vend_Id === b.usua_IdPersona);
+          if (vendedorAnterior !== undefined) {
+            this.cambiosDetectados.vendedor = {
+              anterior: b.nombreCompleto = this.vendedores.find(vend => vend.vend_Id === b.usua_IdPersona)?.vend_Nombres + ' ' + this.vendedores.find(vend => vend.vend_Id === b.usua_IdPersona)?.vend_Apellidos || '',
+              nuevo: a.nombreCompleto,
+              label: 'Empleado o Vendedor'
+            }
+          }
+          else{
+            this.cambiosDetectados.empleado = {
+              anterior: b.nombreCompleto = this.empleados.find(emp => emp.empl_Id === b.usua_IdPersona)?.empl_Nombres + ' ' + this.empleados.find(emp => emp.empl_Id === b.usua_IdPersona)?.empl_Apellidos || '',
+              nuevo: a.nombreCompleto,
+              label: 'Empleado o Vendedor'
+            }
+          }
         }
       }
     }
@@ -221,21 +284,26 @@ export class EditComponent implements OnChanges {
     return Object.keys(this.cambiosDetectados).length > 0;
   }
 
+  // Validar antes de guardar
   validarEdicion(): void {
     this.mostrarErrores = true;
-    if (this.hayDiferencias()) {
-      this.mostrarConfirmacionEditar = true;
-    } else {
-      this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'No se han detectado cambios.';
-      setTimeout(() => this.cerrarAlerta(), 4000);
+    if (this.usuario.usua_Usuario.trim() && this.usuario.role_Id && this.usuario.usua_IdPersona) {
+      if (this.hayDiferencias()) {
+        this.mostrarConfirmacionEditar = true;
+      } else {
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = 'No se han detectado cambios.';
+        setTimeout(() => this.cerrarAlerta(), 4000);
+      }
     }
   }
 
+  // Obtener lista de cambios para mostrar en la confirmación
   obtenerListaCambios(): any[] {
     return Object.values(this.cambiosDetectados);
   }
 
+  // Para la accion del boton de guardar
   guardar(): void {
     this.mostrarErrores = true;
     if (this.usuario.usua_Usuario.trim() && this.usuario.role_Id && this.usuario.usua_IdPersona) {
@@ -309,31 +377,55 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // Cargar y subir la imagen al servidor
   onImagenSeleccionada(event: any) {
     const file = event.target.files[0];
 
     if (file) {
-      // para enviar la imagen a Cloudinary
+      // Crear vista previa inmediata
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.usuario.usua_Imagen = e.target.result;
+      };
+      reader.readAsDataURL(file);
+
+      // Subir imagen al servidor
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'subidas_usuarios');
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
+      formData.append('imagen', file);
 
-
-      fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-        .then(response => response.json())
-        .then(data => {
-          this.usuario.usua_Imagen = data.secure_url;
-        })
-        .catch(error => {
-          console.error('Error al subir la imagen a Cloudinary:', error);
-        });
+      this.http.post<any>(`${environment.apiBaseUrl}/Imagen/Subir`, formData, {
+        headers: {
+          'X-Api-Key': environment.apiKey,
+          'accept': '*/*'
+        }
+      }).subscribe({
+        next: (response) => {
+          if (response && response.ruta) {
+            // Reemplazar la vista previa con la URL del servidor
+            this.usuario.usua_Imagen = `${environment.apiBaseUrl}${response.ruta}`;
+          } else {
+            this.mostrarAlertaError = true;
+            this.mensajeError = 'Error al procesar la respuesta del servidor.';
+            setTimeout(() => {
+              this.mostrarAlertaError = false;
+              this.mensajeError = '';
+            }, 5000);
+          }
+        },
+        error: (error) => {
+          console.error('Error al subir la imagen:', error);
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error al subir la imagen. Por favor, intente nuevamente.';
+          setTimeout(() => {
+            this.mostrarAlertaError = false;
+            this.mensajeError = '';
+          }, 5000);
+        }
+      });
     }
   }
 
+  // Manejar error al cargar la imagen
   onImgError(event: Event) {
     const target = event.target as HTMLImageElement;
     target.src = 'assets/images/users/32/user-dummy-img.jpg';

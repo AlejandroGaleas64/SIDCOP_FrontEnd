@@ -223,6 +223,8 @@
                   [totalItems]="(table.total$ | async) || 0" 
                   [(ngModel)]="table.page" 
                   [itemsPerPage]="table.pageSizeValue" 
+                  [maxSize]="5"
+                  [rotate]="true"
                   (pageChanged)="table.setPage($event.page)">
                 </pagination>
               </div>
@@ -336,18 +338,13 @@
 
 
 <!-- Overlay de carga -->
-<div *ngIf="mostrarOverlayCarga" 
-     class="overlay-carga"
-     role="status" 
-     aria-live="polite"
-     aria-label="Cargando datos">
-  <div class="typing-indicator">
-    <div class="typing-circle"></div>
-    <div class="typing-circle"></div>
-    <div class="typing-circle"></div>
-    <div class="typing-shadow"></div>
-    <div class="typing-shadow"></div>
-    <div class="typing-shadow"></div>
-  </div>
-  <div class="sr-only">Cargando información de recargas...</div>
+<div *ngIf="mostrarOverlayCarga" class="overlay-carga">
+    <div class="typing-indicator">
+        <div class="typing-circle"></div>
+        <div class="typing-circle"></div>
+        <div class="typing-circle"></div>
+        <div class="typing-shadow"></div>
+        <div class="typing-shadow"></div>
+        <div class="typing-shadow"></div>
+    </div>
 </div>

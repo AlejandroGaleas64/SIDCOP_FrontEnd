@@ -1,11 +1,13 @@
-import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Output, EventEmitter, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Categoria } from 'src/app/Modelos/inventario/CategoriaModel';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
+import { Categoria } from 'src/app/Modelos/inventario/CategoriaModel';
+import { useAnimation } from '@angular/animations';
 import { Promocion } from 'src/app/Modelos/inventario/PromocionModel';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
@@ -15,7 +17,7 @@ import { ChangeDetectorRef } from '@angular/core';
   templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss'
 })
-export class EditComponent implements OnChanges {
+export class EditComponent implements OnInit, OnChanges {
   mostrarOverlayCarga = false;
   @Input() productoData: Promocion | null = null;
   @Output() onCancel = new EventEmitter<void>();
@@ -30,12 +32,12 @@ export class EditComponent implements OnChanges {
   impuestos: any[] = [];
   subcategoriaOriginalDescripcion: string = '';
   categoriaOriginalId: number = 0;
-      filtro: string = '';
+  filtro: string = '';
   seleccionados: number[] = [];
   clientesAgrupados: { canal: string, clientes: any[], filtro: string, collapsed: boolean }[] = [];
-clientesSeleccionados: number[] = [];
-activeTab: number = 1;
-  
+  clientesSeleccionados: number[] = [];
+  activeTab: number = 1;
+
   categoria: Categoria = {
     cate_Id: 0,
     cate_Descripcion: '',
@@ -61,14 +63,16 @@ activeTab: number = 1;
     prod_Imagen: '',
     cate_Id: 0,
     cate_Descripcion: '',
+    prod_Peso: 0,
+    unPe_Id: 0,
     subc_Id: 0,
     marc_Id: 0,
     prov_Id: 0,
     impu_Id: 0,
     prod_PrecioUnitario: 0,
-    prod_CostoTotal: 0,
     prod_PagaImpuesto: "",
     prod_EsPromo: "",
+    prod_Impulsado: false,
     prod_Estado: true,
     usua_Creacion: 0,
     prod_FechaCreacion: new Date(),
@@ -97,10 +101,12 @@ activeTab: number = 1;
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
 
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {
+  constructor(private http: HttpClient, private imageUploadService: ImageUploadService, private cdr: ChangeDetectorRef) {
     this.cargarImpuestos();
     this.listarClientes();
     this.listarProductos();
+    console.log(this.productoData);
+    console.log(this.producto);
   }
 
   precioFormatoValido: boolean = true;
@@ -124,9 +130,10 @@ activeTab: number = 1;
     }
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['productoData'] && changes['productoData'].currentValue) {
-      this.producto = { ...changes['productoData'].currentValue };
+  inicializarProducto(data: Promocion) {
+    if (data) {
+      
+      this.producto = { ...data };
       // Obtener descripción de marca a partir del id al cargar producto
       const marcaActual = this.marcas.find(m => m.marc_Id === this.producto.marc_Id);
       this.producto.marc_Descripcion = marcaActual ? marcaActual.marc_Descripcion : '';
@@ -140,15 +147,14 @@ activeTab: number = 1;
       this.producto.prod_EsPromo = this.producto.prod_EsPromo || 'N';
       this.producto.prod_PagaImpuesto = this.producto.prod_PagaImpuesto || 'N';
       this.producto.impu_Id = this.producto.impu_Id || 0;
-      console.log('Productos cargados:', this.producto);
+
       // Parseo seguro de clientes
       let clientesLista: any[] = [];
       try {
         const jsonRaw = this.producto.clientes?.replace(/\\"/g, '"').replace(/^"|"$/g, '') ?? '[]';
         clientesLista = JSON.parse(jsonRaw);
       } catch (error) {
-        console.warn('Error parsing clientes JSON:', error);
-        console.log('Raw clientes data:', this.producto.clientes);
+
         clientesLista = [];
       }
 
@@ -157,7 +163,6 @@ activeTab: number = 1;
       try {
      
         let productosRaw = this.producto.productos ?? '[]';
-        console.log('Raw productos data:', productosRaw);
         
        
          if (typeof productosRaw === 'string') {
@@ -173,8 +178,10 @@ activeTab: number = 1;
         productosLista = JSON.parse(productosRaw);
         
       } catch (error) {
+
         console.warn('Error parsing productos JSON:', error);
         console.log('Raw productos data:', this.producto.productos);
+
         productosLista = [];
       }
 
@@ -182,7 +189,7 @@ activeTab: number = 1;
       const clientesIds = clientesLista.map((c: any) => c.id);
       // Importante: crear copias para evitar referencias compartidas que impidan detectar cambios
       this.producto.idClientes = [...clientesIds];
-      console.log('Productos lista:', productosLista);
+
       // Transformar y aplicar las cantidades de productos seleccionados
       if (productosLista.length > 0) {
   // Normaliza los IDs si vienen como 'id' en vez de 'prod_Id'
@@ -212,19 +219,34 @@ activeTab: number = 1;
     prDe_Cantidad: item.cantidad
   }));
 
+
+
   console.log('Cantidades aplicadas a productos:', cantidadesPorProducto);
+
 }
       
       // Copia independiente para que las mutaciones del UI no modifiquen el arreglo original por referencia
       this.clientesSeleccionados = [...clientesIds];
       
+
       console.log('Clientes seleccionados cargados:', this.clientesSeleccionados);
       console.log('Productos cargados:', this.productos);
 
+
+  }}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['productoData'] && changes['productoData'].currentValue) {
+      this.inicializarProducto(changes['productoData'].currentValue);
     }
   }
-  
 
+  ngOnInit(): void {
+    // Puedes dejar la lógica aquí para el primer render
+    if (this.productoData) {
+      this.inicializarProducto(this.productoData);
+    }
+  }
 
   validarPrecioUnitario() {
     const valor = this.producto.prod_PrecioUnitario;
@@ -242,10 +264,6 @@ activeTab: number = 1;
       this.producto.impu_Id = 0;
     }
   }
-
-
-
-
 
   listarClientes(): void {
         this.http.get<any>(`${environment.apiBaseUrl}/Cliente/Listar`, {
@@ -270,8 +288,6 @@ activeTab: number = 1;
       });
     }
 
-
-
   cargarImpuestos() {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Impuestos/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -282,12 +298,41 @@ activeTab: number = 1;
     );
   }
 
-  
+  onImagenSeleccionada(event: any) {
+    // Obtenemos el archivo seleccionado desde el input tipo file
+    const file = event.target.files[0];
+    if (file) {
+      this.mostrarOverlayCarga = true;
+      
+      // Crear una URL temporal para mostrar la imagen inmediatamente
+      const tempImageUrl = URL.createObjectURL(file);
+      this.producto.prod_Imagen = tempImageUrl;
+      
+      this.imageUploadService.uploadImageAsync(file)
+        .then(imagePath => {
+          // Construir la URL completa para mostrar la imagen
+          const baseUrl = environment.apiBaseUrl.replace('/api', '');
+          this.producto.prod_Imagen = `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
+          this.mostrarOverlayCarga = false;
 
+        })
+        .catch(error => {
+          console.error('Error al subir la imagen:', error);
+          this.mostrarAlertaError = true;
+          this.mensajeError = 'Error al subir la imagen. Por favor, intente nuevamente.';
+          this.mostrarOverlayCarga = false;
+          setTimeout(() => {
+            this.mostrarAlertaError = false;
+            this.mensajeError = '';
+          }, 3000);
+        });
+    }
+  }
 
-
-
-
+  onImgError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    target.src = 'assets/images/users/32/agotado.png';
+  }
 
   cancelar(): void {
     this.activeTab = 1
@@ -526,7 +571,7 @@ if (serializeProductos(productosOriginal) !== serializeProductos(productosActual
         setTimeout(() => this.cerrarAlerta(), 4000);
         return;
       }
-      console.log('Datos a actualizar:', promocionActualizar);
+
       this.mostrarOverlayCarga = true;
       this.http.put<any>(`${environment.apiBaseUrl}/Promociones/Actualizar`, promocionActualizar, {
         headers: {
@@ -571,40 +616,7 @@ if (serializeProductos(productosOriginal) !== serializeProductos(productosActual
     }
   }
 
-  onImagenSeleccionada1(event: any) {
-    // Obtenemos el archivo seleccionado desde el input tipo file
-    const file = event.target.files[0];
-
-    if (file) {
-      // para enviar la imagen a Cloudinary
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'subidas_usuarios');
-      //Subidas usuarios Carpeta identificadora en Cloudinary
-      //dwiprwtmo es el nombre de la cuenta de Cloudinary
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-
-      
-      fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        this.producto.prod_Imagen = data.secure_url;
-      })
-      .catch(error => {
-        console.error('Error al subir la imagen a Cloudinary:', error);
-      });
-    }
-  }
-
-  onImgError(event: Event) {
-    const target = event.target as HTMLImageElement;
-    target.src = 'assets/images/users/32/agotado.png';
-  }
-
-   validarPasoActual(): boolean {
+  validarPasoActual(): boolean {
   switch (this.activeTab) {
     case 1: // Información general
       return this.validarPasoInformacionGeneral();

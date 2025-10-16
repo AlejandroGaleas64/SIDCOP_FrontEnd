@@ -26,12 +26,10 @@
         Información del Negocio </span>
       <div class="col-5">
         <div class="card-image-customer customer-photo-card-modern">
-          <ng-container *ngIf="clienteDetalle?.clie_ImagenDelNegocio;">
-            <div class="customer-img-container">
-              <img [src]="clienteDetalle.clie_ImagenDelNegocio" alt="Imagen del negocio" class="customer-img-modern"
-                (load)="imgLoaded = true" [class.loaded]="imgLoaded" />
-            </div>
-          </ng-container>
+          <div class="customer-img-container">
+            <img [src]="getImageToDisplay()" alt="Imagen del negocio" class="customer-img-modern"
+              (load)="imgLoaded = true" [class.loaded]="imgLoaded" />
+          </div>
           <ng-template #noImage>
             <div class="customer-img-container">
               <div class="customer-img-placeholder d-flex flex-column justify-content-center align-items-center h-100">
@@ -52,6 +50,17 @@
           </div>
         </div>
       </div>
+
+      <!-- Solo asegúrate de tener esto en tu details.component.html -->
+<div class="alert alert-info d-flex align-items-center mt-3"
+  style="font-family: 'Inter', sans-serif; border-radius: 10px; background: #eaf4fb; color: #1a355e; font-weight: 500; box-shadow: 0 2px 8px #0001;">
+  <i class="ri-calendar-check-line me-2" style="font-size: 1.5rem; color: #1976d2;"></i>
+  Última visita realizada:
+  <span style="margin-left: 4px;">
+    {{ ultimaVisita ? (ultimaVisita | date:'dd/MM/yyyy') : 'Sin visitas registradas' }}
+  </span>
+</div>
+
 
       <!-- Card derecha: Detalles del cliente -->
       <div class="col-md-12">
@@ -99,7 +108,7 @@
                   <div class="detail-content">
                     <div class="detail-label">RTN</div>
                     <div class="detail-value">
-                      {{ clienteDetalle.clie_DNI }}
+                      {{ clienteDetalle.clie_RTN ? clienteDetalle.clie_RTN : 'N/A' }}
                     </div>
                   </div>
                 </div>
@@ -519,7 +528,7 @@
         </div>
 
         <div class="audit-row">
-          <div class="audit-col"><span class="audit-action">Creador</span></div>
+          <div class="audit-col"><span class="audit-action">Creación</span></div>
           <div class="audit-col">
             <span class="audit-user">{{
               clienteDetalle.usuaC_Nombre || "N/A"

@@ -1,7 +1,8 @@
-import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { Sucursales } from 'src/app/Modelos/general/Sucursales.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
@@ -9,11 +10,34 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 @Component({
   selector: 'app-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule],
   templateUrl: './edit.component.html',
   styleUrl: './edit.component.scss'
 })
-export class EditComponent implements OnChanges {
+export class EditComponent implements OnInit, OnChanges {
+  searchColonias = (term: string, item: any) => {
+    term = term.toLowerCase();
+    return (
+      item.colo_Descripcion?.toLowerCase().includes(term) ||
+      item.muni_Descripcion?.toLowerCase().includes(term) ||
+      item.depa_Descripcion?.toLowerCase().includes(term)
+    );
+  };
+
+  ngOnInit(): void {
+    // Obtener colonias igual que en crear
+    this.http.get<any>(`${environment.apiBaseUrl}/Colonia/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe((data) => {
+      this.colonias = Array.isArray(data)
+        ? data.map(c => ({ ...c, colo_Id: Number(c.colo_Id) }))
+        : [];
+    });
+  }
+
+  onColoniaSeleccionada(id: any) {
+    this.sucursal.colo_Id = typeof id === 'object' && id !== null ? Number(id.colo_Id) : Number(id);
+  }
   hayDiferencias(): boolean {
     const a = this.sucursal;
     const b: Sucursales = this.sucursalData ?? {
@@ -132,7 +156,9 @@ aplicarmascaracodigo(valor: string): string {
   }
 
   validarCorreo(correo: string): boolean {
-    return correo.includes("@") && correo.trim().endsWith(".com");
+    if (!correo) return false;
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(correo.trim());
   }
 
     
@@ -181,7 +207,6 @@ aplicarmascaracodigo(valor: string): string {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['sucursalData'] && changes['sucursalData'].currentValue) {
-      console.log('ngOnChanges sucursalData:', changes['sucursalData'].currentValue);
       // Normalizar los campos para evitar null/undefined
       const data = { ...changes['sucursalData'].currentValue };
       this.sucursal = {
@@ -284,13 +309,12 @@ aplicarmascaracodigo(valor: string): string {
   validarEdicion(): void {
     this.mostrarErrores = true;
 
-    if (!this.aplicarmascaracorreo(this.sucursal.sucu_Correo)) {
-    this.mostrarAlertaWarning = true;
-    this.mostrarErrores = true;
-    
-    this.mensajeWarning = 'Debe ingresar un correo valido';
-    setTimeout(() => this.cerrarAlerta(), 4000);
-    return;
+    // Validar correo electrónico
+    if (this.sucursal.sucu_Correo.trim() && !this.validarCorreo(this.sucursal.sucu_Correo)) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'Por favor ingrese un correo electrónico válido.';
+      setTimeout(() => this.cerrarAlerta(), 4000);
+      return;
     }
     // Validación estricta para sucu_Codigo
     if (!this.sucursal.sucu_Codigo || this.sucursal.sucu_Codigo.trim().length !== 3) {
@@ -308,7 +332,8 @@ aplicarmascaracodigo(valor: string): string {
       this.sucursal.sucu_Codigo &&
       this.sucursal.sucu_Codigo.trim() &&
       this.sucursal.sucu_Telefono1.trim() &&
-      this.sucursal.sucu_Correo.trim()
+      this.sucursal.sucu_Correo.trim() &&
+      this.validarCorreo(this.sucursal.sucu_Correo)
     ) {
       if (this.hayDiferencias()) {
         this.mostrarConfirmacionEditar = true;

@@ -14,7 +14,7 @@ import { CreateComponent } from '../create/create.component';
 import { EditComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
-import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
+import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/exportHori.service';
 import {
   trigger,
   state,
@@ -78,15 +78,15 @@ export class ListComponent implements OnInit {
         title: 'Listado de Proveedores',                    // Título del reporte
         filename: 'Proveedores',                           // Nombre base del archivo
         department: 'General',                         // Departamento
-        additionalInfo: 'Sistema de Gestión',         // Información adicional
         
         // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
         columns: [
-          { key: 'Codigo', header: 'Codigo', width: 15, align: 'left' as const },
+          { key: 'Codigo', header: 'Código', width: 15, align: 'left' as const },
           { key: 'Contacto', header: 'Contacto', width: 40, align: 'left' as const },
           { key: 'Empresa', header: 'Empresa', width: 50, align: 'left' as const },
-          { key: 'Telefono', header: 'Telefono', width: 40, align: 'left' as const },
-          { key: 'Dirección', header: 'Dirección', width: 40, align: 'left' as const }
+          { key: 'Telefono', header: 'Teléfono', width: 40, align: 'left' as const },
+          { key: 'Dirección', header: 'Dirección', width: 40, align: 'left' as const },
+          { key: 'Correo', header: 'Correo', width: 40, align: 'left' as const }
        
         ] as ExportColumn[],
         
@@ -97,6 +97,7 @@ export class ListComponent implements OnInit {
           'Empresa': this.limpiarTexto(proveedores?.prov_NombreEmpresa),
           'Telefono': this.limpiarTexto(proveedores?.prov_Telefono),
           'Dirección': this.limpiarTexto(proveedores?.prov_DireccionExacta),
+          'Correo': this.limpiarTexto(proveedores?.prov_Correo),
           // Agregar más campos aquí según necesites:
           // 'Campo': this.limpiarTexto(modelo?.campo),
         })
@@ -259,7 +260,6 @@ export class ListComponent implements OnInit {
   // Obtiene el proveedor a eliminar y muestra la confirmación
   confirmarEliminar(proveedor: Proveedor): void {
     this.proveedorAEliminar = proveedor;
-    console.log('Proveedor a eliminar:', this.proveedorAEliminar);
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null;
   }
@@ -457,7 +457,6 @@ eliminar(): void {
       columns: this.exportConfig.columns,
       metadata: {
         department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
       }
     };
   }
@@ -523,8 +522,6 @@ eliminar(): void {
     if (!texto) return '';
     
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }

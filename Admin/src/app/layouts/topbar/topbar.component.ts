@@ -5,6 +5,7 @@ import { LanguageService } from 'src/app/core/services/language.service';
 import { CookieService } from 'ngx-cookie-service';
 import { AuthenticationService } from 'src/app/core/services/auth.service';
 import { Router } from '@angular/router';
+import { ConnectionService } from 'src/app/core/services/connection.service';
 
 import { ModalDirective } from 'ngx-bootstrap/modal';
 import { notification } from './data';
@@ -60,7 +61,8 @@ export class TopbarComponent {
     private router: Router,
     public _cookiesService: CookieService,
     public store: Store<RootReducerState>,
-    private TokenStorageService: TokenStorageService) { }
+    private TokenStorageService: TokenStorageService,
+    public connectionService: ConnectionService) { }
 
   ngOnInit(): void {
     this.element = document.documentElement;
@@ -143,12 +145,19 @@ export class TopbarComponent {
   }
 
   windowScroll() {
+    const backToTopElement = document.getElementById('back-to-top');
+    const pageTopbar = document.getElementById('page-topbar');
+    
     if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
-      (document.getElementById('back-to-top') as HTMLElement).style.display = "block";
-      document.getElementById('page-topbar')?.classList.add('topbar-shadow')
+      if (backToTopElement) {
+        backToTopElement.style.display = "block";
+      }
+      pageTopbar?.classList.add('topbar-shadow');
     } else {
-      (document.getElementById('back-to-top') as HTMLElement).style.display = "none";
-      document.getElementById('page-topbar')?.classList.remove('topbar-shadow')
+      if (backToTopElement) {
+        backToTopElement.style.display = "none";
+      }
+      pageTopbar?.classList.remove('topbar-shadow');
     }
   }
 

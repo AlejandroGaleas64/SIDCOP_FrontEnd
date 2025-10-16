@@ -1,17 +1,20 @@
 <div class="d-flex flex-column" style="height: 100%; min-height: 250px;">
   <h5 class="card-title mb-4">Editar Proveedor</h5>
   <div class="alert-container">
-    <div *ngIf="mostrarAlertaExito" class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <div *ngIf="mostrarAlertaExito"
+      class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
       <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
       <strong>¡Éxito!</strong> {{ mensajeExito }}
       <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
     </div>
-    <div *ngIf="mostrarAlertaWarning" class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <div *ngIf="mostrarAlertaWarning"
+      class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
       <i class="ri-alert-line me-3 align-middle fs-lg"></i>
       <strong>¡Atención!</strong> {{ mensajeWarning }}
       <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
     </div>
-    <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <div *ngIf="mostrarAlertaError"
+      class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
       <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
       <strong>¡Error!</strong> {{ mensajeError }}
       <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
@@ -21,15 +24,17 @@
     <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
-          <label>Código <span class="text-danger">*</span></label>
+          <label class="form-label">Código <span class="text-danger">*</span></label>
           <div class="d-flex align-items-center">
-  <i class="ri-hashtag" [ngStyle]="{
+            <i class="ri-hashtag"
+              [ngStyle]="{
     border: (!proveedor.prov_Codigo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
     backgroundColor: (!proveedor.prov_Codigo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
     padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
-  <input type="text" class="form-control" [class.is-invalid]="mostrarErrores && !proveedor.prov_Codigo.trim()" [(ngModel)]="proveedor.prov_Codigo" placeholder="Código del proveedor">
-  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-</div>
+            <input type="text" class="form-control" [class.is-invalid]="mostrarErrores && !proveedor.prov_Codigo.trim()"
+              [(ngModel)]="proveedor.prov_Codigo" maxlength="10" placeholder="Código del proveedor">
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          </div>
           <div class="text-danger mt-1" *ngIf="mostrarErrores && !proveedor.prov_Codigo.trim()">
             <small>El campo Código es requerido</small>
           </div>
@@ -37,17 +42,20 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label>Empresa <span class="text-danger">*</span></label>
+          <label class="form-label">Empresa <span class="text-danger">*</span></label>
           <div class="d-flex align-items-center">
-  <i class="ri-building-line" [ngStyle]="{
+            <i class="ri-building-line"
+              [ngStyle]="{
     border: (!proveedor.prov_NombreEmpresa.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
     backgroundColor: (!proveedor.prov_NombreEmpresa.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
     padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
-  <input type="text" class="form-control" [class.is-invalid]="mostrarErrores && !proveedor.prov_NombreEmpresa.trim()" [(ngModel)]="proveedor.prov_NombreEmpresa" placeholder="Nombre de la empresa" required>
-  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-</div>
+            <input type="text" class="form-control"
+              [class.is-invalid]="mostrarErrores && !proveedor.prov_NombreEmpresa.trim()"
+              [(ngModel)]="proveedor.prov_NombreEmpresa" placeholder="Nombre de la empresa" required>
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          </div>
           <div class="text-danger mt-1" *ngIf="mostrarErrores && !proveedor.prov_NombreEmpresa.trim()">
-            <small>El campo empresa es requerido</small>
+            <small>El campo Empresa es requerido</small>
           </div>
         </div>
       </div>
@@ -55,15 +63,18 @@
     <div class="row">
       <div class="col-md-6">
         <div class="mb-3">
-          <label>Contacto <span class="text-danger">*</span></label>
+          <label class="form-label">Contacto <span class="text-danger">*</span></label>
           <div class="d-flex align-items-center">
-  <i class="ri-user-3-line" [ngStyle]="{
+            <i class="ri-user-3-line"
+              [ngStyle]="{
     border: (!proveedor.prov_NombreContacto.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
     backgroundColor: (!proveedor.prov_NombreContacto.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
     padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
-  <input type="text" class="form-control" [class.is-invalid]="mostrarErrores && !proveedor.prov_NombreContacto.trim()" [(ngModel)]="proveedor.prov_NombreContacto" placeholder="Nombre del contacto">
-  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-</div>
+            <input type="text" class="form-control"
+              [class.is-invalid]="mostrarErrores && !proveedor.prov_NombreContacto.trim()"
+              [(ngModel)]="proveedor.prov_NombreContacto" placeholder="Nombre del contacto">
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          </div>
           <div class="text-danger mt-1" *ngIf="mostrarErrores && !proveedor.prov_NombreContacto.trim()">
             <small>El campo Contacto es requerido</small>
           </div>
@@ -71,138 +82,103 @@
       </div>
       <div class="col-md-6">
         <div class="mb-3">
-          <label>Teléfono <span class="text-danger">*</span></label>
+          <label class="form-label">Teléfono <span class="text-danger">*</span></label>
           <div class="d-flex align-items-center">
-  <i class="ri-phone-line" [ngStyle]="{
+            <i class="ri-phone-line"
+              [ngStyle]="{
     border: (!proveedor.prov_Telefono.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
     backgroundColor: (!proveedor.prov_Telefono.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
     padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
-  <input type="text" class="form-control" [class.is-invalid]="mostrarErrores && !proveedor.prov_Telefono.trim()" [(ngModel)]="proveedor.prov_Telefono" placeholder="Teléfono">
-  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-</div>
+            <input type="text" class="form-control"
+              [class.is-invalid]="mostrarErrores && !proveedor.prov_Telefono.trim()"
+              [(ngModel)]="proveedor.prov_Telefono" mask="0000-0000" placeholder="Teléfono">
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          </div>
           <div class="text-danger mt-1" *ngIf="mostrarErrores && !proveedor.prov_Telefono.trim()">
             <small>El campo Teléfono es requerido</small>
           </div>
         </div>
       </div>
     </div>
-    <div class="row">
+
+    <div class="row align-items-end">
+
       <div class="col-md-6">
         <div class="mb-3">
-          <label>Correo <span class="text-danger">*</span></label>
+          <label class="form-label">Colonia</label>
+          <span class="text-danger ms-2">*</span>
           <div class="d-flex align-items-center">
-  <i class="ri-mail-line" [ngStyle]="{
-    border: (!proveedor.prov_Correo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-    backgroundColor: (!proveedor.prov_Correo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
-  <input type="email" class="form-control" [class.is-invalid]="mostrarErrores && !proveedor.prov_Correo.trim()" [(ngModel)]="proveedor.prov_Correo" placeholder="Correo electrónico">
-  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-</div>
-          <div class="text-danger mt-1" *ngIf="mostrarErrores && !proveedor.prov_Correo.trim()">
-            <small>El campo Correo es requerido</small>
+            <i class="ri-route-line"
+              [ngStyle]="{
+              border: (!proveedor.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (!proveedor.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            </i>
+            <ng-select class="w-100" [items]="TodosColonias" bindLabel="colo_Descripcion" bindValue="colo_Id"
+              [(ngModel)]="proveedor.colo_Id" [searchable]="true" [clearable]="false"
+              [class.is-invalid]="!proveedor.colo_Id && mostrarErrores" placeholder="Seleccione una colonia" required
+              [searchFn]="searchColonias" (ngModelChange)="onColoniaSeleccionada($event)">
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                {{ item.colo_Descripcion }} - {{ item.muni_Descripcion }} - {{ item.depa_Descripcion }}
+              </ng-template>
+            </ng-select>
+          </div>
+          <div class="text-danger mt-1" *ngIf="!proveedor.colo_Id && mostrarErrores">
+            <small>El campo Colonia es requerido</small>
           </div>
         </div>
       </div>
+
       <div class="col-md-6">
         <div class="mb-3">
-          <label>Dirección <span class="text-danger">*</span></label>
+          <label class="form-label">Dirección Exacta<span class="text-danger">*</span></label>
           <div class="d-flex align-items-center">
-  <i class="ri-map-pin-line" [ngStyle]="{
+            <i class="ri-map-pin-line"
+              [ngStyle]="{
     border: (!proveedor.prov_DireccionExacta.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
     backgroundColor: (!proveedor.prov_DireccionExacta.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
     padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
-  <input type="text" class="form-control" [class.is-invalid]="mostrarErrores && !proveedor.prov_DireccionExacta.trim()" [(ngModel)]="proveedor.prov_DireccionExacta" placeholder="Dirección exacta">
-  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-</div>
+            <input type="text" class="form-control"
+              [class.is-invalid]="mostrarErrores && !proveedor.prov_DireccionExacta.trim()"
+              [(ngModel)]="proveedor.prov_DireccionExacta" placeholder="Dirección exacta">
+            <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          </div>
           <div class="text-danger mt-1" *ngIf="mostrarErrores && !proveedor.prov_DireccionExacta.trim()">
-            <small>El campo Dirección es requerido</small>
+            <small>El campo Dirección Exacta es requerido</small>
           </div>
         </div>
       </div>
     </div>
-    <div class="row">
+        <div class="row">
       <div class="col-md-6">
-        <div class="mb-3">
-          <label>Departamento <span class="text-danger">*</span></label>
-          <div class="d-flex align-items-center">
-  <i class="ri-map-pin-line" [ngStyle]="{
-    border: (!selectedDepa && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-    backgroundColor: (!selectedDepa && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
-  <select 
-    class="form-select"
-    [(ngModel)]="selectedDepa"
-    (change)="cargarMunicipios(selectedDepa)"
-    [class.is-invalid]="mostrarErrores && !selectedDepa"
-    required>
-    <option value="" disabled selected>Seleccione un departamento</option>
-    <option *ngFor="let depa of Departamentos" [value]="depa.depa_Codigo">{{ depa.depa_Descripcion || depa.depa_Nombre }}</option>
-  </select>
-  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-</div>
-          <div class="text-danger mt-1" *ngIf="mostrarErrores && !selectedDepa">
-            <small>El campo departamento es requerido</small>
+          <div class="mb-3">
+            <label for="clienteCorreo" class="form-label">Correo</label>
+            <div class="d-flex align-items-center">
+              <i class="ri-mail-unread-line"
+                [ngStyle]="{
+                border: (proveedor.prov_Correo?.trim() && !esCorreoValido(proveedor.prov_Correo)) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (proveedor.prov_Correo?.trim() && !esCorreoValido(proveedor.prov_Correo)) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+              </i>
+              <input type="email" class="form-control" id="clienteCorreo" [(ngModel)]="proveedor.prov_Correo"
+                placeholder="Ingrese el correo del proveedor (opcional)"
+                [class.is-invalid]="proveedor.prov_Correo?.trim() && !esCorreoValido(proveedor.prov_Correo)" />
+            </div>
+            <div class="text-danger mt-1" *ngIf="proveedor.prov_Correo?.trim() && !esCorreoValido(proveedor.prov_Correo)">
+              <small> Ingrese un correo válido. </small>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="col-md-6">
-        <div class="mb-3">
-          <label>Municipio <span class="text-danger">*</span></label>
-          <div class="d-flex align-items-center">
-  <i class="ri-map-pin-user-line" [ngStyle]="{
-    border: (!selectedMuni && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-    backgroundColor: (!selectedMuni && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
-  <select 
-    class="form-select"
-    [(ngModel)]="selectedMuni"
-    (change)="cargarColonias(selectedMuni)"
-    [class.is-invalid]="mostrarErrores && !selectedMuni"
-    required
-    [disabled]="!selectedDepa">
-    <option value="" disabled selected>Seleccione un municipio</option>
-    <option *ngFor="let muni of Municipios" [value]="muni.muni_Codigo">{{ muni.muni_Descripcion || muni.muni_Nombre }}</option>
-  </select>
-  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-</div>
-          <div class="text-danger mt-1" *ngIf="mostrarErrores && !selectedMuni">
-            <small>El campo municipio es requerido</small>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="mb-3">
-          <label>Colonia <span class="text-danger">*</span></label>
-          <div class="d-flex align-items-center">
-  <i class="ri-home-2-line" [ngStyle]="{
-    border: (!proveedor.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-    backgroundColor: (!proveedor.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-    padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
-  <select 
-    class="form-select"
-    [(ngModel)]="proveedor.colo_Id"
-    [class.is-invalid]="mostrarErrores && !proveedor.colo_Id"
-    required
-    [disabled]="!selectedMuni">
-    <option value="" disabled selected>Seleccione una colonia</option>
-    <option *ngFor="let colo of Colonias" [value]="colo.colo_Id">{{ colo.colo_Descripcion }}</option>
-  </select>
-  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-</div>
-          <div class="text-danger mt-1" *ngIf="mostrarErrores && !proveedor.colo_Id">
-            <small>El campo colonia es requerido</small>
-          </div>
-        </div>
-      </div>
+
     </div>
     <div class="row">
       <div class="col-md-12">
         <div class="mb-3">
-          <label>Observaciones <span class="text-danger">*</span></label>
-          <textarea class="form-control" [(ngModel)]="proveedor.prov_Observaciones" placeholder="Observaciones" [class.is-invalid]="mostrarErrores && !proveedor.prov_Observaciones.trim()"></textarea>
-          <div class="text-danger mt-1" *ngIf="mostrarErrores && !proveedor.prov_Observaciones.trim()">
-            <small>El campo Observaciones es requerido</small>
-          </div>
+          <label class="form-label">Observaciones</label>
+          <textarea class="form-control" [(ngModel)]="proveedor.prov_Observaciones" placeholder="Observaciones"></textarea>
         </div>
       </div>
     </div>
@@ -215,8 +191,8 @@
             <span class="btn-text">Cancelar</span>
             <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
           </button>
-          <button type="button" class="btn btn-primary"  (click)="validarEdicion()" >
-            <span class="btn-text" >Guardar</span>
+          <button type="button" class="btn btn-primary" (click)="validarEdicion()">
+            <span class="btn-text">Guardar</span>
             <span class="btn-icon"><i class="ri-save-line"></i></span>
           </button>
         </div>
@@ -226,38 +202,65 @@
 
 
 
-<!-- Overlay para el modal -->
-<div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEditar }" *ngIf="mostrarConfirmacionEditar"></div>
+  <!-- Overlay para el modal -->
+  <div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEditar }" *ngIf="mostrarConfirmacionEditar">
+  </div>
 
 
   <!-- Modal de confirmación para editar -->
-<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }" [style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
-        <span>Confirmación</span>
-        <i class="ri-close-line custom-modal-close" ></i>
+<div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEditar }"
+[style.display]="mostrarConfirmacionEditar ? 'block' : 'none'" tabindex="-1" role="dialog">
+<div class="modal-dialog modal-dialog-centered" role="document">
+  <div class="modal-content">
+    <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
+      <span>Confirmación</span>
+      <i class="ri-close-line custom-modal-close" (click)="cancelarEdicion()"></i>
+    </div>
+    <hr class="custom-modal-divider">
+    <div class="modal-body custom-modal-body">
+      <div class="text-center mb-3">
+        <p class="mt-2 custom-modal-text">
+          <i class="ri-edit-line me-2 custom-modal-alert-icon"></i>
+          ¿Estás seguro que deseas guardar los siguientes cambios en el proveedor?
+        </p>
       </div>
-      <hr class="custom-modal-divider">
-      <div class="modal-body custom-modal-body">
-        <div class="text-center">
-          <p class="mt-2 custom-modal-text">
-            <i class="ri-edit-line me-2 custom-modal-alert-icon" ></i>
-            ¿Estás seguro que deseas editar el proveedor <strong>"{{ proveedor.prov_NombreEmpresa }}"</strong>?
-          </p>
+      
+      <!-- Lista de cambios detectados -->
+      <div class="changes-list" style="max-height: 300px; overflow-y: auto;">
+        <div *ngFor="let cambio of obtenerListaCambios()" class="change-item mb-3 p-3" 
+             style="border: 1px solid #e9ecef; border-radius: 8px; background-color: #f8f9fa;">
+          <div class="d-flex align-items-center mb-2">
+            <i class="ri-arrow-right-circle-line me-2 text-primary"></i>
+            <strong class="text-primary">{{ cambio.label }}</strong>
+          </div>
+          <div class="row">
+            <div class="col-6">
+              <small class="text-muted d-block">Original :</small>
+              <div class="p-2" style="background-color: #fff2f2; border-left: 3px solid #dc3545; border-radius: 4px;">
+                <span class="text-dark">{{ cambio.anterior }}</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block">Nuevo:</small>
+              <div class="p-2" style="background-color: #f0fff4; border-left: 3px solid #28a745; border-radius: 4px;">
+                <span class="text-dark">{{ cambio.nuevo }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="modal-footer custom-modal-footer">
-        <button type="button" class="btn btn-primary  btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
-          <span class="btn-text">No</span>
-          <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
-        </button>
-        <button type="button" class="btn btn-primary  btn-minw-5 btn-sm" (click)="confirmarEdicion()">
-          <span class="btn-text">Si</span>
-          <span class="btn-icon"><i class="ri-save-line"></i></span>
-        </button>
-      </div>
+      
     </div>
+    <div class="modal-footer custom-modal-footer">
+      <button type="button" class="btn btn-primary btn-minw-5 gray btn-sm" (click)="cancelarEdicion()">
+        <span class="btn-text">No</span>
+        <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+      </button>
+      <button type="button" class="btn btn-primary btn-minw-5 btn-sm" (click)="confirmarEdicion()">
+        <span class="btn-text">Sí</span>
+        <span class="btn-icon"><i class="ri-save-line"></i></span>
+      </button>
+    </div>
+  </div>
 </div>
-
-
+</div>

@@ -47,6 +47,8 @@
           </div>
         </div>
 
+
+
         <!-- Collapse para el formulario de creación -->
         <div *ngIf="showCreateForm" [@fadeExpand]>
           <div class="card card-body mb-3 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
@@ -55,6 +57,7 @@
             </div>
           </div>
         </div>
+
 
         <!-- Collapse para el formulario de edición -->
         <div *ngIf="showEditForm" [@fadeExpand]>
@@ -66,6 +69,8 @@
           </div>
         </div>
 
+
+
         <!-- Collapse para el formulario de detalles -->
         <div *ngIf="showDetailsForm" [@fadeExpand]>
           <div class="card card-body mb-3 d-flex flex-column" style="min-height: 400px; padding: 0.5rem;">
@@ -76,6 +81,7 @@
           </div>
         </div>
 
+
         <!--Tabla-->
         <div class="table-radius-container">
           <div class="table-responsive" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
@@ -84,7 +90,7 @@
                 <tr>
                   <th class="gridjs-th" *ngIf="
                       accionPermitida('editar') ||
-                      accionPermitida('eliminar') ||
+                      accionPermitida('cambiar estado') ||
                       accionPermitida('detalle')
                     ">
                     Acciones
@@ -239,11 +245,13 @@
                       </span>
                     </span>
                   </th>
+
+
                 </tr>
                 <tr class="gridjs-th" *ngFor="let data of table.paginated$ | async; let i = index">
                   <td class="position-relative" *ngIf="
                       accionPermitida('editar') ||
-                      accionPermitida('eliminar') ||
+                      accionPermitida('cambiar estado') ||
                       accionPermitida('detalle')
                     ">
                     <div class="dropdown-action-list">
@@ -260,7 +268,18 @@
                   <td>{{ data.puEm_Codigo }}</td>
                   <td>{{ data.puEm_Descripcion }}</td>
                   <td>{{ data.sucu_Descripcion }}</td>
-                  <td>{{ data.estado }}</td>
+                  <td style="text-align: center;">
+                    <span *ngIf="data.estado === 'Activo'" class="badge fw-semibold mb-1 px-3 py-1 border"
+                      style="font-size: 0.8rem; background-color: #D1E7DD; color: #0A3622;">
+                      <i class="ri-checkbox-circle-fill" style="font-size: 0.6rem;"></i>
+                      Activo
+                    </span>
+                    <span *ngIf="data.estado === 'Inactivo'" class="badge fw-semibold mb-1 px-3 py-1 border"
+                      style="font-size: 0.8rem; background-color: #FBCFD4; color: #4E1212">
+                     <i class="ri-close-fill" style="font-size: 0.6rem;"></i>
+                      Inactivo
+                    </span>
+                  </td>
                 </tr>
               </thead>
             </table>
@@ -322,37 +341,28 @@
 <div class="modal fade custom-modal" [ngClass]="{ show: mostrarConfirmacionEliminar }"
   [style.display]="mostrarConfirmacionEliminar ? 'block' : 'none'" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header custom-modal-header d-flex justify-content-between align-items-center">
-        <span>Confirmación</span>
-        <i class="ri-close-line custom-modal-close" (click)="cancelarEliminar()"></i>
-      </div>
-      <hr class="custom-modal-divider" />
-      <div class="modal-body custom-modal-body">
-        <div class="text-center">
-          <p class="mt-2 custom-modal-text">
-            <i class="ri-alert-line me-2 custom-modal-alert-icon" (click)="cancelarEliminar()"></i>
-            ¿Está seguro(a) que desea
-            {{ PEEliminar?.estado === "Activo" ? "desactivar" : "activar" }} el
-            punto de emisión <strong>{{ PEEliminar?.puEm_Descripcion }}</strong>?
-          </p>
+    <div class="modal-content shadow-lg border-0" style="border-radius: 18px; overflow: hidden;">
+      <div class="modal-header py-3" style="background:#141a2f; border: none;">
+        <div class="fw-bold text-white d-flex align-items-center" style="font-size: 1.3rem;">
+          <i *ngIf="PEEliminar?.estado === 'Activo'" class="ri-close-circle-line me-2" style="font-size: 1.6rem; color: #d6b68a;"></i>
+          <i *ngIf="PEEliminar?.estado !== 'Activo'" class="ri-checkbox-circle-line me-2" style="font-size: 1.6rem; color: #d6b68a;"></i>
+          {{ PEEliminar?.estado === 'Activo' ? 'Desactivar' : 'Activar' }}
         </div>
+        <button type="button" class="btn-close btn-close-white" (click)="cancelarEliminar()"></button>
       </div>
-      <div class="modal-footer custom-modal-footer">
-        <button type="button" class="btn btn-primary gray btn-sm btn-minw-5" (click)="cancelarEliminar()">
-          <span class="btn-text">No</span><span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+      <div class="modal-body p-4" style="background: #f9fafc;">
+        <p class="text-muted mb-3" style="font-size: 1.05rem;">
+          ¿Estás seguro(a) que deseas {{ PEEliminar?.estado === 'Activo' ? 'desactivar' : 'activar' }} el punto de emisión: <strong>{{ PEEliminar?.puEm_Descripcion }}</strong>?
+        </p>
+      </div>
+      <div class="modal-footer py-3" style="background: #fff; border-top: 1px solid #f0f0f0;">
+        <button type="button" class="btn btn-primary gold" (click)="cancelarEliminar()">
+          <span class="btn-text">Cancelar</span>
+          <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
         </button>
-        <button type="button" class="btn btn-primary {{
-            PEEliminar?.estado === 'Activo' ? 'red' : 'green'
-          }} btn-sm btn-minw-5" (click)="eliminar()">
-          <span class="btn-text">Si</span>
-          <span class="btn-icon">
-            <i [class]="
-                PEEliminar?.estado === 'Activo'
-                  ? 'ri-close-circle-line'
-                  : 'ri-checkbox-circle-line'
-              "></i>
-          </span>
+        <button type="button" class="btn btn-primary" (click)="eliminar()">
+          <span class="btn-text">Confirmar</span>
+          <span class="btn-icon"><i class="ri-check-double-line"></i></span>
         </button>
       </div>
     </div>
@@ -375,7 +385,8 @@
       Editar <i class="ri-edit-line"></i>
     </button>
   </li>
-  <li *ngIf="accionPermitida('eliminar')">
+
+  <li *ngIf="accionPermitida('cambiar estado')">
     <button type="button" class="dropdown-action-btn" (click)="
         confirmarEliminar(floatingMenuService.data); floatingMenuService.close()
       ">
@@ -390,6 +401,7 @@
         "></i>
     </button>
   </li>
+
   <li *ngIf="accionPermitida('detalle')">
     <button type="button" class="dropdown-action-btn"
       (click)="detalles(floatingMenuService.data); floatingMenuService.close()">
@@ -397,6 +409,8 @@
     </button>
   </li>
 </ul>
+
+
 
 <div *ngIf="mostrarOverlayCarga" class="overlay-carga">
   <div class="typing-indicator">

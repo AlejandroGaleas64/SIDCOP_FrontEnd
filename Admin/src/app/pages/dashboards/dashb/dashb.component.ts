@@ -300,7 +300,7 @@ export class DashbComponent implements OnInit {
     colors = colorArr;
 
     this.multipleRadialbarChart = {
-      series: this.categoriasdata.map(item => item.Cantidad/this.barraMesSelected.Cantidad * 100),      
+      series: this.categoriasdata.map(item => parseFloat( (item.Cantidad/this.barraMesSelected.Cantidad * 100).toFixed(2)) ),      
       chart: {
         height: 350,
         type: "radialBar",
@@ -500,16 +500,16 @@ export class DashbComponent implements OnInit {
       }).subscribe({
         next: data => {
 
-          console.log('Datos de ventas por mes:', data);
+          //console.log('Datos de ventas por mes:', data);
           
-          // console.log('añong', new Date().getFullYear());
+          // //console.log('añong', new Date().getFullYear());
           this.ventasPorMesData = data as any[];
 
           
           this.anioSeleccionado = this.ventasPorMesData.sort((a, b) => b.Anio - a.Anio)[0]?.Anio;
           this.aniosSelect = this.ventasPorMesData.map(item => item.Anio)
                                   .filter((anio, index, self) => self.indexOf(anio) === index);
-          console.log('añong22', this.anioSeleccionado);
+          //console.log('añong22', this.anioSeleccionado);
 
           
 
@@ -526,13 +526,13 @@ export class DashbComponent implements OnInit {
             
           )[0];   
 
-          console.log("meses month: ", getMonth(new Date()) )
+          //console.log("meses month: ", getMonth(new Date()) )
 
           // this.vendedormesSelected.MesNombre = this.vendedormesesddl.filter(
           //   item => item.Mes === getMonth(new Date())
           // ).map(item => item.MesNombre)[0];   
           
-          console.log('mes seleccionado', this.vendedormesSelected);
+          //console.log('mes seleccionado', this.vendedormesSelected);
 
           // this.chart = new ApexCharts(document.querySelector(".apex-charts"), this.totalrevenueChart);
           // this.chart.render();          
@@ -566,7 +566,7 @@ export class DashbComponent implements OnInit {
       }).subscribe({
         next: data => {
 
-          console.log('Datos de ventas por mes:', data);
+          //console.log('Datos de ventas por mes:', data);
           this.categoriasdata = data as any[];
           
           this._simpleDonutChart('["--tb-primary", "--tb-warning", "--tb-success", "--tb-danger", "--tb-info"]');
@@ -590,7 +590,7 @@ export class DashbComponent implements OnInit {
       }).subscribe({
         next: data => {
 
-          console.log('Datos de categorias list:', data);
+          //console.log('Datos de categorias list:', data);
           this.categoriasddl = data as any[];
 
         },
@@ -616,7 +616,7 @@ export class DashbComponent implements OnInit {
       }).subscribe({
         next: data => {
 
-          console.log('productos cate', data);
+          //console.log('productos cate', data);
           this.productosCategoriasData = data as any[];
           
           this._simplePieChart('["#14192e", "#29142e", "#2e2914", "#192e14", "#2e1c14", "#262e14", "#2e1419", "#142e1c", "#1c142e", "#14262e" ]');
@@ -637,7 +637,7 @@ export class DashbComponent implements OnInit {
         cate_Id: 0
       };
 
-      console.log('mes enviando', apibody);
+      //console.log('mes enviando', apibody);
 
       this.http.post(`${environment.apiBaseUrl}/Dashboards/TopVendedoresPorMes`, 
         apibody,
@@ -646,7 +646,7 @@ export class DashbComponent implements OnInit {
       }).subscribe({
         next: data => {
 
-          console.log('Datos de vendedore por mes:', data);
+          //console.log('Datos de vendedore por mes:', data);
           this.vendedoresPorMesData = data as any[];
           
           this._customDataLabelsChart('["#14192e", "#29142e", "#2e2914", "#192e14", "#2e1c14", "#262e14", "#2e1419", "#142e1c", "#1c142e", "#14262e" ]');
@@ -695,20 +695,20 @@ export class DashbComponent implements OnInit {
     // this.chart = new ApexCharts(document.querySelector(".apex-charts"), this.totalrevenueChart);
     // this.chart.updateptions(this.totalrevenueChart);
 
-    console.log('ventas meses luego', this.ventasPorMesData);
+    //console.log('ventas meses luego', this.ventasPorMesData);
     
   }
   changeVendedorMes(){
     this.mesNumeroSelected = this.vendedormesSelected.Mes;
-    console.log('mes seleccionado cambio', this.mesNumeroSelected);
+    //console.log('mes seleccionado cambio', this.mesNumeroSelected);
     this.cargardatosVendedoresMes();
 
   }
 
   onBarClick(category: string, value: any) {
   // Do something with the clicked bar info
-    console.log('Clicked bar:', category, value);
-    console.log('Barra seleccionada:', this.barraMesSelected);
+    //console.log('Clicked bar:', category, value);
+    //console.log('Barra seleccionada:', this.barraMesSelected);
     // this.graficocategorias = true;
 
     this.ngZone.run(() => {

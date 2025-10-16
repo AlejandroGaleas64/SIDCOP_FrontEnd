@@ -14,14 +14,25 @@ import { CreateComponent } from '../create/create.component';
 import { EditComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
+import { formatDate } from '@angular/common';
+import { registerLocaleData } from '@angular/common';
+import localeEs from '@angular/common/locales/es';
+
+registerLocaleData(localeEs, 'es-ES');
+
+
 // Importar el servicio de exportación optimizado
-import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/exportHori.service';
+import {
+  ExportService,
+  ExportConfig,
+  ExportColumn,
+} from 'src/app/shared/exportHori.service';
 import {
   trigger,
   state,
   style,
   transition,
-  animate
+  animate,
 } from '@angular/animations';
 import { set } from 'lodash';
 
@@ -37,7 +48,7 @@ import { set } from 'lodash';
     PaginationModule,
     CreateComponent,
     EditComponent,
-    DetailsComponent
+    DetailsComponent,
   ],
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss'],
@@ -48,7 +59,7 @@ import { set } from 'lodash';
           height: '0',
           opacity: 0,
           transform: 'scaleY(0.90)',
-          overflow: 'hidden'
+          overflow: 'hidden',
         }),
         animate(
           '300ms ease-out',
@@ -56,9 +67,9 @@ import { set } from 'lodash';
             height: '*',
             opacity: 1,
             transform: 'scaleY(1)',
-            overflow: 'hidden'
+            overflow: 'hidden',
           })
-        )
+        ),
       ]),
       transition(':leave', [
         style({ overflow: 'hidden' }),
@@ -67,51 +78,83 @@ import { set } from 'lodash';
           style({
             height: '0',
             opacity: 0,
-            transform: 'scaleY(0.95)'
+            transform: 'scaleY(0.95)',
           })
-        )
-      ])
-    ])
-  ]
+        ),
+      ]),
+    ]),
+  ],
   //Animaciones para collapse
 })
 export class ListComponent implements OnInit {
-   private readonly exportConfig = {
-      // Configuración básica
-      title: 'Listado de Pedidos',                    // Título del reporte
-      filename: 'Pedidos',                           // Nombre base del archivo
-      department: 'Ventas',                         // Departamento
-      additionalInfo: '',         // Información adicional
-      
-      // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
-      columns: [
-        { key: 'No', header: 'No.', width: 8, align: 'center' as const },
-        { key: 'Negocio', header: 'Negocio', width: 18, align: 'left' as const },
-        { key: 'Vendedor', header: 'Vendedor', width: 30, align: 'left' as const },
-          { key: 'Fecha Entrega', header: 'Fecha Entrega', width: 50, align: 'left' as const },
-           { key: 'Fecha Pedido', header: 'Fecha Pedido', width: 75, align: 'left' as const }
-      ] as ExportColumn[],
-      
-      // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
-      dataMapping: (modelo: Pedido, index: number) => ({
-        
-
-        'No': modelo?.secuencia || (index + 1),
-        'Negocio': this.limpiarTexto(modelo?.clie_NombreNegocio),
-         'Vendedor': this.limpiarTexto(modelo?.vend_Nombres),
-        'Fecha Entrega': this.limpiarTexto(modelo?.pedi_FechaEntrega),
-         'Fecha Pedido': this.limpiarTexto(modelo?.pedi_FechaPedido)
-        // Agregar más campos aquí según necesites:
-        // 'Campo': this.limpiarTexto(modelo?.campo),
-      })
-    };
   
-    // Estado de exportación
-    exportando = false;
-    tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
 
+  private readonly exportConfig = {
+    // Configuración básica
+    title: 'Listado de Pedidos', // Título del reporte
+    filename: 'Pedidos', // Nombre base del archivo
+    department: 'Ventas', // Departamento
+    additionalInfo: '', // Información adicional
 
-    async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
+    // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
+    columns: [
+      { key: 'No', header: 'No.', width: 8, align: 'center' as const },
+      { key: 'Codigo', header: 'Código', width: 18, align: 'left' as const },
+      { key: 'Negocio', header: 'Negocio', width: 30, align: 'left' as const },
+      {
+        key: 'Vendedor',
+        header: 'Vendedor',
+        width: 50,
+        align: 'left' as const,
+      },
+      {
+        key: 'Fecha Entrega',
+        header: 'Fecha Entrega',
+        width: 75,
+        align: 'left' as const,
+      },
+      {
+        key: 'Fecha Pedido',
+        header: 'Fecha Pedido',
+        width:  85,
+        align: 'left' as const,
+      },
+    ] as ExportColumn[],
+
+    // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
+    dataMapping: (modelo: Pedido, index: number) => ({
+      No: modelo?.secuencia || index + 1,
+      Negocio: this.limpiarTexto(modelo?.clie_NombreNegocio),
+      Codigo: this.limpiarTexto(modelo.pedi_Codigo),
+      Vendedor: this.limpiarTexto(
+        modelo?.vend_Nombres + ' ' + modelo?.vend_Apellidos
+      ),
+      'Fecha Entrega': this.formatearFecha(modelo?.pedi_FechaEntrega),
+      'Fecha Pedido': this.formatearFecha(modelo?.pedi_FechaPedido),
+      // Agregar más campos aquí según necesites:
+      // 'Campo': this.limpiarTexto(modelo?.campo),
+    }),
+  };
+
+  private formatearFecha(fecha: string | Date | null | undefined): string {
+    if (!fecha) return '';
+
+    const dateObj = new Date(fecha);
+
+    if (isNaN(dateObj.getTime())) return '';
+
+    const dia = dateObj.getDate().toString().padStart(2, '0');
+    const mes = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+    const anio = dateObj.getFullYear();
+
+    return `${dia}/${mes}/${anio}`; // <-- formato dd/MM/yyyy
+  }
+
+  // Estado de exportación
+  exportando = false;
+  tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
+
+  async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
     if (this.exportando) {
       this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
       return;
@@ -124,11 +167,11 @@ export class ListComponent implements OnInit {
     try {
       this.exportando = true;
       this.tipoExportacion = tipo;
-     this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
-      
+      this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
+
       const config = this.crearConfiguracionExport();
       let resultado;
-      
+
       switch (tipo) {
         case 'excel':
           resultado = await this.exportService.exportToExcel(config);
@@ -140,12 +183,14 @@ export class ListComponent implements OnInit {
           resultado = await this.exportService.exportToCSV(config);
           break;
       }
-      
+
       this.manejarResultadoExport(resultado);
-      
     } catch (error) {
-       console.error(`Error en exportación ${tipo}:`, error);
-      this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
+      console.error(`Error en exportación ${tipo}:`, error);
+      this.mostrarMensaje(
+        'error',
+        `Error al exportar archivo ${tipo.toUpperCase()}`
+      );
     } finally {
       this.exportando = false;
       this.tipoExportacion = null;
@@ -190,8 +235,8 @@ export class ListComponent implements OnInit {
       columns: this.exportConfig.columns,
       metadata: {
         department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
-      }
+        additionalInfo: this.exportConfig.additionalInfo,
+      },
     };
   }
 
@@ -201,27 +246,28 @@ export class ListComponent implements OnInit {
   private obtenerDatosExport(): any[] {
     try {
       const datos = this.table.data$.value;
-      
+
       if (!Array.isArray(datos) || datos.length === 0) {
         throw new Error('No hay datos disponibles para exportar');
       }
-      
+
       // Usar el mapeo configurado
-      return datos.map((modelo, index) => 
+      return datos.map((modelo, index) =>
         this.exportConfig.dataMapping.call(this, modelo, index)
       );
-      
     } catch (error) {
       console.error('Error obteniendo datos:', error);
       throw error;
     }
   }
 
-
   /**
    * Maneja el resultado de las exportaciones
    */
-  private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
+  private manejarResultadoExport(resultado: {
+    success: boolean;
+    message: string;
+  }): void {
     if (resultado.success) {
       this.mostrarMensaje('success', resultado.message);
     } else {
@@ -234,20 +280,20 @@ export class ListComponent implements OnInit {
    */
   private validarDatosParaExport(): boolean {
     const datos = this.table.data$.value;
-    
+
     if (!Array.isArray(datos) || datos.length === 0) {
       this.mostrarMensaje('warning', 'No hay datos disponibles para exportar');
       return false;
     }
-    
+
     if (datos.length > 10000) {
       const continuar = confirm(
         `Hay ${datos.length.toLocaleString()} registros. ` +
-        'La exportación puede tomar varios minutos. ¿Desea continuar?'
+          'La exportación puede tomar varios minutos. ¿Desea continuar?'
       );
       if (!continuar) return false;
     }
-    
+
     return true;
   }
 
@@ -256,10 +302,8 @@ export class ListComponent implements OnInit {
    */
   private limpiarTexto(texto: any): string {
     if (!texto) return '';
-    
+
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }
@@ -267,43 +311,47 @@ export class ListComponent implements OnInit {
   /**
    * Sistema de mensajes mejorado con tipos adicionales
    */
-  private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
+  private mostrarMensaje(
+    tipo: 'success' | 'error' | 'warning' | 'info',
+    mensaje: string
+  ): void {
     this.cerrarAlerta();
-    
+
     const duracion = tipo === 'error' ? 5000 : 3000;
-    
+
     switch (tipo) {
       case 'success':
         this.mostrarAlertaExito = true;
         this.mensajeExito = mensaje;
-        setTimeout(() => this.mostrarAlertaExito = false, duracion);
+        setTimeout(() => (this.mostrarAlertaExito = false), duracion);
         break;
-        
+
       case 'error':
         this.mostrarAlertaError = true;
         this.mensajeError = mensaje;
-        setTimeout(() => this.mostrarAlertaError = false, duracion);
+        setTimeout(() => (this.mostrarAlertaError = false), duracion);
         break;
-        
+
       case 'warning':
       case 'info':
         this.mostrarAlertaWarning = true;
         this.mensajeWarning = mensaje;
-        setTimeout(() => this.mostrarAlertaWarning = false, duracion);
+        setTimeout(() => (this.mostrarAlertaWarning = false), duracion);
         break;
     }
   }
 
-
   // bread crumb items
   breadCrumbItems!: Array<{}>;
 
-   // Acciones disponibles para el usuario en esta pantalla
+  // Acciones disponibles para el usuario en esta pantalla
   accionesDisponibles: string[] = [];
 
   // Método robusto para validar si una acción está permitida
   accionPermitida(accion: string): boolean {
-    return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
+    return this.accionesDisponibles.some(
+      (a) => a.trim().toLowerCase() === accion.trim().toLowerCase()
+    );
   }
 
   ngOnInit(): void {
@@ -312,19 +360,19 @@ export class ListComponent implements OnInit {
      */
     this.breadCrumbItems = [
       { label: 'Ventas' },
-      { label: 'Pedidos', active: true }
+      { label: 'Pedidos', active: true },
     ];
 
-       // Obtener acciones disponibles del usuario (ejemplo: desde API o localStorage)
+    // Obtener acciones disponibles del usuario (ejemplo: desde API o localStorage)
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
+    ////console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
   // Cierra el dropdown si se hace click fuera
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
+    //console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -332,10 +380,7 @@ export class ListComponent implements OnInit {
   }
 
   editar(pedido: Pedido): void {
-    console.log('Abriendo formulario de edición para:', pedido);
-    console.log('Datos específicos:', {
-      completo: pedido
-    });
+   
     this.PedidoEditando = { ...pedido }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -344,7 +389,7 @@ export class ListComponent implements OnInit {
   }
 
   detalles(pedido: Pedido): void {
-    console.log('Abriendo detalles para:', pedido);
+    //console.log('Abriendo detalles para:', pedido);
     this.PedidoDetalle = { ...pedido }; // Hacer copia profunda
     this.showDetailsForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -361,33 +406,31 @@ export class ListComponent implements OnInit {
   showDetailsForm = false; // Control del collapse de detalles
   PedidoEditando: Pedido | null = null;
   PedidoDetalle: Pedido | null = null;
-  
+
   // Propiedades para alertas
 
-      mostrarOverlayCarga = false;
+  mostrarOverlayCarga = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
   mostrarAlertaError = false;
   mensajeError = '';
   mostrarAlertaWarning = false;
   mensajeWarning = '';
-  
+
   // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
   PedidoEliminar: Pedido | null = null;
 
-constructor(public table: ReactiveTableService<Pedido>, 
-    private http: HttpClient, 
-    private router: Router, 
+  constructor(
+    public table: ReactiveTableService<Pedido>,
+    private http: HttpClient,
+    private router: Router,
     private route: ActivatedRoute,
     public floatingMenuService: FloatingMenuService,
-     private exportService: ExportService
-  )
-    {
+    private exportService: ExportService
+  ) {
     this.cargardatos(true);
-  }   
-
-
+  }
 
   // (navigateToCreate eliminado, lógica movida a crear)
 
@@ -397,7 +440,6 @@ constructor(public table: ReactiveTableService<Pedido>,
     this.showCreateForm = false;
   }
 
-  
   cerrarFormularioEdicion(): void {
     this.showEditForm = false;
     this.PedidoEditando = null;
@@ -410,7 +452,7 @@ constructor(public table: ReactiveTableService<Pedido>,
 
   guardarPedido(pedido: Pedido): void {
     this.mostrarOverlayCarga = true;
-    setTimeout(()=> {
+    setTimeout(() => {
       this.cargardatos(false);
       this.showCreateForm = false;
       this.mensajeExito = `Pedido guardado exitosamente`;
@@ -423,7 +465,7 @@ constructor(public table: ReactiveTableService<Pedido>,
   }
 
   actualizarPedido(pedido: Pedido): void {
-    console.log('Pedido actualizado exitosamente desde edit component:', pedido);
+ 
     // Recargar los datos de la tabla
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
@@ -439,7 +481,7 @@ constructor(public table: ReactiveTableService<Pedido>,
   }
 
   confirmarEliminar(pedido: Pedido): void {
-    console.log('Solicitando confirmación para eliminar:', pedido);
+    //console.log('Solicitando confirmación para eliminar:', pedido);
     this.PedidoEliminar = pedido;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones
@@ -452,79 +494,94 @@ constructor(public table: ReactiveTableService<Pedido>,
 
   eliminar(): void {
     if (!this.PedidoEliminar) return;
-    
-    console.log('Eliminando estado civil:', this.PedidoEliminar);
-     this.mostrarOverlayCarga = true;
-    this.http.post(`${environment.apiBaseUrl}/Pedido/Eliminar/${this.PedidoEliminar.pedi_Id}`, {}, {
-      headers: { 
-        'X-Api-Key': environment.apiKey,
-        'accept': '*/*'
-      }
-    }).subscribe({
-      next: (response: any) => {
-        console.log('Respuesta del servidor:', response);
-        
-        // Verificar el código de estado en la respuesta
-        if (response.success && response.data) {
-          console.log('Respuesta exitosa del servidor:', response.data);
-          if (response.data.code_Status === 1) {
-            // Éxito: eliminado correctamente
-            console.log('Punto de Emision exitosamente');
-            this.mensajeExito = `Pedido de "${this.PedidoEliminar!.clie_NombreNegocio}" eliminado exitosamente`;
-            this.mostrarAlertaExito = true;
-            
-            // Ocultar la alerta después de 3 segundos
-            setTimeout(() => {
-              this.mostrarAlertaExito = false;
-              this.mensajeExito = '';
-            }, 3000);
-            
 
-            this.cargardatos(false);
-            this.cancelarEliminar();
-          } else if (response.data.code_Status === -1) {
-            //result: está siendo utilizado
-            console.log('Pedido está siendo utilizado');
+    //console.log('Eliminando estado civil:', this.PedidoEliminar);
+    this.mostrarOverlayCarga = true;
+    this.http
+      .post(
+        `${environment.apiBaseUrl}/Pedido/Eliminar/${this.PedidoEliminar.pedi_Id}`,
+        {},
+        {
+          headers: {
+            'X-Api-Key': environment.apiKey,
+            accept: '*/*',
+          },
+        }
+      )
+      .subscribe({
+        next: (response: any) => {
+          //console.log('Respuesta del servidor:', response);
+
+          // Verificar el código de estado en la respuesta
+          if (response.success && response.data) {
+            //console.log('Respuesta exitosa del servidor:', response.data);
+            if (response.data.code_Status === 1) {
+              // Éxito: eliminado correctamente
+              //console.log('Punto de Emision exitosamente');
+              this.mensajeExito = `Pedido de "${
+                this.PedidoEliminar!.clie_NombreNegocio
+              }" eliminado exitosamente`;
+              this.mostrarAlertaExito = true;
+
+              // Ocultar la alerta después de 3 segundos
+              setTimeout(() => {
+                this.mostrarAlertaExito = false;
+                this.mensajeExito = '';
+              }, 3000);
+
+              this.cargardatos(false);
+              this.cancelarEliminar();
+              this.mostrarOverlayCarga = false;
+            } else if (response.data.code_Status === -1) {
+              //result: está siendo utilizado
+              //console.log('Pedido está siendo utilizado');
+              this.mostrarAlertaError = true;
+              this.mensajeError =
+                response.data.message_Status ||
+                'No se puede eliminar: el pedido está siendo utilizado.';
+
+              setTimeout(() => {
+                this.mostrarAlertaError = false;
+                this.mensajeError = '';
+              }, 5000);
+
+              // Cerrar el modal de confirmación
+              this.cancelarEliminar();
+              this.mostrarOverlayCarga = false;
+            } else if (response.data.code_Status === 0) {
+              // Error general
+              //console.log('Error general al eliminar');
+              this.mostrarAlertaError = true;
+              this.mensajeError =
+                response.data.message_Status || 'Error al eliminar el pedido.';
+
+              setTimeout(() => {
+                this.mostrarAlertaError = false;
+                this.mensajeError = '';
+              }, 5000);
+
+              // Cerrar el modal de confirmación
+              this.cancelarEliminar();
+              this.mostrarOverlayCarga = false;
+            }
+          } else {
+            // Respuesta inesperada
+            //console.log('Respuesta inesperada del servidor');
             this.mostrarAlertaError = true;
-            this.mensajeError = response.data.message_Status || 'No se puede eliminar: el pedido está siendo utilizado.';
-            
+            this.mensajeError =
+              response.message ||
+              'Error inesperado al eliminar el estado civil.';
+
             setTimeout(() => {
               this.mostrarAlertaError = false;
               this.mensajeError = '';
             }, 5000);
-            
-            // Cerrar el modal de confirmación
-            this.cancelarEliminar();
-          } else if (response.data.code_Status === 0) {
-            // Error general
-            console.log('Error general al eliminar');
-            this.mostrarAlertaError = true;
-            this.mensajeError = response.data.message_Status || 'Error al eliminar el pedido.';
-            
-            setTimeout(() => {
-              this.mostrarAlertaError = false;
-              this.mensajeError = '';
-            }, 5000);
-            
+
             // Cerrar el modal de confirmación
             this.cancelarEliminar();
           }
-        } else {
-          // Respuesta inesperada
-          console.log('Respuesta inesperada del servidor');
-          this.mostrarAlertaError = true;
-          this.mensajeError = response.message || 'Error inesperado al eliminar el estado civil.';
-          
-          setTimeout(() => {
-            this.mostrarAlertaError = false;
-            this.mensajeError = '';
-          }, 5000);
-          
-          // Cerrar el modal de confirmación
-          this.cancelarEliminar();
-        }
-      },
-    });
+        },
+      });
   }
 
   cerrarAlerta(): void {
@@ -539,7 +596,7 @@ constructor(public table: ReactiveTableService<Pedido>,
   private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
-    console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
+    //console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
@@ -548,43 +605,64 @@ constructor(public table: ReactiveTableService<Pedido>,
         let modulo = null;
         if (Array.isArray(permisos)) {
           // Buscar por ID de pantalla (ajusta el ID si cambia en el futuro)
-          modulo = permisos.find((m: any) => m.Pant_Id === 14);
+          modulo = permisos.find((m: any) => m.Pant_Id === 38);
         } else if (typeof permisos === 'object' && permisos !== null) {
           // Si es objeto, buscar por clave
-          modulo = permisos['Estados Civiles'] || permisos['estados civiles'] || null;
+          modulo =
+            permisos['Estados Civiles'] || permisos['estados civiles'] || null;
         }
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
           // Extraer solo el nombre de la acción
-          accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
+          accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter(
+            (a: any) => typeof a === 'string'
+          );
         }
       } catch (e) {
         console.error('Error al parsear permisosJson:', e);
       }
     }
-    this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
-    console.log('Acciones finales:', this.accionesDisponibles);
+    this.accionesDisponibles = accionesArray
+      .filter((a) => typeof a === 'string' && a.length > 0)
+      .map((a) => a.trim().toLowerCase());
+    //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
+  // ...existing code...
+private cargardatos(state: boolean): void {
+  this.mostrarOverlayCarga = state;
 
-  
-
-    private cargardatos(state: boolean): void {
-    this.mostrarOverlayCarga = state;
-
-    this.http.get<Pedido[]>(`${environment.apiBaseUrl}/Pedido/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => {
+  this.http
+    .get<Pedido[]>(`${environment.apiBaseUrl}/Pedido/Listar`, {
+      headers: { 'x-api-key': environment.apiKey },
+    })
+    .subscribe((data) => {
       const tienePermisoListar = this.accionPermitida('listar');
       const userId = getUserId();
 
       const datosFiltrados = tienePermisoListar
         ? data
-        : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
+        : data.filter(
+            (r) => r.usua_Creacion?.toString() === userId.toString()
+          );
+
+      // Enriquecer solo para búsqueda, sin modificar nombres originales
+      const datosBusqueda = datosFiltrados.map((pedido) => ({
+        ...pedido,
+        _busquedaNombreCliente: `${pedido.clie_Nombres ?? ''} ${pedido.clie_Apellidos ?? ''}`.trim(),
+        _busquedaNombreVendedor: `${pedido.vend_Nombres ?? ''} ${pedido.vend_Apellidos ?? ''}`.trim(),
+        _busquedaFechaPedido: pedido.pedi_FechaPedido
+          ? formatDate(pedido.pedi_FechaPedido, 'dd/MM/yyyy', 'es-ES')
+          : '',
+        _busquedaFechaEntrega: pedido.pedi_FechaEntrega
+          ? formatDate(pedido.pedi_FechaEntrega, 'dd/MM/yyyy', 'es-ES')
+          : '',
+      }));
 
       setTimeout(() => {
-        this.table.setData(datosFiltrados);
+        this.table.setData(datosBusqueda);
         this.mostrarOverlayCarga = false;
       }, 500);
     });
-  }
+}
+// ...existing code...
 }

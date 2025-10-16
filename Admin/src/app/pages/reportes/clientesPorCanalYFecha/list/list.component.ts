@@ -393,11 +393,10 @@ private calcularRowSpanCanal(indiceActual: number, clientes: any[]): number {
   async generarPDF() {
     // CONFIGURACIÓN DEL REPORTE
     const config: ReportConfig = {
-      titulo: 'REPORTE DE clientes',
+      titulo: 'REPORTE DE CLIENTES SEGÚN CANAL',
       orientacion: 'landscape',
       mostrarResumen: true,
       textoResumen: `Total de clientes: ${this.clientes.length}`,
-      filtros: this.construirFiltros()
     };
 
     const filasConRowSpan = this.generarFilasConRowSpan();
@@ -450,7 +449,7 @@ private calcularRowSpanCanal(indiceActual: number, clientes: any[]): number {
       filtros.push({ label: 'Hasta', valor: this.fechaFin });
     }
     
-    console.log('canalSeleccionado', this.canalSeleccionado);
+    //console.log('canalSeleccionado', this.canalSeleccionado);
 
     if (this.canalSeleccionado && this.canalSeleccionado != null) {
       const canal = this.canales.find(m => m.cana_Id == this.canalSeleccionado);

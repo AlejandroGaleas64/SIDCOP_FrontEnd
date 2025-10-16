@@ -1,1 +1,327 @@
-<p>create works!</p>
+<div class="d-flex flex-column" style="height: 100%; min-height: 250px;">
+  <!-- Título del componente -->
+  <h5 class="card-title mb-4">Crear nueva devolución</h5>
+
+  <!-- Contenedor de alertas flotantes -->
+  <div class="alert-container">
+    <div *ngIf="mostrarAlertaExito"
+      class="alert alert-success alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-check-double-line me-3 align-middle fs-lg"></i>
+      <strong>¡Éxito!</strong> {{ mensajeExito }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+    <div *ngIf="mostrarAlertaWarning"
+      class="alert alert-warning alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-alert-line me-3 align-middle fs-lg"></i>
+      <strong>¡Atención!</strong> {{ mensajeWarning }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+    <div *ngIf="mostrarAlertaError"
+      class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+      <strong>¡Error!</strong> {{ mensajeError }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <div class="flex-grow-1">
+    <div class="row">
+      <div class="col-12 col-md-6 mb-3">
+        <label for="vendedor" class="form-label">Vendedor<span class="text-danger">*</span></label>
+        <div class="d-flex align-items-center">
+          <i class="ri-user-2-line" [ngStyle]="{
+                border: (mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.425rem 0.425rem',
+                position: 'relative', left: '7px',
+                zIndex: 1,
+                borderTopLeftRadius: '8px',
+                borderBottomLeftRadius: '8px'}">
+          </i>
+          <ng-select id="vendedor" [items]="vendedores" bindLabel="vendedorNombre" [loading]="cargando"
+            [clearable]="false" [searchable]="true" (change)="onVendedorSeleccionado($event)"
+            [class.is-invalid]="mostrarErrores" placeholder="Seleccione un vendedor" required
+            style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+            <ng-template ng-label-tmp let-item="item">
+              {{ item.vendedorNombre }} - {{ item.rutaDescripcion }}
+            </ng-template>
+            <ng-template ng-option-tmp let-item="item">
+              {{ item.vendedorNombre }} {{ item.vendedorApellido }} - {{ item.rutaDescripcion }}
+            </ng-template>
+          </ng-select>
+        </div>
+        <div class="text-danger mt-1" *ngIf="mostrarErrores">
+          <small>El campo Vendedor es requerido</small>
+        </div>
+      </div>
+
+
+      <!-- Selector de Cliente -->
+      <div class="col-12 col-md-6 mb-3">
+        <label class="form-label">Cliente<span class="text-danger">*</span></label>
+        <div class="d-flex align-items-center">
+          <i class="ri-user-line" [ngStyle]="{
+              border: (mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.425rem 0.425rem',
+              position: 'relative', left: '7px',
+              zIndex: 1,
+              borderTopLeftRadius: '8px',
+              borderBottomLeftRadius: '8px'
+            }"></i>
+          <ng-select class="w-100" [items]="clientesFiltrados" bindLabel="clie_NombreNegocio" [loading]="cargando"
+            [clearable]="false" [searchable]="true" [class.is-invalid]="mostrarErrores"
+            placeholder="Seleccione un cliente" [searchFn]="searchCliente" (change)="onClienteSeleccionado($event)"
+            required style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+            <ng-template ng-label-tmp let-item="item">
+              {{ item.clie_Codigo }} - {{ item.clie_Nombres }} {{ item.clie_Apellidos }}
+            </ng-template>
+            <ng-template ng-option-tmp let-item="item">
+              <div>
+                <div><strong>{{ item.clie_Codigo }}</strong> - {{ item.clie_Nombres }} {{ item.clie_Apellidos }}</div>
+                <small class="text-muted">{{ item.clie_NombreNegocio }}</small>
+              </div>
+            </ng-template>
+          </ng-select>
+        </div>
+        <div class="text-danger mt-1" *ngIf="mostrarErrores">
+          <small>El campo Cliente es requerido</small>
+        </div>
+      </div>
+
+      <!-- Selector de Factura -->
+      <div class="col-12 col-md-6 mb-3">
+        <label class="form-label">Factura<span class="text-danger">*</span></label>
+        <div class="d-flex align-items-center">
+          <i class="ri-file-list-3-line" [ngStyle]="{
+            border: (mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.425rem 0.425rem',
+            position: 'relative', left: '7px',
+            zIndex: 1,
+            borderTopLeftRadius: '8px',
+            borderBottomLeftRadius: '8px'
+          }"></i>
+          <ng-select class="w-100" [items]="facturasFiltradas" bindLabel="fact_Numero" bindValue="fact_Id"
+            placeholder="Seleccione una factura" (change)="onFacturaSeleccionada($event)">
+          </ng-select>
+        </div>
+        <div class="text-danger mt-1" *ngIf="mostrarErrores">
+          <small>El campo Factura es requerido</small>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Motivo<span class="text-danger">*</span></label>
+        <div class="mb-3">
+          <div class="d-flex align-items-center">
+            <i class=" ri-attachment-line"
+              [ngStyle]="{
+                border: (!devolucion.devo_Motivo.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!devolucion.devo_Motivo.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            </i>
+            <input type="text" class="form-control"
+              [class.is-invalid]="!devolucion.devo_Motivo.trim() && mostrarErrores" id="devolucionDescripcion"
+              [(ngModel)]="devolucion.devo_Motivo" placeholder="Ingrese el motivo de la devolucion" required>
+          </div>
+          <div class="text-danger mt-1" *ngIf="!devolucion.devo_Motivo.trim() && mostrarErrores">
+            <small>El campo Motivo de la devolucion es requerido</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección de Productos -->
+      <div class="row">
+        <div class="col-12">
+          <h6 class="mb-3">
+            <i class="ri-box-3-line me-2"></i>
+            Seleccionar Productos
+            <span class="text-danger">*</span>
+          </h6>
+
+          <!-- Buscador de productos -->
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <div class="search-container">
+                <div class="input-group">
+                  <span class="input-group-text search-icon">
+                    <i class="ri-search-line"></i>
+                  </span>
+                  <input type="text" class="form-control search-input" placeholder="Buscar productos por nombre..."
+                    [(ngModel)]="busquedaProducto" (input)="buscarProductos()">
+                  <button class="btn btn-outline-secondary" type="button" *ngIf="busquedaProducto"
+                    (click)="limpiarBusqueda()">
+                    <i class="ri-close-line"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="d-flex align-items-center justify-content-end gap-3">
+                <span class="text-muted">
+                  <i class="ri-information-line me-1"></i>
+                  {{ getProductosFiltrados().length }} producto(s) encontrado(s)
+                </span>
+                <span class="badge bg-primary" *ngIf="getTotalProductosSeleccionados() > 0">
+                  {{ getTotalProductosSeleccionados() }} seleccionado(s)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contenedor de tarjetas de productos -->
+          <div class="productos-container">
+            <div class="row g-3">
+              <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12"
+                *ngFor="let producto of getProductosPaginados(); let i = index">
+                <div class="card producto-card-premium h-100"
+                  [class.selected]="producto.cantidad > 0">
+                  <!-- Header de la tarjeta con indicador de selección -->
+                  <div class="card-header-premium" [class.selected]="producto.cantidad > 0">
+                    <div class="selection-indicator" *ngIf="producto.cantidad > 0">
+                      <i class="ri-check-line"></i>
+                    </div>
+                    <!-- Badge de stock -->
+                    <small style="color: #D6B68A; justify-content: center; align-items: center; display: flex;">
+                      {{ producto.prod_Codigo }}
+                    </small>
+                  </div>
+
+                  <div class="card-body-premium p-3">
+                    <!-- Imagen del producto -->
+                    <div class="producto-imagen-premium mb-3">
+                      <img [src]="producto.prod_Imagen || 'assets/images/default-product.png'"
+                        [alt]="producto.prod_Descripcion" class="producto-img"
+                        onerror="this.src='assets/images/default-product.png'">
+                      <div class="image-overlay" [class.active]="producto.cantidad > 0">
+                        <div class="overlay-content">
+                          <i class="ri-check-double-line"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Nombre del producto -->
+                    <h6 class="producto-titulo-premium mb-3">
+                      {{ producto.prod_Descripcion }}
+                    </h6>
+
+                    <!-- Controles de cantidad -->
+                    <div class="cantidad-controls-premium">
+                      <label class="form-label-premium">Cantidad a Devolver</label>
+                      <div class="input-group-premium">
+                        <button class="btn-cantidad-premium btn-minus" type="button"
+                          (click)="disminuirCantidad(getProductoIndex(producto.prod_Id))"
+                          [disabled]="producto.cantidadVendida <= 0">
+                          <i class="ri-subtract-line"></i>
+                        </button>
+                        <input type="number" class="cantidad-input-premium" [(ngModel)]="producto.cantidadVendida"
+                          (change)="validarCantidad(getProductoIndex(producto.prod_Id))" min="0"
+                          [max]="producto.cantidadOriginal" readonly>
+                        <button class="btn-cantidad-premium btn-plus" type="button"
+                          (click)="aumentarCantidad(getProductoIndex(producto.prod_Id))"
+                          [disabled]="producto.cantidadVendida >= producto.cantidadOriginal">
+                          <i class="ri-add-line"></i>
+                        </button>
+                      </div>
+                      <!-- Información de límite de cantidad original -->
+                      <div class="stock-info mt-2">
+                        <small class="text-muted">
+                          <i class="ri-information-line me-1"></i>
+                          {{ producto.cantidadOriginal - producto.cantidadVendida }} de {{ producto.cantidadOriginal }} (nueva cantidad a insertar)
+                        </small>
+                      </div>
+                      <!-- Mostrar información de devolución solo si la cantidad es menor a la original -->
+                      <div class="stock-info mt-1" *ngIf="producto.cantidadVendida > 0 && producto.cantidadVendida <= producto.cantidadOriginal">
+                        <small class="text-success">
+                          <i class="ri-check-line me-1"></i>
+                          Seleccionado para devolución: {{ producto.cantidadVendida }} unidad(es)
+                        </small>
+                      </div>
+                      <!-- Mostrar cuando no hay devolución (cantidad completa) -->
+                      <div class="stock-info mt-1" *ngIf="producto.cantidadVendida === 0">
+                        <small class="text-muted">
+                          <i class="ri-check-line me-1"></i>
+                          Sin devolución (cantidad completa)
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Footer con badge de cantidad -->
+                  <div class="card-footer-premium" [class.visible]="producto.cantidad > 0">
+                    <div class="cantidad-badge">
+                      <span class="badge-text">{{ producto.cantidad }}</span>
+                      <span class="badge-label">{{ producto.cantidad === 1 ? 'unidad' : 'unidades' }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mensaje cuando no hay productos -->
+            <div class="text-center py-5" *ngIf="getProductosFiltrados().length === 0">
+              <i class="ri-search-line display-4 text-muted mb-3"></i>
+              <h6 class="text-muted">No se encontraron productos</h6>
+              <p class="text-muted mb-0">
+                <span *ngIf="busquedaProducto">Intenta con otros términos de búsqueda</span>
+                <span *ngIf="!busquedaProducto">No hay productos disponibles</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Paginación -->
+          <div class="d-flex justify-content-between align-items-center mt-4"
+            *ngIf="getProductosFiltrados().length > 0">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ getInicioRegistro() }} - {{ getFinRegistro() }} de {{ getProductosFiltrados().length }}
+                productos
+              </span>
+            </div>
+            <nav aria-label="Paginación de productos">
+              <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" [class.disabled]="paginaActual === 1">
+                  <a class="page-link" href="#" (click)="cambiarPagina(paginaActual - 1); $event.preventDefault()">
+                    <i class="ri-arrow-left-line"></i>
+                  </a>
+                </li>
+
+                <li class="page-item" *ngFor="let pagina of getPaginasVisibles()"
+                  [class.active]="pagina === paginaActual">
+                  <a class="page-link" href="#" (click)="cambiarPagina(pagina); $event.preventDefault()">
+                    {{ pagina }}
+                  </a>
+                </li>
+
+                <li class="page-item" [class.disabled]="paginaActual === getTotalPaginas()">
+                  <a class="page-link" href="#" (click)="cambiarPagina(paginaActual + 1); $event.preventDefault()">
+                    <i class="ri-arrow-right-line"></i>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botones -->
+  <div class="mt-auto pt-3">
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-primary gold" (click)="cancelar()">
+            <span class="btn-text">Cancelar</span>
+            <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
+          </button>
+          <button type="button" class="btn btn-primary" (click)="guardar()">
+            <span class="btn-text">Guardar</span>
+            <span class="btn-icon"><i class="ri-save-line"></i></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

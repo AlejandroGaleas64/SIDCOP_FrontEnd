@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -6,16 +6,20 @@ import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
+import { SvgPreviewComponent } from '../svg-preview/svg-preview.component';
+import Cropper from 'cropperjs';
 
 @Component({
   selector: 'app-edit-config-factura',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
-    HttpClientModule, 
+    CommonModule,
+    FormsModule,
+    HttpClientModule,
     NgSelectModule,
-    NgxMaskDirective
+    NgxMaskDirective,
+    SvgPreviewComponent
   ],
   templateUrl: './edit.component.html',
   styleUrls: ['./edit.component.scss'],
@@ -35,6 +39,8 @@ export class EditConfigFacturaComponent implements OnChanges {
     coFa_Telefono1: '',
     coFa_Telefono2: '',
     coFa_Logo: '',
+    coFa_DiasDevolucion: 0,
+    coFa_RutaMigracion: '',
     colo_Id: 0,
     usua_Creacion: 0,
     usua_Modificacion: 0,
@@ -43,11 +49,21 @@ export class EditConfigFacturaComponent implements OnChanges {
   };
 
   configFacturaOriginal: any = {};
-  
+
   // Catálogos
   colonia: any[] = [];
-  
+
   logoSeleccionado = false;
+
+  // Cropper functionality
+  @ViewChild('imageCropper', { static: false }) imageCropper!: ElementRef;
+  showCropper = false;
+  cropper: any;
+  selectedFile: File | null = null;
+  
+  // SVG preview properties
+  isSvgFile = false;
+  svgPreviewUrl: string | null = null;
 
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -59,7 +75,7 @@ export class EditConfigFacturaComponent implements OnChanges {
   mensajeError = '';
   mensajeWarning = '';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private imageUploadService: ImageUploadService) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['configFacturaData']?.currentValue) {
@@ -121,32 +137,140 @@ export class EditConfigFacturaComponent implements OnChanges {
     }
   }
 
-  onImagenSeleccionada(event: any) {
-    // Obtenemos el archivo seleccionado desde el input tipo file
+  onFileChange(event: any) {
     const file = event.target.files[0];
-
     if (file) {
-      // para enviar la imagen a Cloudinary
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'configuracion_empresa');
-      //Subidas usuarios Carpeta identificadora en Cloudinary
-      //dbt7mxrwk es el nombre de la cuenta de Cloudinary
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-
-      fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Imagen subida a Cloudinary:', data);
-        this.configFactura.coFa_Logo = data.secure_url;
-      })
-      .catch(error => {
-        console.error('Error al subir la imagen a Cloudinary:', error);
-      });
+      this.selectedFile = file;
+      
+      // Check if it's an SVG file
+      this.isSvgFile = file.type === 'image/svg+xml';
+      
+      // Create a preview for SVG files
+      if (this.isSvgFile) {
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.svgPreviewUrl = e.target.result;
+          // For SVG files, we'll still show the cropper but also keep the original SVG for preview
+          this.imageCropper.nativeElement.src = e.target.result;
+          this.showCropper = true;
+          
+          setTimeout(() => {
+            if (this.cropper) {
+              this.cropper.destroy();
+            }
+            this.cropper = new Cropper(this.imageCropper.nativeElement, {
+              aspectRatio: 1,
+              viewMode: 1,
+              autoCropArea: 0.8,
+              responsive: true,
+              background: false,
+              guides: true,
+              center: true,
+              highlight: false,
+              cropBoxMovable: true,
+              cropBoxResizable: true,
+              toggleDragModeOnDblclick: false,
+            });
+          }, 100);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        // For non-SVG files, use the original behavior
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.imageCropper.nativeElement.src = e.target.result;
+          this.showCropper = true;
+          
+          setTimeout(() => {
+            if (this.cropper) {
+              this.cropper.destroy();
+            }
+            this.cropper = new Cropper(this.imageCropper.nativeElement, {
+              aspectRatio: 1,
+              viewMode: 1,
+              autoCropArea: 0.8,
+              responsive: true,
+              background: false,
+              guides: true,
+              center: true,
+              highlight: false,
+              cropBoxMovable: true,
+              cropBoxResizable: true,
+              toggleDragModeOnDblclick: false,
+            });
+          }, 100);
+        };
+        reader.readAsDataURL(file);
+      }
     }
+  }
+
+  cerrarModalCropper() {
+    this.showCropper = false;
+    if (this.cropper) {
+      this.cropper.destroy();
+      this.cropper = null;
+    }
+    // Don't reset selectedFile or svgPreviewUrl when closing the cropper
+    // as we want to keep the preview visible
+  }
+
+  async cropAndUpload() {
+    if (this.cropper && this.selectedFile) {
+      try {
+        // Obtener la imagen recortada como blob
+        const canvas = this.cropper.getCroppedCanvas({
+          width: 300,
+          height: 300,
+          imageSmoothingEnabled: true,
+          imageSmoothingQuality: 'high'
+        });
+
+        canvas.toBlob(async (blob: Blob | null) => {
+          if (blob) {
+            // Crear un nuevo archivo con la imagen recortada
+            const croppedFile = new File([blob], this.selectedFile!.name, {
+              type: this.selectedFile!.type,
+              lastModified: Date.now()
+            });
+
+            try {
+              //console.log('Iniciando subida de imagen...');
+              // Subir imagen al backend usando ImageUploadService
+              const imagePath = await this.imageUploadService.uploadImageAsync(croppedFile);
+              //console.log('Imagen subida exitosamente. Ruta:', imagePath);
+              this.configFactura.coFa_Logo = imagePath;
+              this.logoSeleccionado = true;
+              //console.log('Logo asignado a configFactura.coFa_Logo:', this.configFactura.coFa_Logo);
+              this.cerrarModalCropper();
+            } catch (error) {
+              console.error('Error al subir la imagen:', error);
+              this.mostrarAlertaError = true;
+              this.mensajeError = 'Error al subir la imagen. Por favor, inténtelo de nuevo.';
+              setTimeout(() => {
+                this.mostrarAlertaError = false;
+                this.mensajeError = '';
+              }, 5000);
+            }
+          }
+        }, this.selectedFile.type, 0.9);
+      } catch (error) {
+        console.error('Error al procesar la imagen:', error);
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error al procesar la imagen. Por favor, inténtelo de nuevo.';
+        setTimeout(() => {
+          this.mostrarAlertaError = false;
+          this.mensajeError = '';
+        }, 5000);
+      }
+    }
+  }
+
+  /**
+   * Obtiene la URL completa para mostrar la imagen
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
   }
 
   validarEdicion(): void {
@@ -197,6 +321,14 @@ export class EditConfigFacturaComponent implements OnChanges {
 
     if (!this.configFactura.coFa_Logo) {
       errores.push('Logo');
+    }
+
+    if (!this.configFactura.coFa_DiasDevolucion) {
+      errores.push('Días de Devolución');
+    }
+
+    if (!this.configFactura.coFa_RutaMigracion.trim()) {
+      errores.push('Ruta de Migración');
     }
 
     if (this.configFactura.colo_Id === 0) {
@@ -293,6 +425,14 @@ export class EditConfigFacturaComponent implements OnChanges {
       };
     }
 
+    if (a.coFa_DiasDevolucion !== b.coFa_DiasDevolucion) {
+      this.cambiosDetectados.diasDevolucion = {
+        anterior: b.coFa_DiasDevolucion,
+        nuevo: a.coFa_DiasDevolucion,
+        label: 'Días de Devolución'
+      };
+    }
+
     if (a.coFa_Telefono1 !== b.coFa_Telefono1) {
       this.cambiosDetectados.telefono1 = {
         anterior: b.coFa_Telefono1,
@@ -312,11 +452,19 @@ export class EditConfigFacturaComponent implements OnChanges {
     if (a.colo_Id !== b.colo_Id) {
       const coloniaAnterior = this.colonia.find(c => c.colo_Id === b.colo_Id);
       const coloniaNueva = this.colonia.find(c => c.colo_Id === a.colo_Id);
-      
+
       this.cambiosDetectados.colonia = {
         anterior: coloniaAnterior ? `${coloniaAnterior.colo_Descripcion} - ${coloniaAnterior.muni_Descripcion} - ${coloniaAnterior.depa_Descripcion}` : 'No seleccionada',
         nuevo: coloniaNueva ? `${coloniaNueva.colo_Descripcion} - ${coloniaNueva.muni_Descripcion} - ${coloniaNueva.depa_Descripcion}` : 'No seleccionada',
         label: 'Colonia'
+      };
+    }
+
+    if (a.coFa_RutaMigracion !== b.coFa_RutaMigracion) {
+      this.cambiosDetectados.rutaMigracion = {
+        anterior: b.coFa_RutaMigracion,
+        nuevo: a.coFa_RutaMigracion,
+        label: 'Ruta de Migración'
       };
     }
 
@@ -331,7 +479,7 @@ export class EditConfigFacturaComponent implements OnChanges {
     return Object.keys(this.cambiosDetectados).length > 0;
   }
 
-  
+
   // Método para obtener la lista de cambios como array
   obtenerListaCambios(): any[] {
     return Object.values(this.cambiosDetectados);

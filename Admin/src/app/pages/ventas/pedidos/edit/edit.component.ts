@@ -14,6 +14,7 @@ import { Pedido } from 'src/app/Modelos/ventas/Pedido.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-edit',
@@ -52,7 +53,7 @@ export class EditComponent implements OnInit, OnChanges {
     } else {
       const termino = this.busquedaProducto.toLowerCase().trim();
       this.productosFiltrados = this.productos.filter((producto) =>
-        producto.prod_Descripcion.toLowerCase().includes(termino)
+        producto.prod_DescripcionCorta.toLowerCase().includes(termino)
       );
     }
   }
@@ -269,7 +270,11 @@ export class EditComponent implements OnInit, OnChanges {
       }));
   }
 
+  
+
   cargarProductosPorCliente(clienteId: number): void {
+    this.mostrarOverlayCarga = true; // Activar el overlay
+    
     this.http
       .get<any>(
         `${environment.apiBaseUrl}/Productos/ListaPrecio/${clienteId}`,
@@ -279,6 +284,11 @@ export class EditComponent implements OnInit, OnChanges {
       )
       .subscribe({
         next: (productos) => {
+          // Aplicar corrección de URLs de imágenes
+          productos.forEach((item: any) => {
+            item.prod_Imagen = item.prod_Imagen.includes("http") ? item.prod_Imagen : environment.apiBaseUrl + item.prod_Imagen;
+          });
+
           // Paso 2.1: Parsear productos con lógica adicional
           this.productos = productos.map((producto: any) => {
             const detalleExistente = this.pedidoEditada.detalles?.find(
@@ -310,22 +320,22 @@ export class EditComponent implements OnInit, OnChanges {
           });
 
           this.aplicarFiltros();
-          console.log(
-            'Productos cargados y cantidades aplicadas:',
-            this.productos
-          );
+          this.mostrarOverlayCarga = false; // Desactivar el overlay
+       
         },
         error: (error) => {
           console.error('Error al obtener productos:', error);
           this.mostrarAlertaWarning = true;
           this.mensajeWarning =
             'No se pudieron obtener los productos para el cliente seleccionado.';
+          this.mostrarOverlayCarga = false; // Desactivar el overlay en caso de error
         },
       });
   }
 
   pedidoEditada: Pedido = {
     pedi_Id: 0,
+    pedi_Codigo: '',
     diCl_Id: 0,
     vend_Id: 0,
     pedi_FechaPedido: new Date(),
@@ -333,6 +343,10 @@ export class EditComponent implements OnInit, OnChanges {
     clie_Codigo: '',
     clie_Id: 0,
     clie_NombreNegocio: '',
+    // Propiedades adicionales para la factura
+    regC_Id: 0,
+    pedi_Latitud: 0,
+    pedi_Longitud: 0,
     clie_Nombres: '',
     clie_Apellidos: '',
     colo_Descripcion: '',
@@ -371,6 +385,9 @@ export class EditComponent implements OnInit, OnChanges {
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
 
+  // Variable para el overlay de carga (mismo patrón que list)
+  mostrarOverlayCarga = false;
+
   trackByProducto(index: number, producto: any): number {
     return producto.prod_Id;
   }
@@ -398,6 +415,11 @@ export class EditComponent implements OnInit, OnChanges {
       })
       .subscribe({
         next: (data) => {
+          // Aplicar corrección de URLs de imágenes
+          data.forEach((item: any) => {
+            item.prod_Imagen = item.prod_Imagen.includes("http") ? item.prod_Imagen : environment.apiBaseUrl + item.prod_Imagen;
+          });
+
           this.productos = data.map((producto: any) => ({
             ...producto,
             cantidad: 0,
@@ -421,7 +443,7 @@ export class EditComponent implements OnInit, OnChanges {
       this.productosFiltrados = [...this.productos];
     } else {
       this.productosFiltrados = this.productos.filter((producto) =>
-        producto.prod_Descripcion.toLowerCase().includes(query)
+        producto.prod_DescripcionCorta.toLowerCase().includes(query)
       );
     }
     this.paginaActual = 1; // reset a la página 1 tras filtrar
@@ -442,6 +464,15 @@ export class EditComponent implements OnInit, OnChanges {
     const dia = String(d.getDate()).padStart(2, '0');
     const anio = d.getFullYear();
     return `${anio}-${mes}-${dia}`; // formato 'yyyy-MM-dd'
+  }
+
+   formatFechaDDMMYYYY(fecha: Date | string | null | undefined): string {
+    if (!fecha) return '';
+    const d = new Date(fecha);
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
   }
 
   get fechaInicioFormato(): string {
@@ -514,7 +545,7 @@ export class EditComponent implements OnInit, OnChanges {
   validarEdicion(): void {
     this.mostrarErrores = true;
 
-    if (this.pedidoEditada.muni_Descripcion.trim()) {
+    if (this.pedidoEditada.diCl_Id && this.pedidoEditada.pedi_FechaEntrega) {
       if (this.hayDiferencias()) {
         this.mostrarConfirmacionEditar = true;
       } else {
@@ -585,6 +616,21 @@ export class EditComponent implements OnInit, OnChanges {
       };
     }
 
+    const fechaOriginalFormateada = this.formatFechaDDMMYYYY(
+      this.PedidoData?.pedi_FechaEntrega
+    );
+    const fechaActualFormateada = this.formatFechaDDMMYYYY(
+      this.pedidoEditada.pedi_FechaEntrega
+    );
+
+    if (fechaOriginalFormateada !== fechaActualFormateada) {
+      this.cambiosDetectados.fechaEntrega = {
+        anterior: fechaOriginalFormateada,
+        nuevo: fechaActualFormateada,
+        label: 'Fecha de Entrega',
+      };
+    }
+
     try {
       productosOriginal = JSON.parse(this.PedidoData?.detallesJson ?? '[]');
     } catch (e) {
@@ -603,8 +649,8 @@ export class EditComponent implements OnInit, OnChanges {
     }));
 
     const getDescripcionProducto = (id: number) => {
-      const prod = this.productos.find((p) => parseInt(p.prod_Id) === id);
-      return prod ? prod.prod_Descripcion : `ID ${id}`;
+      const prod = this.productos.find((p) => Number(p.prod_Id) === Number(id));
+  return prod && prod.prod_DescripcionCorta ? prod.prod_DescripcionCorta : `ID ${id}`;
     };
 
     const serialize = (arr: any[]) =>
@@ -647,6 +693,7 @@ export class EditComponent implements OnInit, OnChanges {
     ) {
       const PEActualizar = {
         pedi_Id: this.pedidoEditada.pedi_Id,
+         pedi_Codigo: this.pedidoEditada.pedi_Codigo, // El código se actualiza aquí
         diCl_Id: this.pedidoEditada.diCl_Id,
         vend_Id: getUserId(), // Asumiendo que el usuario actual es el vendedor
         pedi_FechaPedido: new Date().toISOString(),
@@ -671,7 +718,7 @@ export class EditComponent implements OnInit, OnChanges {
         secuencia: 0,
       };
 
-      console.log('Datos a enviar:', PEActualizar);
+      //console.log('Datos a enviar:', PEActualizar);
 
       this.http
         .put<any>(`${environment.apiBaseUrl}/Pedido/Actualizar`, PEActualizar, {
@@ -704,6 +751,8 @@ export class EditComponent implements OnInit, OnChanges {
   }
 
   cargarListados(): void {
+    this.mostrarOverlayCarga = true; // Activar el overlay
+    
     this.http
       .get<any>(`${environment.apiBaseUrl}/Cliente/Listar`, {
         headers: { 'x-api-key': environment.apiKey },
@@ -711,7 +760,7 @@ export class EditComponent implements OnInit, OnChanges {
       .subscribe({
         next: (cliente) => {
           this.Clientes = cliente;
-          console.log('Clientes cargados:', this.Clientes);
+          //console.log('Clientes cargados:', this.Clientes);
           this.http
             .get<any>(
               `${environment.apiBaseUrl}/DireccionesPorCliente/Listar`,
@@ -721,12 +770,21 @@ export class EditComponent implements OnInit, OnChanges {
             )
             .subscribe({
               next: (direcciones) => {
-                console.log('Direcciones cargadas:', direcciones);
+                //console.log('Direcciones cargadas:', direcciones);
                 this.TodasDirecciones = direcciones;
                 this.configurarUbicacionInicial();
+                this.mostrarOverlayCarga = false; // Desactivar el overlay cuando todo esté cargado
               },
+              error: (error) => {
+                console.error('Error al cargar direcciones:', error);
+                this.mostrarOverlayCarga = false; // Desactivar el overlay en caso de error
+              }
             });
         },
+        error: (error) => {
+          console.error('Error al cargar clientes:', error);
+          this.mostrarOverlayCarga = false; // Desactivar el overlay en caso de error
+        }
       });
   }
 
@@ -747,7 +805,7 @@ export class EditComponent implements OnInit, OnChanges {
 
   cargarMunicipios(codigoDepa: number): void {
     this.pedidoEditada.clie_Id = parseInt(codigoDepa.toString());
-    console.log('Código del departamento seleccionado:', codigoDepa);
+    //console.log('Código del departamento seleccionado:', codigoDepa);
     this.Direcciones = this.TodasDirecciones.filter(
       (m: any) => m.clie_Id === parseInt(codigoDepa.toString())
     );

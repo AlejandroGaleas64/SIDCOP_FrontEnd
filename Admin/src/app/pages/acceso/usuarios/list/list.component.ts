@@ -116,6 +116,8 @@ export class ListComponent {
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
 
   confirmaciondePassword: string = '';
+
+  // Modelo de Usuario
   usuario: Usuario = {
     secuencia: 0,
     usua_Id: 0,
@@ -139,10 +141,12 @@ export class ListComponent {
     message_Status: '',
   };
 
+  // Para las acciones
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
   }
 
+  // Inicialización
   ngOnInit(): void {
     this.breadCrumbItems = [
       { label: 'Acceso' },
@@ -339,6 +343,7 @@ export class ListComponent {
     }
   }
 
+  // Para levantar las acciones en el ddl
   onDocumentClick(event: MouseEvent, rowIndex: number) {
     const target = event.target as HTMLElement;
     const dropdowns = document.querySelectorAll('.dropdown-action-list');
@@ -353,6 +358,7 @@ export class ListComponent {
     }
   }
 
+  // Redireccion al crear
   crear(): void {
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false;
@@ -360,6 +366,7 @@ export class ListComponent {
     this.activeActionRow = null;
   }
 
+  // Redireccion al editar
   editar(usuario: Usuario): void {
     this.usuarioEditando = { ...usuario };
     this.usuarioEditando.usua_IdPersona;
@@ -369,6 +376,7 @@ export class ListComponent {
     this.activeActionRow = null;
   }
 
+  // Redireccion al detalle
   detalles(usuario: Usuario): void {
     this.usuarioDetalles = { ...usuario };
     this.showDetailsForm = true;
@@ -377,6 +385,7 @@ export class ListComponent {
     this.activeActionRow = null;
   }
 
+  // Propiedad para la tabla y propiedades de los formularios
   activeActionRow: number | null = null;
   showCreateForm = false;
   showEditForm = false;
@@ -394,9 +403,11 @@ export class ListComponent {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
 
+  // Confirmación para activar o desactivar
   mostrarConfirmacionEliminar = false;
   usuarioEliminar: Usuario | null = null;
 
+  // Confirmación para restablecer
   mostrarConfirmacionRestablecer = false;
   usuarioRestablecer: Usuario | null = null;
 
@@ -407,24 +418,29 @@ export class ListComponent {
   contrasenaObtenida: string | null = null;
 
 
+  // Constructor y carga de datos
   constructor(public table: ReactiveTableService<Usuario>, private http: HttpClient, private router: Router, private route: ActivatedRoute,
     private exportService: ExportService) {
     this.cargarDatos(true);
   }
 
+  // Accion para cargar los datos
   onActionMenuClick(rowIndex: number) {
     this.activeActionRow = this.activeActionRow === rowIndex ? null : rowIndex;
   }
 
+  //Cerrar crear
   cerrarFormulario(): void {
     this.showCreateForm = false;
   }
 
+  //Cerrar editar
   cerrarFormularioEdicion(): void {
     this.showEditForm = false;
     this.usuarioEditando = null;
   }
 
+  //Cerrar detalles
   cerrarFormularioDetalles(): void {
     this.showDetailsForm = false;
     this.usuarioDetalles = null;
@@ -440,6 +456,7 @@ export class ListComponent {
     this.obtenerContrasena();
   }
 
+  // Cancelar mostrar contraseña
   cancelarMostrarContrasena(): void {
     this.mostrarModalContrasena = false;
     this.usuarioMostrarClave = null;
@@ -447,6 +464,7 @@ export class ListComponent {
     this.contrasenaObtenida = null;
   }
 
+  // Cargar contraseña
   obtenerContrasena(): void {
     if (!this.claveSeguridad || !this.usuarioMostrarClave) {
       this.mensajeWarning = 'Debe ingresar la clave de seguridad';
@@ -508,6 +526,7 @@ export class ListComponent {
     });
   }
 
+  // Mensaje de exito al guardar
   guardarUsuario(usuario: Usuario): void {
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
@@ -522,6 +541,7 @@ export class ListComponent {
     }, 1000);
   }
 
+  // Mensaje de exito al actualizar
   actualizarUsuario(usuario: Usuario): void {
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
@@ -536,12 +556,14 @@ export class ListComponent {
     }, 1000);
   }
 
+  // Resrtablcer contraseña
   restablecer(usuario: Usuario): void {
     this.usuarioRestablecer = usuario;
     this.mostrarConfirmacionRestablecer = true;
     this.activeActionRow = null;
   }
 
+  // Boton de cancelar en el formulario de restablecer
   cancelarRestablecer(): void {
     this.mostrarConfirmacionRestablecer = false;
     this.usuarioRestablecer = null;
@@ -550,21 +572,25 @@ export class ListComponent {
     this.mostrarErrores = false;
   }
 
+  // Confirmacion al eliminar
   confirmarEliminar(usuario: Usuario): void {
     this.usuarioEliminar = usuario;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null;
   }
 
+  // Boton de cancelar en el formulario de eliminar
   cancelarEliminar(): void {
     this.mostrarConfirmacionEliminar = false;
     this.usuarioEliminar = null;
   }
 
+  // Verificar si las contraseñas coinciden
   contrasenasCoinciden(): boolean {
     return this.usuario.usua_Clave === this.confirmaciondePassword;
   }
 
+  // Verificar la fortaleza de la clave
   corroborarClave(clave: string) {
     if (clave.length === 0) {
       this.claveDatos = 0;
@@ -605,6 +631,7 @@ export class ListComponent {
     }
   }
 
+  // Accion para restablecer la clave
   restablecerClave(): void {
     if (!this.usuarioRestablecer) return
     this.mostrarErrores = true;
@@ -694,6 +721,7 @@ export class ListComponent {
     });
   }
 
+  // Accion para eliminar (activar/desactivar)
   eliminar(): void {
     if (!this.usuarioEliminar) return;
     const usuarioEliminar: Usuario = {
@@ -773,6 +801,7 @@ export class ListComponent {
     })
   }
 
+  // Cerrar alertas
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -782,6 +811,7 @@ export class ListComponent {
     this.mensajeWarning = '';
   }
 
+  // Cargar acciones del usuario desde localStorage
   private cargarAccionesUsuario(): void {
     const permisosRaw = localStorage.getItem('permisosJson');
     let accionesArray: string[] = [];
@@ -807,6 +837,7 @@ export class ListComponent {
   usuarioGrid: any = [];
   usuarios: any = [];
 
+  // Filtro de busqueda
   filtradorUsuarios(): void {
     const termino = this.busqueda.trim().toLowerCase();
     if (!termino) {
@@ -824,57 +855,79 @@ export class ListComponent {
     this.actualizarUsuariosVisibles();
   }
 
+  // Actualizar usuarios visibles según la paginación
   private actualizarUsuariosVisibles(): void {
     const startItem = (this.currentPage - 1) * this.itemsPerPage;
     const endItem = this.currentPage * this.itemsPerPage;
     this.usuarios = this.usuariosFiltrados.slice(startItem, endItem);
   }
 
+  // Cargar datos desde la API
   private cargarDatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
     this.http.get<Usuario[]>(`${environment.apiBaseUrl}/Usuarios/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => {
-      setTimeout(() => {
-        this.mostrarOverlayCarga = false;
-        const tienePermisoListar = this.accionPermitida('listar');
-        const userId = getUserId();
+    }).subscribe({
+      next: (data) => {
+        setTimeout(() => {
+          this.mostrarOverlayCarga = false;
+          const tienePermisoListar = this.accionPermitida('listar');
+          const userId = getUserId();
 
-        const datosFiltrados = tienePermisoListar
-          ? data
-          : data.filter(u => u.usua_Creacion?.toString() === userId?.toString());
-        this.usuarioGrid = datosFiltrados || [];
-        this.busqueda = '';
-        this.currentPage = 1;
-        this.itemsPerPage = 12;
-        this.usuariosFiltrados = [...this.usuarioGrid];
-        this.actualizarUsuariosVisibles();
-      }, 500);
+          data.forEach((item: any) => {
+            item.usua_Imagen = item.usua_Imagen.includes("http") ? item.usua_Imagen : environment.apiBaseUrl + item.usua_Imagen;
+          });
+
+          const datosFiltrados = tienePermisoListar
+            ? data
+            : data.filter(u => u.usua_Creacion?.toString() === userId?.toString());
+          this.usuarioGrid = datosFiltrados || [];
+          this.busqueda = '';
+          this.currentPage = 1;
+          this.itemsPerPage = 12;
+          this.usuariosFiltrados = [...this.usuarioGrid];
+          this.actualizarUsuariosVisibles();
+        }, 500);
+      },
+      error: (error) => {
+        console.error('Error al cargar usuarios:', error);
+        setTimeout(() => {
+          this.mostrarOverlayCarga = false;
+          this.usuarioGrid = [];
+          this.usuariosFiltrados = [];
+          this.actualizarUsuariosVisibles();
+        }, 500);
+      }
     });
   }
 
   currentPage: number = 1;
   itemsPerPage: number = 12;
 
+  // Cálculo de índices para la paginación
   get startIndex(): number {
     return this.usuariosFiltrados?.length ? ((this.currentPage - 1) * this.itemsPerPage) + 1 : 0;
   }
 
+  // Cálculo del índice final para la paginación
   get endIndex(): number {
     if (!this.usuariosFiltrados?.length) return 0;
     const end = this.currentPage * this.itemsPerPage;
     return end > this.usuariosFiltrados.length ? this.usuariosFiltrados.length : end;
   }
 
+  // Manejar cambio de página
   pageChanged(event: any): void {
     this.currentPage = event.page;
     this.actualizarUsuariosVisibles();
   }
 
+  // Optimización de seguimiento en ngFor
   trackByUsuarioId(index: number, item: any): any {
     return item.usua_Id;
   }
 
+  // Manejar error de carga de imagen
   onImgError(event: Event) {
     const target = event.target as HTMLImageElement;
     target.src = 'assets/images/users/32/user-dummy-img.jpg';

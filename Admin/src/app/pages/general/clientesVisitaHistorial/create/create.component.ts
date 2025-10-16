@@ -8,6 +8,7 @@ import { DropzoneModule, DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
 import { Router } from '@angular/router';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { lastValueFrom } from 'rxjs';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   selector: 'app-create',
@@ -36,6 +37,7 @@ export class CreateComponent implements OnInit {
   };
 
   cargando = false;
+  cargandoImagen = false;
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -58,7 +60,7 @@ export class CreateComponent implements OnInit {
     acceptedFiles: 'image/*',
   };
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router, private imageUploadService: ImageUploadService) {}
 
   ngOnInit() {
     this.cargarVendedores();
@@ -162,23 +164,21 @@ export class CreateComponent implements OnInit {
           this.mostrarMensaje(`El archivo ${file.name} no es una imagen válida`, 'error');
           return;
         }
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-          const fileData = {
-            name: file.name,
-            size: this.formatFileSize(file.size),
-            type: file.type,
-            dataURL: e.target.result,
-            file: file,
-            id: Date.now() + Math.random().toString(36).substr(2, 9)
-          };
-          this.uploadedFiles = [...this.uploadedFiles, fileData];
+        // Crear una URL temporal para mostrar la imagen inmediatamente
+        const tempImageUrl = URL.createObjectURL(file);
+        
+        const fileData = {
+          name: file.name,
+          size: this.formatFileSize(file.size),
+          type: file.type,
+          dataURL: tempImageUrl, // Usar URL temporal para mostrar la imagen inmediatamente
+          file: file,
+          id: Date.now() + Math.random().toString(36).substr(2, 9)
         };
-        reader.readAsDataURL(file);
+        this.uploadedFiles = [...this.uploadedFiles, fileData];
       });
     } catch (error) {
       this.mostrarMensaje('Error al procesar los archivos', 'error');
-      console.error('Error en onFileSelected:', error);
     }
   }
 
@@ -222,7 +222,7 @@ export class CreateComponent implements OnInit {
     const userId = getUserId();
     const fechaActual = new Date();
     const fechaVisita = new Date(this.visita.clVi_Fecha);
-    fechaVisita.setHours(0, 0, 0, 0);
+    // fechaVisita.setHours(0, 0, 0, 0);
 
     const visitaData = {
       clVi_Id: 0,
@@ -321,20 +321,22 @@ export class CreateComponent implements OnInit {
                 });
               };
 
-              // Subir a Cloudinary si es archivo
+              // Subir imagen usando ImageUploadService si es archivo
               if (file.file) {
-                const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-                const formData = new FormData();
-                formData.append('file', file.file);
-                formData.append('upload_preset', 'empleados');
-
-                fetch(url, { method: 'POST', body: formData })
-                  .then(res => res.json())
-                  .then(data => {
-                    if (data.secure_url) subirImagen(data.secure_url);
-                    else this.mostrarMensaje('No se pudo subir la imagen', 'error');
+                this.cargandoImagen = true;
+                this.imageUploadService.uploadImageAsync(file.file)
+                  .then(imagePath => {
+                    this.cargandoImagen = false;
+                    // Construir la URL completa para mostrar la imagen
+                    const baseUrl = environment.apiBaseUrl.replace('/api', '');
+                    const fullImagePath =  imagePath;
+                    if (imagePath) subirImagen(fullImagePath);
+                    else this.mostrarMensaje('No se pudo obtener la ruta de la imagen', 'error');
                   })
-                  .catch(() => this.mostrarMensaje('Error al subir la imagen', 'error'));
+                  .catch(error => {
+                    this.cargandoImagen = false;
+                    this.mostrarMensaje('Error al subir la imagen al servidor', 'error');
+                  });
               } else if (file.dataURL) {
                 subirImagen(file.dataURL);
               } else {
@@ -358,114 +360,14 @@ export class CreateComponent implements OnInit {
     });
   }
 
-  async uploadImageToCloudinary(file: File): Promise<string> {
-    const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'empleados');
-    const response = await fetch(url, { method: 'POST', body: formData });
-    const data = await response.json();
-    if (!data.secure_url) throw new Error('No se pudo obtener la URL de la imagen');
-    return data.secure_url;
+  async uploadImage(file: File): Promise<string> {
+    try {
+      const imagePath = await this.imageUploadService.uploadImageAsync(file);
+      return imagePath;
+    } catch (error) {
+      throw new Error('No se pudo subir la imagen');
+    }
   }
-
-  // private async crearVisita(): Promise<any> {
-  //   try {
-  //     if (!this.visita.vendedor?.ruta_Id) throw new Error('Falta el ID de ruta del vendedor');
-  //     if (!this.visita.direccion?.diCl_Id) throw new Error('Falta el ID de dirección');
-  //     if (!this.visita.esVi_Id) throw new Error('Falta el estado de la visita');
-  //     if (!this.visita.clVi_Fecha) throw new Error('Falta la fecha de la visita');
-
-  //     const userId = getUserId();
-  //     const fechaActual = new Date();
-  //     const fechaVisita = new Date(this.visita.clVi_Fecha);
-  //     fechaVisita.setHours(0, 0, 0, 0);
-
-  //     const visitaData = {
-  //       clVi_Id: 0,                               
-  //       diCl_Id: Number(this.visita.direccion?.diCl_Id) || 0,
-  //       diCl_Latitud: 0,
-  //       diCl_Longitud: 0,
-  //       vend_Id: 0,
-  //       vend_Codigo: '',
-  //       vend_DNI: '',
-  //       vend_Nombres: '',
-  //       vend_Apellidos: '',
-  //       vend_Telefono: '',
-  //       vend_Tipo: '',
-  //       vend_Imagen: '',
-  //       ruta_Id: 0,
-  //       ruta_Descripcion: '',
-  //       veRu_Id: Number(this.visita.vendedor?.veRu_Id) || 0,
-  //       veRu_Dias: '',
-  //       clie_Id: Number(this.visita.cliente?.clie_Id) || 0,
-  //       clie_Codigo: this.visita.cliente?.clie_Codigo || '',
-  //       clie_Nombres: this.visita.cliente?.clie_Nombres || '',
-  //       clie_Apellidos: this.visita.cliente?.clie_Apellidos || '',
-  //       clie_NombreNegocio: this.visita.cliente?.clie_NombreNegocio || '',
-  //       imVi_Imagen: '',
-  //       clie_Telefono: this.visita.cliente?.clie_Telefono || '',
-  //       esVi_Id: Number(this.visita.esVi_Id) || 0,
-  //       esVi_Descripcion: '',
-  //       clVi_Observaciones: this.visita.clVi_Observaciones || '',
-  //       clVi_Fecha: fechaVisita.toISOString(),
-  //       usua_Creacion: Number(userId) || 0,
-  //       clVi_FechaCreacion: fechaActual.toISOString()
-  //     };
-
-
-
-  //     console.log('Enviando datos de visita:', visitaData);
-
-  //     const response = await lastValueFrom(
-  //       this.http.post<any>(
-  //         `${environment.apiBaseUrl}/ClientesVisitaHistorial/Insertar`,
-  //         visitaData,
-  //         { headers: { 'x-api-key': environment.apiKey, 'Content-Type': 'application/json' } }
-  //       )
-  //     );
-
-  //     if (!response) throw new Error('No se recibió respuesta del servidor');
-  //     return response;
-
-  //   } catch (error: any) {
-  //     console.error('Error en crearVisita:', error);
-  //     throw new Error(error.message || 'Error al crear la visita');
-  //   }
-  // }
-
-  // private async asociarImagenesAVisita(visitaId: number, imageUrls: string[]): Promise<void> {
-  //   if (!visitaId || !imageUrls?.length) return;
-
-  //   const userId = getUserId();
-  //   const fechaActual = new Date().toISOString();
-
-  //   for (const imageUrl of imageUrls) {
-  //     const imagenData = {
-  //       ImVi_Imagen: imageUrl,
-  //       ClVi_Id: Number(visitaId),
-  //       Usua_Creacion: Number(userId),
-  //       ImVi_FechaCreacion: fechaActual
-  //     };
-
-  //     console.log('Enviando imagen a asociar:', imagenData);
-
-  //     try {
-  //       const response = await lastValueFrom(
-  //         this.http.post<any>(
-  //           `${environment.apiBaseUrl}/ImagenVisita/Insertar`,
-  //           imagenData,
-  //           { headers: { 'x-api-key': environment.apiKey, 'Content-Type': 'application/json' } }
-  //         )
-  //       );
-
-  //       console.log('Respuesta de imagen asociada:', response);
-
-  //     } catch (error) {
-  //       console.error('Error al asociar imagen:', error);
-  //     }
-  //   }
-  // }
 
   limpiarFormulario() {
     this.visita = {

@@ -1,0 +1,260 @@
+<div class="details-container">
+
+  <!-- Floating Alerts -->
+  <div class="alert-container">
+    <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+      <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+      <strong>¡Error!</strong> {{ mensajeError }}
+      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <!-- Regresar Button -->
+  <div class="details-header-button">
+    <button type="button" class="btn btn-primary" (click)="cerrar()">
+      <span class="btn-text">Regresar</span>
+      <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
+    </button>
+  </div>
+
+  <!-- Main Details Card -->
+  <div *ngIf="!cargando && metaDetalle" class="details-content">
+    <div class="col-md-12">
+      <div class="card h-100 shadow-sm employee-details-card bg-dark-blue">
+        <div class="card-header d-flex align-items-center rounded-top details-header-custom">
+          <i class="ri-flag-2-line me-2 fs-4"></i>
+          <h5 class="mb-0">Detalles de la Meta</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12 col-sm-6">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white"><i class="ri-attachment-line"></i></div>
+                <div class="detail-content">
+                  <div class="detail-label">Descripción</div>
+                  <div class="detail-value">{{ metaDetalle.meta_Descripcion }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white"><i class="ri-list-settings-line"></i></div>
+                <div class="detail-content">
+                  <div class="detail-label">Tipo</div>
+                  <div class="detail-value">
+                    {{
+                      metaDetalle.meta_Tipo === 'IT' ? 'Ingresos Totales' :
+                      metaDetalle.meta_Tipo === 'TP' ? 'Total Productos (Cantidad)' :
+                      metaDetalle.meta_Tipo === 'CN' ? 'Clientes Nuevos' :
+                      metaDetalle.meta_Tipo === 'PE' ? 'Producto Específico (Cantidad)' :
+                      metaDetalle.meta_Tipo === 'IP' ? 'Ingresos de Producto Específico' :
+                      metaDetalle.meta_Tipo === 'PC' ? 'Productos de Categoría (Ingresos)' :
+                      metaDetalle.meta_Tipo === 'CM' ? 'Cantidades Administradas Manualmente' :
+                      metaDetalle.meta_Tipo === 'IM' ? 'Ingresos Administradas Manualmente' :
+                      metaDetalle.meta_Tipo
+                    }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white"><i class="ri-calendar-2-line"></i></div>
+                <div class="detail-content">
+                  <div class="detail-label">Fecha Inicio</div>
+                  <div class="detail-value">{{ formatearFecha(metaDetalle.meta_FechaInicio) }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white"><i class="ri-calendar-2-line"></i></div>
+                <div class="detail-content">
+                  <div class="detail-label">Fecha Fin</div>
+                  <div class="detail-value">{{ formatearFecha(metaDetalle.meta_FechaFin) }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ingresos: IT, IP, PC, IM -->
+            <div class="col-12 col-sm-6"
+                 *ngIf="metaDetalle.meta_Tipo === 'IT' || metaDetalle.meta_Tipo === 'IP' || metaDetalle.meta_Tipo === 'PC' || metaDetalle.meta_Tipo === 'IM'">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white"><i class="ri-coin-fill"></i></div>
+                <div class="detail-content">
+                  <div class="detail-label">Objetivo de Ingresos</div>
+                  <div class="detail-value">{{ metaDetalle.meta_Ingresos | currency:'HNL':'symbol':'1.2-2':'es-HN' }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Unidades: TP, CN, PE, CM -->
+            <div class="col-12 col-sm-6"
+                 *ngIf="metaDetalle.meta_Tipo === 'TP' || metaDetalle.meta_Tipo === 'CN' || metaDetalle.meta_Tipo === 'PE' || metaDetalle.meta_Tipo === 'CM'">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white"><i class="ri-hashtag"></i></div>
+                <div class="detail-content">
+                  <div class="detail-label">Objetivo de Unidades</div>
+                  <div class="detail-value">{{ metaDetalle.meta_Unidades }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Producto: PE, IP -->
+            <div class="col-12 col-sm-6" *ngIf="metaDetalle.meta_Tipo === 'PE' || metaDetalle.meta_Tipo === 'IP'">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white"><i class="ri-shopping-bag-3-line"></i></div>
+                <div class="detail-content">
+                  <div class="detail-label">Producto</div>
+                  <div class="detail-value">
+                    {{ metaDetalle.prod_Descripcion || metaDetalle.prod_Id }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Categoría: PC -->
+            <div class="col-12 col-sm-6" *ngIf="metaDetalle.meta_Tipo === 'PC'">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white"><i class="ri-price-tag-3-line"></i></div>
+                <div class="detail-content">
+                  <div class="detail-label">Categoría</div>
+                  <div class="detail-value">
+                    {{ metaDetalle.cate_Descripcion || metaDetalle.cate_Id }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6">
+              <div class="detail-item">
+                <div class="detail-icon bg-dark-blue text-white"><i class="ri-checkbox-circle-line"></i></div>
+                <div class="detail-content">
+                  <div class="detail-label">Estado</div>
+                  <div class="detail-value">
+                    <span [ngClass]="metaDetalle.meta_Estado ? 'text-success' : 'text-danger'">
+                      {{ metaDetalle.meta_Estado ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vendedores Card -->
+<!-- Vendedores Card: Always visible, progress fields depend on tipo -->
+<div class="col-md-12 mt-4">
+  <div class="card h-100 shadow-sm employee-details-card bg-dark-blue">
+    <div class="card-header d-flex align-items-center rounded-top details-header-custom">
+      <i class="ri-user-3-line me-2 fs-4"></i>
+      <h5 class="mb-0">Vendedores Asignados</h5>
+    </div>
+    <div class="card-body">
+      
+      <div class="input-group input-group-sm mb-3">
+        <span class="input-group-text">
+          <i class="ri-search-line"></i>
+        </span>
+        <input type="text" class="form-control" [(ngModel)]="filterVendedor" placeholder="Buscar vendedor...">
+        <button class="btn btn-outline-secondary" type="button" (click)="filterVendedor = ''" [disabled]="!filterVendedor">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+
+      <div class="row">
+        <ng-container *ngIf="vendedoresParsed.length > 0; else noVendedores">
+          <div class="col-12 col-md-6" *ngFor="let vendedor of vendedoresFiltrados">
+            <div class="detail-item">
+              <!-- <div class="detail-icon bg-dark-blue text-white"><i class="ri-user-line"></i></div> -->
+               <div class="ms-auto " style="width: 120px; min-width: 120px;">
+                  <!-- <apx-chart
+                    [series]="getVendedorChartConfig(vendedor).series"
+                    [chart]="getVendedorChartConfig(vendedor).chart"
+                    [plotOptions]="getVendedorChartConfig(vendedor).plotOptions"
+                    [grid]="getVendedorChartConfig(vendedor).grid"
+                    [fill]="getVendedorChartConfig(vendedor).fill"
+                    [labels]="getVendedorChartConfig(vendedor).labels"
+                    [colors]="getVendedorChartConfig(vendedor).colors"
+                    dir="ltr">
+                  </apx-chart> -->
+                  <apx-chart
+                    [series]="vendedorCharts[vendedor.Vend_Id]?.series"
+                    [chart]="vendedorCharts[vendedor.Vend_Id]?.chart"
+                    [plotOptions]="vendedorCharts[vendedor.Vend_Id]?.plotOptions"
+                    [grid]="vendedorCharts[vendedor.Vend_Id]?.grid"
+                    [fill]="vendedorCharts[vendedor.Vend_Id]?.fill"
+                    [labels]="vendedorCharts[vendedor.Vend_Id]?.labels"
+                    [colors]="vendedorCharts[vendedor.Vend_Id]?.colors"
+                    dir="ltr">
+                  </apx-chart>
+                </div>
+              <div class="detail-content">
+                <div class="detail-label">Vendedor</div>
+                <div class="detail-value">
+                  Nombre Completo: {{ vendedor.Vend_NombreCompleto }}
+                </div>
+                <!-- Only show Progreso Unidades for CM -->
+                <ng-container *ngIf="metaDetalle.meta_Tipo === 'CM' || metaDetalle.meta_Tipo === 'TP' || metaDetalle.meta_Tipo === 'CN' || metaDetalle.meta_Tipo === 'PE'">
+                  <div class="detail-label mt-2">Progreso Actual de Unidades</div>
+                  <div class="detail-value">{{ vendedor.MeEm_ProgresoUnidades || 0 }}</div>
+                </ng-container>
+                <!-- Only show Progreso Ingresos for IM -->
+                <ng-container *ngIf="metaDetalle.meta_Tipo === 'IM' || metaDetalle.meta_Tipo === 'IT' || metaDetalle.meta_Tipo === 'IP' || metaDetalle.meta_Tipo === 'PC'">
+                  <div class="detail-label mt-2">Progreso Actual de Ingresos</div>
+                  <div class="detail-value">{{ vendedor.MeEm_ProgresoIngresos  || 0 | currency:'HNL':'symbol':'1.2-2':'es-HN'}}</div>
+                </ng-container>
+                
+              </div>
+              <div class="ms-auto">
+                
+              </div>
+            </div>
+          </div>
+        </ng-container>
+        <ng-template #noVendedores>
+          <div class="col-12 text-center text-muted py-3">
+            No hay vendedores asignados.
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!-- Auditoría -->
+    <div class="audit-table-container modern-audit-table mt-4">
+      <div class="audit-table">
+        <div class="audit-header">
+          <div class="audit-col">Acción</div>
+          <div class="audit-col">Usuario</div>
+          <div class="audit-col">Fecha</div>
+        </div>
+        <div class="audit-row">
+          <div class="audit-col">
+            <span class="audit-action">Creador</span>
+          </div>
+          <div class="audit-col">
+            <span class="audit-user">{{ metaDetalle.usuarioCreacion || 'Admin' }}</span>
+          </div>
+          <div class="audit-col">
+            <span class="audit-date">{{ formatearFecha(metaDetalle.meta_FechaCreacion) || 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="audit-row">
+          <div class="audit-col">
+            <span class="audit-action">Modificación</span>
+          </div>
+          <div class="audit-col">
+            <span class="audit-user">{{ metaDetalle.usuarioModificacion || 'N/A' }}</span>
+          </div>
+          <div class="audit-col">
+            <span class="audit-date">{{ formatearFecha(metaDetalle.meta_FechaModificacion) || 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

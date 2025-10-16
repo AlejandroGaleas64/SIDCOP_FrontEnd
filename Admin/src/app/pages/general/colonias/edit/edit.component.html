@@ -29,18 +29,80 @@
   </div>
 
   <!-- Formulario -->
+    <div class="row">      
+
+      <!-- Departamento -->
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="depa_Codigo" class="form-label">Departamento</label>
+          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          <div class="d-flex align-items-center">
+            <i class="ri-pin-distance-line " [ngStyle]="{
+              border: (!selectedDepa && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (!selectedDepa && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            </i>
+          <select 
+            id="depa_Codigo" 
+            name="depa_Codigo" 
+            class="form-select" 
+            [(ngModel)]="selectedDepa" 
+            (change)="cargarMunicipios(selectedDepa)"
+            required>
+            <option value="" disabled selected>Seleccione un Departamento</option>
+            <option *ngFor="let depa of Departamentos" [value]="depa.depa_Codigo">{{ depa.depa_Descripcion }}</option>
+          </select>
+          <div *ngIf="cargando" class="form-text text-muted">Cargando Departamentos...</div>
+          </div>
+          <div class="text-danger mt-1" *ngIf="!(selectedDepa ?? '').trim() && mostrarErrores">
+            <small>El campo Departamento es requerido</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Municipio -->
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label for="muni_Codigo" class="form-label">Municipio</label>
+          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+          <div class="d-flex align-items-center">
+            <i class="ri-user-4-line" [ngStyle]="{
+              border: (!selectedMuni && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (!selectedMuni && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+            </i>
+          <select 
+            id="muni_Codigo" 
+            name="muni_Codigo" 
+            class="form-select" 
+            [(ngModel)]="coloniaEditada.muni_Codigo" 
+            required>
+            <option value="" disabled selected>Seleccione un Municipio</option>
+            <option *ngFor="let muni of Municipios" [value]="muni.muni_Codigo">{{ muni.muni_Descripcion }}</option>
+          </select>
+          <div *ngIf="cargando" class="form-text text-muted">Cargando Municipios...</div>
+          </div>
+          <div class="text-danger mt-1" *ngIf="!(coloniaEditada.muni_Codigo ?? '').trim() && mostrarErrores">
+            <small>El campo Municipio es requerido</small>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!--Nueva fila-->
+
     <div class="row">
-      
+
       <!-- Descripcion -->
       <div class="col-md-6">
         <div class="mb-3">
-
           <label for="edit_colo_Descripcion" class="form-label">Descripción</label>
           <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           <div class="d-flex align-items-center">
           <i class="ri-newspaper-line" [ngStyle]="{
-            border: !(coloniaEditada.colo_Descripcion && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-            backgroundColor: !(coloniaEditada.colo_Descripcion && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            border: (!coloniaEditada.colo_Descripcion && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (!coloniaEditada.colo_Descripcion && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
             padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
           </i>
           <input 
@@ -57,69 +119,6 @@
         </div>
       </div>
 
-      <!-- Departamento -->
-      <div class="col-md-6">
-        <div class="mb-3">
-          <label for="depa_Codigo" class="form-label">Departamento</label>
-          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-          <div class="d-flex align-items-center">
-            <i class="ri-pin-distance-line " [ngStyle]="{
-              border: !(selectedDepa && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-              backgroundColor: !(selectedDepa && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-            </i>
-          <select 
-            id="depa_Codigo" 
-            name="depa_Codigo" 
-            class="form-select" 
-            [(ngModel)]="selectedDepa" 
-            (change)="cargarMunicipios(selectedDepa)"
-            required>
-            <option value="" disabled selected>Seleccione un Departamento</option>
-            <option *ngFor="let depa of Departamentos" [value]="depa.depa_Codigo">{{ depa.depa_Descripcion }}</option>
-          </select>
-          <div *ngIf="cargando" class="form-text text-muted">Cargando Departamentos...</div>
-          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-          </div>
-          <div class="text-danger mt-1" *ngIf="!(selectedDepa ?? '').trim() && mostrarErrores">
-            <small>El campo Departamento es requerido</small>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!--Nueva fila-->
-
-    <div class="row">
-
-      <!-- Municipio -->
-      <div class="col-md-6">
-        <div class="mb-3">
-          <label for="muni_Codigo" class="form-label">Municipio</label>
-          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-          <div class="d-flex align-items-center">
-            <i class="ri-user-4-line" [ngStyle]="{
-              border: !(selectedMuni && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-              backgroundColor: !(selectedMuni && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-              padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-            </i>
-          <select 
-            id="muni_Codigo" 
-            name="muni_Codigo" 
-            class="form-select" 
-            [(ngModel)]="coloniaEditada.muni_Codigo" 
-            required>
-            <option value="" disabled selected>Seleccione un Municipio</option>
-            <option *ngFor="let muni of Municipios" [value]="muni.muni_Codigo">{{ muni.muni_Descripcion }}</option>
-          </select>
-          <div *ngIf="cargando" class="form-text text-muted">Cargando Municipios...</div>
-          <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
-          </div>
-          <div class="text-danger mt-1" *ngIf="!(coloniaEditada.muni_Codigo ?? '').trim() && mostrarErrores">
-            <small>El campo Municipio es requerido</small>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div class="mt-auto pt-3">

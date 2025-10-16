@@ -7,11 +7,13 @@ import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 //import { co } from '@fullcalendar/core/internal-common';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 
 @Component({
   selector: 'app-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule, NgxMaskDirective],
+  providers: [provideNgxMask()],
   templateUrl: './create.component.html',
   styleUrl: './create.component.scss',
 })
@@ -29,6 +31,8 @@ export class CreateComponent {
 
   CAI: any[] = [];
   PE: any[] = [];
+
+  //Funcion para poder buscar en el ng-select
 
   searchCAI = (term: string, item: any) => {
     term = term.toLowerCase();
@@ -100,6 +104,70 @@ export class CreateComponent {
     this.cargarSucursales();
     this.cargarPE();
   }
+
+  actualizarNumeroFactura(): void {
+    const sucursalSeleccionada = this.Sucursales.find(s => s.sucu_Id === this.registroCai.sucu_Id);
+    const puntoEmisionSeleccionado = this.PE.find(pe => pe.puEm_Id === this.registroCai.puEm_Id);
+    
+    let codigoSucursal = '';
+    let codigoPuntoEmision = '';
+    
+    if (sucursalSeleccionada) {
+      codigoSucursal = sucursalSeleccionada.sucu_Codigo || '___';
+    } else {
+      codigoSucursal = '___';
+    }
+    
+    if (puntoEmisionSeleccionado) {
+      codigoPuntoEmision = puntoEmisionSeleccionado.puEm_Codigo || '___';
+    } else {
+      codigoPuntoEmision = '___';
+    }
+    
+    let formato = '';
+    
+    if (this.registroCai.regC_RangoInicial.trim() && this.registroCai.regC_RangoFinal.trim()) {
+      // Obtener valores sin máscara y formatear con ceros a la izquierda (8 dígitos)
+      const rangoInicial = this.getUnmaskedValue(this.registroCai.regC_RangoInicial).padStart(8, '0');
+      const rangoFinal = this.getUnmaskedValue(this.registroCai.regC_RangoFinal).padStart(8, '0');
+      
+      // Número de factura inicial completo
+      const facturaInicial = `${codigoSucursal} - ${codigoPuntoEmision} - 01 - ${rangoInicial}`;
+      
+      // Número de factura final completo
+      const facturaFinal = `${codigoSucursal} - ${codigoPuntoEmision} - 01 - ${rangoFinal}`;
+      
+      formato = `${facturaInicial} al ${facturaFinal}`;
+    } else {
+      formato = `${codigoSucursal} - ${codigoPuntoEmision} - 01 - 00000000 al ${codigoSucursal} - ${codigoPuntoEmision} - 01 - 00000000`;
+    }
+    
+    this.numeroFacturaFormateado = formato;
+  }
+
+  onSucursalChange(): void {
+    this.actualizarNumeroFactura();
+  }
+
+  onPuntoEmisionChange(): void {
+    this.actualizarNumeroFactura();
+  }
+
+  onRangoChange(): void {
+    this.actualizarNumeroFactura();
+  }
+
+  fechaInicialEmision: string = '';
+  fechaFinalEmision: string = '';
+
+  // Información para el número de factura
+  numeroFacturaFormateado: string = '';
+
+  // Función para obtener el valor numérico sin máscara
+  private getUnmaskedValue(maskedValue: string): string {
+    return maskedValue ? maskedValue.replace(/\D/g, '') : '';
+  }
+
   registroCai: RegistroCAI = {
     regC_Id: 0,
     regC_Descripcion: '',
@@ -136,6 +204,9 @@ export class CreateComponent {
     this.mensajeError = '';
     this.mostrarAlertaWarning = false;
     this.mensajeWarning = '';
+    this.fechaInicialEmision = '';
+    this.fechaFinalEmision = '';
+    this.numeroFacturaFormateado = '';
     this.registroCai = {
       regC_Id: 0,
       regC_Descripcion: '',
@@ -178,6 +249,31 @@ export class CreateComponent {
   guardar(): void {
     this.mostrarErrores = true;
 
+     // Validar que el rango inicial no sea mayor que el rango final
+    const rangoInicial = parseInt(this.getUnmaskedValue(this.registroCai.regC_RangoInicial)) || 0;
+    const rangoFinal = parseInt(this.getUnmaskedValue(this.registroCai.regC_RangoFinal)) || 0;
+    
+    if (rangoInicial >= rangoFinal) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'El rango inicial no puede ser mayor o igual que el rango final.';
+      setTimeout(() => {
+        this.mostrarAlertaWarning = false;
+        this.mensajeWarning = '';
+      }, 4000);
+      return;
+    }
+
+  // Validar que la fecha inicial no sea mayor que la fecha final
+  if (new Date(this.fechaInicialEmision) >= new Date(this.fechaFinalEmision)) {
+    this.mostrarAlertaWarning = true;
+    this.mensajeWarning = 'La fecha inicial no puede ser mayor o igual que la fecha final.';
+    setTimeout(() => {
+      this.mostrarAlertaWarning = false;
+      this.mensajeWarning = '';
+    }, 4000);
+    return;
+  }
+
     if (
       this.registroCai.regC_Descripcion.trim() &&
       this.registroCai.sucu_Id &&
@@ -185,8 +281,8 @@ export class CreateComponent {
       this.registroCai.puEm_Id &&
       this.registroCai.regC_RangoInicial.trim() &&
       this.registroCai.regC_RangoFinal.trim() &&
-      this.registroCai.regC_FechaInicialEmision &&
-      this.registroCai.regC_FechaFinalEmision
+      this.fechaInicialEmision &&
+      this.fechaFinalEmision
     ) {
       // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
@@ -198,10 +294,10 @@ export class CreateComponent {
         sucu_Id: this.registroCai.sucu_Id,
         puEm_Id: this.registroCai.puEm_Id,
         nCai_Id: this.registroCai.nCai_Id,
-        regC_RangoInicial: this.registroCai.regC_RangoInicial,
-        regC_RangoFinal: this.registroCai.regC_RangoFinal,
-        regC_FechaInicialEmision: this.registroCai.regC_FechaInicialEmision,
-        regC_FechaFinalEmision: this.registroCai.regC_FechaFinalEmision,
+        regC_RangoInicial: this.getUnmaskedValue(this.registroCai.regC_RangoInicial),
+        regC_RangoFinal: this.getUnmaskedValue(this.registroCai.regC_RangoFinal),
+        regC_FechaInicialEmision: new Date(this.fechaInicialEmision),
+        regC_FechaFinalEmision: new Date(this.fechaFinalEmision),
         regC_Estado: true,
         usua_creacion: getUserId(),
         regC_FechaCreacion: new Date(),
@@ -218,7 +314,7 @@ export class CreateComponent {
         nCai_Codigo: '',
       };
 
-      console.log('Guardando registro:', registroscaisGuardar);
+      //console.log('Guardando registro:', registroscaisGuardar);
 
       this.http
         .post<any>(
@@ -269,6 +365,7 @@ export class CreateComponent {
         });
     } else {
       // Mostrar alerta de warning para campos vacíos
+        //Para que el mensaje no se sobreponga
       this.mostrarAlertaWarning = true;
       this.mensajeWarning =
         'Por favor complete todos los campos requeridos antes de guardar.';

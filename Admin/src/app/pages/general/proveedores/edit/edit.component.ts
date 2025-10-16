@@ -6,13 +6,16 @@ import { Proveedor } from 'src/app/Modelos/general/Proveedor.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { provideRouter } from '@angular/router';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 
 @Component({
   selector: 'app-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
-  templateUrl:'./edit.component.html',
-  styleUrl: './edit.component.scss'
+  imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule, NgxMaskDirective],
+  templateUrl: './edit.component.html',
+  styleUrl: './edit.component.scss',
+  providers: [provideNgxMask()],
 })
 export class EditComponent implements OnChanges {
   @Input() proveedorData: Proveedor | null = null;
@@ -36,7 +39,7 @@ export class EditComponent implements OnChanges {
   TodosColonias: any[] = [];
   Municipios: any[] = [];
   Colonias: any[] = [];
-  ProveedorOriginal: Proveedor = new Proveedor();
+  // proveedorOriginal: Proveedor = new Proveedor();
   selectedDepa: string = '';
   selectedMuni: string = '';
 
@@ -88,7 +91,7 @@ export class EditComponent implements OnChanges {
     if (changes['proveedorData'] && changes['proveedorData'].currentValue) {
       this.proveedor = { ...changes['proveedorData'].currentValue };
       this.mostrarErrores = false;
-      this.ProveedorOriginal = { ...this.proveedor };
+      this.proveedorOriginal = { ...this.proveedor, colo_Id: this.proveedor.colo_Id ?? 0 };
 
 
       this.cerrarAlerta();
@@ -123,18 +126,17 @@ export class EditComponent implements OnChanges {
     this.mostrarErrores = true;
 
     if (this.proveedor.prov_NombreEmpresa.trim() && this.proveedor.prov_Codigo.trim() &&
-        this.proveedor.prov_NombreContacto.trim() && this.proveedor.prov_Telefono.trim() &&
-        this.proveedor.colo_Id > 0 && this.proveedor.prov_DireccionExacta.trim() &&
-        this.proveedor.prov_Correo.trim() && this.proveedor.prov_Observaciones.trim()) {
+      this.proveedor.prov_NombreContacto.trim() && this.proveedor.prov_Telefono.trim() &&
+      this.proveedor.colo_Id > 0 && this.proveedor.prov_DireccionExacta.trim()) {
       if (
-        this.proveedor.prov_NombreEmpresa.trim() !== this.ProveedorOriginal.prov_NombreEmpresa.trim() ||
-        this.proveedor.prov_Codigo.trim() !== this.ProveedorOriginal.prov_Codigo.trim() ||
-        this.proveedor.prov_NombreContacto.trim() !== this.ProveedorOriginal.prov_NombreContacto.trim() ||
-        this.proveedor.prov_Telefono.trim() !== this.ProveedorOriginal.prov_Telefono.trim() ||
-        this.proveedor.colo_Id !== this.ProveedorOriginal.colo_Id ||
-        this.proveedor.prov_DireccionExacta.trim() !== this.ProveedorOriginal.prov_DireccionExacta.trim() ||
-        this.proveedor.prov_Correo.trim() !== this.ProveedorOriginal.prov_Correo.trim() ||
-        this.proveedor.prov_Observaciones.trim() !== this.ProveedorOriginal.prov_Observaciones.trim()
+        this.proveedor.prov_NombreEmpresa.trim() !== this.proveedorOriginal.prov_NombreEmpresa.trim() ||
+        this.proveedor.prov_Codigo.trim() !== this.proveedorOriginal.prov_Codigo.trim() ||
+        this.proveedor.prov_NombreContacto.trim() !== this.proveedorOriginal.prov_NombreContacto.trim() ||
+        this.proveedor.prov_Telefono.trim() !== this.proveedorOriginal.prov_Telefono.trim() ||
+        this.proveedor.colo_Id !== this.proveedorOriginal.colo_Id ||
+        this.proveedor.prov_DireccionExacta.trim() !== this.proveedorOriginal.prov_DireccionExacta.trim() ||
+        this.proveedor.prov_Correo.trim() !== this.proveedorOriginal.prov_Correo.trim() ||
+        this.proveedor.prov_Observaciones.trim() !== this.proveedorOriginal.prov_Observaciones.trim()
       ) {
         this.mostrarConfirmacionEditar = true;
       } else {
@@ -158,7 +160,6 @@ export class EditComponent implements OnChanges {
 //Confirma edición y llama a guardar
   confirmarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
-    console.log('Confirmar edición de proveedor');
     this.guardar();
   }
 
@@ -183,9 +184,8 @@ export class EditComponent implements OnChanges {
   guardar(): void {
     this.mostrarErrores = true;
     if (this.proveedor.prov_NombreEmpresa.trim() && this.proveedor.prov_Codigo.trim() &&
-        this.proveedor.prov_NombreContacto.trim() && this.proveedor.prov_Telefono.trim() &&
-        this.proveedor.colo_Id > 0 && this.proveedor.prov_DireccionExacta.trim() &&
-        this.proveedor.prov_Correo.trim() && this.proveedor.prov_Observaciones.trim()) {
+      this.proveedor.prov_NombreContacto.trim() && this.proveedor.prov_Telefono.trim() &&
+      this.proveedor.colo_Id > 0 && this.proveedor.prov_DireccionExacta.trim()) {
       const proveedorActualizar = {
         ...this.proveedor,
         usua_Modificacion: getUserId(),
@@ -220,4 +220,153 @@ export class EditComponent implements OnChanges {
       setTimeout(() => this.cerrarAlerta(), 4000);
     }
   }
+
+  esCorreoValido(correo: string): boolean {
+    if (!correo) return true;
+    // Debe contener "@" y terminar en ".com" y aceptar cualquier dominio
+    return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
+  }
+
+
+
+  // Objeto para almacenar los cambios detectados
+  cambiosDetectados: any = {};
+  proveedorOriginal: any = {};
+
+  obtenerListaCambios(): { label: string; anterior: string; nuevo: string }[] {
+    const cambios: { label: string; anterior: string; nuevo: string }[] = [];
+
+    const val = (v: any) => v == null || v === '' ? '—' : String(v);
+    const trim = (s: any) => (s ?? '').toString().trim();
+    const nuevo = this.proveedor as any;
+    const original = this.proveedorOriginal as any;
+    this.cambiosDetectados = {};
+
+    const camposBasicos = [
+      { key: 'prov_Codigo', label: 'Código' },
+      { key: 'prov_NombreEmpresa', label: 'Empresa' },
+      { key: 'prov_NombreContacto', label: 'Contacto' },
+      { key: 'prov_Telefono', label: 'Teléfono' },
+      { key: 'prov_DireccionExacta', label: 'Dirección Exacta' },
+      { key: 'prov_Correo', label: 'Correo' },
+      { key: 'prov_Observaciones', label: 'Observaciones' },
+    ];
+
+    camposBasicos.forEach(campo => {
+      const valorOriginal = original[campo.key];
+      const valorNuevo = nuevo[campo.key];
+      const sonDiferentes = trim(valorOriginal) !== trim(valorNuevo);
+
+      if (sonDiferentes && (valorOriginal !== '' && valorOriginal != null)) {
+        const item = {
+          anterior: val(valorOriginal),
+          nuevo: val(valorNuevo),
+          label: campo.label
+        };
+        this.cambiosDetectados[campo.key] = item as any;
+        cambios.push(item);
+      }
+    });
+
+    // Helper para mapeo de colonia
+    const coloNombre = (id: number) => (this.TodosColonias.find(c => Number(c.colo_Id) === Number(id))?.colo_Descripcion) || `ID: ${id}`;
+
+    // Verificar cada campo y almacenar los cambios
+    if (nuevo.prov_Codigo !== original.prov_Codigo) {
+      this.cambiosDetectados.codigoProveedor = {
+        anterior: original.prov_Codigo,
+        nuevo: nuevo.prov_Codigo,
+        label: 'Código del Proveedor'
+      };
+    }
+
+    if (nuevo.prov_NombreEmpresa !== original.prov_NombreEmpresa) {
+      this.cambiosDetectados.empresaProveedor = {
+        anterior: original.prov_NombreEmpresa,
+        nuevo: nuevo.prov_NombreEmpresa,
+        label: 'Nombre de la Empresa'
+      };
+    }
+
+    if (nuevo.prov_NombreContacto !== original.prov_NombreContacto) {
+      this.cambiosDetectados.nombreContacto = {
+        anterior: original.prov_NombreContacto,
+        nuevo: nuevo.prov_NombreContacto,
+        label: 'Nombre de Contacto'
+      };
+    }
+
+    if (nuevo.prov_Telefono !== original.prov_Telefono) {
+      this.cambiosDetectados.telefono = {
+        anterior: original.prov_Telefono,
+        nuevo: nuevo.prov_Telefono,
+        label: 'Teléfono'
+      };
+    }
+
+    if (nuevo.colo_Id !== original.colo_Id) {
+      const coloniaAnterior = this.TodosColonias.find(c => c.colo_Id === original.colo_Id);
+      const coloniaNueva = this.TodosColonias.find(c => c.colo_Id === nuevo.colo_Id);
+
+      const item = {
+        anterior: coloniaAnterior ? `${coloniaAnterior.colo_Descripcion} - ${coloniaAnterior.muni_Descripcion} - ${coloniaAnterior.depa_Descripcion}` : 'No seleccionada',
+        nuevo: coloniaNueva ? `${coloniaNueva.colo_Descripcion} - ${coloniaNueva.muni_Descripcion} - ${coloniaNueva.depa_Descripcion}` : 'No seleccionada',
+        label: 'Colonia'
+      };
+      this.cambiosDetectados.colonia = item;
+      cambios.push(item); // <-- Esto es lo que faltaba
+    }
+
+    if (nuevo.prov_DireccionExacta !== original.prov_DireccionExacta) {
+      this.cambiosDetectados.direccionExacta = {
+        anterior: original.prov_DireccionExacta,
+        nuevo: nuevo.prov_DireccionExacta,
+        label: 'Dirección Exacta'
+      };
+    }
+
+    if (nuevo.prov_Correo !== original.prov_Correo) {
+      this.cambiosDetectados.correo = {
+        anterior: original.prov_Correo,
+        nuevo: nuevo.prov_Correo,
+        label: 'Correo Electrónico'
+      };
+    }
+
+    if (nuevo.prov_Observaciones !== original.prov_Observaciones) {
+      this.cambiosDetectados.observaciones = {
+        anterior: original.prov_Observaciones,
+        nuevo: nuevo.prov_Observaciones,
+        label: 'Observaciones'
+      };
+    }
+
+    return cambios;
+  }
+
+
+
+  direccionExactaInicial: string = '';
+
+  onColoniaSeleccionada(colo_Id: number) {
+    this.proveedor.colo_Id = colo_Id;
+    const coloniaSeleccionada = this.TodosColonias.find((c: any) => c.colo_Id === colo_Id);
+    if (coloniaSeleccionada) {
+      this.direccionExactaInicial = coloniaSeleccionada.colo_Descripcion;
+      this.proveedor.prov_DireccionExacta = coloniaSeleccionada.colo_Descripcion;
+    } else {
+      this.direccionExactaInicial = '';
+      this.proveedor.prov_DireccionExacta = '';
+    }
+  }
+
+  //Para buscar colonias en DDL
+  searchColonias = (term: string, item: any) => {
+    term = term.toLowerCase();
+    return (
+      item.colo_Descripcion?.toLowerCase().includes(term) ||
+      item.muni_Descripcion?.toLowerCase().includes(term) ||
+      item.depa_Descripcion?.toLowerCase().includes(term)
+    );
+  };
 }

@@ -113,6 +113,7 @@ export class EditComponent {
   private guardar(): void {
     this.mostrarErrores = true;
 
+    try {
     if (this.municipio.muni_Descripcion.trim()) {
       const municipioActualizar = {
         muni_Codigo: this.municipio.muni_Codigo,
@@ -120,13 +121,13 @@ export class EditComponent {
         usua_Creacion: this.municipio.usua_Creacion,
         muni_FechaCreacion: this.municipio.muni_FechaCreacion,
         usua_Modificacion: getUserId(),
-        numero: this.municipio.depa_Codigo || '',
+        depa_Codigo: this.municipio.depa_Codigo || '',
         muni_FechaModificacion: new Date().toISOString(),
         usuarioCreacion: '',
         usuarioModificacion: ''
       };
 
-      this.http.put<any>(`${environment.apiBaseUrl}/Municipios/Editar`, municipioActualizar, {
+      this.http.post<any>(`${environment.apiBaseUrl}/Municipios/Actualizar`, municipioActualizar, {
         headers: {
           'X-Api-Key': environment.apiKey,
           'Content-Type': 'application/json',
@@ -149,7 +150,6 @@ export class EditComponent {
           }
           else
           {
-            console.error('Error al actualizar municipio:', response.data.message_Status);
             this.mostrarAlertaError = true;
             this.mensajeError = 'Error al actualizar el municipio, ', response.data.message_Status;
             setTimeout(() => this.cerrarAlerta(), 5000);
@@ -157,7 +157,6 @@ export class EditComponent {
           
         },
         error: (error) => {
-          console.error('Error al actualizar municipio:', error);
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al actualizar el municipio. Por favor, intente nuevamente.';
           setTimeout(() => this.cerrarAlerta(), 5000);
@@ -167,6 +166,12 @@ export class EditComponent {
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
       setTimeout(() => this.cerrarAlerta(), 4000);
+    }
+    }
+    catch (error) {
+      this.mostrarAlertaError = true;
+      this.mensajeError = 'Error al actualizar el municipio. Por favor, intente nuevamente.';
+      setTimeout(() => this.cerrarAlerta(), 5000);
     }
   }
 }

@@ -22,11 +22,13 @@ import { NgSelectModule } from '@ng-select/ng-select';
   styleUrl: './edit.component.scss',
 })
 export class EditComponent implements OnChanges {
+  // ===== PROPIEDADES DE ENTRADA Y SALIDA =====
   @Input() PEData: PuntoEmision | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<PuntoEmision>();
   @Output() onOverlayChange = new EventEmitter<boolean>();
 
+  // ===== MODELO DE DATOS =====
   puntoEmision: PuntoEmision = {
     puEm_Id: 0,
     puEm_Codigo: '',
@@ -45,6 +47,7 @@ export class EditComponent implements OnChanges {
     estado: '',
   };
 
+  // ===== PROPIEDADES PARA ALERTAS =====
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -53,9 +56,12 @@ export class EditComponent implements OnChanges {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
+  
+  // ===== LISTAS PARA DROPDOWNS =====
   Sucursales: any[] = [];
   PEOriginal: any = {};
 
+  // ===== MÉTODOS AUXILIARES =====
   ordenarPorMunicipioYDepartamento(sucursales: any[]): any[] {
     return sucursales.sort((a, b) => {
       if (a.depa_Descripcion < b.depa_Descripcion) return -1;
@@ -82,7 +88,7 @@ export class EditComponent implements OnChanges {
       })
       .subscribe((data) => {
         this.Sucursales = this.ordenarPorMunicipioYDepartamento(data);
-        console.log('Sucursales', this.Sucursales);
+        //console.log('Sucursales', this.Sucursales);
       });
   }
 
@@ -90,16 +96,43 @@ export class EditComponent implements OnChanges {
     this.cargarSucursales();
   }
 
+  // ===== MÉTODOS DE VALIDACIÓN =====
+  // Solo permite números en el campo Código
+  soloNumeros(event: KeyboardEvent): void {
+    const charCode = event.key.charCodeAt(0);
+    if (charCode < 48 || charCode > 57 || this.puntoEmision.puEm_Codigo.length >= 3) {
+      event.preventDefault();
+    }
+  }
+
+  // Evita pegar en el campo Código
+  evitarPegar(event: ClipboardEvent): void {
+    event.preventDefault();
+  }
+
+  // Valida que el código siempre sean 3 dígitos numéricos
+  validarCodigo(): void {
+    if (!/^[0-9]{0,3}$/.test(this.puntoEmision.puEm_Codigo)) {
+      this.puntoEmision.puEm_Codigo = this.puntoEmision.puEm_Codigo.replace(/[^0-9]/g, '').slice(0, 3);
+    }
+  }
+
+   codigoValido(): boolean {
+    return /^[0-9]{3}$/.test(this.puntoEmision.puEm_Codigo);
+  }
+
+  // ===== CICLO DE VIDA DEL COMPONENTE =====
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['PEData'] && changes['PEData'].currentValue) {
       this.puntoEmision = { ...changes['PEData'].currentValue };
       this.PEOriginal = { ...this.PEData };
-      //console.log('Punto Original', this.PEOriginal );
+      ////console.log('Punto Original', this.PEOriginal );
       this.mostrarErrores = false;
       this.cerrarAlerta();
     }
   }
 
+  // ===== MÉTODOS DE CONTROL DE FORMULARIO =====
   cancelar(): void {
     this.cerrarAlerta();
     this.onCancel.emit();
@@ -138,6 +171,7 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // ===== DETECCIÓN DE CAMBIOS =====
   obtenerListaCambios(): any[] {
     return Object.values(this.cambiosDetectados);
   }
@@ -195,12 +229,13 @@ export class EditComponent implements OnChanges {
     this.guardar();
   }
 
+  // ===== MÉTODOS PRIVADOS =====
   private guardar(): void {
     this.mostrarErrores = true;
 
     if (
       this.puntoEmision.puEm_Descripcion.trim() &&
-      this.puntoEmision.puEm_Codigo.trim() &&
+      this.codigoValido() &&
       this.puntoEmision.sucu_Id > 0
     ) {
       const PEActualizar = {
@@ -249,7 +284,7 @@ export class EditComponent implements OnChanges {
           },
         });
     } else {
-      console.log('Entro al else');
+      //console.log('Entro al else');
       this.mostrarAlertaWarning = true;
       this.mensajeWarning =
         'Por favor complete todos los campos requeridos antes de guardar.';

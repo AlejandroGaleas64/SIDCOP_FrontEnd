@@ -69,7 +69,7 @@
                     [(ngModel)]="descuento.desc_Descripcion"
                     placeholder="Ingrese la descripcion del descuento"
                     required>
-                  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+   
                 </div>
                 <div class="text-danger mt-1" *ngIf="!descuento.desc_Descripcion.trim() && mostrarErrores">
                   <small>La descripcion es requerida</small>
@@ -99,7 +99,7 @@
                           <option value=false  selected>Porcentaje</option>
                           
                   </select>
-                  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+    
                 </div>
                 <div class="text-danger mt-1" *ngIf="descuento.desc_Tipo == null && mostrarErrores">
                   <small>El campo tipo de descuento es requerido</small>
@@ -156,7 +156,7 @@
                     required
                     [min]="hoy"
                     >
-                  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+        
                 </div>
                 <div class="text-danger mt-1" *ngIf="!descuento.desc_FechaInicio && mostrarErrores">
                   <small>La Fecha inicio es requerida</small>
@@ -183,7 +183,7 @@
                     required
                     [min]="hoy"
                     >
-                  <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
+         
                 </div>
                 <div class="text-danger mt-1" *ngIf="!descuento.desc_FechaFin && mostrarErrores">
                   <small>La Fecha fin es requerida</small>
@@ -671,5 +671,22 @@
   </div>
 </div>
 
+
+
+
 <!-- Overlay para el modal -->
 <div class="modal-backdrop fade" [ngClass]="{ 'show': mostrarConfirmacionEditar }" *ngIf="mostrarConfirmacionEditar"></div>
+
+<div *ngIf="mostrarOverlayCarga" class="overlay-carga">
+  <div class="typing-indicator">
+    <div class="typing-circle"></div>
+    <div class="typing-circle"></div>
+    <div class="typing-circle"></div>
+    <div class="typing-shadow"></div>
+    <div class="typing-shadow"></div>
+    <div class="typing-shadow"></div>
+  </div>
+</div>
+
+  
+

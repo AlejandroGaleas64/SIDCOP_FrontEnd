@@ -7,7 +7,8 @@
       "TEXT": "Acceso",
       "LIST": {
         "USUARIOS": "Usuarios",
-        "ROLES": "Roles"
+        "ROLES": "Roles",
+        "MIGRACIONES": "Migraciones"
       }
     },
     "GENERAL": {
@@ -27,7 +28,8 @@
         "PROVEEDORES": "Proveedores",
          "EMPLEADOS": "Empleados",
          "VISITASCLIENTES": "Visitas Clientes",
-         "ESTADOSVISITA": "Estado de Visita"
+         "ESTADOSVISITA": "Estado de Visita",
+         "UNIDADESDEPESO": "Unidades de Peso"
       }
     },
     "INVENTARIO": {
@@ -54,7 +56,8 @@
         "LISTASPRECIOS": "Listas de Precios",
         "PEDIDOS": "Pedidos",
         "DEVOLUCIONES": "Devoluciones",
-        "VENTA": "Ventas"
+        "VENTA": "Ventas",
+        "METAS": "Metas"
       }
     },
     "LOGISTICA": {

@@ -164,7 +164,21 @@
                     <div class="card-body">
 
                       <div class="row">
-                        <div *ngFor="let cliente of getClientesPorCanal(canal.cana_Id)" class="col-md-6 mb-2">
+                        <div class="mb-2 input-group">
+                          <input
+                            type="text"
+                            class="form-control"
+                            placeholder="Filtrar clientes..."
+                            [(ngModel)]="newLista.canalFilters[canal.cana_Id]"
+                          />
+                          <button class="btn btn-outline-secondary" type="button" (click)="newLista.canalFilters[canal.cana_Id] = '' " >
+                            <i class="ri-close-line"></i>
+                          </button>
+
+                        </div>
+                        
+                        <!-- <div *ngFor="let cliente of getClientesPorCanal(canal.cana_Id)" class="col-md-6 mb-2">   -->
+                        <div *ngFor="let cliente of getClientesPorCanalFiltrado(canal.cana_Id, newLista.canalFilters[canal.cana_Id])" class="col-md-6 mb-2">
                           <div class="d-flex align-items-center">
                             <input
                               type="checkbox"
@@ -367,8 +381,23 @@
                       </div>
                       <div [collapse]="!canal.open">
                         <div class="card-body">
+
+                          <div class="mb-2 input-group ">
+                            <input
+                              type="text"
+                              class="form-control"
+                              placeholder="Filtrar clientes..."
+                              [(ngModel)]="newLista.canalFilters[canal.cana_Id]"
+                            />
+
+                            <button class="btn btn-outline-secondary" type="button" (click)="newLista.canalFilters[canal.cana_Id] = '' " >
+                              <i class="ri-close-line"></i>
+                            </button>
+                          </div>
+
                           <div class="row">
-                            <div *ngFor="let cliente of getClientesPorCanal(canal.cana_Id)" class="col-md-6 mb-2">
+                            <!-- <div *ngFor="let cliente of getClientesPorCanal(canal.cana_Id)" class="col-md-6 mb-2"> -->
+                              <div *ngFor="let cliente of getClientesPorCanalFiltrado(canal.cana_Id, newLista.canalFilters[canal.cana_Id])" class="col-md-6 mb-2">
                               <div class="d-flex align-items-center">
                                 <input
                                   type="checkbox"

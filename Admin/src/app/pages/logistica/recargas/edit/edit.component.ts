@@ -193,7 +193,7 @@ export class EditRecargaComponent implements OnChanges {
         Reca_FechaModificacion: new Date().toISOString()
     };
 
-    console.log('Datos a enviar:', JSON.stringify(body, null, 2));
+    //console.log('Datos a enviar:', JSON.stringify(body, null, 2));
 
     this.http.put<any>(`${environment.apiBaseUrl}/Recargas/Confirmar`, body, {
         headers: {
@@ -203,7 +203,7 @@ export class EditRecargaComponent implements OnChanges {
         }
     }).subscribe({
         next: (response) => {
-            console.log('Respuesta del servidor:', response);
+            //console.log('Respuesta del servidor:', response);
             if (response?.data?.code_Status === 1) {
                 this.mostrarExito(response.data.message_Status);
                 setTimeout(() => this.onSave.emit(this.recarga), 3000);
@@ -348,5 +348,21 @@ export class EditRecargaComponent implements OnChanges {
   // TrackBy function para optimizar el rendering de la tabla
   trackByProducto(index: number, producto: ProductosRecarga): any {
     return producto.prod_Id || index;
+  }
+
+  // Formatear fecha a un formato legible
+  formatDate(dateString: string): string {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }).format(date);
   }
 }

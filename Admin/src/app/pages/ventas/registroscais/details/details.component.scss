@@ -373,3 +373,162 @@
   font-weight: 500;
   color: #555;
 }
+
+/* Estilos especiales para la vista previa del rango de facturas */
+.detail-item-special {
+  background: linear-gradient(135deg, #f8f9fa 0%, #f5f5f5 100%);
+  border: 2px solid #D6B68A;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 32px rgba(214, 182, 138, 0.15);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.detail-item-special::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #D6B68A 0%, #141A2F 50%, #D6B68A 100%);
+  background-size: 200% 100%;
+  animation: gradientShift 3s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.detail-item-special:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(214, 182, 138, 0.25);
+}
+
+.detail-special-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.2rem;
+}
+
+.detail-icon-special {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin-right: 1rem;
+  box-shadow: 0 4px 16px rgba(20, 26, 47, 0.3);
+  background: #141A2F !important;
+  border: 3px solid #D6B68A;
+}
+
+.text-gold {
+  color: #D6B68A !important;
+}
+
+.detail-special-title h6 {
+  font-size: 1.1rem;
+  margin-bottom: 0.2rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.detail-special-title small {
+  font-size: 0.85rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.detail-special-content {
+  padding: 0.5rem 0;
+}
+
+.factura-preview-box {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border: 2px solid #D6B68A;
+  border-radius: 12px;
+  padding: 1.2rem 1.5rem;
+  text-align: center;
+  position: relative;
+  box-shadow: inset 0 2px 8px rgba(214, 182, 138, 0.1);
+}
+
+.factura-text {
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #141A2F;
+  letter-spacing: 1px;
+  line-height: 1.4;
+  margin-bottom: 0;
+  text-shadow: 0 1px 2px rgba(20, 26, 47, 0.1);
+  word-break: break-all;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+  .detail-item-special {
+    padding: 1.2rem;
+    margin-bottom: 1.2rem;
+  }
+  
+  .detail-special-header {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+  
+  .detail-icon-special {
+    margin-bottom: 0.8rem;
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .detail-item-special {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+  
+  .detail-icon-special {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+  }
+  
+  .detail-special-title h6 {
+    font-size: 1rem;
+  }
+  
+  .factura-text {
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+  }
+  
+  .factura-preview-box {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .factura-text {
+    font-size: 0.9rem;
+    letter-spacing: 0.3px;
+    line-height: 1.3;
+  }
+  
+  .detail-special-title h6 {
+    font-size: 0.95rem;
+  }
+  
+  .detail-special-title small {
+    font-size: 0.8rem;
+  }
+}

@@ -7,6 +7,23 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 import { InventarioSucursal } from 'src/app/Modelos/inventario/InventarioSucursal';
 import { Sucursales } from 'src/app/Modelos/general/Sucursales.Model';
 import { obtenerUsuario } from 'src/app/core/utils/user-utils';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { PdfReportService, ReportConfig, TableData } from 'src/app/reporteGlobal';
+
+// Interfaz para el historial
+interface HistorialInventarioSucursal {
+  hiSu_Id: number;
+  inSu_Id: number;
+  sucu_Id: number;
+  prod_Id: number;
+  prod_DescripcionCorta: string;
+  inSu_Cantidad: number;
+  inSu_NuevaCantidad: number;
+  hiSu_Accion: string;
+  hiSu_FechaAccion: string;
+  usua_Usuario: string;
+  hiSu_UsuarioAccion: number;
+}
 
 @Component({
   selector: 'app-inventariado',
@@ -45,19 +62,37 @@ export class InventariadoComponent implements OnInit {
   mostrarModalConfirmacion = false;
   productosModificados: { nombre: string, anterior: number, nuevo: number }[] = [];
 
-  constructor(private http: HttpClient) { }
+  // PROPIEDADES PARA PDF E HISTORIAL
+  historialInventario: HistorialInventarioSucursal[] = [];
+  historialFiltrado: HistorialInventarioSucursal[] = [];
+  pdfUrl: SafeResourceUrl | null = null;
+  cargandoPdf = false;
+  fechaInicio: string | null = null;
+  fechaFin: string | null = null;
+  mostrarHistorial = false;
+  // NUEVA PROPIEDAD PARA CONTROLAR EL VISOR PDF
+  mostrarVisorPDF = false;
 
+  //Constructor e inyección de dependencias
+  constructor(
+    private http: HttpClient,
+    private sanitizer: DomSanitizer,
+    private pdfService: PdfReportService
+  ) { }
+
+  // Ciclo de vida del componente
   ngOnInit(): void {
     this.cargarSucursales();
   }
 
+  // Metodo de cargar datos para el ddl 
   cargarSucursales(): void {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Sucursales/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (data) => {
         this.sucursales = data;
-        console.log('Sucursales cargadas:', this.sucursales);
+        //console.log('Sucursales cargadas:', this.sucursales);
       },
       error: (error) => {
         this.mostrarAlertaError = true;
@@ -67,18 +102,31 @@ export class InventariadoComponent implements OnInit {
     });
   }
 
+  // Método al cambiar la sucursal seleccionada
   onSucursalChange(sucuId: number): void {
     const id = Number(sucuId);
     if (id && id > 0) {
       this.sucursalSeleccionada = this.sucursales.find(s => s.sucu_Id === id) || null;
       this.cargarInventarioSucursal(id);
+      // Limpiar datos del historial al cambiar sucursal
+      this.historialInventario = [];
+      this.historialFiltrado = [];
+      this.pdfUrl = null;
+      this.mostrarHistorial = false;
+      this.mostrarVisorPDF = false; // OCULTAR EL VISOR PDF
     } else {
       this.sucursalSeleccionada = null;
       this.inventarioSucursal = [];
       this.inventarioFiltrado = [];
+      this.historialInventario = [];
+      this.historialFiltrado = [];
+      this.pdfUrl = null;
+      this.mostrarHistorial = false;
+      this.mostrarVisorPDF = false; // OCULTAR EL VISOR PDF
     }
   }
 
+  // Método para cargar el inventario de la sucursal seleccionada
   cargarInventarioSucursal(sucuId: number): void {
     this.http.get<any[]>(`${environment.apiBaseUrl}/InventarioSucursales/ListarPorSucursal/${sucuId}`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -96,6 +144,250 @@ export class InventariadoComponent implements OnInit {
     });
   }
 
+// MÉTODO MODIFICADO PARA CARGAR HISTORIAL Y MOSTRAR EN VISOR
+async cargarHistorialYGenerarPDF(): Promise<void> {
+  if (!this.sucursalSeleccionada) {
+    this.mostrarAlertaWarning = true;
+    this.mensajeWarning = 'Debe seleccionar una sucursal primero';
+    this.ocultarAlertas(3000);
+    return;
+  }
+
+  this.cargandoPdf = true;
+  
+  try {
+    // 1. CARGAR EL HISTORIAL PRIMERO
+    const historialData = await this.cargarHistorialPromise(this.sucursalSeleccionada.sucu_Id);
+    
+    if (historialData.length === 0) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'No hay historial disponible para esta sucursal';
+      this.ocultarAlertas(3000);
+      this.cargandoPdf = false;
+      return;
+    }
+
+    // 2. ASIGNAR LOS DATOS
+    this.historialInventario = historialData;
+    this.historialFiltrado = [...this.historialInventario];
+    this.mostrarHistorial = true;
+
+    // 3. GENERAR EL PDF Y MOSTRARLO EN EL VISOR (SIN DESCARGAR AUTOMÁTICAMENTE)
+    await this.generarPDFHistorial();
+    
+    // 4. MOSTRAR EL VISOR PDF Y OCULTAR LA TABLA
+    this.mostrarVisorPDF = true;
+
+  } catch (error) {
+    console.error('Error al cargar historial:', error);
+    this.mostrarAlertaError = true;
+    this.mensajeError = 'Error al cargar el historial de la sucursal';
+    this.ocultarAlertas(5000);
+    this.cargandoPdf = false;
+  }
+}
+
+// MÉTODO AUXILIAR QUE CONVIERTE LA LLAMADA HTTP EN PROMISE
+private cargarHistorialPromise(sucuId: number): Promise<HistorialInventarioSucursal[]> {
+  return new Promise((resolve, reject) => {
+    this.http.get<HistorialInventarioSucursal[]>(`${environment.apiBaseUrl}/InventarioSucursales/Historial/${sucuId}`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (data) => resolve(data),
+      error: (error) => reject(error)
+    });
+  });
+}
+
+// MÉTODO ORIGINAL MANTENIDO PARA SOLO CARGAR SIN PDF
+cargarHistorialSucursal(): void {
+  if (!this.sucursalSeleccionada) {
+    this.mostrarAlertaWarning = true;
+    this.mensajeWarning = 'Debe seleccionar una sucursal primero';
+    this.ocultarAlertas(3000);
+    return;
+  }
+
+  this.cargandoPdf = true;
+  
+  this.http.get<HistorialInventarioSucursal[]>(`${environment.apiBaseUrl}/InventarioSucursales/Historial/${this.sucursalSeleccionada.sucu_Id}`, {
+    headers: { 'x-api-key': environment.apiKey }
+  }).subscribe({
+    next: (data) => {
+      this.historialInventario = data;
+      this.historialFiltrado = [...this.historialInventario];
+      this.mostrarHistorial = true;
+      this.cargandoPdf = false;
+      
+      if (data.length === 0) {
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = 'No hay historial disponible para esta sucursal';
+        this.ocultarAlertas(3000);
+      }
+    },
+    error: (error) => {
+      this.mostrarAlertaError = true;
+      this.mensajeError = 'Error al cargar el historial de la sucursal';
+      this.ocultarAlertas(5000);
+      this.cargandoPdf = false;
+    }
+  });
+}
+
+// MÉTODO GENERARPDFHISTORIAL MODIFICADO (SIN DESCARGA AUTOMÁTICA)
+async generarPDFHistorial(): Promise<void> {
+  if (!this.sucursalSeleccionada || this.historialFiltrado.length === 0) {
+    this.mostrarAlertaWarning = true;
+    this.mensajeWarning = 'No hay datos para generar el reporte';
+    this.ocultarAlertas(3000);
+    return;
+  }
+
+  // Si ya estaba cargando, no iniciar otra carga
+  if (!this.cargandoPdf) {
+    this.cargandoPdf = true;
+  }
+
+  try {
+    // CONFIGURACIÓN DEL REPORTE
+    const config: ReportConfig = {
+      titulo: 'HISTORIAL DE INVENTARIO POR SUCURSAL',
+      orientacion: 'landscape',
+      mostrarResumen: true,
+      textoResumen: `Sucursal: ${this.sucursalSeleccionada.sucu_Descripcion} - Total de movimientos: ${this.historialFiltrado.length}`,
+    };
+
+    // DATOS DE LA TABLA
+    const tableData: TableData = {
+      head: [
+        [
+          { content: '#', styles: { halign: 'center', cellWidth: 20 } },
+          { content: 'Producto', styles: { cellWidth: 55 } },
+          { content: 'Cantidad Anterior', styles: { halign: 'center', cellWidth: 20 } },
+          { content: 'Cantidad Nueva', styles: { halign: 'center', cellWidth: 20 } },
+          { content: 'Diferencia', styles: { halign: 'center', cellWidth: 25 } },
+          { content: 'Acción', styles: { halign: 'center', cellWidth: 50 } },
+          { content: 'Fecha', styles: { halign: 'center', cellWidth: 40 } },
+          { content: 'Usuario', styles: { cellWidth: 30 } }
+        ]
+      ],
+      body: this.historialFiltrado.map((item, index) => {
+        const diferencia = item.inSu_NuevaCantidad - item.inSu_Cantidad;
+        const diferenciaTexto = diferencia > 0 ? `+${diferencia}` : diferencia.toString();
+        
+        return [
+          { content: (index + 1).toString(), styles: { halign: 'center' } },
+          this.pdfService.truncateText(item.prod_DescripcionCorta || '', 30),
+          { content: item.inSu_Cantidad.toString(), styles: { halign: 'center' } },
+          { content: item.inSu_NuevaCantidad.toString(), styles: { halign: 'center' } },
+          { 
+            content: diferenciaTexto, 
+            styles: { 
+              halign: 'center',
+              textColor: diferencia > 0 ? [0, 128, 0] : diferencia < 0 ? [255, 0, 0] : [0, 0, 0]
+            } 
+          },
+          { content: item.hiSu_Accion || 'N/A', styles: { halign: 'center' } },
+          { content: this.formatearFechaPDF(item.hiSu_FechaAccion), styles: { halign: 'center' } },
+          item.usua_Usuario || 'N/A'
+        ];
+      })
+    };
+
+    // GENERAR EL PDF (SIN DESCARGAR)
+    const pdfBlob = await this.pdfService.generarReportePDF(config, tableData, this.historialFiltrado);
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
+    
+    this.mostrarAlertaExito = true;
+    this.mensajeExito = 'PDF generado correctamente';
+    this.ocultarAlertas(3000);
+    
+  } catch (error) {
+    console.error('Error al generar PDF:', error);
+    this.mostrarAlertaError = true;
+    this.mensajeError = 'Error al generar el PDF: ' + (error as any)?.message || 'Error desconocido';
+    this.ocultarAlertas(5000);
+  } finally {
+    this.cargandoPdf = false;
+  }
+}
+
+// NUEVO MÉTODO PARA DESCARGAR EL PDF
+descargarPDF(): void {
+  if (!this.pdfUrl || !this.sucursalSeleccionada) {
+    this.mostrarAlertaWarning = true;
+    this.mensajeWarning = 'No hay PDF disponible para descargar';
+    this.ocultarAlertas(3000);
+    return;
+  }
+
+  try {
+    // Obtener la URL del blob desde SafeResourceUrl
+    const urlString = (this.pdfUrl as any).changingThisBreaksApplicationSecurity;
+    
+    // CREAR UN ENLACE TEMPORAL PARA DESCARGAR
+    const link = document.createElement('a');
+    link.href = urlString;
+    link.download = `Historial_Inventario_${this.sucursalSeleccionada.sucu_Descripcion}_${new Date().toISOString().split('T')[0]}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    this.mostrarAlertaExito = true;
+    this.mensajeExito = 'PDF descargado correctamente';
+    this.ocultarAlertas(3000);
+  } catch (error) {
+    this.mostrarAlertaError = true;
+    this.mensajeError = 'Error al descargar el PDF';
+    this.ocultarAlertas(3000);
+  }
+}
+
+// NUEVO MÉTODO PARA CERRAR EL VISOR PDF
+cerrarVisorPDF(): void {
+  this.mostrarVisorPDF = false;
+  // Opcional: limpiar la URL del PDF para liberar memoria
+  if (this.pdfUrl) {
+    const urlString = (this.pdfUrl as any).changingThisBreaksApplicationSecurity;
+    URL.revokeObjectURL(urlString);
+    this.pdfUrl = null;
+  }
+}
+
+  // FUNCIÓN AUXILIAR PARA FORMATEAR FECHA PARA EL PDF
+  private formatearFechaPDF(fecha: string): string {
+    try {
+      const fechaObj = new Date(fecha);
+      return fechaObj.toLocaleDateString('es-HN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return fecha;
+    }
+  }
+
+  // FUNCIÓN AUXILIAR PARA FORMATEAR FECHA EN LA VISTA
+  formatearFecha(fecha: string): string {
+    try {
+      const fechaObj = new Date(fecha);
+      return fechaObj.toLocaleString('es-HN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return fecha;
+    }
+  }
+
+  // Método al cambiar cantidad en el input
   onCantidadChange(index: number, nuevaCantidad: number): void {
     if (nuevaCantidad < 0) {
       nuevaCantidad = 0;
@@ -110,6 +402,7 @@ export class InventariadoComponent implements OnInit {
     }
   }
 
+  // Método para filtrar el inventario
   filtrarInventario(): void {
     if (!this.terminoBusqueda.trim()) {
       this.inventarioFiltrado = [...this.inventarioSucursal];
@@ -121,11 +414,13 @@ export class InventariadoComponent implements OnInit {
     }
   }
 
+  // Métodos para manejar la confirmación y actualización
   confirmarActualizarCantidades(): void {
     this.mostrarModalConfirmacion = false;
     this.abrirModalClave('cantidades');
   }
 
+  // Método para abrir el modal de contraseña
   abrirModalClave(accion: string): void {
     if (!this.sucursalSeleccionada) {
       this.mostrarAlertaWarning = true;
@@ -139,12 +434,14 @@ export class InventariadoComponent implements OnInit {
     this.mostrarModal = true;
   }
 
+  // Método para cerrar el modal de contraseña
   cerrarModal(): void {
     this.mostrarModal = false;
     this.claveIngresada = '';
     this.accionPendiente = '';
   }
 
+  // Método para validar la clave ingresada
   validarClave(): void {
     if (!this.claveIngresada.trim()) {
       this.mostrarAlertaWarning = true;
@@ -196,6 +493,7 @@ export class InventariadoComponent implements OnInit {
     });
   }
 
+  // Método para mostrar el modal de confirmación si hay cambios
   mostrarConfirmacionCantidades(): void {
     this.productosModificados = this.inventarioSucursal
       .filter(item => {
@@ -220,6 +518,7 @@ export class InventariadoComponent implements OnInit {
     }
   }
 
+  // Método para actualizar el inventario desde el servidor
   actualizarInventario(): void {
     if (!this.sucursalSeleccionada) return;
 
@@ -251,6 +550,7 @@ export class InventariadoComponent implements OnInit {
     });
   }
 
+  // Método para actualizar las cantidades modificadas
   actualizarCantidades(): void {
     if (!this.sucursalSeleccionada) return;
 
@@ -299,6 +599,7 @@ export class InventariadoComponent implements OnInit {
     });
   }
 
+  // Método para verificar si hay cambios en las cantidades
   tienenCambios(): boolean {
     return this.inventarioSucursal.some((item, index) => {
       const original = this.inventarioOriginal.find(orig => orig.inSu_Id === item.inSu_Id);
@@ -306,6 +607,7 @@ export class InventariadoComponent implements OnInit {
     });
   }
 
+  // Métodos para manejar las alertas
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mostrarAlertaError = false;
@@ -315,6 +617,7 @@ export class InventariadoComponent implements OnInit {
     this.mensajeWarning = '';
   }
 
+  // Ocultar alertas después de un tiempo
   private ocultarAlertas(delay: number): void {
     setTimeout(() => {
       this.cerrarAlerta();

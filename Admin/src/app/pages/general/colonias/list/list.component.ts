@@ -81,10 +81,10 @@ export class ListComponent implements OnInit {
   // 🔧 PERSONALIZA AQUÍ TU CONFIGURACIÓN DE EXPORTACIÓN 🔧
   private readonly exportConfig = {
     // Configuración básica
-    title: 'Listado de Colonias',                    // Título del reporte
-    filename: 'Colonias',                           // Nombre base del archivo
-    department: 'General',                         // Departamento
-    additionalInfo: 'Sistema de Gestión',         // Información adicional
+    title: 'Listado de Colonias',                    
+    filename: 'Colonias',                          
+    department: 'General',                         
+    additionalInfo: '',         
     
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
@@ -143,7 +143,6 @@ export class ListComponent implements OnInit {
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -151,12 +150,6 @@ export class ListComponent implements OnInit {
   }
 
   editar(colonia: Colonias): void {
-    console.log('Abriendo formulario de edición para:', colonia);
-    console.log('Datos específicos:', {
-      codigo: colonia.colo_Id,
-      descripcion: colonia.colo_Descripcion,
-      completo: colonia
-    });
     this.coloniaEditando = { ...colonia }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -165,7 +158,6 @@ export class ListComponent implements OnInit {
   }
 
    detalles(colonia: Colonias): void {
-    console.log('Abriendo detalles para:', colonia);
     // Validar campos esperados
     const camposEsperados = [
       'colo_Descripcion', 'muni_Descripcion', 'depa_Descripcion',
@@ -179,11 +171,6 @@ export class ListComponent implements OnInit {
         faltantes.push(campo);
       }
     });
-    if (faltantes.length > 0) {
-      console.warn('ADVERTENCIA: El objeto colonia recibido NO contiene los siguientes campos esperados por el detalle:', faltantes);
-    } else {
-      console.log('Todos los campos esperados están presentes.');
-    }
     this.coloniaDetalle = { 
       ...colonia, 
     };
@@ -274,7 +261,6 @@ export class ListComponent implements OnInit {
       this.manejarResultadoExport(resultado);
       
     } catch (error) {
-      console.error(`Error en exportación ${tipo}:`, error);
       this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
     } finally {
       this.exportando = false;
@@ -342,7 +328,6 @@ export class ListComponent implements OnInit {
       );
       
     } catch (error) {
-      console.error('Error obteniendo datos:', error);
       throw error;
     }
   }
@@ -460,11 +445,10 @@ export class ListComponent implements OnInit {
             .filter((a: string) => a.length > 0);
         }
       } catch (e) {
-        console.error('Error al parsear permisosJson:', e);
+        //console.error('Error al parsear permisosJson:', e);
       }
     }
     this.accionesDisponibles = accionesArray;
-    console.log('Acciones disponibles para colonias:', this.accionesDisponibles);
   }
 
   // Inicializar componente
@@ -484,7 +468,7 @@ export class ListComponent implements OnInit {
     }).subscribe(data => {
       this.municipios = data;
     }, error => {
-      console.error('Error al cargar los municipios', error);
+      //console.error('Error al cargar los municipios', error);
     });
   }
 
@@ -508,88 +492,29 @@ export class ListComponent implements OnInit {
 
   guardarColonias(colonia: Colonias): void {
     this.mostrarOverlayCarga = true;
-    this.http.post(`${environment.apiBaseUrl}/Colonia/Crear`, colonia, {
-      headers: { 
-        'X-Api-Key': environment.apiKey,
-        'accept': '*/*'
-      }
-    }).subscribe({
-      next: (response: any) => {
-        setTimeout(() => {
-          this.cargardatos(false);
-          if (response.success && response.data && response.data.code_Status === 1) {
-            this.mensajeExito = 'Colonia creada exitosamente';
-            this.mostrarAlertaExito = true;
-            setTimeout(() => {
-              this.mostrarAlertaExito = false;
-              this.mensajeExito = '';
-            }, 3000);
-            this.cerrarFormulario();
-          } else {
-            this.mostrarAlertaError = true;
-            this.mensajeError = response.data?.message_Status || 'Error al crear la colonia.';
-            setTimeout(() => {
-              this.mostrarAlertaError = false;
-              this.mensajeError = '';
-            }, 5000);
-          }
-        }, 1000);
-      },
-      error: (error) => {
-        this.mostrarOverlayCarga = false;
-        this.mostrarAlertaError = true;
-        this.mensajeError = 'Error inesperado al crear la colonia.';
-        setTimeout(() => {
-          this.mostrarAlertaError = false;
-          this.mensajeError = '';
-        }, 5000);
-      }
-    });
+    setTimeout(()=> {
+      this.cargardatos(false);
+      this.showCreateForm = false;
+      setTimeout(() => {
+        this.mostrarAlertaExito = false;
+        this.mensajeExito = '';
+      }, 3000);
+    }, 1000);
   }
 
   actualizarColonias(colonia: Colonias): void {
     this.mostrarOverlayCarga = true;
-    this.http.post(`${environment.apiBaseUrl}/Colonia/Actualizar`, colonia, {
-      headers: { 
-        'X-Api-Key': environment.apiKey,
-        'accept': '*/*'
-      }
-    }).subscribe({
-      next: (response: any) => {
-        setTimeout(() => {
-          this.cargardatos(false);
-          if (response.success && response.data && response.data.code_Status === 1) {
-            this.mensajeExito = 'Colonia actualizada exitosamente';
-            this.mostrarAlertaExito = true;
-            setTimeout(() => {
-              this.mostrarAlertaExito = false;
-              this.mensajeExito = '';
-            }, 3000);
-            this.cerrarFormularioEdicion();
-          } else {
-            this.mostrarAlertaError = true;
-            this.mensajeError = response.data?.message_Status || 'Error al actualizar la colonia.';
-            setTimeout(() => {
-              this.mostrarAlertaError = false;
-              this.mensajeError = '';
-            }, 5000);
-          }
-        }, 1000);
-      },
-      error: (error) => {
-        this.mostrarOverlayCarga = false;
-        this.mostrarAlertaError = true;
-        this.mensajeError = 'Error inesperado al actualizar la colonia.';
-        setTimeout(() => {
-          this.mostrarAlertaError = false;
-          this.mensajeError = '';
-        }, 5000);
-      }
-    });
+    setTimeout(()=> {
+      this.cargardatos(false);
+      this.showEditForm = false;
+      setTimeout(() => {
+        this.mostrarAlertaExito = false;
+        this.mensajeExito = '';
+      }, 3000);
+    }, 1000);
   }
 
   confirmarEliminar(  colonia: Colonias): void {
-    console.log('Solicitando confirmación para eliminar:', colonia);
     this.coloniaAEliminar = colonia;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones

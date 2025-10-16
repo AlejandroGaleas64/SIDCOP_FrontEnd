@@ -1,32 +1,82 @@
+<!--
+  Componente visual de detalles de factura de venta.
+  Incluye alertas, botones de acción, información de factura, cliente, vendedor, resumen financiero,
+  productos, ubicación y configuración de impresión ZPL.
+-->
 <div class="details-container">
-  
   <!-- Contenedor de alertas flotantes -->
+  <!-- Sección de alertas flotantes para mostrar errores -->
   <div class="alert-container">
     <!-- Alerta de error -->
-    <div *ngIf="mostrarAlertaError" class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+    <div
+      *ngIf="mostrarAlertaError"
+      class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert"
+      role="alert"
+    >
       <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
       <strong>¡Error!</strong> {{ mensajeError }}
-      <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+      <button
+        type="button"
+        class="btn-close"
+        (click)="cerrarAlerta()"
+        aria-label="Close"
+      ></button>
     </div>
   </div>
-  
+
   <!-- Botón de regresar -->
-  <div class="details-header-button">
+  <!-- Botones principales: regresar, generar PDF y abrir configuración de impresión -->
+  <div class="d-flex justify-content-between mb-3 flex-wrap">
     <button type="button" class="btn btn-primary mb-3" (click)="cerrar()">
       <span class="btn-text">Regresar</span>
       <span class="btn-icon"><i class="ri-arrow-left-line"></i></span>
     </button>
+
+    <button
+      type="button"
+      class="btn btn-primary mb-3"
+      (click)="EnviarFactura()"
+    >
+      <span class="btn-text">Factura</span>
+      <span class="btn-icon"><i class="ri-file-list-3-line"></i></span>
+    </button>
+
+    <button
+      (click)="abrirConfiguracionImpresion()"
+      [disabled]="!facturaDetalle || imprimiendo"
+      class="btn btn-primary mb-3"
+      title="Imprimir factura en impresora ZPL"
+    >
+      <span class="btn-text" *ngIf="!imprimiendo">Imprimir Factura</span>
+      <span class="btn-text" *ngIf="imprimiendo">Procesando...</span>
+      <span class="btn-icon">
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+          ></path>
+        </svg>
+      </span>
+    </button>
   </div>
-  
+
   <!-- Contenido de detalles -->
+  <!-- Contenido principal de detalles, visible si hay datos y no está cargando -->
   <div *ngIf="!cargando && facturaDetalle" class="details-content">
-
-
-    <!-- Información de la Factura -->
+    <!-- Información general de la factura -->
     <div class="row g-4 align-items-stretch mb-4">
       <div class="col-md-12">
         <div class="card h-100 shadow-sm factura-details-card bg-dark-blue">
-          <div class="card-header d-flex align-items-center rounded-top details-header-custom">
+          <div
+            class="card-header d-flex align-items-center rounded-top details-header-custom"
+          >
             <i class="ri-file-list-3-line me-2 fs-4"></i>
             <h5 class="mb-0">Detalles de la Factura</h5>
           </div>
@@ -34,55 +84,79 @@
             <div class="row g-3">
               <div class="col-12 col-sm-6 col-md-3">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-hashtag"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-hashtag"></i>
+                  </div>
                   <div class="detail-content">
                     <div class="detail-label">Número de Factura</div>
-                    <div class="detail-value">{{ facturaDetalle.fact_Numero || 'N/A' }}</div>
+                    <div class="detail-value">
+                      {{ facturaDetalle.fact_Numero || "N/A" }}
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="col-12 col-sm-6 col-md-3">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-file-copy-line"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-file-copy-line"></i>
+                  </div>
                   <div class="detail-content">
                     <div class="detail-label">Tipo de Documento</div>
-                    <div class="detail-value">{{ facturaDetalle.fact_TipoDeDocumento || 'N/A' }}</div>
+                    <div class="detail-value">
+                      {{ facturaDetalle.fact_TipoDeDocumento || "N/A" }}
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="col-12 col-sm-6 col-md-3">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-money-dollar-circle-line"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-money-dollar-circle-line"></i>
+                  </div>
                   <div class="detail-content">
                     <div class="detail-label">Tipo de Venta</div>
-                    <div class="detail-value">{{ facturaDetalle.fact_TipoVenta || 'N/A' }}</div>
+                    <div class="detail-value">
+                      {{ facturaDetalle.fact_TipoVenta || "N/A" }}
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="col-12 col-sm-6 col-md-3">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-calendar-line"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-calendar-line"></i>
+                  </div>
                   <div class="detail-content">
                     <div class="detail-label">Fecha de Emisión</div>
-                    <div class="detail-value">{{ formatearFecha(facturaDetalle.fact_FechaEmision) }}</div>
+                    <div class="detail-value">
+                      {{ formatearFecha(facturaDetalle.fact_FechaEmision) }}
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="col-12 col-sm-6">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-file-text-line"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-file-text-line"></i>
+                  </div>
                   <div class="detail-content">
                     <div class="detail-label">Referencia</div>
-                    <div class="detail-value">{{ facturaDetalle.fact_Referencia || 'N/A' }}</div>
+                    <div class="detail-value">
+                      {{ facturaDetalle.fact_Referencia || "N/A" }}
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="col-12 col-sm-6">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-shield-check-line"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-shield-check-line"></i>
+                  </div>
                   <div class="detail-content">
                     <div class="detail-label">Autorizado Por</div>
-                    <div class="detail-value">{{ facturaDetalle.fact_AutorizadoPor || 'N/A' }}</div>
+                    <div class="detail-value">
+                      {{ facturaDetalle.fact_AutorizadoPor || "N/A" }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -92,11 +166,13 @@
       </div>
     </div>
 
-    <!-- Información del Cliente y Vendedor -->
+    <!-- Información del cliente y del vendedor -->
     <div class="row g-4 align-items-stretch mb-4">
       <div class="col-md-6">
         <div class="card h-100 shadow-sm cliente-details-card bg-dark-blue">
-          <div class="card-header d-flex align-items-center rounded-top details-header-custom">
+          <div
+            class="card-header d-flex align-items-center rounded-top details-header-custom"
+          >
             <i class="ri-user-line me-2 fs-4"></i>
             <h5 class="mb-0">Información del Cliente</h5>
           </div>
@@ -104,37 +180,53 @@
             <div class="row g-3">
               <div class="col-12">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-user-3-line"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-user-3-line"></i>
+                  </div>
                   <div class="detail-content">
                     <div class="detail-label">Nombre</div>
-                    <div class="detail-value">{{ facturaDetalle.cliente || 'N/A' }}</div>
+                    <div class="detail-value">
+                      {{ facturaDetalle.cliente || "N/A" }}
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="col-12">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-file-text-line"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-file-text-line"></i>
+                  </div>
                   <div class="detail-content">
                     <div class="detail-label">RTN</div>
-                    <div class="detail-value">{{ facturaDetalle.clie_RTN || 'N/A' }}</div>
+                    <div class="detail-value">
+                      {{ facturaDetalle.clie_RTN || "N/A" }}
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="col-12">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-phone-line"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-phone-line"></i>
+                  </div>
                   <div class="detail-content">
                     <div class="detail-label">Teléfono</div>
-                    <div class="detail-value">{{ facturaDetalle.clie_Telefono || 'N/A' }}</div>
+                    <div class="detail-value">
+                      {{ facturaDetalle.clie_Telefono || "N/A" }}
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="col-12">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-map-pin-line"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-map-pin-line"></i>
+                  </div>
                   <div class="detail-content">
                     <div class="detail-label">Dirección</div>
-                    <div class="detail-value">{{ facturaDetalle.diCl_DireccionExacta || 'N/A' }}</div>
+                    <div class="detail-value">
+                      {{ facturaDetalle.diCl_DireccionExacta || "N/A" }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -144,7 +236,9 @@
       </div>
       <div class="col-md-6">
         <div class="card h-100 shadow-sm vendedor-details-card bg-dark-blue">
-          <div class="card-header d-flex align-items-center rounded-top details-header-custom">
+          <div
+            class="card-header d-flex align-items-center rounded-top details-header-custom"
+          >
             <i class="ri-user-star-line me-2 fs-4"></i>
             <h5 class="mb-0">Información del Vendedor</h5>
           </div>
@@ -152,19 +246,27 @@
             <div class="row g-3">
               <div class="col-12">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-user-3-line"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-user-3-line"></i>
+                  </div>
                   <div class="detail-content">
                     <div class="detail-label">Nombre</div>
-                    <div class="detail-value">{{ facturaDetalle.vendedor || 'N/A' }}</div>
+                    <div class="detail-value">
+                      {{ facturaDetalle.vendedor || "N/A" }}
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="col-12">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-phone-line"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-phone-line"></i>
+                  </div>
                   <div class="detail-content">
                     <div class="detail-label">Teléfono</div>
-                    <div class="detail-value">{{ facturaDetalle.vend_Telefono || 'N/A' }}</div>
+                    <div class="detail-value">
+                      {{ facturaDetalle.vend_Telefono || "N/A" }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -174,11 +276,13 @@
       </div>
     </div>
 
-    <!-- Resumen Financiero -->
+    <!-- Resumen financiero de la factura: subtotal, impuestos, descuento y total -->
     <div class="row g-4 align-items-stretch mb-4">
       <div class="col-md-12">
         <div class="card h-100 shadow-sm resumen-details-card bg-dark-blue">
-          <div class="card-header d-flex align-items-center rounded-top details-header-custom">
+          <div
+            class="card-header d-flex align-items-center rounded-top details-header-custom"
+          >
             <i class="ri-calculator-line me-2 fs-4"></i>
             <h5 class="mb-0">Resumen Financiero</h5>
           </div>
@@ -186,37 +290,57 @@
             <div class="row g-3">
               <div class="col-12 col-sm-6 col-md-3">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-money-dollar-circle-line"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-money-dollar-circle-line"></i>
+                  </div>
                   <div class="detail-content">
                     <div class="detail-label">Subtotal</div>
-                    <div class="detail-value">L. {{ facturaDetalle.fact_Subtotal?.toFixed(2) || '0.00' }}</div>
+                    <div class="detail-value">
+                      L.
+                      {{ facturaDetalle.fact_Subtotal?.toFixed(2) || "0.00" }}
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="col-12 col-sm-6 col-md-3">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-percent-line"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-percent-line"></i>
+                  </div>
                   <div class="detail-content">
                     <div class="detail-label">Impuestos</div>
-                    <div class="detail-value">L. {{ calcularTotalImpuestos()?.toFixed(2) || '0.00' }}</div>
+                    <div class="detail-value">
+                      L. {{ calcularTotalImpuestos()?.toFixed(2) || "0.00" }}
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="col-12 col-sm-6 col-md-3">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-discount-percent-line"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-discount-percent-line"></i>
+                  </div>
                   <div class="detail-content">
                     <div class="detail-label">Descuento</div>
-                    <div class="detail-value">L. {{ facturaDetalle.fact_TotalDescuento?.toFixed(2) || '0.00' }}</div>
+                    <div class="detail-value">
+                      L.
+                      {{
+                        facturaDetalle.fact_TotalDescuento?.toFixed(2) || "0.00"
+                      }}
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="col-12 col-sm-6 col-md-3">
                 <div class="detail-item">
-                  <div class="detail-icon bg-dark-blue text-white"><i class="ri-money-dollar-box-line"></i></div>
+                  <div class="detail-icon bg-dark-blue text-white">
+                    <i class="ri-money-dollar-box-line"></i>
+                  </div>
                   <div class="detail-content">
                     <div class="detail-label">Total</div>
-                    <div class="detail-value fw-bold fs-5">L. {{ facturaDetalle.fact_Total?.toFixed(2) || '0.00' }}</div>
+                    <div class="detail-value fw-bold fs-5">
+                      L. {{ facturaDetalle.fact_Total?.toFixed(2) || "0.00" }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -226,16 +350,20 @@
       </div>
     </div>
 
-    <!-- Sección de Productos de la Factura -->
+    <!-- Listado de productos incluidos en la factura -->
     <div class="row mt-4">
       <div class="col-12">
         <div class="card shadow-sm">
-          <div class="card-header d-flex align-items-center justify-content-between">
+          <div
+            class="card-header d-flex align-items-center justify-content-between"
+          >
             <div class="d-flex align-items-center">
               <i class="ri-box-3-line me-2 fs-4"></i>
               <h5 class="mb-0">Productos de la Factura</h5>
             </div>
-            <span class="badge bg-dark-blue">{{ detallesFactura.length }} productos</span>
+            <span class="badge bg-dark-blue"
+              >{{ detallesFactura.length }} productos</span
+            >
           </div>
           <div class="card-body">
             <!-- Loading state para detalles -->
@@ -247,25 +375,39 @@
             </div>
 
             <!-- Estado vacío -->
-            <div *ngIf="!cargandoDetalles && detallesFactura.length === 0" class="text-center py-5">
+            <div
+              *ngIf="!cargandoDetalles && detallesFactura.length === 0"
+              class="text-center py-5"
+            >
               <i class="ri-inbox-line fs-1 text-muted"></i>
               <p class="text-muted mt-2">No hay productos en esta factura</p>
             </div>
 
             <!-- Grid de productos -->
-            <div *ngIf="!cargandoDetalles && detallesFactura.length > 0" class="row g-3">
-              <div *ngFor="let detalle of detallesFactura; trackBy: trackByDetalleId" 
-                   class="col-12 col-sm-6 col-md-4 col-lg-3">
-                <div class="card product-card h-100 shadow-sm">
+            <div
+              *ngIf="!cargandoDetalles && detallesFactura.length > 0"
+              class="row g-6"
+            >
+              <div
+                *ngFor="
+                  let detalle of detallesFactura;
+                  trackBy: trackByDetalleId
+                "
+                class="col-10 col-sm-6 col-md-6 col-lg-4 flex-column"
+              >
+                <div
+                  class="card product-card h-100 flex-wrap shadow-sm m-tooltip"
+                >
                   <!-- Imagen del producto -->
                   <div class="product-image-container">
-                    <img 
-                      [src]="getImageUrl(detalle.prod_Imagen)" 
+                    <img
+                      [src]="getImageUrl(detalle.prod_Imagen)"
                       [alt]="detalle.prod_Descripcion || 'Producto'"
                       class="product-image"
                       (error)="onImageError($event)"
-                      loading="lazy">
-                    
+                      loading="lazy"
+                    />
+
                     <!-- Badge de cantidad -->
                     <div class="quantity-badge">
                       <i class="ri-archive-line me-1"></i>
@@ -284,9 +426,11 @@
                     </div>
 
                     <!-- Descripción del producto -->
-                    <h6 class="product-title mb-2" 
-                        [title]="detalle.prod_Descripcion || 'Sin descripción'">
-                      {{ detalle.prod_Descripcion || 'Sin descripción' }}
+                    <h6
+                      class="product-title mb-2"
+                      [title]="detalle.prod_Descripcion || 'Sin descripción'"
+                    >
+                      {{ detalle.prod_Descripcion || "Sin descripción" }}
                     </h6>
 
                     <!-- Información adicional -->
@@ -297,55 +441,74 @@
                           <i class="ri-stack-line me-1"></i>
                           Cantidad:
                         </span>
-                        <span class="info-value fw-bold">{{ detalle.faDe_Cantidad || 0 }}</span>
+                        <span class="info-value">{{
+                          detalle.faDe_Cantidad || 0
+                        }}</span>
                       </div>
 
                       <!-- Precio Unitario -->
-                      <div class="info-row mt-1">
+                      <div class="info-row">
                         <span class="info-label">
                           <i class="ri-price-tag-3-line me-1"></i>
-                          Precio Unit.:
+                          Precio:
                         </span>
-                        <span class="info-value">L. {{ detalle.faDe_PrecioUnitario?.toFixed(2) || '0.00' }}</span>
+                        <span class="info-value"
+                          >L.{{
+                            detalle.faDe_PrecioUnitario?.toFixed(2) || "0.00"
+                          }}</span
+                        >
                       </div>
 
                       <!-- Subtotal -->
-                      <div class="info-row mt-1">
+                      <div class="info-row">
                         <span class="info-label">
                           <i class="ri-calculator-line me-1"></i>
                           Subtotal:
                         </span>
-                        <span class="info-value">L. {{ detalle.faDe_Subtotal?.toFixed(2) || '0.00' }}</span>
+                        <span class="info-value"
+                          >L.{{
+                            detalle.faDe_Subtotal?.toFixed(2) || "0.00"
+                          }}</span
+                        >
+                      </div>
+
+                      <!-- Descuento -->
+                      <div class="info-row">
+                        <span class="info-label">
+                          <i class="bx bxs-discount me-1"></i>
+                          Descuento:
+                        </span>
+                        <span class="info-value"
+                          >L.{{
+                            detalle.faDe_Descuento?.toFixed(2) || "0.00"
+                          }}</span
+                        >
                       </div>
 
                       <!-- Impuesto -->
-                      <div class="info-row mt-1">
+                      <div class="info-row">
                         <span class="info-label">
                           <i class="ri-percent-line me-1"></i>
                           Impuesto:
                         </span>
-                        <span class="info-value">L. {{ detalle.faDe_Impuesto?.toFixed(2) || '0.00' }}</span>
+                        <span class="info-value"
+                          >L.{{
+                            detalle.faDe_Impuesto?.toFixed(2) || "0.00"
+                          }}</span
+                        >
                       </div>
 
                       <!-- Total -->
-                      <div class="info-row mt-1">
+                      <div class="info-row">
                         <span class="info-label">
                           <i class="ri-money-dollar-box-line me-1"></i>
                           Total:
                         </span>
-                        <span class="info-value fw-bold text-success">L. {{ detalle.faDe_Total?.toFixed(2) || '0.00' }}</span>
-                      </div>
-
-                      <!-- Información del impuesto -->
-                      <div class="info-row mt-2" *ngIf="detalle.impu_Descripcion">
-                        <span class="info-label">
-                          <i class="ri-information-line me-1"></i>
-                          Impuesto:
-                        </span>
-                        <span class="info-value" 
-                              [title]="detalle.impu_Descripcion">
-                          {{ (detalle.impu_Descripcion | slice:0:20) }}{{ (detalle.impu_Descripcion && detalle.impu_Descripcion.length > 20) ? '...' : '' }}
-                        </span>
+                        <span class="info-value fw-bold text-success"
+                          >L.{{
+                            detalle.faDe_Total?.toFixed(2) || "0.00"
+                          }}</span
+                        >
                       </div>
                     </div>
                   </div>
@@ -357,10 +520,11 @@
       </div>
     </div>
 
-
-
-    <!-- Información de Ubicación (si está disponible) -->
-    <div class="row mt-4" *ngIf="facturaDetalle.fact_Latitud && facturaDetalle.fact_Longitud">
+    <!-- Mapa y datos de ubicación de la venta, si están disponibles -->
+    <div
+      class="row mt-4"
+      *ngIf="facturaDetalle.fact_Latitud && facturaDetalle.fact_Longitud"
+    >
       <div class="col-12">
         <div class="card shadow-sm">
           <div class="card-header d-flex align-items-center">
@@ -369,7 +533,7 @@
           </div>
           <div class="card-body">
             <div class="row g-3">
-              <div class="col-12 col-sm-6">
+              <!-- <div class="col-12 col-sm-6">
                 <div class="detail-item">
                   <div class="detail-icon bg-dark-blue text-white"><i class="ri-map-pin-line"></i></div>
                   <div class="detail-content">
@@ -386,7 +550,13 @@
                     <div class="detail-value">{{ facturaDetalle.fact_Longitud }}</div>
                   </div>
                 </div>
-              </div>
+              </div> -->
+              <app-mapa-selector
+                [puntosVista]="puntosVista"
+                [mostrar]="true"
+                [mostrarPuntos]="true"
+              >
+              </app-mapa-selector>
             </div>
           </div>
         </div>
@@ -394,11 +564,282 @@
     </div>
   </div>
 
-  <!-- Loading state -->
+  <!-- Estado de carga general de los detalles -->
   <div *ngIf="cargando" class="text-center py-5">
     <div class="spinner-border text-primary" role="status">
       <span class="visually-hidden">Cargando detalles...</span>
     </div>
     <p class="text-muted mt-2">Cargando detalles de la factura...</p>
+  </div>
+</div>
+
+<!-- Modal para configuración de impresión ZPL, permite seleccionar impresora y método -->
+<div
+  class="modal fade modal-print-config"
+  [class.show]="mostrarConfiguracionImpresion"
+  [style.display]="mostrarConfiguracionImpresion ? 'block' : 'none'"
+  id="modalConfiguracionImpresion"
+  tabindex="-1"
+  aria-labelledby="modalConfiguracionImpresionLabel"
+  [attr.aria-hidden]="!mostrarConfiguracionImpresion"
+  (click)="onBackdropClick($event)"
+  *ngIf="mostrarConfiguracionImpresion"
+>
+  <div
+    class="modal-dialog modal-dialog-centered"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="modalConfiguracionImpresionLabel">
+          <i class="ri-printer-line me-2"></i>
+          Configuración de Impresión ZPL
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          (click)="cerrarConfiguracionImpresion()"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Sección de Método de Impresión -->
+        <div class="config-section">
+          <div class="config-title">
+            <i class="ri-settings-3-line"></i>
+            Seleccionar Método de Impresión
+          </div>
+
+          <!-- Nueva Opción: Zebra Browser Print Wrapper (Recomendado) -->
+          <div
+            class="method-option"
+            [class.active]="
+              configuracionImpresion.metodoImpresion === 'zebra-wrapper'
+            "
+            (click)="seleccionarMetodo('zebra-wrapper')"
+          >
+            <div class="method-title">
+              <i class="ri-printer-cloud-line me-2"></i>
+              Zebra Browser Print Wrapper (Recomendado)
+            </div>
+            <p class="method-description">
+              Conecta directamente con impresoras Zebra usando la librería
+              optimizada
+            </p>
+
+            <!-- Controles Zebra Wrapper -->
+            <div
+              class="zebra-wrapper-controls"
+              *ngIf="configuracionImpresion.metodoImpresion === 'zebra-wrapper'"
+            >
+              <!-- Estado de conexión -->
+              <div class="connection-status mb-3">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="status-info">
+                    <span
+                      class="badge"
+                      [class.bg-success]="browserPrintDisponible"
+                      [class.bg-danger]="!browserPrintDisponible"
+                    >
+                      <i class="ri-circle-fill me-1"></i>
+                      {{
+                        browserPrintDisponible
+                          ? "Zebra Wrapper Conectado"
+                          : "Sin Impresoras Zebra"
+                      }}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
+                    (click)="refrescarDispositivos()"
+                    [disabled]="verificandoConexion"
+                  >
+                    <i
+                      class="ri-refresh-line me-1"
+                      [class.spin]="verificandoConexion"
+                    ></i>
+                    <span *ngIf="!verificandoConexion">Actualizar</span>
+                    <span *ngIf="verificandoConexion">Buscando...</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Lista de impresoras disponibles -->
+              <div
+                class="printer-selection mb-3"
+                *ngIf="
+                  browserPrintDisponible && dispositivosDisponibles.length > 0
+                "
+              >
+                <label class="form-label">Impresoras Zebra Disponibles:</label>
+                <div class="printer-list">
+                  <div
+                    class="printer-item"
+                    *ngFor="let dispositivo of dispositivosDisponibles"
+                    [class.selected]="
+                      dispositivoSeleccionado?.uid === dispositivo.uid
+                    "
+                    (click)="seleccionarDispositivo(dispositivo)"
+                  >
+                    <div class="printer-info">
+                      <div class="printer-name">
+                        <i class="ri-printer-line me-2"></i>
+                        {{ dispositivo.name }}
+                      </div>
+                      <div class="printer-details text-muted small">
+                        {{ dispositivo.connection }} -
+                        {{ dispositivo.deviceType }}
+                      </div>
+                    </div>
+                    <div
+                      class="printer-actions"
+                      *ngIf="dispositivoSeleccionado?.uid === dispositivo.uid"
+                    >
+                      <i class="ri-check-circle-fill text-success"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Información de impresora seleccionada -->
+              <div
+                class="selected-printer mb-3"
+                *ngIf="dispositivoSeleccionado"
+              >
+                <div class="alert alert-info d-flex align-items-center">
+                  <i class="ri-printer-line me-2"></i>
+                  <div class="flex-grow-1">
+                    <strong>Impresora seleccionada:</strong>
+                    {{ informacionImpresora }}
+                  </div>
+                </div>
+
+                <!-- Estado de la impresora -->
+                <div
+                  class="alert mb-3"
+                  [class.alert-success]="estadoImpresora.isReadyToPrint"
+                  [class.alert-warning]="
+                    !estadoImpresora.isReadyToPrint && estadoImpresora.errors
+                  "
+                >
+                  <div class="d-flex align-items-center">
+                    <i class="ri-information-line me-2"></i>
+                    <div class="flex-grow-1">
+                      <strong>Estado:</strong> {{ estadoImpresoraTexto }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botones de control -->
+              <div class="printer-controls d-flex gap-2">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-success"
+                  (click)="printBarcode('this is a test print')"
+                  [disabled]="!dispositivoSeleccionado || verificandoConexion"
+                >
+                  <i class="ri-check-line me-1"></i>
+                  <span *ngIf="!verificandoConexion">Probar Impresora</span>
+                  <span *ngIf="verificandoConexion">Probando...</span>
+                </button>
+              </div>
+
+              <!-- Mensaje de ayuda si no hay impresoras -->
+              <div class="alert alert-warning" *ngIf="!browserPrintDisponible">
+                <i class="ri-warning-line me-2"></i>
+                <strong>No se encontraron impresoras Zebra</strong>
+                <p class="mb-1 mt-2">Para usar impresión directa:</p>
+                <ol class="mb-0">
+                  <li>
+                    Asegúrese de tener
+                    <strong>Zebra Browser Print</strong> instalado y
+                    ejecutándose
+                  </li>
+                  <li>
+                    Conecte su impresora Zebra y verifique que esté encendida
+                  </li>
+                  <li>
+                    Verifique que los drivers estén instalados correctamente
+                  </li>
+                  <li>Haga clic en "Actualizar" arriba</li>
+                </ol>
+              </div>
+
+              <!-- Mensaje si hay Browser Print pero no impresoras -->
+              <div
+                class="alert alert-info"
+                *ngIf="
+                  !verificandoConexion && dispositivosDisponibles.length === 0
+                "
+              >
+                <i class="ri-information-line me-2"></i>
+                <strong>Browser Print activo pero sin impresoras</strong>
+                <p class="mb-0 mt-2">
+                  Zebra Browser Print está funcionando pero no se encontraron
+                  impresoras. Verifique que su impresora Zebra esté conectada,
+                  encendida y correctamente instalada.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Información adicional -->
+          <div class="alert alert-info d-flex align-items-start" role="alert">
+            <i class="ri-information-line me-2 fs-5"></i>
+            <div>
+              <strong>Información:</strong>
+              <ul class="mb-0 mt-2">
+                <li>
+                  <strong>Zebra Browser Print Wrapper:</strong> Método
+                  recomendado para impresoras Zebra
+                </li>
+                <li>
+                  <strong>Compatibilidad:</strong> Funciona con Chrome, Edge,
+                  Firefox y Safari
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="cerrarConfiguracionImpresion()"
+          >
+            <i class="ri-close-line me-1"></i>
+            Cancelar
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-primary d-flex align-items-center"
+            (click)="imprimirFacturaDirecta()"
+            [disabled]="
+              imprimiendo ||
+              (configuracionImpresion.metodoImpresion === 'zebra-wrapper' &&
+                !dispositivoSeleccionado)
+            "
+          >
+            <span *ngIf="!imprimiendo">
+              <i class="ri-printer-line me-2"></i>
+              Imprimir
+            </span>
+            <span *ngIf="imprimiendo">
+              <span
+                class="spinner-border spinner-border-sm me-2"
+                role="status"
+              ></span>
+              Imprimiendo...
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

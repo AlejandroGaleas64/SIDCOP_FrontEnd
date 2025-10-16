@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -6,6 +6,9 @@ import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
+import { SvgPreviewComponent } from '../svg-preview/svg-preview.component';
+import Cropper from 'cropperjs';
 
 @Component({
   selector: 'app-create',
@@ -15,7 +18,8 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
     FormsModule, 
     HttpClientModule, 
     NgSelectModule,
-    NgxMaskDirective
+    NgxMaskDirective,
+    SvgPreviewComponent
   ],
   templateUrl: './create.component.html',
   styleUrls: ['./create.component.scss'],
@@ -24,6 +28,7 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 export class CreateComponent {
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<any>();
+  @ViewChild('imageCropper', { static: false }) imageCropper!: ElementRef<HTMLImageElement>;
 
   // Estados de alerta
   mostrarErrores = false;
@@ -33,6 +38,16 @@ export class CreateComponent {
   mensajeError = '';
   mostrarAlertaWarning = false;
   mensajeWarning = '';
+
+  // Cropper properties
+  showCropper = false;
+  cropper: Cropper | null = null;
+  selectedFile: File | null = null;
+  logoSeleccionado = false;
+  
+  // SVG preview properties
+  isSvgFile = false;
+  svgPreviewUrl: string | null = null;
 
   // Modelo
   configFactura = {
@@ -44,13 +59,15 @@ export class CreateComponent {
     coFa_Telefono1: '',
     coFa_Telefono2: '',
     coFa_Logo: '',
+    coFa_DiasDevolucion: 0,
+    coFa_RutaMigracion: '',
     colo_Id: 0
   };
 
   // Catálogos
   colonia: any[] = [];
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {
     this.listarColonias();
   }
 
@@ -127,31 +144,125 @@ export class CreateComponent {
     }
   }
 
-  onImagenSeleccionada(event: any) {
-    // Obtenemos el archivo seleccionado desde el input tipo file
+  onFileChange(event: any) {
     const file = event.target.files[0];
-
     if (file) {
-      // para enviar la imagen a Cloudinary
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'configuracion_empresa');
-      //Subidas usuarios Carpeta identificadora en Cloudinary
-      //dbt7mxrwk es el nombre de la cuenta de Cloudinary
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-
-      fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        this.configFactura.coFa_Logo = data.secure_url;
-      })
-      .catch(error => {
-        console.error('Error al subir la imagen a Cloudinary:', error);
-      });
+      this.selectedFile = file;
+      
+      // Check if it's an SVG file
+      this.isSvgFile = file.type === 'image/svg+xml';
+      
+      // Create a preview for SVG files
+      if (this.isSvgFile) {
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.svgPreviewUrl = e.target.result;
+          // For SVG files, we'll still show the cropper but also keep the original SVG for preview
+          this.imageCropper.nativeElement.src = e.target.result;
+          this.showCropper = true;
+          setTimeout(() => {
+            if (this.cropper) {
+              this.cropper.destroy();
+            }
+            this.cropper = new Cropper(this.imageCropper.nativeElement, {
+              aspectRatio: 1,
+              viewMode: 1,
+              autoCropArea: 0.8,
+              responsive: true,
+              background: false,
+              guides: true,
+              center: true,
+              highlight: false,
+              cropBoxMovable: true,
+              cropBoxResizable: true,
+              toggleDragModeOnDblclick: false,
+            });
+          }, 100);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        // For non-SVG files, use the original behavior
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.imageCropper.nativeElement.src = e.target.result;
+          this.showCropper = true;
+          setTimeout(() => {
+            if (this.cropper) {
+              this.cropper.destroy();
+            }
+            this.cropper = new Cropper(this.imageCropper.nativeElement, {
+              aspectRatio: 1,
+              viewMode: 1,
+              autoCropArea: 0.8,
+              responsive: true,
+              background: false,
+              guides: true,
+              center: true,
+              highlight: false,
+              cropBoxMovable: true,
+              cropBoxResizable: true,
+              toggleDragModeOnDblclick: false,
+            });
+          }, 100);
+        };
+        reader.readAsDataURL(file);
+      }
     }
+  }
+
+  cerrarModalCropper() {
+    this.showCropper = false;
+    if (this.cropper) {
+      this.cropper.destroy();
+      this.cropper = null;
+    }
+    // Don't reset selectedFile or svgPreviewUrl when closing the cropper
+    // as we want to keep the preview visible
+  }
+
+  async cropAndUpload() {
+    if (this.cropper && this.selectedFile) {
+      try {
+        const canvas = this.cropper.getCroppedCanvas({
+          width: 300,
+          height: 300,
+          imageSmoothingEnabled: true,
+          imageSmoothingQuality: 'high'
+        });
+        
+        canvas.toBlob(async (blob: Blob | null) => {
+          if (blob) {
+            const croppedFile = new File([blob], this.selectedFile!.name, {
+              type: this.selectedFile!.type,
+              lastModified: Date.now()
+            });
+            
+            //console.log('Iniciando subida de imagen...');
+            const imagePath = await this.imageUploadService.uploadImageAsync(croppedFile);
+            //console.log('Imagen subida exitosamente. Ruta:', imagePath);
+            this.configFactura.coFa_Logo = imagePath;
+            this.logoSeleccionado = true;
+            //console.log('Logo asignado a configFactura.coFa_Logo:', this.configFactura.coFa_Logo);
+            this.cerrarModalCropper();
+          }
+        }, this.selectedFile.type, 0.9);
+      } catch (error) {
+        console.error('Error al procesar la imagen:', error);
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error al procesar la imagen. Por favor, inténtelo de nuevo.';
+        setTimeout(() => {
+          this.mostrarAlertaError = false;
+          this.mensajeError = '';
+        }, 5000);
+      }
+    }
+  }
+
+  /**
+   * Obtiene la URL completa para mostrar la imagen
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
   }
 
   cerrarAlerta(): void {
@@ -204,6 +315,14 @@ export class CreateComponent {
       errores.push('Logo');
     }
 
+    if (!this.configFactura.coFa_DiasDevolucion) {
+      errores.push('Días de Devolución');
+    }
+
+    if (!this.configFactura.coFa_RutaMigracion.trim()) {
+      errores.push('Ruta de Migración');
+    }
+
     if (this.configFactura.colo_Id === 0) {
       errores.push('Colonia');
     }
@@ -241,7 +360,7 @@ export class CreateComponent {
       coFa_FechaCreacion: new Date().toISOString()
     };
 
-    console.log('Enviando body:', body);
+    //console.log('Enviando body:', body);
 
     this.http.post<any>(`${environment.apiBaseUrl}/ConfiguracionFactura/Insertar`, body, {
       headers: {
@@ -282,8 +401,8 @@ export class CreateComponent {
               messageStatus = 'Operación exitosa';
             }
             
-            console.log('Code Status determinado:', codeStatus);
-            console.log('Message Status:', messageStatus);
+            //console.log('Code Status determinado:', codeStatus);
+            //console.log('Message Status:', messageStatus);
             
             if (codeStatus === 1 || codeStatus === true) {
               this.mensajeExito = 'Configuración guardada exitosamente';
@@ -383,12 +502,12 @@ export class CreateComponent {
   }
 
   private debugResponse(response: any, isError: boolean): void {
-    console.log(isError ? 'Error Response:' : 'Success Response:', response);
+    //console.log(isError ? 'Error Response:' : 'Success Response:', response);
     if (response && response.body) {
-      console.log('Response Body:', response.body);
+      //console.log('Response Body:', response.body);
     }
     if (response && response.status) {
-      console.log('Response Status:', response.status);
+      //console.log('Response Status:', response.status);
     }
   }
 

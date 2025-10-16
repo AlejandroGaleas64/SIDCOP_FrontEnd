@@ -8,11 +8,12 @@ import { Sucursales } from 'src/app/Modelos/general/Sucursales.Model';
 import { Municipio } from 'src/app/Modelos/general/Municipios.Model';
 import { Departamento } from 'src/app/Modelos/general/Departamentos.Model';
 import { Colonias } from 'src/app/Modelos/general/Colonias.Model';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @Component({
   selector: 'app-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule],
   templateUrl: './create.component.html',
   styleUrl: './create.component.scss'
 })
@@ -80,7 +81,9 @@ municipiosAll: Municipio[] = [];
 municipios: Municipio[] = [];    
 municipioSeleccionado: string = '';
 coloniasfiltro: Colonias[] = [];
-colonias: Colonias[] = [];
+colonias: any[] = [];
+
+// Array unificado para el dropdown
 
   sucursal: Sucursales = {
     sucu_Id: 0,
@@ -100,6 +103,27 @@ colonias: Colonias[] = [];
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Sucursales/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe(data => {
+      if (Array.isArray(data) && data.length > 0) {
+
+        const codigos = data
+          .map(s => s.sucu_Codigo)
+          .filter(c => typeof c === 'string' && c.length === 3 && !isNaN(Number(c)));
+
+        let maxCodigo = codigos.length > 0 ? Math.max(...codigos.map(c => Number(c))) : 0;
+        let nuevoCodigo = (maxCodigo + 1).toString().padStart(3, '0');
+
+        while (codigos.includes(nuevoCodigo)) {
+          maxCodigo++;
+          nuevoCodigo = (maxCodigo + 1).toString().padStart(3, '0');
+        }
+        this.sucursal.sucu_Codigo = nuevoCodigo;
+      } else {
+        this.sucursal.sucu_Codigo = '001';
+      }
+    });
     // Obtener departamentos
     this.http.get<Departamento[]>(`${environment.apiBaseUrl}/Departamentos/Listar`, {
     headers: { 'x-api-key': environment.apiKey }
@@ -107,7 +131,7 @@ colonias: Colonias[] = [];
     
     this.departamentos = data;
   }, error => {
-    console.error('Error al cargar los departamentos', error);
+
   });
 
     // Obtener municipios (todos)
@@ -118,39 +142,30 @@ colonias: Colonias[] = [];
     });
 
     // Obtener colonias
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Colonia/Listar`, {
+    this.http.get<any>(`${environment.apiBaseUrl}/Colonia/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => {
-      this.coloniasfiltro = data;
+    }).subscribe((data) => {
+      this.colonias = Array.isArray(data)
+        ? data.map(c => ({ ...c, colo_Id: Number(c.colo_Id) }))
+        : [];
+      // No asignar valor por defecto, el usuario debe seleccionar una colonia
+      this.sucursal.colo_Id = 0;
     });
   }
 
-  onDepartamentoChange(): void {
-    if (this.departamentoSeleccionado) {
-      this.municipios = this.municipiosAll.filter(
-        m => m.depa_Codigo === this.departamentoSeleccionado
-      );
-      this.municipioSeleccionado = '';
-      this.colonias = [];
-      this.sucursal.colo_Id = 0;
-    } else {
-      this.municipios = [];
-      this.municipioSeleccionado = '';
-      this.colonias = [];
-      this.sucursal.colo_Id = 0;
-    }
-  }
+  searchColonias = (term: string, item: any) => {
+    term = term.toLowerCase();
+    return (
+      item.colo_Descripcion?.toLowerCase().includes(term) ||
+      item.muni_Descripcion?.toLowerCase().includes(term) ||
+      item.depa_Descripcion?.toLowerCase().includes(term)
+    );
+  };
 
-  onMunicipioChange(): void {
-    if (this.municipioSeleccionado) {
-      this.colonias = this.coloniasfiltro.filter(
-        c => c.muni_Codigo === this.municipioSeleccionado
-      );
-      this.sucursal.colo_Id = 0; 
-    } else {
-      this.colonias = [];
-      this.sucursal.colo_Id = 0;
-    }
+
+
+  onColoniaSeleccionada(id: any) {
+    this.sucursal.colo_Id = typeof id === 'object' && id !== null ? Number(id.colo_Id) : Number(id);
   }
 
   cancelar(): void {
@@ -195,8 +210,24 @@ colonias: Colonias[] = [];
   }
 
   guardar(): void {
+  this.sucursal.colo_Id = Number(this.sucursal.colo_Id);
     this.mostrarErrores = true;
     this.onOverlayChange.emit(true);
+    
+    // Validar correo electrónico
+    if (this.sucursal.sucu_Correo.trim() && !this.validarCorreo(this.sucursal.sucu_Correo)) {
+      this.onOverlayChange.emit(false);
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'Por favor ingrese un correo electrónico válido.';
+      this.mostrarAlertaError = false;
+      this.mostrarAlertaExito = false;
+      setTimeout(() => {
+        this.mostrarAlertaWarning = false;
+        this.mensajeWarning = '';
+      }, 4000);
+      return;
+    }
+    
     if (
       this.sucursal.sucu_Descripcion.trim() &&
       this.sucursal.colo_Id &&
@@ -204,7 +235,8 @@ colonias: Colonias[] = [];
       this.sucursal.sucu_Codigo &&
       this.sucursal.sucu_Codigo.trim() &&
       this.sucursal.sucu_Telefono1.trim() &&
-      this.sucursal.sucu_Correo.trim()
+      this.sucursal.sucu_Correo.trim() &&
+      this.validarCorreo(this.sucursal.sucu_Correo)
     ) {
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
@@ -214,7 +246,6 @@ colonias: Colonias[] = [];
         usua_Creacion: getUserId(),
         sucu_FechaCreacion: new Date().toISOString()
       };
-
       this.http.post<any>(`${environment.apiBaseUrl}/Sucursales/Insertar`, sucursalGuardar, {
         headers: {
           'X-Api-Key': environment.apiKey,
@@ -243,7 +274,6 @@ colonias: Colonias[] = [];
               this.onOverlayChange.emit(false);
               this.mostrarAlertaError = true;
               this.mensajeError = response?.data?.message_Status || 'ya existe una sucursal con estos datos.';
-              console.error('Error al guardar la sucursal:', this.mensajeError);
               this.mostrarAlertaExito = false;
               setTimeout(() => {
                 this.mostrarAlertaError = false;
@@ -255,7 +285,6 @@ colonias: Colonias[] = [];
         error: (error) => {
           setTimeout(() => {
             this.onOverlayChange.emit(false);
-            console.error('Error al guardar sucursal:', error);
             const codeStatus = error?.error?.data?.code_Status;
             const messageStatus = error?.error?.data?.message_Status;
             this.mostrarAlertaError = true;

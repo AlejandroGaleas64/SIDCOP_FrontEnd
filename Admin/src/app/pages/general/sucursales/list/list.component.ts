@@ -49,8 +49,8 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
 export class ListComponent implements OnInit {
   private readonly exportConfig = {
         // Configuración básica
-        title: 'Listado de Estados Civiles',                    // Título del reporte
-        filename: 'Estados Civiles',                           // Nombre base del archivo
+        title: 'Listado de Sucursales',                    // Título del reporte
+        filename: 'Sucursales',                           // Nombre base del archivo
   
         // Columnas a exportar - TODOS LOS DATOS DE SUCURSALES
         columns: [
@@ -133,7 +133,7 @@ export class ListComponent implements OnInit {
         this.manejarResultadoExport(resultado);
         
       } catch (error) {
-        console.error(`Error en exportación ${tipo}:`, error);
+
         this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
       } finally {
         this.exportando = false;
@@ -335,7 +335,6 @@ export class ListComponent implements OnInit {
 
   editar(sucursal: Sucursales): void {
     this.sucursalEditando = { ...sucursal };
-    console.log('Editar sucursal:', this.sucursalEditando);
     this.showEditForm = true;
     this.showCreateForm = false;
     this.showDetailsForm = false;
@@ -495,12 +494,20 @@ export class ListComponent implements OnInit {
         const tienePermisoListar = this.accionPermitida('listar');
         const userId = getUserId();
 
+        // Mostrar únicamente sucursales activas.
+        const dataActivas: Sucursales[] = Array.isArray(data)
+          ? data.filter(r => {
+              if (!r) return false;
+              const estado = (r as any).sucu_Estado;
+              return estado === true || estado === 1 || estado === '1' || estado === 'true';
+            })
+          : [];
+
         const datosFiltrados = tienePermisoListar
-          ? data
-          : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
+          ? dataActivas
+          : dataActivas.filter(r => r.usua_Creacion?.toString() === userId.toString());
 
         this.table.setData(datosFiltrados);
-        this.table.setData(data);
         this.mostrarOverlayCarga = false;
       }, 500);
     });

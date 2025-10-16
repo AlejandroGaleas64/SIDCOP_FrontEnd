@@ -177,6 +177,20 @@
                       </span>
                     </span>
                   </th>
+                  <th class="gridjs-th" (click)="table.sortBy('coFa_DiasDevolucion')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
+                      Días de Devolución
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                         <i class="ri-arrow-up-s-line icon-sort"
+                        [ngStyle]="table.sortField === 'coFa_DiasDevolucion' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                      </i>
+                      <i class="ri-arrow-down-s-line icon-sort"
+                        [ngStyle]="table.sortField === 'coFa_DiasDevolucion' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                      </i>
+                      </span>
+                    </span>
+                  </th>
                    <th class="gridjs-th" (click)="table.sortBy('coFa_Telefono1')" style="cursor:pointer;">
                     <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
                    Telefono 1
@@ -220,6 +234,20 @@
                       </span>
                     </span>
                   </th>
+                  <th class="gridjs-th" (click)="table.sortBy('coFa_RutaMigracion')" style="cursor:pointer;">
+                    <span style="display: flex; align-items: center; justify-content: flex-start; gap: 4px;">
+                      Ruta de Migración
+                      <!-- iconos para ordenar -->
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
+                         <i class="ri-arrow-up-s-line icon-sort"
+                        [ngStyle]="table.sortField === 'coFa_RutaMigracion' && table.sortDirection === 'asc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                      </i>
+                      <i class="ri-arrow-down-s-line icon-sort"
+                        [ngStyle]="table.sortField === 'coFa_RutaMigracion' && table.sortDirection === 'desc' ? {'color': '#D6B68A'} : {'color': 'white'}">
+                      </i>
+                      </span>
+                    </span>
+                  </th>
                 </tr>
                 <tr class="gridjs-th" *ngFor="let data of table.paginated$ | async; let i = index">
                   <td class="position-relative" *ngIf="accionPermitida('editar') || accionPermitida('eliminar') || accionPermitida('detalle')">
@@ -238,14 +266,16 @@
                   <td>{{data.coFa_DireccionEmpresa || 'N/A' }}</td>
                   <td>{{data.coFa_RTN || 'N/A'}}</td>
                   <td>{{data.coFa_Correo || 'N/A'}}</td>
+                  <td>{{data.coFa_DiasDevolucion || 'N/A'}}</td>
                   <td>{{data.coFa_Telefono1 || 'N/A'}}</td>
                   <td>{{data.coFa_Telefono2 || 'N/A'}}</td>
                   <td>
                        <img
-                        [src]="data.coFa_Logo" (error)="onImgError($event)" alt="Logo"
+                        [src]="getImageDisplayUrl(data.coFa_Logo)" (error)="onImgError($event)" alt="Logo"
                         class="avatar-img rounded-circle"
                         style="width: 64px; height: 64px; object-fit: cover; display: block;"/>
                   </td>
+                  <td>{{data.coFa_RutaMigracion || 'N/A'}}</td>
                 </tr>
                 </thead>
             </table>

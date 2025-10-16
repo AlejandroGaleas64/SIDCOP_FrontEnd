@@ -3,8 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { getUserId } from 'src/app/core/utils/user-utils';
+import { obtenerUsuario } from 'src/app/core/utils/user-utils'; // Cambiado a obtenerUsuario
 import * as XLSX from 'xlsx';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 export interface ExportConfig {
   title: string;
@@ -36,6 +37,7 @@ interface ExportResult {
 })
 export class ExportService {
   private configuracionEmpresa: any = null;
+  private logoDataUrl: string | null = null; // Precargar el logo una sola vez
 
   // Colores del tema (mismos del PdfReportService)
   private readonly COLORES = {
@@ -46,7 +48,7 @@ export class ExportService {
     grisTexto: '#666666'
   };
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {
     this.cargarConfiguracionEmpresa();
   }
 
@@ -83,17 +85,69 @@ export class ExportService {
     }
   }
 
-  async exportToPDF(config: ExportConfig): Promise<ExportResult> {
+  async exportToPDF(config: ExportConfig): Promise<ExportResult> { 
     try {
       this.validateConfig(config);
       
       const doc = new jsPDF('portrait');
       
-      // Crear encabezado y obtener posición Y donde empezar la tabla
-      const startY = await this.crearEncabezado(doc, config);
+      // Asegurar que el logo esté cargado antes de generar el PDF
+      if (this.configuracionEmpresa?.coFa_Logo && !this.logoDataUrl) {
+        await this.precargarLogo();
+      }
+
+      // Crear encabezado inicial
+      this.crearEncabezadoPorPagina(doc, config);
+
+      // Configuración de la tabla con callback para encabezados en nuevas páginas
+      const tableData = this.prepararDatosTabla(config);
       
-      // Crear tabla de datos
-      await this.crearTabla(doc, config, startY);
+      // Crear la tabla comenzando después del encabezado
+      autoTable(doc, {
+        startY: 45, // Posición fija después del encabezado
+        head: [tableData.headers],
+        body: tableData.rows,
+        styles: {
+          fontSize: 8,
+          cellPadding: 3,
+          overflow: 'linebreak' as any,
+          halign: 'left' as any,
+          valign: 'middle' as any,
+          lineColor: false,
+          lineWidth: 0,
+        },
+        headStyles: {
+          fillColor: this.hexToRgb(this.COLORES.azulOscuro),
+          textColor: this.hexToRgb(this.COLORES.dorado),
+          fontStyle: 'bold',
+          fontSize: 9,
+          lineColor: false,
+          lineWidth: 0,
+        },
+        alternateRowStyles: {
+          fillColor: [248, 249, 250],
+        },
+        tableLineColor: false,
+        tableLineWidth: 0,
+        margin: { left: 15, right: 15, bottom: 30, top: 45 }, // top: 45 para dar espacio al encabezado
+        tableWidth: 'auto' as any,
+        showHead: 'everyPage' as any,
+        pageBreak: 'auto' as any,
+        didDrawPage: (data: any) => {
+          // Si no es la primera página, crear el encabezado
+          if (data.pageNumber > 1) {
+            this.crearEncabezadoPorPagina(doc, config);
+          }
+        }
+      });
+
+      const totalPages = doc.getNumberOfPages();
+
+      // Recorrer todas las páginas para añadir la numeración correcta
+      for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+        doc.setPage(pageNum);
+        this.crearPiePaginaConTotal(doc, pageNum, totalPages, config.data);
+      }
       
       const filename = this.generateFilename(config.filename, 'pdf');
       doc.save(filename);
@@ -181,7 +235,7 @@ export class ExportService {
     const fecha = new Date();
     const fechaTexto = fecha.toLocaleDateString('es-HN');
     const horaTexto = fecha.toLocaleTimeString('es-HN');
-    const usuarioActual = this.obtenerUsuarioActual();
+    const usuarioActual = obtenerUsuario() || 'Sistema'; // Usando obtenerUsuario
     data[currentRow++] = [`Generado por: ${usuarioActual} | ${fechaTexto} ${horaTexto}`];
     
     return data;
@@ -352,6 +406,8 @@ export class ExportService {
       next: (data) => {
         if (data && data.length > 0) {
           this.configuracionEmpresa = data[0];
+          // Precargar el logo una sola vez
+          this.precargarLogo();
         }
       },
       error: (error) => {
@@ -360,19 +416,21 @@ export class ExportService {
     });
   }
 
-  private async cargarLogo(): Promise<string | null> {
+  private async precargarLogo(): Promise<void> {
     if (!this.configuracionEmpresa?.coFa_Logo) {
-      console.log('No hay logo configurado');
-      return null;
+      //console.log('No hay logo configurado');
+      this.logoDataUrl = null;
+      return;
     }
 
-    return new Promise((resolve) => {
+    this.logoDataUrl = await new Promise((resolve) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       
       img.onload = () => {
         try {
           const canvas = document.createElement('canvas');
+          // Usar un contexto 2d con configuración de alta calidad
           const ctx = canvas.getContext('2d');
           
           if (!ctx) {
@@ -381,29 +439,50 @@ export class ExportService {
             return;
           }
           
-          const maxWidth = 120;
-          const maxHeight = 60;
+          // Aumentar las dimensiones máximas para mejor calidad
+          const maxWidth = 200; // Increased for better quality
+          const maxHeight = 100; // Increased for better quality
           let { width, height } = img;
           
+          // Mantener la relación de aspecto original
+          const aspectRatio = width / height;
+          
+          // Redimensionar manteniendo la relación de aspecto
           if (width > height) {
             if (width > maxWidth) {
-              height = height * (maxWidth / width);
+              height = maxWidth / aspectRatio;
               width = maxWidth;
             }
           } else {
             if (height > maxHeight) {
-              width = width * (maxHeight / height);
+              width = maxHeight * aspectRatio;
               height = maxHeight;
             }
           }
           
+          // Asegurar que las dimensiones sean números enteros para evitar problemas de renderizado
+          width = Math.round(width);
+          height = Math.round(height);
+          
+          // Configurar el canvas con las dimensiones calculadas
           canvas.width = width;
           canvas.height = height;
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0, width, height);
           
-          const dataUrl = canvas.toDataURL('image/png', 0.8);
-          console.log('Logo procesado correctamente desde URL');
+          // Activar suavizado de alta calidad (con verificación de tipo)
+          if (ctx) {
+            // Aplicar configuración de alta calidad
+            (ctx as CanvasRenderingContext2D).imageSmoothingEnabled = true;
+            (ctx as CanvasRenderingContext2D).imageSmoothingQuality = 'high';
+            
+            // Limpiar el canvas antes de dibujar
+            ctx.clearRect(0, 0, width, height);
+            
+            // Dibujar la imagen con alta calidad
+            ctx.drawImage(img, 0, 0, width, height);
+          }
+          
+          // Generar la URL de datos con máxima calidad (1.0)
+          const dataUrl = canvas.toDataURL('image/png', 1.0);
           resolve(dataUrl);
         } catch (e) {
           console.error('Error al procesar el logo:', e);
@@ -417,16 +496,12 @@ export class ExportService {
       };
       
       try {
-        const logoUrl = this.configuracionEmpresa.coFa_Logo;
-        console.log('Intentando cargar logo desde:', logoUrl);
+        const logoPath = this.configuracionEmpresa.coFa_Logo;
         
-        if (logoUrl.startsWith('http')) {
-          img.src = logoUrl;
-        } else if (logoUrl.startsWith('data:')) {
-          img.src = logoUrl;
-        } else {
-          img.src = `data:image/png;base64,${logoUrl}`;
-        }
+        // Usar exactamente la misma lógica que configuración de factura details
+        const logoUrl = this.imageUploadService.getImageUrl(logoPath);
+        
+        img.src = logoUrl;
       } catch (e) {
         console.error('Error al configurar src del logo:', e);
         resolve(null);
@@ -434,18 +509,25 @@ export class ExportService {
     });
   }
 
-  private async crearEncabezado(doc: jsPDF, config: ExportConfig): Promise<number> {
+  private crearEncabezadoPorPagina(doc: jsPDF, config: ExportConfig): void {
     // Línea separadora en la parte inferior del encabezado
     doc.setDrawColor(this.COLORES.dorado);
     doc.setLineWidth(2);
     doc.line(20, 35, doc.internal.pageSize.width - 20, 35);
 
-    // Cargar y agregar logo
-    const logoDataUrl = await this.cargarLogo();
-    if (logoDataUrl) {
+    // Agregar logo si está disponible
+    if (this.logoDataUrl) {
       try {
-        doc.addImage(logoDataUrl, 'PNG', 20, 5, 30, 25);
-        console.log('Logo agregado al PDF correctamente');
+        // Usar mejor calidad de compresión para la imagen en el PDF
+        doc.addImage({
+          imageData: this.logoDataUrl,
+          format: 'PNG',
+          x: 20,
+          y: 5,
+          width: 30,
+          height: 25,
+          alias: 'logo'         // Alias para reutilizar la misma imagen si aparece varias veces
+        });
       } catch (e) {
         console.error('Error al agregar imagen al PDF:', e);
       }
@@ -464,83 +546,22 @@ export class ExportService {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     doc.text(config.title, pageWidth / 2, 27, { align: 'center' });
-
-    let yPos = 38;
-
-    // Información adicional del reporte
-    if (config.metadata) {
-      doc.setTextColor(this.COLORES.grisTexto);
-      doc.setFontSize(10);
-      
-
-      
-      if (config.metadata.additionalInfo) {
-        doc.text(config.metadata.additionalInfo, 20, yPos);
-        yPos += 6;
-      }
-      
-      yPos += 3; // Espacio adicional
-    }
-
-    return yPos;
   }
 
-  private crearPiePagina(doc: jsPDF, data: any) {
+  private crearPiePaginaConTotal(doc: jsPDF, pageNumber: number, totalPages: number, datosReporte?: any[]) {
     doc.setFontSize(8);
     doc.setTextColor(this.COLORES.grisTexto);
     
     const fecha = new Date();
     const fechaTexto = fecha.toLocaleDateString('es-HN');
     const horaTexto = fecha.toLocaleTimeString('es-HN');
-    const totalPages = doc.getNumberOfPages();
     
-    // Información del usuario y fecha
-    const usuarioCreacion = this.obtenerUsuarioActual();
+    // Información del usuario
+    const usuarioCreacion = obtenerUsuario() || 'Sistema'; // Usando obtenerUsuario
     doc.text(`Generado por: ${usuarioCreacion} | ${fechaTexto} ${horaTexto}`, 20, doc.internal.pageSize.height - 12);
     
-    // Paginación
-    doc.text(`Página ${data.pageNumber}/${totalPages}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 12, { align: 'right' });
-  }
-
-  private async crearTabla(doc: jsPDF, config: ExportConfig, startY: number) {
-    // Preparar datos de la tabla
-    const tableData = this.prepararDatosTabla(config);
-    
-    // Crear la tabla con la configuración correcta de tipos
-    autoTable(doc, {
-      startY: startY,
-      head: [tableData.headers],
-      body: tableData.rows,
-      styles: {
-        fontSize: 8,
-        cellPadding: 3,
-        overflow: 'linebreak' as any,
-        halign: 'left' as any,
-        valign: 'middle' as any,
-        lineColor: false,
-        lineWidth: 0,
-      },
-      headStyles: {
-        fillColor: this.hexToRgb(this.COLORES.azulOscuro),
-        textColor: this.hexToRgb(this.COLORES.dorado),
-        fontStyle: 'bold',
-        fontSize: 9,
-        lineColor: false,
-        lineWidth: 0,
-      },
-      alternateRowStyles: {
-        fillColor: [248, 249, 250],
-      },
-      tableLineColor: false,
-      tableLineWidth: 0,
-      margin: { left: 15, right: 15, bottom: 30 },
-      tableWidth: 'auto' as any,
-      showHead: 'everyPage' as any,
-      pageBreak: 'auto' as any,
-      didDrawPage: (data: any) => {
-        this.crearPiePagina(doc, data);
-      }
-    });
+    // Paginación con total correcto
+    doc.text(`Página ${pageNumber}/${totalPages}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 12, { align: 'right' });
   }
 
   private prepararDatosTabla(config: ExportConfig): { headers: string[], rows: any[][] } {
@@ -560,22 +581,7 @@ export class ExportService {
       return '';
     }
     
- 
     return String(valor).trim();
-  }
-
-  private obtenerUsuarioActual(): string {
-    // Intentar obtener el usuario del localStorage o usar un valor por defecto
-    try {
-      const usuario = localStorage.getItem('currentUser');
-      if (usuario) {
-        const userData = JSON.parse(usuario);
-        return userData.usuarioCreacion || userData.usuarioCreacion || 'Usuario';
-      }
-    } catch (e) {
-      console.error('Error obteniendo usuario:', e);
-    }
-    return 'Sistema';
   }
 
   // ===== MÉTODOS DE UTILIDAD =====

@@ -30,10 +30,12 @@
           <i class="ri-user-2-line" [ngStyle]="{
             border: (!visita.vendedor && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
             backgroundColor: (!visita.vendedor && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-            padding: '0.525rem 0.525rem',
+            padding: '0.425rem 0.425rem',
+            position: 'relative', left: '7px',
+            zIndex: 1,
             borderTopLeftRadius: '8px',
-            borderBottomLeftRadius: '8px'
-          }"></i>
+            borderBottomLeftRadius: '8px'}">
+          </i>
           <ng-select id="vendedor" [items]="vendedores"  
               bindLabel="vendedorNombre"
               [loading]="cargando"
@@ -65,7 +67,9 @@
           <i class="ri-user-line" [ngStyle]="{
             border: (!visita.cliente && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
             backgroundColor: (!visita.cliente && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-            padding: '0.525rem 0.525rem',
+            padding: '0.425rem 0.425rem',
+            position: 'relative', left: '7px',
+            zIndex: 1,
             borderTopLeftRadius: '8px',
             borderBottomLeftRadius: '8px'
           }"></i>
@@ -107,7 +111,9 @@
           <i class="ri-map-pin-line" [ngStyle]="{
             border: (!visita.direccion && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
             backgroundColor: (!visita.direccion && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-            padding: '0.525rem 0.525rem',
+            padding: '0.425rem 0.425rem',
+            position: 'relative', left: '7px',
+            zIndex: 1,
             borderTopLeftRadius: '8px',
             borderBottomLeftRadius: '8px'
           }"></i>
@@ -146,7 +152,9 @@
           <i class="ri-checkbox-circle-line" [ngStyle]="{
             border: (!visita.esVi_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
             backgroundColor: (!visita.esVi_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-            padding: '0.525rem 0.525rem',
+            padding: '0.425rem 0.425rem',
+            position: 'relative', left: '7px',
+            zIndex: 1,
             borderTopLeftRadius: '8px',
             borderBottomLeftRadius: '8px'
           }"></i>
@@ -214,12 +222,19 @@
       <div class="col-lg-12">
         <div class="mb-3">
           <label class="form-label">Imagen de la visita<span class="text-danger">*</span></label>
-          <dropzone
-            class="dropzone"
-            [config]="dropzoneConfig"
-            [message]="'Selecciona una imagen para subir.'"
-            (success)="onFileSelected($event)">
-          </dropzone>
+          <div class="position-relative">
+            <div *ngIf="cargandoImagen" class="position-absolute w-100 h-100 d-flex justify-content-center align-items-center bg-light bg-opacity-75" style="z-index: 10; top: 0; left: 0;">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+              </div>
+            </div>
+            <dropzone
+              class="dropzone"
+              [config]="dropzoneConfig"
+              [message]="'Selecciona una imagen para subir.'"
+              (success)="onFileSelected($event)">
+            </dropzone>
+          </div>
 
           <ul class="list-unstyled mb-0" *ngIf="uploadedFiles.length > 0" id="dropzone-preview">
             <li class="mt-2" *ngFor="let file of uploadedFiles">

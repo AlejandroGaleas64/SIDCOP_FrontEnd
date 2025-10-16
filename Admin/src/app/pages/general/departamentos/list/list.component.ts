@@ -94,7 +94,7 @@ export class ListComponent implements OnInit {
     title: 'Listado de Departamentos',
     filename: 'Departamentos',
     department: 'General',
-    additionalInfo: 'Sistema de Gestión',
+    additionalInfo: '',
     columns: [
       { key: 'No', header: 'No.', width: 8, align: 'center' as const },
       { key: 'Código', header: 'Código', width: 25, align: 'left' as const },
@@ -137,7 +137,6 @@ export class ListComponent implements OnInit {
       }
       this.manejarResultadoExport(resultado);
     } catch (error) {
-      console.error(`Error en exportación ${tipo}:`, error);
       this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
     } finally {
       this.exportando = false;
@@ -173,7 +172,6 @@ export class ListComponent implements OnInit {
       }
       return datos.map((depa, index) => this.exportConfig.dataMapping.call(this, depa, index));
     } catch (error) {
-      console.error('Error obteniendo datos:', error);
       throw error;
     }
   }
@@ -202,8 +200,6 @@ export class ListComponent implements OnInit {
   private limpiarTexto(texto: any): string {
     if (!texto) return '';
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }
@@ -253,51 +249,37 @@ export class ListComponent implements OnInit {
     let modulo: any = null;
     // Buscar permisos en localStorage - NOTA: La clave correcta es 'permisosJson'
     const permisosJson = localStorage.getItem('permisosJson');
-    console.log('permisosJson del localStorage:', permisosJson);
     
     if (permisosJson) {
       try {
         const permisos = JSON.parse(permisosJson);
-        console.log('permisos parseados:', permisos);
         
         if (Array.isArray(permisos)) {
-          console.log('Buscando módulo con Pant_Id: 12');
           modulo = permisos.find((m: any) => {
-            console.log('Revisando módulo:', m);
             return m.Pant_Id === 12;  // ID para Departamentos
           });
-          console.log('Módulo encontrado (array):', modulo);
         } else if (typeof permisos === 'object' && permisos !== null) {
           // Si es objeto, buscar por clave
-          console.log('Buscando módulo por clave');
           modulo = permisos['Departamentos'] || permisos['departamentos'] || null;
-          console.log('Módulo encontrado (objeto):', modulo);
         }
         
         if (modulo) {
-          console.log('Acciones en el módulo:', modulo.Acciones);
           if (modulo.Acciones && Array.isArray(modulo.Acciones)) {
             // Extraer solo el nombre de la acción y convertirlo a minúsculas
             accionesArray = modulo.Acciones
               .map((a: any) => {
                 const accion = a.Accion || a.accion || a;
-                console.log('Acción encontrada:', accion);
                 return typeof accion === 'string' ? accion.trim().toLowerCase() : '';
               })
               .filter((a: string) => a.length > 0);
           }
         } else {
-          console.log('No se encontró el módulo de Departamentos');
         }
       } catch (e) {
-        console.error('Error al parsear permisosJson:', e);
       }
-    } else {
-      console.log('No se encontró el item permisosJson en localStorage');
     }
     
     this.accionesDisponibles = accionesArray;
-    console.log('Acciones finales disponibles:', this.accionesDisponibles);
   }
 
   activeActionRow: number | null = null;
@@ -328,7 +310,6 @@ export class ListComponent implements OnInit {
 
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
-    console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
@@ -336,12 +317,6 @@ export class ListComponent implements OnInit {
   }
 
   editar(departamento: Departamento): void {
-    console.log('Abriendo formulario de edición para:', departamento);
-    console.log('Datos específicos:', {
-      codigo: departamento.depa_Codigo,
-      descripcion: departamento.depa_Descripcion,
-      completo: departamento
-    });
     this.departamentoEditando = { ...departamento }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -350,7 +325,6 @@ export class ListComponent implements OnInit {
   }
 
    detalles(departamento: Departamento): void {
-    console.log('Abriendo detalles para:', departamento);
     this.departamentoDetalle = { ...departamento }; // Hacer copia profunda
     this.showDetailsForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -375,7 +349,6 @@ export class ListComponent implements OnInit {
     this.http.get<Departamento[]>(`${environment.apiBaseUrl}/Departamentos/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
-      console.log('Datos obtenidos:', data);
       this.mostrarOverlayCarga = false;
       const tienePermisoListar = this.accionPermitida('listar');
         const userId = getUserId();
@@ -395,7 +368,6 @@ export class ListComponent implements OnInit {
     //   { label: 'Departamentos', active: true }
     // ];
     this.cargarAccionesUsuario();
-    console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
 
@@ -418,13 +390,10 @@ export class ListComponent implements OnInit {
   }
 
   guardarDepartamento(departamento: Departamento): void {
-    console.log('Departamento guardado exitosamente desde create component:', departamento);
     this.mostrarOverlayCarga = true;
     setTimeout(()=> {
       this.cargardatos(false);
       this.showCreateForm = false;
-      this.mensajeExito = `Bodega guardada exitosamente`;
-      this.mostrarAlertaExito = true;
       setTimeout(() => {
         this.mostrarAlertaExito = false;
         this.mensajeExito = '';
@@ -433,13 +402,10 @@ export class ListComponent implements OnInit {
   }
 
   actualizarDepartamento(departamento: Departamento): void {
-    console.log('Departamento actualizado exitosamente desde edit component:', departamento);
     this.mostrarOverlayCarga = true;
     setTimeout(()=> {
       this.cargardatos(false);
       this.showEditForm = false;
-      this.mensajeExito = `Departamento actualizado exitosamente`;
-      this.mostrarAlertaExito = true;
       setTimeout(() => {
         this.mostrarAlertaExito = false;
         this.mensajeExito = '';
@@ -448,7 +414,6 @@ export class ListComponent implements OnInit {
   }
 
   confirmarEliminar(departamento: Departamento): void {
-    console.log('Solicitando confirmación para eliminar:', departamento);
     this.departamentoAEliminar = departamento;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null; // Cerrar menú de acciones
@@ -462,7 +427,6 @@ export class ListComponent implements OnInit {
   eliminar(): void {
     if (!this.departamentoAEliminar) return;
     
-    console.log('Eliminando departamento:', this.departamentoAEliminar);
     this.mostrarOverlayCarga = true;
     
     this.http.post(`${environment.apiBaseUrl}/Departamentos/Eliminar/${this.departamentoAEliminar.depa_Codigo}`, {}, {
@@ -473,14 +437,10 @@ export class ListComponent implements OnInit {
     }).subscribe({
       next: (response: any) => {
         setTimeout(() => {
-          this.cargardatos(false);
-          console.log('Respuesta del servidor:', response);
-          
-          // Verificar el código de estado en la respuesta
+          this.cargardatos(false);          
           if (response.success && response.data) {
             if (response.data.code_Status === 1) {
               // Éxito: eliminado correctamente
-              console.log('Departamento eliminado exitosamente');
               this.mensajeExito = `Departamento "${this.departamentoAEliminar!.depa_Descripcion}" eliminado exitosamente`;
               this.mostrarAlertaExito = true;
 
@@ -494,7 +454,6 @@ export class ListComponent implements OnInit {
               this.cancelarEliminar();
             } else if (response.data.code_Status === -1) {
               //result: está siendo utilizado
-              console.log('El departamento está siendo utilizado');
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status || 'No se puede eliminar: el departamento está siendo utilizado.';
 
@@ -508,7 +467,6 @@ export class ListComponent implements OnInit {
             } else if (response.data.code_Status === 0) 
             {
               // Error general
-              console.log('Error general al eliminar');
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status || 'Error al eliminar el departamento.';
 
@@ -522,7 +480,6 @@ export class ListComponent implements OnInit {
             }
           } else {
             // Respuesta inesperada
-            console.log('Respuesta inesperada del servidor');
             this.mostrarAlertaError = true;
             this.mensajeError = response.message || 'Error inesperado al eliminar el departamento.';
 

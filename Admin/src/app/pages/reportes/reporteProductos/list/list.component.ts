@@ -101,7 +101,6 @@ export class ReporteProductosComponent implements OnInit {
       orientacion: 'landscape',
       mostrarResumen: true,
       textoResumen: `Total de productos: ${this.productos.length}`,
-      filtros: this.construirFiltros()
     };
 
     //  DATOS DE LA TABLA
@@ -115,8 +114,8 @@ export class ReporteProductosComponent implements OnInit {
           { content: 'Categoría', styles: { cellWidth: 30 } },
           { content: 'Subcategoría', styles: { cellWidth: 35 } },
           { content: 'Precio', styles: { halign: 'right', cellWidth: 25 } },
-          { content: 'Costo', styles: { halign: 'right', cellWidth: 25 } },
-          { content: 'Impuesto', styles: { halign: 'center', cellWidth: 20 } }
+      //    { content: 'Costo', styles: { halign: 'right', cellWidth: 25 } },
+          { content: 'Impuesto', styles: { halign: 'center', cellWidth: 45 } }
         ]
       ],
       body: this.productos.map((p, index) => [
@@ -127,8 +126,7 @@ export class ReporteProductosComponent implements OnInit {
         p.cate_Descripcion || 'N/A',
         p.subc_Descripcion || 'N/A',
         { content: `L. ${this.pdfService.formatearNumero(p.prod_PrecioUnitario)}`, styles: { halign: 'right' } },
-        { content: `L. ${this.pdfService.formatearNumero(p.prod_CostoTotal)}`, styles: { halign: 'right' } },
-        { content: p.prod_PagaImpuesto ? 'Sí' : 'No', styles: { halign: 'center' } }
+        this.pdfService.truncateText(p.impu_Descripcion || '', 45),
       ])
     };
 

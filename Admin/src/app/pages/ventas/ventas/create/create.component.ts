@@ -1,23 +1,46 @@
-import { Component, Output, EventEmitter, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, EventEmitter, Output } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-import { VentaInsertar, VentaDetalle } from 'src/app/Modelos/ventas/Facturas.model';
-import { environment } from 'src/environments/environment';
-import { obtenerUsuarioId } from 'src/app/core/utils/user-utils';
+import {
+  VentaInsertar,
+  VentaDetalle,
+} from 'src/app/Modelos/ventas/Facturas.model';
+import { CommonModule } from '@angular/common';
+import { environment } from 'src/environments/environment.prod';
 import { forkJoin } from 'rxjs';
+import {
+  obtenerUsuarioId,
+  esAdministrador,
+  obtenerPersonaId,
+  obtenerSucursalId,
+  obtenerRegCId,
+} from 'src/app/core/utils/user-utils';
+import Swal from 'sweetalert2';
+
 @Component({
   selector: 'app-create',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NgSelectModule],
   templateUrl: './create.component.html',
   styleUrls: ['./create.component.scss'],
 })
+/**
+ * Componente para la creación de ventas.
+ * Permite seleccionar cliente, sucursal, productos, vendedor y registrar una nueva venta.
+ * Incluye validaciones, manejo de inventario, ubicación, crédito y alertas.
+ */
 export class CreateComponent implements OnInit {
+  // Control de visibilidad según rol
+  /** Indica si el usuario es administrador */
+  esAdmin: boolean = false;
+  /** Evento emitido al cancelar la creación */
   @Output() onCancel = new EventEmitter<void>();
+  /** Evento emitido al guardar la venta */
   @Output() onSave = new EventEmitter<any>();
 
-  // Estados de alertas
+  /** Estados de alertas y mensajes */
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -25,113 +48,226 @@ export class CreateComponent implements OnInit {
   mensajeError = '';
   mostrarAlertaWarning = false;
   mensajeWarning = '';
+  /** Fecha actual en formato ISO */
   fechaActual = '';
+  /** Indica si se están cargando datos iniciales */
   cargando = false;
+  /** Indica si se está guardando la venta */
   guardando = false;
 
-  // Control de tabs
+  /** Control de pestañas del formulario */
   tabActivo = 1;
+  /** Indica si se puede avanzar al resumen */
   puedeAvanzarAResumen = false;
 
-  // Datos del formulario
-  clientes: any[] = []; // Lista de clientes tipada correctamente
-  clienteSeleccionado: number = 0; // ID del cliente seleccionado
+  /** Lista de clientes */
+  clientes: any[] = [];
+  /** ID del cliente seleccionado */
+  clienteSeleccionado: number = 0;
+  /** Lista de clientes filtrados para ng-select */
+  clientesFiltrados: any[] = [];
+  /** Lista de direcciones del cliente seleccionado */
+  direccionesCliente: any[] = [];
+  /** Cliente seleccionado actualmente con toda su información */
+  clienteActual: any = null;
+  /** Objeto de venta a insertar */
   venta: VentaInsertar = new VentaInsertar();
+
+  /** Control de visibilidad de información de crédito */
+  mostrarInfoCredito: boolean = false;
+  /** Lista de sucursales */
   sucursales: any[] = [];
+  /** Lista de productos */
   productos: any[] = [];
+  /** Lista de vendedores */
   vendedores: any[] = [];
+  /** ID del usuario actual */
   usuarioId: number = 0;
-  
-  // Ubicación
+
+  /** Ubicación actual */
   obteniendoUbicacion = false;
+  /** Mensaje de error de ubicación */
   errorUbicacion = '';
-  // Inventario por sucursal
+  /** Inventario por sucursal */
   inventarioSucursal: any[] = [];
+  /** Indica si se está cargando el inventario */
   cargandoInventario = false;
+  /** ID de la sucursal seleccionada */
+  sucursalSeleccionada: number = 0;
+  /** ID de la sucursal seleccionada anteriormente */
   sucursalSeleccionadaAnterior: number = 0;
 
-  // Búsqueda y paginación
+  /** Búsqueda y paginación de productos */
   busquedaProducto = '';
   productosFiltrados: any[] = [];
   paginaActual = 1;
   productosPorPagina = 12;
 
+  /**
+   * Constructor del componente. Inicializa el formulario y obtiene la fecha actual.
+   * @param http Cliente HTTP para llamadas a la API
+   */
   constructor(private http: HttpClient) {
     this.inicializar();
   }
 
+  /**
+   * Inicializa el componente y carga datos iniciales, verifica el rol del usuario.
+   */
   ngOnInit(): void {
-    this.cargarDatosIniciales();
+    // Verificar si el usuario es administrador
+    this.esAdmin = esAdministrador();
     this.usuarioId = obtenerUsuarioId();
+
+    // Si no es administrador, asignar automáticamente la sucursal y el vendedor
+    if (!this.esAdmin) {
+      // Asignar la sucursal del usuario automáticamente
+      const sucursalId = obtenerSucursalId();
+      if (sucursalId > 0) {
+        this.sucursalSeleccionada = sucursalId; // Asignar a sucursalSeleccionada, NO a regC_Id
+      }
+      // No llamar a cargarInventarioSucursal aquí, se llamará después de cargar los productos
+      // Asignar el registro CAI del usuario (esto es correcto)
+      const regCId = obtenerRegCId();
+      if (regCId > 0) {
+        this.venta.regC_Id = regCId; // Asignar regC_Id correctamente desde obtenerRegCId()
+        this.venta.regC_Id_Vendedor = regCId;
+      }
+
+      // Asignar el ID de persona como vendedor
+      const personaId = obtenerPersonaId();
+      if (personaId > 0) {
+        this.venta.vend_Id = personaId;
+      }
+    }
+
+    this.cargarDatosIniciales();
   }
 
-private inicializar(): void {
-  const hoy = new Date();
+  private inicializar(): void {
+    const hoy = new Date();
 
-  this.fechaActual = hoy.toISOString().split('T')[0];
+    this.fechaActual = hoy.toISOString().split('T')[0];
 
-  // Inicializar todos los campos obligatorios con valores por defecto
-  this.venta = new VentaInsertar({
-    fact_Numero: this.generarNumeroFactura(), // Generamos un número aleatorio
-    fact_TipoDeDocumento: 'FAC',
-    regC_Id: 0,
-    clie_Id: 0,
-    fact_TipoVenta: '', // se llenará en el formulario
-    fact_FechaEmision: hoy, // Fecha de emisión siempre es la fecha actual
-    fact_FechaLimiteEmision: hoy,
-    fact_RangoInicialAutorizado: '010111',
-    fact_RangoFinalAutorizado: '01099999',
-    fact_Latitud: 0,
-    fact_Longitud: 0,
-    fact_Referencia: '',
-    fact_AutorizadoPor: 'CARLOS',
-    vend_Id: 0,
-    usua_Creacion: obtenerUsuarioId(),
-    detallesFacturaInput: []
-  });
-  
-  // Obtener ubicación actual
-  this.obtenerUbicacionActual();
-}
+    // Inicializar todos los campos obligatorios con valores por defecto según el nuevo formato
+    this.venta = new VentaInsertar({
+      fact_Numero: '', // Se generará en el backend
+      fact_TipoDeDocumento: '01',
+      regC_Id: 0, // Se asignará correctamente desde obtenerRegCId() o del vendedor seleccionado
+      diCl_Id: 0, // Nuevo campo que reemplaza a clie_Id
+      direccionId: 0, // Se llenará cuando se seleccione un cliente y sus direcciones
+      fact_TipoVenta: '', // se llenará en el formulario
+      fact_FechaEmision: hoy,
+      fact_Latitud: 0,
+      fact_Longitud: 0,
+      fact_Referencia: '',
+      fact_AutorizadoPor: 'SISTEMA',
+      vend_Id: 0,
+      usua_Creacion: 1,
+      detallesFacturaInput: [],
+    });
+
+    // Obtener ubicación actual
+    this.obtenerUbicacionActual();
+  }
 
   private cargarDatosIniciales(): void {
+    // Si no es administrador, asignar automáticamente sucursal y vendedor
+    if (!this.esAdmin) {
+      // Asignar ID de sucursal
+      const sucursalId = obtenerSucursalId();
+      this.sucursalSeleccionada = sucursalId;
+
+      // Asignar ID de registro CAI
+      this.venta.regC_Id = obtenerRegCId();
+
+      // Asignar ID de vendedor
+      this.venta.vend_Id = obtenerPersonaId();
+
+      // Cargar vendedores filtrados por la sucursal asignada
+      if (sucursalId) {
+        this.cargarVendedoresPorSucursal(sucursalId);
+      }
+    }
+
     this.cargando = true;
     const headers = { 'x-api-key': environment.apiKey };
 
     // Cargar datos en paralelo usando forkJoin
     forkJoin({
-      sucursales: this.http.get<any>(`${environment.apiBaseUrl}/Sucursales/Listar`, { headers }),
-      clientes: this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/Listar`, { headers }),
-      vendedores: this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, { headers })
+      sucursales: this.http.get<any>(
+        `${environment.apiBaseUrl}/Sucursales/Listar`,
+        { headers }
+      ),
+      clientes: this.http.get<any[]>(
+        `${environment.apiBaseUrl}/Cliente/Listar`,
+        { headers }
+      ),
+      vendedores: this.http.get<any[]>(
+        `${environment.apiBaseUrl}/Vendedores/Listar`,
+        { headers }
+      ),
     }).subscribe({
       next: (data) => {
         this.sucursales = data.sucursales;
         this.clientes = data.clientes;
         this.vendedores = data.vendedores;
         this.cargando = false;
-        
+
         // Verificar la estructura de los datos para depuración
         if (this.vendedores && this.vendedores.length > 0) {
           const primerVendedor = this.vendedores[0];
-   
-          // Verificar si los vendedores tienen alguna propiedad relacionada con sucursal
-          const propiedadesSucursal = Object.keys(primerVendedor).filter(key => 
-            key.toLowerCase().includes('sucu') || 
-            key.toLowerCase().includes('sucur') || 
-            key.toLowerCase().includes('regc'));
-          
-
+          const propiedadesSucursal = Object.keys(primerVendedor).filter(
+            (key) =>
+              key.toLowerCase().includes('sucu') ||
+              key.toLowerCase().includes('sucur') ||
+              key.toLowerCase().includes('regc')
+          );
         }
       },
       error: (error) => {
         this.mostrarError('Error al cargar datos iniciales');
-
         this.cargando = false;
-      }
+      },
     });
 
     // Cargar productos
     this.listarProductos();
+  }
+
+  /**
+   * Carga los vendedores filtrados por sucursal
+   * @param sucursalId ID de la sucursal para filtrar vendedores
+   */
+  private cargarVendedoresPorSucursal(sucursalId: number): void {
+    if (!sucursalId) return;
+
+    const headers = this.obtenerHeaders();
+
+    this.http
+      .get<any[]>(
+        `${environment.apiBaseUrl}/Vendedores/PorSucursal/${sucursalId}`,
+        { headers }
+      )
+      .subscribe({
+        next: (response) => {
+          if (response && Array.isArray(response)) {
+            // Si el usuario no es administrador, asignar automáticamente su ID como vendedor
+            if (!this.esAdmin && this.usuarioId) {
+              const vendedorUsuario = response.find(
+                (v) => v.vend_Id === this.usuarioId
+              );
+              if (vendedorUsuario) {
+                this.venta.vend_Id = vendedorUsuario.vend_Id;
+              } else if (response.length > 0) {
+                // Si no se encuentra el usuario como vendedor, usar el primer vendedor disponible
+                this.venta.vend_Id = response[0].vend_Id;
+              }
+            }
+          }
+        },
+        error: (error) => {},
+      });
   }
 
   listarProductos(): void {
@@ -147,6 +283,12 @@ private inicializar(): void {
             stockDisponible: 0,
             tieneStock: false,
           }));
+
+          // Cargar el inventario después de cargar los productos
+          if (this.sucursalSeleccionada && this.sucursalSeleccionada > 0) {
+            this.cargarInventarioSucursal();
+          }
+
           this.aplicarFiltros();
         },
         error: () => this.mostrarError('Error al cargar productos'),
@@ -159,24 +301,24 @@ private inicializar(): void {
   public obtenerUbicacionActual(): void {
     this.obteniendoUbicacion = true;
     this.errorUbicacion = '';
-    
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           this.venta.fact_Latitud = position.coords.latitude;
           this.venta.fact_Longitud = position.coords.longitude;
           this.obteniendoUbicacion = false;
-          console.log('Ubicación obtenida:', this.venta.fact_Latitud, this.venta.fact_Longitud);
         },
         (error) => {
           this.obteniendoUbicacion = false;
-          this.errorUbicacion = 'No se pudo obtener la ubicación: ' + this.getErrorUbicacion(error);
-          console.error('Error de geolocalización:', error);
+          this.errorUbicacion =
+            'No se pudo obtener la ubicación: ' + this.getErrorUbicacion(error);
         }
       );
     } else {
       this.obteniendoUbicacion = false;
-      this.errorUbicacion = 'La geolocalización no está soportada por este navegador';
+      this.errorUbicacion =
+        'La geolocalización no está soportada por este navegador';
     }
   }
 
@@ -197,116 +339,109 @@ private inicializar(): void {
   }
 
   /**
-   * Filtra los vendedores por la sucursal seleccionada y captura el RegC_Id
+   * Filtra los vendedores por la sucursal seleccionada
    */
   getVendedoresPorSucursal(): any[] {
-    if (!this.venta.regC_Id || this.venta.regC_Id === 0) {
+    if (!this.sucursalSeleccionada || this.sucursalSeleccionada === 0) {
       return [];
     }
-    
-    // Si no hay vendedores cargados, retornar array vacío
-    if (!this.vendedores || this.vendedores.length === 0) {
-      return [];
-    }
-    
-    const sucursalId = Number(this.venta.regC_Id);
-    
-    // Determinar qué propiedad usar para el filtrado
-    let propiedadSucursal = '';
-    let propiedadRegCId = '';
-    
-    // Buscar la propiedad correcta que contiene el ID de sucursal y RegC_Id
-    if (this.vendedores && this.vendedores.length > 0) {
-      const primerVendedor = this.vendedores[0];
-      
-      // Buscar propiedad de sucursal
-      const posiblesPropiedadesSucursal = ['sucu_Id', 'sucuId', 'sucursalId'];
-      for (const prop of posiblesPropiedadesSucursal) {
-        if (primerVendedor[prop] !== undefined) {
-          propiedadSucursal = prop;
-          break;
-        }
-      }
-      
-      // Buscar propiedad de RegC_Id
-      if (primerVendedor['regC_Id'] !== undefined) {
-        propiedadRegCId = 'regC_Id';
-      } else {
-        const propiedadesRegC = Object.keys(primerVendedor).find(key => 
-          key.toLowerCase().includes('regc'));
-        
-        if (propiedadesRegC) {
-          propiedadRegCId = propiedadesRegC;
-        }
-      }
-      
-      // Si no encontramos ninguna propiedad conocida para sucursal, buscar cualquiera que contenga 'sucu'
-      if (!propiedadSucursal) {
-        const propiedadesSucursal = Object.keys(primerVendedor).find(key => 
-          key.toLowerCase().includes('sucu'));
-        
-        if (propiedadesSucursal) {
-          propiedadSucursal = propiedadesSucursal;
-        }
-      }
-      
 
-    }
-    
-    // Si no se encontró ninguna propiedad relacionada con sucursal, mostrar advertencia
-    if (!propiedadSucursal) {
-     return [];
-    }
-    
-    // Filtrar usando la propiedad encontrada y capturar RegC_Id si está disponible
-    const vendedoresFiltrados = this.vendedores.filter(vendedor => {
-      const vendedorSucursalId = Number(vendedor[propiedadSucursal]);
-      return vendedorSucursalId === sucursalId;
+    // Filtrar vendedores por sucursal
+    return this.vendedores.filter((vendedor) => {
+      // Según la estructura proporcionada, el campo es 'sucu_Id'
+      return Number(vendedor.sucu_Id) === Number(this.sucursalSeleccionada);
     });
-    
-    // Si encontramos la propiedad RegC_Id y hay vendedores filtrados, capturar el valor
-    if (propiedadRegCId && vendedoresFiltrados.length > 0) {
-      const regCIdVendedor = vendedoresFiltrados[0][propiedadRegCId];
-      if (regCIdVendedor) {
-        // Almacenar el RegC_Id del vendedor en una propiedad separada
-        this.venta.regC_Id_Vendedor = regCIdVendedor;
+  }
+
+  /**
+   * Captura el regC_Id del vendedor seleccionado
+   * Solo actualiza regC_Id si el usuario es administrador
+   * Siempre asigna regC_Id_Vendedor con el registro CAI del vendedor
+   */
+  onVendedorChange(): void {
+    // Si no hay ID de vendedor seleccionado, salir
+    if (!this.venta.vend_Id || this.venta.vend_Id === 0) {
+      return;
+    }
+
+    // Buscar el vendedor seleccionado en la lista de vendedores
+    const vendedorSeleccionado = this.vendedores.find(
+      (v) => Number(v.vend_Id) === Number(this.venta.vend_Id)
+    );
+
+    if (!vendedorSeleccionado) {
+      return;
+    }
+
+    // Obtener el registro CAI del vendedor
+    let registroCAI: number | undefined;
+
+    // Verificar si el vendedor tiene el campo regC_Id
+    if (vendedorSeleccionado.regC_Id !== undefined) {
+      registroCAI = vendedorSeleccionado.regC_Id;
+    } else {
+      // Intentar buscar cualquier propiedad que contenga 'regc'
+      const regCProperty = Object.keys(vendedorSeleccionado).find((key) =>
+        key.toLowerCase().includes('regc')
+      );
+
+      if (regCProperty) {
+        registroCAI = vendedorSeleccionado[regCProperty];
       }
     }
-    
-    return vendedoresFiltrados;
+
+    // Asignar el registro CAI del vendedor a regC_Id_Vendedor
+    if (registroCAI !== undefined) {
+      this.venta.regC_Id_Vendedor = registroCAI;
+
+      // Solo actualizar regC_Id si es administrador
+      // Si no es administrador, el regC_Id debe ser inmutable y venir de la sesión
+      if (this.esAdmin) {
+        this.venta.regC_Id = registroCAI;
+      } else {
+      }
+    } else {
+    }
+
+    // Actualizar estado de navegación
+    this.actualizarEstadoNavegacion();
   }
 
   // ========== INVENTARIO POR SUCURSAL ==========
   onSucursalChange(): void {
     // Filtrar vendedores por sucursal seleccionada
     const vendedoresFiltrados = this.getVendedoresPorSucursal();
-    
+
     // Si hay vendedores disponibles, seleccionar el primero por defecto
     if (vendedoresFiltrados.length > 0) {
       this.venta.vend_Id = Number(vendedoresFiltrados[0].vend_Id);
+      // Al cambiar de sucursal, actualizamos el regC_Id_Vendedor con el vendedor seleccionado
+      this.onVendedorChange();
     } else {
       this.venta.vend_Id = 0;
-      
-      // Si no hay vendedores para esta sucursal pero hay vendedores en general,
-      // usar todos los vendedores como alternativa
-      if (this.vendedores && this.vendedores.length > 0) {
-        // Mostrar mensaje en consola
-     }
-    }
-    if (this.sucursalSeleccionadaAnterior !== this.venta.regC_Id) {
-      this.limpiarCantidadesSeleccionadas();
-      this.sucursalSeleccionadaAnterior = this.venta.regC_Id;
+      // Limpiamos el regC_Id_Vendedor si no hay vendedores
+      this.venta.regC_Id_Vendedor = undefined;
+      this.mostrarWarning(
+        'No hay vendedores disponibles para la sucursal seleccionada'
+      );
     }
 
-    if (this.venta.regC_Id && this.venta.regC_Id > 0) {
+    // Limpiar cantidades si cambió la sucursal
+    if (this.sucursalSeleccionadaAnterior !== this.sucursalSeleccionada) {
+      this.limpiarCantidadesSeleccionadas();
+      this.sucursalSeleccionadaAnterior = this.sucursalSeleccionada;
+    }
+
+    // Cargar inventario de la nueva sucursal
+    if (this.sucursalSeleccionada && this.sucursalSeleccionada > 0) {
       this.cargarInventarioSucursal();
     } else {
       this.limpiarInventario();
     }
+
+    // Actualizar estado de navegación
+    this.actualizarEstadoNavegacion();
   }
-
-
-
 
   private cargarInventarioSucursal(): void {
     this.cargandoInventario = true;
@@ -314,7 +449,10 @@ private inicializar(): void {
 
     const headers = { 'x-api-key': environment.apiKey };
     this.http
-      .get<any[]>(`${environment.apiBaseUrl}/InventarioSucursales/Buscar/${this.venta.regC_Id}`, { headers })
+      .get<any[]>(
+        `${environment.apiBaseUrl}/InventarioSucursales/Buscar/${this.sucursalSeleccionada}`,
+        { headers }
+      )
       .subscribe({
         next: (inventario) => {
           this.inventarioSucursal = inventario;
@@ -323,7 +461,6 @@ private inicializar(): void {
           this.cargandoInventario = false;
         },
         error: (error) => {
-
           this.mostrarError('Error al cargar el inventario de la sucursal');
           this.cargandoInventario = false;
           this.limpiarInventario();
@@ -336,7 +473,9 @@ private inicializar(): void {
       const inventarioItem = this.inventarioSucursal.find(
         (inv) => inv.prod_Id === producto.prod_Id
       );
-      producto.stockDisponible = inventarioItem ? inventarioItem.inSu_Cantidad : 0;
+      producto.stockDisponible = inventarioItem
+        ? inventarioItem.inSu_Cantidad
+        : 0;
       producto.tieneStock = producto.stockDisponible > 0;
     });
     this.aplicarFiltros();
@@ -345,7 +484,9 @@ private inicializar(): void {
   private validarProductosConStock(): void {
     const productosConStock = this.productos.filter((p) => p.tieneStock);
     if (productosConStock.length === 0) {
-      this.mostrarWarning('La sucursal seleccionada no tiene productos disponibles');
+      this.mostrarWarning(
+        'La sucursal seleccionada no tiene productos disponibles'
+      );
     }
   }
 
@@ -374,21 +515,27 @@ private inicializar(): void {
 
   // ========== CONTROL DE CANTIDADES ==========
   aumentarCantidad(index: number): void {
-    if (index < 0 || index >= this.productos.length) return;
-    const producto = this.productos[index];
+    // Obtener el producto de la página actual
+    const productosPaginados = this.getProductosPaginados();
+    if (index < 0 || index >= productosPaginados.length) return;
+    const producto = productosPaginados[index];
 
-    if (!this.venta.regC_Id || this.venta.regC_Id === 0) {
+    if (!this.sucursalSeleccionada || this.sucursalSeleccionada === 0) {
       this.mostrarWarning('Debe seleccionar una sucursal primero');
       return;
     }
 
     if (!producto.tieneStock) {
-      this.mostrarWarning(`El producto "${producto.prod_Descripcion}" no tiene stock`);
+      this.mostrarWarning(
+        `El producto "${producto.prod_Descripcion}" no tiene stock`
+      );
       return;
     }
 
     if (producto.cantidad >= producto.stockDisponible) {
-      this.mostrarWarning(`Stock insuficiente. Máximo: ${producto.stockDisponible}`);
+      this.mostrarWarning(
+        `Stock insuficiente. Máximo: ${producto.stockDisponible}`
+      );
       return;
     }
 
@@ -397,34 +544,46 @@ private inicializar(): void {
   }
 
   disminuirCantidad(index: number): void {
-    if (index >= 0 && index < this.productos.length && this.productos[index].cantidad > 0) {
-      this.productos[index].cantidad--;
+    // Obtener el producto de la página actual
+    const productosPaginados = this.getProductosPaginados();
+    if (
+      index >= 0 &&
+      index < productosPaginados.length &&
+      productosPaginados[index].cantidad > 0
+    ) {
+      productosPaginados[index].cantidad--;
       this.actualizarEstadoNavegacion();
     }
   }
 
   validarCantidad(index: number): void {
-    if (index < 0 || index >= this.productos.length) return;
-    const producto = this.productos[index];
+    // Obtener el producto de la página actual
+    const productosPaginados = this.getProductosPaginados();
+    if (index < 0 || index >= productosPaginados.length) return;
+    const producto = productosPaginados[index];
     let cantidad = producto.cantidad || 0;
 
     cantidad = Math.max(0, Math.min(999, cantidad));
 
     if (cantidad > 0) {
-      if (!this.venta.regC_Id || this.venta.regC_Id === 0) {
+      if (!this.sucursalSeleccionada || this.sucursalSeleccionada === 0) {
         this.mostrarWarning('Debe seleccionar una sucursal primero');
         producto.cantidad = 0;
         return;
       }
 
       if (!producto.tieneStock) {
-        this.mostrarWarning(`El producto "${producto.prod_Descripcion}" no tiene stock`);
+        this.mostrarWarning(
+          `El producto "${producto.prod_Descripcion}" no tiene stock`
+        );
         producto.cantidad = 0;
         return;
       }
 
       if (cantidad > producto.stockDisponible) {
-        this.mostrarWarning(`Stock insuficiente. Máximo: ${producto.stockDisponible}`);
+        this.mostrarWarning(
+          `Stock insuficiente. Máximo: ${producto.stockDisponible}`
+        );
         cantidad = producto.stockDisponible;
       }
     }
@@ -447,11 +606,23 @@ private inicializar(): void {
 
   private aplicarFiltros(): void {
     const termino = this.busquedaProducto.toLowerCase().trim();
-    this.productosFiltrados = !termino
+
+    // Filtrar productos por término de búsqueda
+    const productosFiltrados = !termino
       ? [...this.productos]
       : this.productos.filter((p) =>
           p.prod_Descripcion.toLowerCase().includes(termino)
         );
+
+    // Ordenar productos: primero los que tienen stock, luego los sin stock
+    this.productosFiltrados = productosFiltrados.sort((a, b) => {
+      // Si ambos tienen stock o ambos no tienen stock, mantener orden alfabético
+      if (a.tieneStock === b.tieneStock) {
+        return a.prod_Descripcion.localeCompare(b.prod_Descripcion);
+      }
+      // Los que tienen stock van primero (true > false)
+      return b.tieneStock ? 1 : -1;
+    });
   }
 
   getProductosPaginados(): any[] {
@@ -493,7 +664,10 @@ private inicializar(): void {
   }
 
   getFinRegistro(): number {
-    return Math.min(this.paginaActual * this.productosPorPagina, this.productosFiltrados.length);
+    return Math.min(
+      this.paginaActual * this.productosPorPagina,
+      this.productosFiltrados.length
+    );
   }
 
   // ========== NAVEGACIÓN DE TABS ==========
@@ -504,6 +678,43 @@ private inicializar(): void {
     }
     this.tabActivo = tab;
     this.limpiarAlertas();
+  }
+
+  /**
+   * Maneja el cambio de tipo de venta (Contado/Crédito)
+   * Actualiza la visibilidad de la información de crédito
+   */
+  cambiarTipoVenta(): void {
+    // Actualizar la visibilidad de la información de crédito
+    this.mostrarInfoCredito = this.venta.fact_TipoVenta === 'CR';
+
+    // Si se seleccionó crédito pero el cliente no puede usarlo, mostrar advertencia
+    if (this.venta.fact_TipoVenta === 'CR') {
+      // Verificar si el cliente puede usar crédito (tiene crédito habilitado y no tiene saldo vencido)
+      if (!this.puedeUsarCredito()) {
+        this.mostrarWarning(
+          'Este cliente no puede usar crédito. Verifique límite de crédito o saldo vencido.'
+        );
+        this.venta.fact_TipoVenta = 'CO';
+        this.mostrarInfoCredito = false;
+        return;
+      }
+
+      // Verificar si el total de la venta excede el crédito disponible
+      if (this.excedeCreditoDisponible()) {
+        const totalVenta = this.getTotalGeneral();
+        const saldoDisponible = this.getSaldoDisponible();
+        this.mostrarWarning(
+          `El total de la venta (L. ${totalVenta.toFixed(
+            2
+          )}) excede el crédito disponible (L. ${saldoDisponible.toFixed(2)})`
+        );
+        this.venta.fact_TipoVenta = 'CO';
+        this.mostrarInfoCredito = false;
+      }
+    }
+
+    this.actualizarEstadoNavegacion();
   }
 
   irAResumen(): void {
@@ -518,14 +729,21 @@ private inicializar(): void {
   private validarDatosBasicos(): boolean {
     const errores = [];
 
-    if (!this.venta.regC_Id || this.venta.regC_Id == 0) errores.push('Sucursal');
-    if (!this.venta.clie_Id || this.venta.clie_Id == 0) errores.push('Cliente');
-    if (!this.venta.vend_Id || this.venta.vend_Id == 0) errores.push('Vendedor');
-    if (!this.venta.fact_TipoVenta) errores.push('Tipo de venta (Contado/Crédito)');
+    if (!this.sucursalSeleccionada || this.sucursalSeleccionada == 0)
+      errores.push('Sucursal');
+    if (!this.clienteSeleccionado || this.clienteSeleccionado == 0)
+      errores.push('Cliente');
+    if (!this.venta.direccionId || this.venta.direccionId == 0)
+      errores.push('Dirección del cliente');
+    if (!this.venta.vend_Id || this.venta.vend_Id == 0)
+      errores.push('Vendedor');
+    if (!this.venta.fact_TipoVenta)
+      errores.push('Tipo de venta (Contado/Crédito)');
     if (!this.venta.fact_FechaEmision) errores.push('Fecha de emisión');
 
     const productosSeleccionados = this.getProductosSeleccionados();
-    if (productosSeleccionados.length === 0) errores.push('Al menos un producto');
+    if (productosSeleccionados.length === 0)
+      errores.push('Al menos un producto');
 
     if (errores.length > 0) {
       this.mostrarWarning(`Complete: ${errores.join(', ')}`);
@@ -537,8 +755,251 @@ private inicializar(): void {
 
   // ========== RESUMEN ==========
   getNombreSucursal(): string {
-    const sucursal = this.sucursales.find((s) => s.sucu_Id == this.venta.regC_Id);
+    const sucursal = this.sucursales.find(
+      (s) => s.sucu_Id == this.sucursalSeleccionada
+    );
     return sucursal?.sucu_Descripcion || 'No seleccionada';
+  }
+
+  getNombreCliente(): string {
+    const cliente = this.clientes.find(
+      (c) => c.clie_Id == this.clienteSeleccionado
+    );
+    return cliente
+      ? `${cliente.clie_NombreNegocio} - ${cliente.clie_Nombres} ${cliente.clie_Apellidos}`
+      : 'No seleccionado';
+  }
+
+  getNombreDireccion(): string {
+    const direccion = this.direccionesCliente.find(
+      (d) => d.diCl_Id == this.venta.direccionId
+    );
+    return direccion?.diCl_DireccionExacta || 'No seleccionada';
+  }
+
+  getNombreVendedor(): string {
+    const vendedor = this.vendedores.find(
+      (v) => v.vend_Id == this.venta.vend_Id
+    );
+    return vendedor
+      ? `${vendedor.vend_Nombres} ${vendedor.vend_Apellidos}`
+      : 'No seleccionado';
+  }
+
+  // ========== MÉTODOS PARA INFORMACIÓN DE CRÉDITO ==========
+
+  /**
+   * Verifica si el cliente seleccionado tiene crédito habilitado
+   * @returns true si el cliente tiene crédito, false en caso contrario
+   */
+  tieneCredito(): boolean {
+    if (!this.clienteActual) return false;
+
+    // Un cliente tiene crédito si tiene límite de crédito o días de crédito
+    return (
+      this.clienteActual.clie_LimiteCredito > 0 ||
+      this.clienteActual.clie_DiasCredito > 0
+    );
+  }
+
+  /**
+   * Verifica si el cliente puede usar crédito (tiene crédito y no tiene saldo vencido)
+   * @returns true si el cliente puede usar crédito, false en caso contrario
+   */
+  puedeUsarCredito(): boolean {
+    // Si no tiene crédito habilitado, no puede usarlo
+    if (!this.tieneCredito()) return false;
+
+    // Si tiene saldo vencido, no puede usar crédito
+    if (this.tieneSaldoVencido()) return false;
+
+    return true;
+  }
+
+  /**
+   * Verifica si el total de la venta excede el crédito disponible del cliente
+   * @returns true si el total excede el crédito disponible, false en caso contrario
+   */
+  excedeCreditoDisponible(): boolean {
+    // Si no es venta a crédito, no aplica esta validación
+    if (this.venta.fact_TipoVenta !== 'CR') return false;
+
+    // Si no hay cliente seleccionado o no tiene crédito, no se puede usar crédito
+    if (!this.clienteActual || !this.tieneCredito()) return true;
+
+    // Calcular el total de la venta
+    const totalVenta = this.getTotalGeneral();
+
+    // Obtener el saldo disponible para crédito
+    const saldoDisponible = this.getSaldoDisponible();
+
+    // Verificar si el total excede el saldo disponible
+    return totalVenta > saldoDisponible;
+  }
+
+  /**
+   * Obtiene el límite de crédito del cliente seleccionado
+   * @returns Límite de crédito o 0 si no tiene
+   */
+  getLimiteCredito(): number {
+    return this.clienteActual?.clie_LimiteCredito || 0;
+  }
+
+  /**
+   * Obtiene los días de crédito del cliente seleccionado
+   * @returns Días de crédito o 0 si no tiene
+   */
+  getDiasCredito(): number {
+    return this.clienteActual?.clie_DiasCredito || 0;
+  }
+
+  /**
+   * Obtiene el saldo actual del cliente seleccionado
+   * @returns Saldo actual o 0 si no tiene
+   */
+  getSaldoCliente(): number {
+    return this.clienteActual?.clie_Saldo || 0;
+  }
+
+  /**
+   * Calcula el saldo disponible para crédito
+   * @returns Saldo disponible (límite - saldo actual)
+   */
+  getSaldoDisponible(): number {
+    if (!this.clienteActual) return 0;
+
+    const limite = this.getLimiteCredito();
+    const saldoActual = this.getSaldoCliente();
+
+    return Math.max(0, limite - saldoActual);
+  }
+
+  /**
+   * Verifica si el cliente tiene saldo vencido
+   * @returns true si tiene saldo vencido, false en caso contrario
+   */
+  tieneSaldoVencido(): boolean {
+    return this.clienteActual?.clie_Vencido || false;
+  }
+
+  /**
+   * Calcula el porcentaje del crédito disponible que representa el total de la venta
+   * @returns Porcentaje del 0 al 100, limitado a 100 si excede el crédito disponible
+   */
+  getPorcentajeCredito(): number {
+    if (!this.clienteActual || !this.tieneCredito()) return 0;
+
+    const saldoDisponible = this.getSaldoDisponible();
+    if (saldoDisponible <= 0) return 100; // Si no hay saldo disponible, mostrar 100%
+
+    const totalVenta = this.getTotalGeneral();
+    if (totalVenta <= 0) return 0; // Si no hay total, mostrar 0%
+
+    // Calcular el porcentaje y limitarlo a 100%
+    const porcentaje = (totalVenta / saldoDisponible) * 100;
+    return Math.min(100, Math.round(porcentaje * 10) / 10); // Redondear a 1 decimal para mayor precisión
+  }
+
+  /**
+   * Obtiene el estado del crédito basado en el porcentaje utilizado
+   * @returns String con el estado: 'Seguro', 'Precaución' o 'Límite'
+   */
+  getEstadoCredito(): string {
+    const porcentaje = this.getPorcentajeCredito();
+
+    if (porcentaje < 70) {
+      return 'Seguro';
+    } else if (porcentaje < 90) {
+      return 'Precaución';
+    } else {
+      return 'Límite';
+    }
+  }
+
+  // ========== CÁLCULOS FINANCIEROS ==========
+  getSubtotal(): number {
+    return this.productos
+      .filter((p) => p.cantidad > 0)
+      .reduce((total, p) => total + p.cantidad * p.prod_PrecioUnitario, 0);
+  }
+
+  getImpuestos(): number {
+    // Asumiendo ISV del 15% sobre el subtotal
+    return this.getSubtotal() * 0.15;
+  }
+
+  getTotalGeneral(): number {
+    return this.getSubtotal() + this.getImpuestos();
+  }
+
+  // ========== DIRECCIONES DEL CLIENTE ==========
+  cargarDireccionesCliente(clienteId: number): void {
+    if (!clienteId || clienteId === 0) {
+      this.direccionesCliente = [];
+      this.venta.direccionId = 0; // Resetear la dirección seleccionada
+      this.venta.diCl_Id = 0; // Resetear el ID de dirección del cliente
+      this.venta.clie_Id = 0; // Resetear el ID del cliente
+      this.clienteActual = null; // Resetear el cliente actual
+      return;
+    }
+
+    // Guardamos el ID del cliente seleccionado
+    this.venta.clie_Id = clienteId;
+    // NO asignamos el ID del cliente a diCl_Id, ya que son campos diferentes
+    // diCl_Id debe ser el ID de la dirección del cliente, no el ID del cliente
+
+    // Buscar y guardar la información completa del cliente seleccionado
+    this.clienteActual = this.clientes.find((c) => c.clie_Id === clienteId);
+
+    const headers = this.obtenerHeaders();
+
+    this.http
+      .get<any>(
+        `${environment.apiBaseUrl}/DireccionesPorCliente/Buscar/${clienteId}`,
+        { headers }
+      )
+      .subscribe({
+        next: (response) => {
+          if (response) {
+            this.direccionesCliente = response;
+            // Si hay direcciones disponibles, seleccionar la primera por defecto
+            if (this.direccionesCliente.length > 0) {
+              const primeraDireccion = this.direccionesCliente[0];
+              this.venta.direccionId = primeraDireccion.diCl_Id;
+              // Actualizamos diCl_Id con el ID de la dirección seleccionada
+              this.actualizarDireccionSeleccionada(primeraDireccion.diCl_Id);
+            } else {
+              this.venta.direccionId = 0;
+              this.venta.diCl_Id = 0;
+            }
+          } else {
+            this.direccionesCliente = [];
+            this.venta.direccionId = 0;
+            this.venta.diCl_Id = 0;
+          }
+        },
+        error: (error) => {
+          this.direccionesCliente = [];
+          this.venta.direccionId = 0;
+          this.venta.diCl_Id = 0;
+          this.mostrarError('Error al cargar direcciones del cliente');
+        },
+      });
+  }
+
+  actualizarDireccionSeleccionada(direccionId: number): void {
+    if (!direccionId || direccionId === 0) {
+      this.venta.diCl_Id = 0;
+      this.venta.direccionId = 0;
+      return;
+    }
+
+    // Actualizar el ID de dirección del cliente para el backend
+    this.venta.diCl_Id = direccionId;
+    this.venta.direccionId = direccionId;
+
+    // Actualizar el estado de navegación
+    this.actualizarEstadoNavegacion();
   }
 
   getTotalProductosSeleccionados(): number {
@@ -551,7 +1012,8 @@ private inicializar(): void {
     return this.productos.filter((p) => p.cantidad > 0);
   }
 
-  obtenerDetallesVenta(): VentaDetalle[] {
+  obtenerDetallesVenta(): any[] {
+    // Simplificamos los detalles según el nuevo formato requerido
     return this.productos
       .filter((p) => p.cantidad > 0)
       .map((p) => ({
@@ -561,12 +1023,30 @@ private inicializar(): void {
   }
 
   private actualizarEstadoNavegacion(): void {
+    // Si estamos en la pestaña de resumen, validar los datos básicos
     if (this.tabActivo === 2) {
       const valido = this.validarDatosBasicos();
       this.puedeAvanzarAResumen = valido;
       if (!valido) {
         this.tabActivo = 1;
-        this.mostrarWarning('Se detectaron cambios. Complete los datos requeridos.');
+        this.mostrarWarning(
+          'Se detectaron cambios. Complete los datos requeridos.'
+        );
+        return;
+      }
+
+      // Si la venta es a crédito, verificar si el total excede el crédito disponible
+      if (
+        this.venta.fact_TipoVenta === 'CR' &&
+        this.excedeCreditoDisponible()
+      ) {
+        const totalVenta = this.getTotalGeneral();
+        const saldoDisponible = this.getSaldoDisponible();
+        this.mostrarWarning(
+          `El total de la venta (L. ${totalVenta.toFixed(
+            2
+          )}) excede el crédito disponible (L. ${saldoDisponible.toFixed(2)})`
+        );
       }
     }
   }
@@ -590,12 +1070,70 @@ private inicializar(): void {
     }
 
     this.limpiarAlertas();
-    this.crearVenta();
+
+    // Obtener la ubicación actual antes de crear la venta
+    this.obteniendoUbicacion = true;
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          this.venta.fact_Latitud = position.coords.latitude;
+          this.venta.fact_Longitud = position.coords.longitude;
+          this.obteniendoUbicacion = false;
+          // Crear la venta después de obtener la ubicación
+          this.crearVenta();
+        },
+        (error) => {
+          this.obteniendoUbicacion = false;
+          this.errorUbicacion =
+            'No se pudo obtener la ubicación: ' + this.getErrorUbicacion(error);
+          // Crear la venta aunque no se haya podido obtener la ubicación
+          this.crearVenta();
+        },
+        { timeout: 5000 } // Timeout de 5 segundos para no hacer esperar demasiado al usuario
+      );
+    } else {
+      this.obteniendoUbicacion = false;
+      this.errorUbicacion =
+        'La geolocalización no está soportada por este navegador';
+      // Crear la venta aunque no se pueda obtener la ubicación
+      this.crearVenta();
+    }
+  }
+
+  validarFormularioCompleto(): boolean {
+    const errores = [];
+    if (!this.sucursalSeleccionada || this.sucursalSeleccionada == 0)
+      errores.push('Sucursal');
+    if (!this.clienteSeleccionado || this.clienteSeleccionado == 0)
+      errores.push('Cliente');
+    if (!this.venta.direccionId || this.venta.direccionId == 0)
+      errores.push('Dirección del cliente');
+    if (!this.venta.fact_TipoVenta) errores.push('Tipo de venta');
+    if (!this.venta.fact_FechaEmision) errores.push('Fecha de emisión');
+    if (this.obtenerDetallesVenta().length === 0) errores.push('Productos');
+
+    // Validar que el total de la venta no exceda el crédito disponible
+    if (this.venta.fact_TipoVenta === 'CR' && this.excedeCreditoDisponible()) {
+      const totalVenta = this.getTotalGeneral();
+      const saldoDisponible = this.getSaldoDisponible();
+      this.mostrarWarning(
+        `El total de la venta (L. ${totalVenta.toFixed(
+          2
+        )}) excede el crédito disponible (L. ${saldoDisponible.toFixed(2)})`
+      );
+      return false;
+    }
+
+    if (errores.length > 0) {
+      this.mostrarWarning(`Complete: ${errores.join(', ')}`);
+      return false;
+    }
+    return true;
   }
 
   // ========== MÉTODOS PARA MANEJAR CANTIDADES EN RESUMEN ==========
   aumentarCantidadEnResumen(prodId: number): void {
-    const index = this.productos.findIndex(p => p.prod_Id === prodId);
+    const index = this.productos.findIndex((p) => p.prod_Id === prodId);
     if (index !== -1) {
       const producto = this.productos[index];
       if (producto.cantidad < producto.stockDisponible) {
@@ -606,7 +1144,7 @@ private inicializar(): void {
   }
 
   disminuirCantidadEnResumen(prodId: number): void {
-    const index = this.productos.findIndex(p => p.prod_Id === prodId);
+    const index = this.productos.findIndex((p) => p.prod_Id === prodId);
     if (index !== -1 && this.productos[index].cantidad > 0) {
       this.productos[index].cantidad--;
       this.actualizarEstadoNavegacion();
@@ -616,22 +1154,26 @@ private inicializar(): void {
   validarCantidadEnResumen(producto: any): void {
     let cantidad = producto.cantidad || 0;
     cantidad = Math.max(0, Math.min(999, cantidad));
-    
+
     if (cantidad > 0) {
-      if (!this.venta.regC_Id || this.venta.regC_Id === 0) {
+      if (!this.sucursalSeleccionada || this.sucursalSeleccionada === 0) {
         this.mostrarWarning('Debe seleccionar una sucursal primero');
         producto.cantidad = 0;
         return;
       }
 
       if (!producto.tieneStock) {
-        this.mostrarWarning(`El producto "${producto.prod_Descripcion}" no tiene stock`);
+        this.mostrarWarning(
+          `El producto "${producto.prod_Descripcion}" no tiene stock`
+        );
         producto.cantidad = 0;
         return;
       }
 
       if (cantidad > producto.stockDisponible) {
-        this.mostrarWarning(`Stock insuficiente. Máximo: ${producto.stockDisponible}`);
+        this.mostrarWarning(
+          `Stock insuficiente. Máximo: ${producto.stockDisponible}`
+        );
         cantidad = producto.stockDisponible;
       }
     }
@@ -647,9 +1189,15 @@ private inicializar(): void {
     this.venta.usua_Creacion = this.usuarioId;
     this.venta.fact_FechaEmision = new Date();
     this.venta.fact_FechaLimiteEmision = new Date();
-    this.venta.regC_Id = 19;
-    this.venta.clie_Id =111;
-    this.venta.vend_Id = 1;
+    this.venta.regC_Id = 0;
+    this.venta.diCl_Id = 0;
+    this.venta.direccionId = 0;
+    this.venta.vend_Id = 0;
+
+    // Resetear selección de cliente y direcciones
+    this.clienteSeleccionado = 0;
+    this.direccionesCliente = [];
+
     this.productos.forEach((p) => {
       p.cantidad = 0;
       p.stockDisponible = 0;
@@ -677,102 +1225,128 @@ private inicializar(): void {
     this.mensajeWarning = '';
   }
 
-  private validarFormularioCompleto(): boolean {
-    const errores = [];
-    if (!this.venta.regC_Id || this.venta.regC_Id == 0) errores.push('Sucursal');
-    if (!this.venta.fact_TipoVenta) errores.push('Tipo de venta');
-    if (!this.venta.fact_FechaEmision) errores.push('Fecha de emisión');
-    if (this.obtenerDetallesVenta().length === 0) errores.push('Productos');
-
-    if (errores.length > 0) {
-      this.mostrarWarning(`Complete: ${errores.join(', ')}`);
-      return false;
+  onFechaEmisionChange(event: any): void {
+    const value = event.target.value; // string en formato "YYYY-MM-DD"
+    if (value) {
+      this.venta.fact_FechaEmision = new Date(value); // Convierte a Date
+    } else {
+      this.venta.fact_FechaEmision = new Date(); // Valor por defecto
     }
-    return true;
   }
 
-onFechaEmisionChange(event: any): void {
-  const value = event.target.value; // string en formato "YYYY-MM-DD"
-  if (value) {
-    this.venta.fact_FechaEmision = new Date(value); // Convierte a Date
-  } else {
-    this.venta.fact_FechaEmision = new Date(); // Valor por defecto
-  }
-}
+  private crearVenta(): void {
+    const detalles = this.obtenerDetallesVenta();
 
+    // Preparamos los datos según el formato requerido por el backend
+    const datosEnviar = {
+      fact_Numero: '',
+      fact_TipoDeDocumento: '01',
+      regC_Id: Number(this.venta.regC_Id), // ID del registro CAI
+      sucu_Id: Number(this.sucursalSeleccionada), // ID de la sucursal
+      diCl_Id: this.venta.diCl_Id,
+      direccionId: this.venta.direccionId, // ID de la dirección del cliente (NO el ID del cliente)
+      vend_Id: Number(this.venta.vend_Id),
+      fact_TipoVenta: this.venta.fact_TipoVenta,
+      fact_FechaEmision: this.venta.fact_FechaEmision.toISOString(),
+      fact_Latitud: this.venta.fact_Latitud || 0,
+      fact_Longitud: this.venta.fact_Longitud || 0,
+      fact_Referencia: this.venta.fact_Referencia || 'Venta desde app web',
+      fact_AutorizadoPor: 'SISTEMA',
+      usua_Creacion: this.usuarioId,
+      detallesFacturaInput: detalles,
+    };
 
-private crearVenta(): void {
-  if (!this.validarDatosBasicos()) return;
+    // Verificamos que diCl_Id tenga un valor válido
+    if (!datosEnviar.diCl_Id || datosEnviar.diCl_Id === 0) {
+      this.mostrarError(
+        'Error: No se ha seleccionado una dirección de cliente válida'
+      );
+      this.guardando = false;
+      return;
+    }
 
-  this.guardando = true;
-  
-  // Generar un nuevo número de factura para este intento
-  this.venta.fact_Numero = this.generarNumeroFactura();
-  
-  const detalles = this.obtenerDetallesVenta();
-  
-  // Aseguramos que las fechas estén en formato ISO y utilizamos el ID de registro CAI del vendedor si está disponible
-  const sucursalId = this.venta.regC_Id; // ID de sucursal seleccionada en el formulario
-  const regCIdVendedor = this.venta.regC_Id_Vendedor; // ID de registro CAI capturado del vendedor
-  
-  // Determinar qué ID de registro CAI usar
-  const regCIdFinal = regCIdVendedor || sucursalId;
+    // Verificamos que regC_Id (registro CAI) tenga un valor válido
+    if (!datosEnviar.regC_Id || datosEnviar.regC_Id === 0) {
+      this.mostrarError('Error: No se ha seleccionado un registro CAI válido');
+      this.guardando = false;
+      return;
+    }
 
-  
-  const datosEnviar = {
-    ...this.venta,
-    regC_Id: regCIdFinal, // Usamos el ID de registro CAI del vendedor si está disponible, sino el de la sucursal
-    fact_FechaEmision: this.venta.fact_FechaEmision.toISOString(),
-    fact_FechaLimiteEmision: this.venta.fact_FechaLimiteEmision.toISOString(),
-    detallesFacturaInput: detalles
-  };
+    // Verificamos que sucu_Id (sucursal) tenga un valor válido
+    if (!datosEnviar.sucu_Id || datosEnviar.sucu_Id === 0) {
+      this.mostrarError('Error: No se ha seleccionado una sucursal válida');
+      this.guardando = false;
+      return;
+    }
 
-  // Verifica en consola las coordenadas de la venta y la estructura completa
-  console.log('Coordenadas de la venta:', {
-    latitud: this.venta.fact_Latitud,
-    longitud: this.venta.fact_Longitud
-  });
-  
-  console.log('Estructura completa de datos a enviar:', JSON.stringify(datosEnviar, null, 2));
-
-  // Enviar al backend
-  this.http
-    .post<any>(
-      `${environment.apiBaseUrl}/Facturas/Insertar`, 
-      datosEnviar,
-      { headers: this.obtenerHeaders() }
-    )
-    .subscribe({
-      next: (response) => {
-        this.guardando = false;
-        const id = this.extraerId(response);
-        if (id > 0) {
-            this.mostrarExito(`Venta guardada con éxito (${detalles.length} productos). Mostrando detalles...`);
-          
-          // Emitir evento para notificar al componente padre con el ID de la factura
-          // y la acción 'detalles' para que muestre automáticamente los detalles
-          setTimeout(() => {
-            this.onSave.emit({ 
-              fact_Id: id, 
-              action: 'detalles',
-              mostrarDetalles: true // Indicador explícito para mostrar detalles
-            });
-          }, 2000);
-        } else {
-          this.mostrarError('No se pudo obtener el ID de la venta');
+    this.http
+      .post<any>(
+        `${environment.apiBaseUrl}/Facturas/InsertarEnSucursal`,
+        datosEnviar,
+        {
+          headers: this.obtenerHeaders(),
         }
-      },
-      error: (err) => {
-        this.guardando = false;
-        this.mostrarError('Error al guardar la venta');
-      },
-    });
-}
+      )
+      .subscribe({
+        next: (response) => {
+          this.guardando = false;
+          const id = this.extraerId(response);
+          if (id > 0) {
+            this.mostrarExito(
+              `Venta guardada con éxito (${detalles.length} productos). Mostrando detalles...`
+            );
+
+            // Emitir evento para notificar al componente padre con el ID de la factura
+            // y la acción 'detalles' para que muestre automáticamente los detalles
+            setTimeout(() => {
+              this.onSave.emit({
+                fact_Id: id,
+                action: 'detalles',
+                mostrarDetalles: true, // Indicador explícito para mostrar detalles
+              });
+
+              // Limpiar el formulario después de crear la venta exitosamente
+              this.limpiarFormulario();
+            }, 2000);
+          } else {
+            this.mostrarError('No se pudo obtener el ID de la venta');
+          }
+        },
+        error: (err) => {
+          this.guardando = false;
+
+          // DEBUGGING DETALLADO - Analizar estructura completa del error
+          this.mostrarError(err);
+          // Intentar extraer el mensaje de error de diferentes formas
+          let errorMessage = err;
+
+          // Método 1: err.error como objeto con message
+          if (err.error && typeof err.error === 'object' && err.error.message) {
+            errorMessage = err.error.message;
+          }
+          // Método 2: err.error como string JSON
+          else if (typeof err.error === 'string') {
+            try {
+              const parsedError = JSON.parse(err.error);
+              if (parsedError.message) {
+                errorMessage = parsedError.message;
+              }
+            } catch (e) {}
+          }
+          // Método 3: err.message directo
+          else if (err.message) {
+            errorMessage = err.message;
+          }
+
+          this.mostrarError(errorMessage);
+        },
+      });
+  }
 
   private extraerId(response: any): number {
     const data = response?.data;
     if (!data || data.code_Status !== 1) return 0;
-    
+
     // Intentar extraer el ID del mensaje de estado
     if (data.message_Status) {
       // El formato esperado es: "Venta insertada correctamente. ID: 102. Factura creada exitosamente. Total: 5.00"
@@ -781,26 +1355,9 @@ private crearVenta(): void {
         return parseInt(match[1], 10);
       }
     }
-    
+
     // Si no se encuentra en el mensaje, intentar con los campos tradicionales
     return data.fact_Id || data.Fact_Id || data.id || 0;
-  }
-
-  /**
-   * Genera un número de factura aleatorio con formato XXXXXXXX (8 dígitos)
-   * Utiliza el prefijo del rango inicial autorizado y genera los dígitos restantes
-   */
-  private generarNumeroFactura(): string {
-    // Prefijo base (puedes ajustarlo según tus necesidades)
-    const prefijo = 'FACT-010';
-    
-    // Generar 5 dígitos aleatorios para completar el número
-    const min = 10000;
-    const max = 99999;
-    const numeroAleatorio = Math.floor(Math.random() * (max - min + 1)) + min;
-    
-    // Combinar prefijo con número aleatorio
-    return prefijo + numeroAleatorio.toString();
   }
 
   private obtenerHeaders(): any {

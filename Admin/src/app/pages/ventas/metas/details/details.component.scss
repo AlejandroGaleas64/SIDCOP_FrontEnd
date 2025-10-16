@@ -1,0 +1,402 @@
+.card {
+  border-radius: 16px;
+  border: 1px solid #e1e1e1;
+  overflow: hidden;
+}
+
+.employee-photo-card {
+//overflow: hidden;
+  min-height: 300px;
+  display: flex;
+//   align-items: stretch;
+//   padding: 0;
+  border-radius: 16px;
+}
+
+.custom-business-img {
+  width: 160px;     // un poquito más angosta
+  height: 100px;    // el triple menos en alto que lo ancho
+  object-fit: contain; // asegura que no recorte nada, solo ajuste
+  border-radius: 10px;
+  display: flex;
+}
+
+.custom-placeholder-img {
+  width: 160px;
+  height: 100px;
+  border-radius: 10px;
+  background-color: #f8f9fa; // opcional
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .employee-photo-card {
+    min-height: 180px;
+    height: auto;
+  }
+}
+
+
+.employee-img-card {
+  width: 160px;     /* antes era más ancho, lo bajamos un poco */
+  height: 140px;    /* bajamos más en altura, como pediste */
+  object-fit: cover;
+  border-radius: 10px;
+  overflow: hidden;
+}
+@media (max-width: 767px) {
+  .employee-img-card {
+    position: relative;
+    height: auto;
+    min-height: 140px;
+    max-height: 240px;
+  }
+}
+
+
+.employee-img-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 1.2rem 0.6rem 1.4rem 0.6rem;
+  background: linear-gradient(0deg, rgba(20,26,47,0.85) 60%, rgba(20,26,47,0.1) 100%);
+  text-align: center;
+  z-index: 2;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+@media (max-width: 767px) {
+  .employee-img-overlay {
+    position: static;
+    padding: 0.6rem 0.2rem 0.7rem 0.2rem;
+    background: rgba(20,26,47,0.75);
+    border-radius: 0 0 12px 12px;
+    font-size: 1.05rem;
+  }
+}
+
+
+.employee-details-card.minimal-details-card {
+  background: #fff;
+  border: 2px solid #D6B68A;
+  color: #141A2F;
+  padding: 2.2rem 2rem 1.6rem 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px 0 rgba(20,26,47,0.08);
+  background-color: #141A2F;
+}
+
+.details-header-custom {
+  background: transparent !important;
+  color: #fff;
+  border-bottom: 2px solid #D6B68A;
+  border-radius: 16px 16px 0 0;
+  font-weight: 400;
+  padding: 1.1rem 1.5rem 1.1rem 1.5rem;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.details-header-custom i {
+  color: #D6B68A;
+  font-size: 6rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: flex-start;
+  border-bottom: 1.5px solid #ffffff;
+  padding: 1.2rem 0 1.2rem 0.2rem;
+  margin-bottom: 0;
+  background: transparent;
+  transition: background 0.2s;
+}
+.detail-item:last-child {
+  border-bottom: none;
+}
+.detail-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #D6B68A;
+  color: #141A2F;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.45rem;
+  margin-right: 1.2rem;
+  box-shadow: 0 2px 8px rgba(20,26,47,0.09);
+  border: 1.5px solid #D6B68A;
+}
+.detail-content {
+  flex: 1 1 0%;
+}
+.detail-label {
+  font-size: 0.97rem;
+  color: #D6B68A;
+  font-weight: 600;
+  margin-bottom: 0.19rem;
+  letter-spacing: 0.02em;
+  opacity: 0.95;
+}
+.detail-value {
+  font-size: .5rem;
+  color: #fff;
+  letter-spacing: 0.3px;
+  word-break: break-word;
+  border-radius: 8px;
+  margin-top: 0.13rem;
+}
+@media (max-width: 991px) {
+  .details-content .row.g-4.align-items-stretch {
+    flex-direction: column;
+  }
+  .employee-photo-card,
+  .employee-details-card {
+    min-height: unset;
+    height: auto;
+    margin-bottom: 1.2rem;
+  }
+  .employee-photo-card {
+    border-radius: 16px 16px 0 0;
+  }
+  .employee-details-card {
+    border-radius: 0 0 16px 16px;
+  }
+}
+
+@media (max-width: 767px) {
+  .employee-details-card {
+    padding: 1.1rem 0.5rem 1.1rem 0.5rem;
+  }
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.9rem 0.3rem;
+  }
+  .detail-icon {
+    margin-bottom: 0.5rem;
+    margin-right: 0;
+  }
+.employee-img-card {
+  width: 160px;     /* antes era más ancho, lo bajamos un poco */
+  height: 140px;    /* bajamos más en altura, como pediste */
+  object-fit: cover;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.client-img-card-horizontal {
+  width: 40%;
+  max-height: 200px;
+//   object-fit: contain; /* Usa 'cover' si prefieres que recorte */
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.client-img-responsive {
+  max-width: 70%;
+  max-height: 130px;
+  height: auto;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+  .employee-img-placeholder-card {
+    min-height: 220px;
+  }
+  .details-header-custom {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.7rem 1rem;
+  }
+  .details-header-custom i {
+    font-size: 2.5rem;
+    margin-bottom: 0.4rem;
+  }
+  .audit-table-container.modern-audit-table {
+    border-radius: 10px;
+    margin-top: 1.1rem;
+    overflow-x: auto;
+  }
+  .modern-audit-table .audit-header,
+  .modern-audit-table .audit-row {
+    flex-direction: row;
+    min-width: 520px;
+  }
+}
+
+@media (max-width: 480px) {
+  .employee-img-card,
+  .employee-img-placeholder-card {
+    min-height: 140px;
+    height: 140px;
+  }
+  .details-header-custom {
+    font-size: 0.98rem;
+    padding: 0.6rem 0.4rem;
+  }
+  .detail-label, .detail-value {
+    font-size: 0.98rem;
+  }
+  .audit-table-container.modern-audit-table {
+    border-radius: 7px;
+    margin-top: 0.7rem;
+  }
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.1rem 1rem 1.1rem 0.9rem;
+  margin-bottom: 1.1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  transition: box-shadow 0.2s;
+}
+.detail-item:last-child {
+  margin-bottom: 0;
+}
+.detail-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.65rem;
+  margin-right: 1.1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+}
+.detail-label {
+  font-size: 0.95rem;
+  color: #6c757d;
+  font-weight: 500;
+  margin-bottom: 0.18rem;
+}
+.detail-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #222;
+  letter-spacing: 0.3px;
+  word-break: break-word;
+}
+@media (max-width: 767px) {
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.9rem 0.7rem;
+  }
+  .detail-icon {
+    margin-bottom: 0.5rem;
+    margin-right: 0;
+  }
+}
+
+.prueba-img-card {
+  width: 100%;
+  object-fit: cover;
+  display: block;
+  filter: brightness(0.85);
+}
+
+.employee-img-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 1.2rem 0.6rem 1.4rem 0.6rem;
+  background: linear-gradient(0deg, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.1) 100%);
+  text-align: center;
+}
+
+.employee-img-name {
+  color: #fff;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+.employee-img-placeholder-card {
+  background: #23272f;
+  color: #fff;
+  min-height: 320px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.employee-img-placeholder-card .employee-img-name {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.employee-photo-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+}
+
+
+.card-header {
+  background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 1rem 1.2rem;
+}
+
+.employee-img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  background: #f8f9fa;
+}
+
+.employee-img-placeholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: #adb5bd;
+  border: 4px solid #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+
+.employee-name {
+  font-size: 1.2rem;
+  color: #222;
+}
+
+.employee-position {
+  font-size: 1rem;
+  color: #6c757d;
+}
+
+
+.form-label {
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.form-control-plaintext {
+  padding: 0.4rem 0;
+  font-weight: 500;
+  color: #555;
+}

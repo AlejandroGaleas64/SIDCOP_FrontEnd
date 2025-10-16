@@ -7,6 +7,7 @@ import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 @Component({
   selector: 'app-create',
@@ -28,7 +29,9 @@ export class CreateComponent  {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
 
-  constructor(private http: HttpClient) {
+  uploadedFiles: string[] = [];
+
+  constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {
     this.listarSucursales();
     this.listarColonias();
     this.listarEmpleados();
@@ -105,7 +108,7 @@ ordenarPorMunicipioYDepartamento(colonias: any[]): any[] {
 }
 
 listarRutasDisponibles(): void {
-    this.http.get<any>(`${environment.apiBaseUrl}/Rutas/ListarDisponibles`, {
+    this.http.get<any>(`${environment.apiBaseUrl}/Rutas/Listar`, {
         headers: { 'x-api-key': environment.apiKey }
       }).subscribe((data) => {
         this.rutasDisponibles = data;
@@ -241,14 +244,17 @@ tieneAyudante: boolean = false;
 
   guardar(): void {
   this.mostrarErrores = true;
+   const rutasValidas = this.rutasVendedor.length > 0 &&
+    this.rutasVendedor.every(rv => rv.ruta_Id != null && rv.diasSeleccionados && rv.diasSeleccionados.length > 0);
 
   if (
     this.vendedor.vend_Apellidos.trim() &&
     this.vendedor.vend_Nombres.trim() && this.vendedor.vend_Codigo.trim() &&
     this.vendedor.vend_Telefono.trim() && this.vendedor.vend_Correo.trim() &&
+    this.esCorreoValido(this.vendedor.vend_Correo) &&
     this.vendedor.vend_DNI.trim() && this.vendedor.vend_Sexo.trim() &&
     this.vendedor.vend_Tipo.trim() && this.vendedor.vend_DireccionExacta.trim() &&
-    this.vendedor.sucu_Id > 0 && this.vendedor.colo_Id > 0 && this.rutasVendedor.length > 0
+    this.vendedor.sucu_Id > 0 && this.vendedor.colo_Id > 0 && rutasValidas
   ) {
     this.mostrarAlertaWarning = false;
     this.mostrarAlertaError = false;
@@ -258,7 +264,7 @@ tieneAyudante: boolean = false;
       .filter(rv => rv.ruta_Id != null && rv.veRu_Dias !== '')
       .map(rv => ({ ruta_Id: rv.ruta_Id as number, veRu_Dias: rv.veRu_Dias }));
 
-      console.log('Rutas para enviar:', rutasParaEnviar);
+    
     // Construir el objeto para guardar
     const vendedorGuardar: any = {
       vend_Id: 0,
@@ -291,7 +297,7 @@ tieneAyudante: boolean = false;
       vendedorGuardar.vend_Ayudante = this.vendedor.vend_Ayudante;
     }
 
-    console.log('Guardando Vendedor:', vendedorGuardar);
+
 
     this.http.post<any>(`${environment.apiBaseUrl}/Vendedores/Insertar`, vendedorGuardar, {
       headers: {
@@ -301,7 +307,7 @@ tieneAyudante: boolean = false;
       }
     }).subscribe({
       next: (response) => {
-        console.log('Vendedor guardado exitosamente:', response);
+
         this.mensajeExito = `Vendedor "${this.vendedor.vend_Nombres}  ${this.vendedor.vend_Apellidos}" guardado exitosamente`;
         this.mostrarAlertaExito = true;
         this.mostrarErrores = false;
@@ -374,7 +380,7 @@ actualizarDias(idx: number, dias: number[]) {
   this.rutasVendedor[idx].veRu_Dias = dias.join(',');
   // Recalcular días disponibles para todos los índices
   this.recomputarOpciones();
-  console.log('rutasVendedor actualizadas:', this.rutasVendedor);
+ 
 }
 
 // Reaccionar al cambio de ruta en un índice
@@ -436,31 +442,32 @@ generarSiguienteCodigo(): string {
   return `VEND-${numero.toString().padStart(5, '0')}`;
 }
 
-  onImagenSeleccionada(event: any) {
-    // Obtenemos el archivo seleccionado desde el input tipo file
+  async onImagenSeleccionada(event: any) {
     const file = event.target.files[0];
-
+    
     if (file) {
-      // para enviar la imagen a Cloudinary
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'empleados');
-      //Subidas usuarios Carpeta identificadora en Cloudinary
-      //dwiprwtmo es el nombre de la cuenta de Cloudinary
-      const url = 'https://api.cloudinary.com/v1_1/dbt7mxrwk/upload';
-
-
-      fetch(url, {
-        method: 'POST',
-        body: formData
-      })
-        .then(response => response.json())
-        .then(data => {
-          this.vendedor.vend_Imagen = data.secure_url;
-        })
-        .catch(error => {
-          console.error('Error al subir la imagen a Cloudinary:', error);
-        });
+      try {
+        // Subir imagen al backend
+        const imagePath = await this.imageUploadService.uploadImageAsync(file);
+        this.vendedor.vend_Imagen = imagePath;
+        this.uploadedFiles = [imagePath];
+      } catch (error) {
+        console.error('Error al subir la imagen:', error);
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error al subir la imagen. Por favor, intente nuevamente.';
+        setTimeout(() => this.cerrarAlerta(), 5000);
+      }
     }
   }
+
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
+  }
+
+   esCorreoValido(correo: string): boolean {
+    if (!correo) return true;
+    // Debe contener "@" y terminar en ".com"
+    return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
+  }
+
 }

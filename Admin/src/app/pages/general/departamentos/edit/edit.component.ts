@@ -1,6 +1,7 @@
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Departamento } from 'src/app/Modelos/general/Departamentos.Model';
 import { environment } from 'src/environments/environment.prod';
@@ -10,9 +11,10 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 @Component({
   selector: 'app-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgxMaskDirective],
   templateUrl: './edit.component.html',
-  styleUrl: './edit.component.scss'
+  styleUrl: './edit.component.scss',
+  providers: [provideNgxMask()],
 })
 export class EditComponent {
   @Input() departamentoData: Departamento | null = null;
@@ -150,7 +152,6 @@ export class EditComponent {
           }
           else
           {
-            console.error('Error al actualizar departamento:', response.data.message_Status);
             this.mostrarAlertaError = true;
             this.mensajeError = 'Error al actualizar el departamento, ', response.data.message_Status;
             setTimeout(() => this.cerrarAlerta(), 5000);
@@ -158,7 +159,6 @@ export class EditComponent {
           
         },
         error: (error) => {
-          console.error('Error al actualizar departamento:', error);
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al actualizar el departamento. Por favor, intente nuevamente.';
           setTimeout(() => this.cerrarAlerta(), 5000);

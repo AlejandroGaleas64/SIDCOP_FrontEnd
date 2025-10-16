@@ -1,6 +1,7 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Municipio } from 'src/app/Modelos/general/Municipios.Model';
 import { environment } from 'src/environments/environment.prod';
@@ -9,9 +10,10 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 @Component({
   selector: 'app-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, NgxMaskDirective],
   templateUrl: './create.component.html',
-  styleUrl: './create.component.scss'
+  styleUrl: './create.component.scss',
+  providers: [provideNgxMask()],
 })
 export class CreateComponent {
    @Output() onCancel = new EventEmitter<void>();
@@ -103,8 +105,6 @@ export class CreateComponent {
         usuarioCreacion: "", 
         usuarioModificacion: "" 
       };
-
-      console.log('Guardando municipio:', municipioGuardar);
       
       this.http.post<any>(`${environment.apiBaseUrl}/Municipios/Insertar`, municipioGuardar, {
         headers: { 
@@ -116,7 +116,6 @@ export class CreateComponent {
         next: (response) => {
           if (response.data.code_Status === 1) 
           {
-            console.log('Municipio guardado exitosamente:', response);
             this.mensajeExito = `Municipio "${this.municipio.muni_Descripcion}" guardado exitosamente`;
             this.mostrarAlertaExito = true;
             this.mostrarErrores = false;
@@ -130,7 +129,6 @@ export class CreateComponent {
           }
           else 
           {
-            console.error('Error al guardar municipio:' + response.data.message_Status);
             this.mostrarAlertaError = true;
             this.mensajeError = 'Error al guardar el municipio, ' + response.data.message_Status;
             this.mostrarAlertaExito = false;
@@ -144,7 +142,6 @@ export class CreateComponent {
           
         },
         error: (error) => {
-          console.error('Error al guardar municipio:', error);
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al guardar el municipio. Por favor, intente nuevamente.';
           this.mostrarAlertaExito = false;

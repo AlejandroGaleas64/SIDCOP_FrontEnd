@@ -4,39 +4,94 @@ import {
   EventEmitter,
   Input,
   OnChanges,
+  OnDestroy,
   SimpleChanges,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Pedido } from 'src/app/Modelos/ventas/Pedido.Model';
 import { environment } from 'src/environments/environment.prod';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { jsPDF } from 'jspdf';
+import { PedidoInvoiceService } from '../services/pedido-invoice.service';
+import { ZplPrintingService } from 'src/app/core/services/zplprinting.service';
+import ZebraBrowserPrintWrapper from 'zebra-browser-print-wrapper';
+import { Observable, throwError } from 'rxjs';
+
+// Interfaces para la nueva librería
+interface ZebraPrinter {
+  name: string;
+  uid: string;
+  connection: string;
+  deviceType?: string;
+}
+
+interface PrinterStatus {
+  isReadyToPrint: boolean;
+  errors: string;
+}
 
 @Component({
   selector: 'app-details',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './details.component.html',
   styleUrl: './details.component.scss',
 })
-export class DetailsComponent implements OnChanges {
+export class DetailsComponent implements OnChanges, OnDestroy {
   @Input() PedidoData: Pedido | null = null;
   @Output() onClose = new EventEmitter<void>();
+
+  private pedidoInvoiceService = inject(PedidoInvoiceService);
+  private zplPrintingService = inject(ZplPrintingService);
 
   PedidoDetalle: Pedido | null = null;
   productos: any[] = [];
   cargando = false;
 
+  // Variables para impresión ZPL
+  private zebraBrowserPrint: any = null;
+  imprimiendo = false;
+  procesandoVenta = false;
+  mostrarConfiguracionImpresion = false;
+  configuracionImpresion = {
+    printerIp: '',
+    printerPort: 9101,
+    metodoImpresion: 'zebra-wrapper'
+  };
+  
+  // Variables para el modal de selección de formato de factura
+  mostrarModalFormatoFactura = false;
+  formatoSeleccionado: 'pdf' | 'zpl' | null = null;
+  facturaInsertada = false;
+
+  // Propiedades para Zebra Browser Print Wrapper
+  verificandoConexion = false;
+  dispositivosDisponibles: ZebraPrinter[] = [];
+  dispositivoSeleccionado: ZebraPrinter | null = null;
+  estadoImpresora: PrinterStatus = { isReadyToPrint: false, errors: '' };
+
   mostrarAlertaError = false;
   mensajeError = '';
+  mostrarAlertaExito = false;
+  mensajeExito = '';
   referenciasLista = [];
   clientesLista = [];
   referenciasNombre: any[] = [];
+
+  async ngOnInit(): Promise<void> {
+    await this.inicializarZebraBrowserPrint();
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['PedidoData'] && changes['PedidoData'].currentValue) {
       this.cargarDetallesSimulado(changes['PedidoData'].currentValue);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.zebraBrowserPrint = null;
   }
 
   // Simulación de carga
@@ -48,6 +103,13 @@ export class DetailsComponent implements OnChanges {
       try {
         this.PedidoDetalle = { ...data };
         this.productos = JSON.parse(this.PedidoDetalle.detallesJson ?? '[]');
+        
+        // Log para ver la estructura de los productos
+        //console.log('Estructura de productos en el pedido:', this.productos);
+        
+        // Configurar el servicio de invoice con los datos del pedido
+        this.pedidoInvoiceService.setPedidoCompleto(this.PedidoDetalle);
+        
         this.cargando = false;
       } catch (error) {
         console.error('Error al cargar detalles del pedido:', error);
@@ -67,6 +129,11 @@ export class DetailsComponent implements OnChanges {
     this.mensajeError = '';
   }
 
+  cerrarAlertaExito(): void {
+    this.mostrarAlertaExito = false;
+    this.mensajeExito = '';
+  }
+
     // ===== MÉTODOS PRIVADOS PARA PDF (basados en PdfReportService) =====
   
     private readonly COLORES = {
@@ -79,7 +146,7 @@ export class DetailsComponent implements OnChanges {
   
     private async cargarLogo(): Promise<string | null> {
       if (!this.configuracionEmpresa?.coFa_Logo) {
-        console.log('No hay logo configurado');
+        //console.log('No hay logo configurado');
         return null;
       }
   
@@ -120,7 +187,7 @@ export class DetailsComponent implements OnChanges {
             ctx.drawImage(img, 0, 0, width, height);
             
             const dataUrl = canvas.toDataURL('image/png', 0.8);
-            console.log('Logo procesado correctamente desde URL');
+            //console.log('Logo procesado correctamente desde URL');
             resolve(dataUrl);
           } catch (e) {
             console.error('Error al procesar el logo:', e);
@@ -135,7 +202,7 @@ export class DetailsComponent implements OnChanges {
         
         try {
           const logoUrl = this.configuracionEmpresa.coFa_Logo;
-          console.log('Intentando cargar logo desde:', logoUrl);
+          //console.log('Intentando cargar logo desde:', logoUrl);
           
           if (logoUrl.startsWith('http')) {
             img.src = logoUrl;
@@ -169,7 +236,7 @@ export class DetailsComponent implements OnChanges {
       next: (data) => {
         if (data && data.length > 0) {
           this.configuracionEmpresa = data[0];
-          console.log('Configuración de empresa cargada:', this.configuracionEmpresa);
+          //console.log('Configuración de empresa cargada:', this.configuracionEmpresa);
         }
       },
       error: (error) => {
@@ -178,126 +245,189 @@ export class DetailsComponent implements OnChanges {
     });
   }
 
-imprimirPedido(): void {
-  const doc = new jsPDF();
+  imprimirPedido(): void {
+    const doc = new jsPDF();
 
-  this.crearEncabezado(doc).then(() => {
-    const pageWidth = doc.internal.pageSize.width;
-    let y = 40;
+    this.crearEncabezado(doc).then(() => {
+      const pageWidth = doc.internal.pageSize.width;
+      let y = 40;
 
-    doc.setFontSize(10); // Fuente reducida
+      doc.setFontSize(10); // Fuente reducida
 
-    // ==============================
-    // ENCABEZADO DEL PEDIDO
-    // ==============================
-    doc.setFont('helvetica', 'bold');
-    doc.text(`No. Pedido:`, 14, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${this.PedidoDetalle?.pedi_Id}`, 37, y);
-    y += 6;
+      // ==============================
+      // ENCABEZADO DEL PEDIDO
+      // ==============================
+      doc.setFont('helvetica', 'bold');
+      doc.text(`No. Pedido:`, 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${this.PedidoDetalle?.pedi_Id}`, 37, y);
+      y += 6;
 
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Fecha Emisión:`, 14, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${this.formatearFecha(this.PedidoDetalle?.pedi_FechaPedido ?? null)}`, 42, y);
-    y += 5;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Fecha Entrega:`, 14, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${this.formatearFecha(this.PedidoDetalle?.pedi_FechaEntrega ?? null)}`, 42, y);
-    y += 5;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Tipo Documento:`, 14, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Pedido`, 44, y);
-    y += 4;
-
-    doc.line(14, y, 196, y); // Línea horizontal
-    y += 8;
-
-    // ==============================
-    // INFORMACIÓN DEL CLIENTE
-    // ==============================
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Cliente:`, 14, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${this.PedidoDetalle?.clie_Nombres} ${this.PedidoDetalle?.clie_Apellidos}`, 30, y);
-    y += 5;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Dirección:`, 14, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${this.PedidoDetalle?.diCl_DireccionExacta || 'Dirección no especificada'}`, 32, y);
-    y += 5;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Vendedor:`, 14, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${this.PedidoDetalle?.vend_Nombres || 'Vendedor no especificado'}`, 32, y);
-    y += 6;
-
-    doc.line(14, y, 196, y); // Línea horizontal
-    y += 6;
-
-    // ==============================
-    // ENCABEZADO DE PRODUCTOS
-    // ==============================
-    doc.setFont('helvetica', 'bold');
-    doc.text('Producto', 14, y);
-    doc.text('Precio', 120, y);
-    doc.text('Und', 145, y);
-    doc.text('Monto', 170, y);
-    y += 4;
-    doc.setFont('helvetica', 'normal');
-    doc.line(14, y, 196, y); // Línea horizontal
-    y += 5;
-
-    // ==============================
-    // LISTADO DE PRODUCTOS
-    // ==============================
-    let subtotal = 0;
-    this.productos.forEach((p) => {
-      const monto = p.precio * p.cantidad;
-      subtotal += monto;
-
-      doc.text(`${p.descripcion}`, 14, y);
-      doc.text(`L. ${p.precio.toFixed(2)}`, 120, y);
-      doc.text(`${p.cantidad}`, 145, y);
-      doc.text(`L. ${monto.toFixed(2)}`, 170, y);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Fecha Emisión:`, 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${this.formatearFecha(this.PedidoDetalle?.pedi_FechaPedido ?? null)}`, 42, y);
       y += 5;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Fecha Entrega:`, 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${this.formatearFecha(this.PedidoDetalle?.pedi_FechaEntrega ?? null)}`, 42, y);
+      y += 5;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Tipo Documento:`, 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Pedido`, 44, y);
+      y += 4;
+
+      doc.line(14, y, 196, y); // Línea horizontal
+      y += 8;
+
+      // ==============================
+      // INFORMACIÓN DEL CLIENTE
+      // ==============================
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Cliente:`, 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${this.PedidoDetalle?.clie_Nombres} ${this.PedidoDetalle?.clie_Apellidos}`, 30, y);
+      y += 5;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Dirección:`, 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${this.PedidoDetalle?.diCl_DireccionExacta || 'Dirección no especificada'}`, 32, y);
+      y += 5;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Vendedor:`, 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${this.PedidoDetalle?.vend_Nombres || 'Vendedor no especificado'}`, 32, y);
+      y += 6;
+
+      doc.line(14, y, 196, y); // Línea horizontal
+      y += 6;
+
+      // ==============================
+      // ENCABEZADO DE PRODUCTOS
+      // ==============================
+      doc.setFont('helvetica', 'bold');
+      doc.text('Producto', 14, y);
+      doc.text('Precio', 120, y);
+      doc.text('Und', 145, y);
+      doc.text('Monto', 170, y);
+      y += 4;
+      doc.setFont('helvetica', 'normal');
+      doc.line(14, y, 196, y); // Línea horizontal
+      y += 5;
+
+      // ==============================
+      // LISTADO DE PRODUCTOS
+      // ==============================
+      let subtotal = 0;
+      this.productos.forEach((p) => {
+        const monto = p.precio * p.cantidad;
+        subtotal += monto;
+
+        doc.text(`${p.descripcion}`, 14, y);
+        doc.text(`L. ${p.precio.toFixed(2)}`, 120, y);
+        doc.text(`${p.cantidad}`, 145, y);
+        doc.text(`L. ${monto.toFixed(2)}`, 170, y);
+        y += 5;
+      });
+
+      doc.line(14, y, 196, y); // Línea horizontal
+      y += 5;
+
+      // ==============================
+      // TOTALES
+      // ==============================
+      const impuestos = subtotal * 0.15;
+      const total = subtotal + impuestos;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Sub-total:`, 140, y);
+      doc.text(`L. ${subtotal.toFixed(2)}`, 170, y);
+      y += 5;
+
+      doc.text(`Impuestos (15%):`, 140, y);
+      doc.text(`L. ${impuestos.toFixed(2)}`, 170, y);
+      y += 5;
+
+      doc.text(`Total:`, 140, y);
+      doc.text(`L. ${total.toFixed(2)}`, 170, y);
+      y += 5;
+
+      // ==============================
+      // PREVIEW EN NUEVA PESTAÑA
+      // ==============================
+      const blobUrl = doc.output('bloburl');
+      window.open(blobUrl, '_blank');
+      
+      // Insertar datos en el endpoint /Facturas/Insertar
+      this.insertarFactura();
     });
+  }
+  
+  /**
+   * Inserta los datos del pedido como factura en el endpoint /Facturas/Insertar
+   * @returns Observable con la respuesta del servidor
+   */
+  insertarFactura(): Observable<any> {
+    if (!this.PedidoDetalle) {
+      this.mostrarMensajeError('No hay datos de pedido para insertar como factura');
+      return throwError(() => new Error('No hay datos de pedido para insertar como factura'));
+    }
+    
+    // Insertar la factura en el sistema
+    return this.pedidoInvoiceService.insertarFactura();
+  }
+  
+  /**
+   * Realiza el proceso completo de venta: insertar factura y mostrar modal de selección de formato
+   */
+  realizarVenta(): void {
+    if (!this.PedidoDetalle) {
+      this.mostrarMensajeError('No hay datos de pedido para realizar la venta');
+      return;
+    }
+    
+    this.procesandoVenta = true;
+    
+    // Paso 1: Insertar la factura
+    this.insertarFactura().subscribe({
+      next: (response: any) => {
+        //console.log('Factura insertada correctamente:', response);
+        const facturaId = response.id || response.fact_Id || 'N/A';
 
-    doc.line(14, y, 196, y); // Línea horizontal
-    y += 5;
-
-    // ==============================
-    // TOTALES
-    // ==============================
-    const impuestos = subtotal * 0.15;
-    const total = subtotal + impuestos;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Sub-total:`, 140, y);
-    doc.text(`L. ${subtotal.toFixed(2)}`, 170, y);
-    y += 5;
-
-    doc.text(`Impuestos (15%):`, 140, y);
-    doc.text(`L. ${impuestos.toFixed(2)}`, 170, y);
-    y += 5;
-
-    doc.text(`Total:`, 140, y);
-    doc.text(`L. ${total.toFixed(2)}`, 170, y);
-    y += 5;
-
-    // ==============================
-    // PREVIEW EN NUEVA PESTAÑA
-    // ==============================
-    const blobUrl = doc.output('bloburl');
-    window.open(blobUrl, '_blank');
-  });
-}
+        
+        // Marcar que la factura se ha insertado correctamente
+        this.facturaInsertada = true;
+        
+        // Mostrar el modal para seleccionar el formato de factura
+        this.abrirModalFormatoFactura();
+        
+        // Opcional: Actualizar el estado del pedido si es necesario
+        // this.actualizarEstadoPedido(this.PedidoDetalle.pedi_Id);
+      },
+      error: (error: any) => {
+        console.error('Error al insertar la factura:', error);
+        let mensajeError = 'Error al insertar la factura: inventario insuficiente';
+        
+        // Intentar obtener más detalles del error
+        if (error.error && error.error.message) {
+          mensajeError += `: ${error.error.message}`;
+        } else if (error.message) {
+          mensajeError += `: ${error.message}`;
+        }
+        
+        this.mostrarMensajeError(mensajeError);
+      },
+      complete: () => {
+        this.procesandoVenta = false;
+      }
+    });
+  }
 
 
 get subtotal(): number {
@@ -459,5 +589,328 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  // ===== MÉTODOS DE IMPRESIÓN ZPL =====
+
+  /**
+   * Inicializa la librería Zebra Browser Print Wrapper
+   */
+  private async inicializarZebraBrowserPrint(): Promise<void> {
+    try {
+      if (typeof ZebraBrowserPrintWrapper === 'undefined') {
+        console.error('ZebraBrowserPrintWrapper no está disponible');
+        this.mostrarMensajeError('La librería Zebra Browser Print Wrapper no está cargada');
+        return;
+      }
+
+      this.zebraBrowserPrint = new ZebraBrowserPrintWrapper();
+      await this.cargarImpresorasDisponibles();
+      
+    } catch (error) {
+      console.error('Error al inicializar Zebra Browser Print:', error);
+      this.mostrarMensajeError('Error al inicializar la impresora Zebra');
+    }
+  }
+
+  /**
+   * Carga la lista de impresoras disponibles
+   */
+  private async cargarImpresorasDisponibles(): Promise<void> {
+    if (!this.zebraBrowserPrint) return;
+
+    this.verificandoConexion = true;
+    
+    try {
+      const impresoras = await this.zebraBrowserPrint.getAvailablePrinters();
+      
+      if (impresoras && Array.isArray(impresoras)) {
+        this.dispositivosDisponibles = impresoras.map((printer: any) => ({
+          name: printer.name || 'Impresora sin nombre',
+          uid: printer.uid || printer.name,
+          connection: printer.connection || 'USB',
+          deviceType: printer.deviceType || 'Zebra'
+        }));
+
+        if (this.dispositivosDisponibles.length > 0) {
+          const defaultPrinter = await this.zebraBrowserPrint.getDefaultPrinter();
+          
+          if (defaultPrinter) {
+            const printerDefault = this.dispositivosDisponibles.find(p => 
+              p.name === defaultPrinter.name || p.uid === defaultPrinter.uid
+            );
+            
+            if (printerDefault) {
+              this.seleccionarDispositivo(printerDefault);
+            } else {
+              this.seleccionarDispositivo(this.dispositivosDisponibles[0]);
+            }
+          } else {
+            this.seleccionarDispositivo(this.dispositivosDisponibles[0]);
+          }
+        }
+
+      } else {
+        this.dispositivosDisponibles = [];
+
+      }
+      
+    } catch (error) {
+      console.error('Error al cargar impresoras:', error);
+      this.mostrarMensajeError('Error al buscar impresoras: ' + (error as Error).message);
+      this.dispositivosDisponibles = [];
+    } finally {
+      this.verificandoConexion = false;
+    }
+  }
+
+  /**
+   * Selecciona un dispositivo de impresión
+   */
+  seleccionarDispositivo(device: ZebraPrinter): void {
+    this.dispositivoSeleccionado = device;
+    
+    if (this.zebraBrowserPrint) {
+      this.zebraBrowserPrint.setPrinter(device);
+      this.verificarEstadoImpresora();
+      this.mostrarMensajeExito(`Impresora seleccionada: ${device.name}`);
+    }
+  }
+
+  /**
+   * Verifica el estado de la impresora seleccionada
+   */
+  private async verificarEstadoImpresora(): Promise<void> {
+    if (!this.zebraBrowserPrint || !this.dispositivoSeleccionado) {
+      this.estadoImpresora = { isReadyToPrint: false, errors: 'No hay impresora seleccionada' };
+      return;
+    }
+
+    try {
+      this.estadoImpresora = await this.zebraBrowserPrint.checkPrinterStatus();
+    } catch (error) {
+      console.error('Error al verificar estado de impresora:', error);
+      this.estadoImpresora = { 
+        isReadyToPrint: false, 
+        errors: 'Error al verificar estado: ' + (error as Error).message 
+      };
+    }
+  }
+
+  /**
+   * Refresca la lista de dispositivos
+   */
+  async refrescarDispositivos(): Promise<void> {
+    await this.cargarImpresorasDisponibles();
+  }
+
+  /**
+   * Prueba la impresora con una página de prueba
+   */
+  async probarImpresora(): Promise<void> {
+    if (!this.dispositivoSeleccionado) {
+      this.mostrarMensajeError('Debe seleccionar una impresora primero');
+      return;
+    }
+
+    this.verificandoConexion = true;
+    
+    try {
+      await this.verificarEstadoImpresora();
+      
+      if (!this.estadoImpresora.isReadyToPrint) {
+        this.mostrarMensajeError(`La impresora no está lista: ${this.estadoImpresora.errors}`);
+        return;
+      }
+
+      const zplPrueba = `^XA
+^CFD,30
+^FO50,50^FDPágina de Prueba^FS
+^CFD,20
+^FO50,100^FDImpresora: ${this.dispositivoSeleccionado.name}^FS
+^FO50,130^FDFecha: ${new Date().toLocaleString()}^FS
+^CFD,15
+^FO50,170^FDSi puede ver esto, la impresora funciona correctamente^FS
+^XZ`;
+
+      await this.zebraBrowserPrint.print(zplPrueba);
+      this.mostrarMensajeExito('Página de prueba enviada correctamente');
+      
+    } catch (error: any) {
+      console.error('Error al probar impresora:', error);
+      this.mostrarMensajeError('Error al probar impresora: ' + error.message);
+    } finally {
+      this.verificandoConexion = false;
+    }
+  }
+
+  /**
+   * Genera y muestra la vista previa del pedido en PDF
+   */
+  async generarVistaPrevia(): Promise<void> {
+    if (!this.PedidoDetalle) {
+      this.mostrarMensajeError('No hay datos de pedido para mostrar');
+      return;
+    }
+
+    try {
+      const result = await this.pedidoInvoiceService.generarPedidoPDF();
+      if (result.success) {
+        this.mostrarMensajeExito(result.message);
+      } else {
+        this.mostrarMensajeError(result.message);
+      }
+    } catch (error) {
+      console.error('Error al generar vista previa:', error);
+      this.mostrarMensajeError('Error al generar la vista previa del pedido');
+    }
+  }
+
+  /**
+   * Método principal de impresión ZPL - COPIADO EXACTO DE VENTAS/DETAILS
+   */
+  async imprimirPedidoZPL(): Promise<void> {
+      if (!this.PedidoDetalle) {
+        this.mostrarMensajeError('No hay datos de pedido para imprimir');
+        return;
+      }
+
+      this.imprimiendo = true;
+      this.mostrarAlertaError = false;
+      this.mostrarAlertaExito = false;
+
+      try {
+        // Create a new instance of the object (igual que printBarcode)
+        const browserPrint = new ZebraBrowserPrintWrapper();
+
+        // Select default printer (igual que printBarcode)
+        const defaultPrinter = await browserPrint.getDefaultPrinter();
+      
+        // Set the printer (igual que printBarcode)
+        browserPrint.setPrinter(defaultPrinter);
+
+        // Check printer status (igual que printBarcode)
+        const printerStatus = await browserPrint.checkPrinterStatus();
+
+        // Check if the printer is ready (igual que printBarcode)
+        if(printerStatus.isReadyToPrint) {
+          
+          // Preparar datos de pedido
+          const pedidoData = this.pedidoInvoiceService.prepararDatosParaZPL();
+          
+          // Generar código ZPL del pedido
+          const zplCode = this.zplPrintingService.generateInvoiceZPL(pedidoData);
+
+          // Imprimir el pedido (igual que printBarcode)
+          await browserPrint.print(zplCode);
+          
+          this.mostrarMensajeExito(`Pedido ${this.PedidoDetalle.pedi_Id} enviado a impresión correctamente`);
+          this.cerrarConfiguracionImpresion();
+          
+        } else {
+          //console.log("Error/s", printerStatus.errors);
+          this.mostrarMensajeError(`Error en la impresora: ${printerStatus.errors}`);
+        }
+
+      } catch (error: any) {
+        console.error('Error al imprimir pedido:', error);
+        this.mostrarMensajeError('Error al imprimir pedido: ' + error.message);
+      } finally {
+        this.imprimiendo = false;
+      }
+    }
+
+  // ===== MÉTODOS DE CONFIGURACIÓN =====
+
+  async abrirConfiguracionImpresion(): Promise<void> {
+    // Asegurar que Zebra Browser Print esté inicializado
+    if (!this.zebraBrowserPrint) {
+      await this.inicializarZebraBrowserPrint();
+    }
+    
+    // Refrescar dispositivos disponibles
+    await this.refrescarDispositivos();
+    
+    this.mostrarConfiguracionImpresion = true;
+  }
+
+  cerrarConfiguracionImpresion(): void {
+    this.mostrarConfiguracionImpresion = false;
+  }
+
+  seleccionarMetodo(metodo: string): void {
+    this.configuracionImpresion.metodoImpresion = metodo;
+  }
+
+  onBackdropClick(event: Event): void {
+    if (event.target === event.currentTarget) {
+      this.cerrarConfiguracionImpresion();
+    }
+  }
+  
+  // Métodos para el modal de selección de formato de factura
+  abrirModalFormatoFactura(): void {
+    this.formatoSeleccionado = null;
+    this.mostrarModalFormatoFactura = true;
+  }
+  
+  cerrarModalFormatoFactura(): void {
+    this.mostrarModalFormatoFactura = false;
+  }
+  
+  seleccionarFormato(formato: 'pdf' | 'zpl'): void {
+    this.formatoSeleccionado = formato;
+  }
+  
+  onBackdropClickFormato(event: Event): void {
+    if (event.target === event.currentTarget) {
+      this.cerrarModalFormatoFactura();
+    }
+  }
+  
+  // Este método ya no es necesario para la acción de los botones,
+  // pero lo mantenemos por si se necesita en el futuro
+  confirmarFormatoFactura(): void {
+    if (!this.formatoSeleccionado) {
+      this.mostrarMensajeError('Debe seleccionar un formato de factura');
+      return;
+    }
+  }
+
+  private mostrarMensajeError(mensaje: string): void {
+    this.mensajeError = mensaje;
+    this.mostrarAlertaError = true;
+    this.mostrarAlertaExito = false;
+  }
+
+  private mostrarMensajeExito(mensaje: string): void {
+    this.mensajeExito = mensaje;
+    this.mostrarAlertaExito = true;
+    this.mostrarAlertaError = false;
+  }
+
+  // Getters para el template
+  get browserPrintDisponible(): boolean {
+    return this.dispositivosDisponibles.length > 0;
+  }
+
+  get informacionImpresora(): string {
+    if (!this.dispositivoSeleccionado) {
+      return 'No seleccionada';
+    }
+    
+    return `${this.dispositivoSeleccionado.name} (${this.dispositivoSeleccionado.connection})`;
+  }
+
+  get estadoImpresoraTexto(): string {
+    if (!this.dispositivoSeleccionado) {
+      return 'No seleccionada';
+    }
+    
+    if (this.estadoImpresora.isReadyToPrint) {
+      return 'Lista para imprimir';
+    }
+    
+    return `Error: ${this.estadoImpresora.errors}`;
   }
 }

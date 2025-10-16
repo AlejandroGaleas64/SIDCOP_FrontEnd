@@ -16,9 +16,11 @@ export class DetailsComponent {
   usuarioDetalle: Usuario | null = null;
   cargando = false;
 
+  // Manejo de errores
   mostrarAlertaError = false;
   mensajeError = '';
 
+  // Detectar cambios en el input
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['usuarioData'] && changes['usuarioData'].currentValue) {
       this.cargarDetallesSimulado(changes['usuarioData'].currentValue);
@@ -43,16 +45,19 @@ export class DetailsComponent {
     }, 500); // Simula tiempo de carga
   }
 
+  // Cerrar el componente
   cerrar(): void {
     this.onClose.emit();
   }
 
+  // Cerrar alerta de error
   cerrarAlerta(): void {
     this.mostrarAlertaError = false;
     this.mensajeError = '';
   }
 
-   formatearFecha(fecha: string | Date | null): string {
+  // Formatear fechas
+  formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
     const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
     if (isNaN(dateObj.getTime())) return 'N/A';
@@ -63,5 +68,11 @@ export class DetailsComponent {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  // Manejar error al cargar la imagen
+  onImgError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    target.src = 'assets/images/users/32/user-dummy-img.jpg';
   }
 }
