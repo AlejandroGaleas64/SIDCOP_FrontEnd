@@ -29,14 +29,36 @@ export class DetailsComponent implements OnChanges {
 
   trasladoDetalle: Traslado | null = null;
   detallesTraslado: TrasladoDetalle[] = []; // Array para los detalles
+
+  /**
+   * Indica si se está cargando el componente
+   */
   cargando = false;
+
+  /**
+   * Indica si se están cargando los detalles del traslado
+   */
   cargandoDetalles = false;
 
+  /**
+   * Indica si se debe mostrar una alerta de error
+   */
   mostrarAlertaError = false;
+
+  /**
+   * Mensaje de error a mostrar
+   */
   mensajeError = '';
 
+  /**
+   * URL base de la API
+   */
   private readonly apiUrl = `${environment.apiBaseUrl}/Traslado`;
 
+  /**
+   * Detecta cambios en las propiedades de entrada y carga los datos correspondientes
+   * @param changes - Cambios detectados en las propiedades
+   */
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['trasladoId'] && changes['trasladoId'].currentValue) {
       this.cargarDetalles(changes['trasladoId'].currentValue);
@@ -50,7 +72,10 @@ export class DetailsComponent implements OnChanges {
     }
   }
 
-  // Carga real desde el endpoint del encabezado
+  /**
+   * Carga los detalles del encabezado del traslado desde el API
+   * @param id - ID del traslado a cargar
+   */
   cargarDetalles(id: number): void {
     this.cargando = true;
     this.mostrarAlertaError = false;
@@ -62,10 +87,7 @@ export class DetailsComponent implements OnChanges {
       }
     }).subscribe({
       next: (response) => {
-        //console.log('Respuesta completa del API:', response);
-        
         if (response && response.success && response.data) {
-          //console.log('Datos del traslado:', response.data);
           this.trasladoDetalle = response.data;
         } else {
           console.error('Estructura de respuesta inesperada:', response);
@@ -90,7 +112,10 @@ export class DetailsComponent implements OnChanges {
     });
   }
 
-  // Nuevo método para cargar los detalles del traslado
+  /**
+   * Carga los detalles de productos del traslado desde el API
+   * @param id - ID del traslado para cargar sus detalles
+   */
   cargarDetallesTraslado(id: number): void {
     this.cargandoDetalles = true;
     
@@ -101,11 +126,8 @@ export class DetailsComponent implements OnChanges {
       }
     }).subscribe({
       next: (response) => {
-        //console.log('Respuesta detalles del traslado:', response);
-        
         if (response && response.success && response.data) {
           this.detallesTraslado = response.data;
-          //console.log('Detalles cargados:', this.detallesTraslado);
         } else {
           console.error('Error en la respuesta de detalles:', response);
           this.detallesTraslado = [];
@@ -126,7 +148,10 @@ export class DetailsComponent implements OnChanges {
     });
   }
 
-  // Simulación de carga (para cuando ya tienes los datos)
+  /**
+   * Carga los detalles del traslado de forma simulada cuando ya se tienen los datos
+   * @param data - Datos del traslado a mostrar
+   */
   cargarDetallesSimulado(data: Traslado): void {
     this.cargando = true;
     this.mostrarAlertaError = false;
@@ -144,15 +169,26 @@ export class DetailsComponent implements OnChanges {
     }, 500);
   }
 
+  /**
+   * Cierra el componente de detalles y emite el evento correspondiente
+   */
   cerrar(): void {
     this.onClose.emit();
   }
 
+  /**
+   * Cierra la alerta de error activa
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaError = false;
     this.mensajeError = '';
   }
 
+  /**
+   * Formatea una fecha para mostrarla en formato legible
+   * @param fecha - Fecha a formatear (string, Date o null)
+   * @returns Fecha formateada o 'N/A' si es inválida
+   */
   formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
     const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
@@ -166,12 +202,19 @@ export class DetailsComponent implements OnChanges {
     });
   }
 
-  // Método para manejar errores de imagen
+  /**
+   * Maneja errores de carga de imágenes estableciendo una imagen por defecto
+   * @param event - Evento de error de la imagen
+   */
   onImageError(event: any): void {
     event.target.src = 'assets/images/no-image-placeholder.png'; // Imagen por defecto
   }
 
-  // Método para obtener la URL completa de la imagen si es necesario
+  /**
+   * Construye la URL completa de una imagen
+   * @param imageUrl - URL de la imagen (puede ser relativa o absoluta)
+   * @returns URL completa de la imagen o imagen por defecto
+   */
   getImageUrl(imageUrl: string | undefined): string {
     if (!imageUrl) return 'assets/images/no-image-placeholder.png';
     
@@ -184,7 +227,12 @@ export class DetailsComponent implements OnChanges {
     return `${environment.apiBaseUrl}/${imageUrl}`;
   }
 
-  // TrackBy function para optimizar el rendimiento del ngFor
+  /**
+   * Función trackBy para optimizar el rendimiento del ngFor en la lista de detalles
+   * @param index - Índice del elemento
+   * @param detalle - Objeto detalle del traslado
+   * @returns Identificador único del detalle
+   */
   trackByDetalleId(index: number, detalle: TrasladoDetalle): any {
     return detalle.trDe_Id || index;
   }

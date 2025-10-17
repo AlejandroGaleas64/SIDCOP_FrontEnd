@@ -41,6 +41,8 @@ export class CreateComponent {
     this.cargarListados();
   }
 
+
+  //Obtiene listado de departamentos, municipios y colonias
   cargarListados(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Departamentos/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -64,6 +66,7 @@ export class CreateComponent {
     });
   }
 
+  // Filtra municipios según su departamento
   cargarMunicipios(codigoDepa: string): void {
     this.Municipios = this.TodosMunicipios.filter(m => m.depa_Codigo === codigoDepa);
     this.Colonias = [];
@@ -71,11 +74,13 @@ export class CreateComponent {
     this.proveedor.colo_Id = 0;
   }
 
+  // Filtra colonias según su municipio
   cargarColonias(codigoMuni: string): void {
     this.Colonias = this.TodosColonias.filter(c => c.muni_Codigo === codigoMuni);
     this.proveedor.colo_Id = 0;
   }
 
+  // Cancela creación y resetea formulario
   cancelar(): void {
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
@@ -92,6 +97,7 @@ export class CreateComponent {
     this.onCancel.emit();
   }
 
+  // Oculta todas las alertas
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -101,6 +107,7 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
+  // Guarda el nuevo proveedor
   guardar(): void {
     this.mostrarErrores = true;
 

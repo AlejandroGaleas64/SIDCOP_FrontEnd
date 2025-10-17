@@ -1,3 +1,4 @@
+// ===== IMPORTACIONES DE ANGULAR CORE =====
 import {
   Component,
   Output,
@@ -8,18 +9,24 @@ import {
   SimpleChanges,
   inject,
 } from '@angular/core';
+
+// ===== IMPORTACIONES DE MÓDULOS ANGULAR =====
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+
+// ===== IMPORTACIONES DE MODELOS Y SERVICIOS =====
 import { Pedido } from 'src/app/Modelos/ventas/Pedido.Model';
 import { environment } from 'src/environments/environment.prod';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { jsPDF } from 'jspdf';
 import { PedidoInvoiceService } from '../services/pedido-invoice.service';
 import { ZplPrintingService } from 'src/app/core/services/zplprinting.service';
+
+// ===== IMPORTACIONES DE BIBLIOTECAS EXTERNAS =====
+import { jsPDF } from 'jspdf';
 import ZebraBrowserPrintWrapper from 'zebra-browser-print-wrapper';
 import { Observable, throwError } from 'rxjs';
 
-// Interfaces para la nueva librería
+// ===== INTERFACES PARA IMPRESIÓN ZEBRA =====
 interface ZebraPrinter {
   name: string;
   uid: string;
@@ -32,6 +39,10 @@ interface PrinterStatus {
   errors: string;
 }
 
+/**
+ * Componente para visualizar detalles completos de un pedido
+ * Incluye funcionalidades de impresión PDF y etiquetas ZPL para impresoras Zebra
+ */
 @Component({
   selector: 'app-details',
   standalone: true,
@@ -40,17 +51,20 @@ interface PrinterStatus {
   styleUrl: './details.component.scss',
 })
 export class DetailsComponent implements OnChanges, OnDestroy {
+  // ===== COMUNICACIÓN CON COMPONENTE PADRE =====
   @Input() PedidoData: Pedido | null = null;
   @Output() onClose = new EventEmitter<void>();
 
+  // ===== INYECCIÓN DE SERVICIOS =====
   private pedidoInvoiceService = inject(PedidoInvoiceService);
   private zplPrintingService = inject(ZplPrintingService);
 
+  // ===== DATOS DEL PEDIDO Y PRODUCTOS =====
   PedidoDetalle: Pedido | null = null;
   productos: any[] = [];
   cargando = false;
 
-  // Variables para impresión ZPL
+  // ===== CONFIGURACIÓN DE IMPRESIÓN ZPL =====
   private zebraBrowserPrint: any = null;
   imprimiendo = false;
   procesandoVenta = false;
@@ -61,40 +75,62 @@ export class DetailsComponent implements OnChanges, OnDestroy {
     metodoImpresion: 'zebra-wrapper'
   };
   
-  // Variables para el modal de selección de formato de factura
+  // ===== GESTIÓN DE FORMATOS DE FACTURA =====
   mostrarModalFormatoFactura = false;
   formatoSeleccionado: 'pdf' | 'zpl' | null = null;
   facturaInsertada = false;
 
-  // Propiedades para Zebra Browser Print Wrapper
+  // ===== ESTADO DE IMPRESORAS ZEBRA =====
   verificandoConexion = false;
   dispositivosDisponibles: ZebraPrinter[] = [];
   dispositivoSeleccionado: ZebraPrinter | null = null;
   estadoImpresora: PrinterStatus = { isReadyToPrint: false, errors: '' };
 
+  // ===== SISTEMA DE ALERTAS =====
   mostrarAlertaError = false;
   mensajeError = '';
   mostrarAlertaExito = false;
   mensajeExito = '';
+  
+  // ===== DATOS AUXILIARES PARA FORMULARIOS =====
   referenciasLista = [];
   clientesLista = [];
   referenciasNombre: any[] = [];
 
+  // ===== CICLO DE VIDA DEL COMPONENTE =====
+
+  /**
+   * Inicialización del componente
+   * Configura servicios de impresión Zebra al cargar
+   */
   async ngOnInit(): Promise<void> {
     await this.inicializarZebraBrowserPrint();
   }
 
+  /**
+   * Detecta cambios en los datos del pedido
+   * Recarga detalles cuando se recibe nueva información
+   */
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['PedidoData'] && changes['PedidoData'].currentValue) {
       this.cargarDetallesSimulado(changes['PedidoData'].currentValue);
     }
   }
 
+  /**
+   * Limpieza de recursos al destruir el componente
+   * Libera conexiones de impresión para evitar memory leaks
+   */
   ngOnDestroy(): void {
     this.zebraBrowserPrint = null;
   }
 
-  // Simulación de carga
+  // ===== CARGA DE DATOS DEL PEDIDO =====
+
+  /**
+   * Carga los detalles del pedido de forma simulada
+   * Parsea JSON de productos y maneja errores de formato
+   */
   cargarDetallesSimulado(data: Pedido): void {
     this.cargando = true;
     this.mostrarAlertaError = false;
@@ -107,7 +143,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
         // Log para ver la estructura de los productos
         //console.log('Estructura de productos en el pedido:', this.productos);
         
-        // Configurar el servicio de invoice con los datos del pedido
+        // Configurar el servicio de facturación con los datos del pedido
         this.pedidoInvoiceService.setPedidoCompleto(this.PedidoDetalle);
         
         this.cargando = false;
@@ -120,23 +156,41 @@ export class DetailsComponent implements OnChanges, OnDestroy {
     }, 500);
   }
 
+  // ===== GESTIÓN DE INTERFAZ =====
+
+  /**
+   * Cierra el modal de detalles del pedido
+   * Emite evento al componente padre para actualizar estado
+   */
   cerrar(): void {
     this.onClose.emit();
   }
 
+  /**
+   * Cierra alertas de error
+   * Limpia estado de errores para mostrar nueva información
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaError = false;
     this.mensajeError = '';
   }
 
+  /**
+   * Cierra alertas de éxito
+   * Limpia estado de mensajes exitosos
+   */
   cerrarAlertaExito(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
   }
 
-    // ===== MÉTODOS PRIVADOS PARA PDF (basados en PdfReportService) =====
+  // ===== CONFIGURACIÓN DE ESTILOS PDF =====
   
-    private readonly COLORES = {
+  /**
+   * Paleta de colores para documentos PDF
+   * Mantiene consistencia visual en toda la aplicación
+   */
+  private readonly COLORES = {
     dorado: '#D6B68A',
     azulOscuro: '#141a2f',
     blanco: '#FFFFFF',
@@ -144,8 +198,12 @@ export class DetailsComponent implements OnChanges, OnDestroy {
     grisTexto: '#666666'
   };
   
-    private async cargarLogo(): Promise<string | null> {
-      if (!this.configuracionEmpresa?.coFa_Logo) {
+  /**
+   * Carga el logo de la empresa para documentos PDF
+   * Convierte imagen a base64 para embedding en PDF
+   */
+  private async cargarLogo(): Promise<string | null> {
+    if (!this.configuracionEmpresa?.coFa_Logo) {
         //console.log('No hay logo configurado');
         return null;
       }

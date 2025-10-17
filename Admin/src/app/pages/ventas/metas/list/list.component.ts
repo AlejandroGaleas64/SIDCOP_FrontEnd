@@ -150,6 +150,9 @@ export class ListComponent implements OnInit {
     }
   }
 
+  /**
+   * Inicializa breadcrumbs, permisos y carga inicial de datos.
+   */
   ngOnInit(): void {
     this.breadCrumbItems = [
       { label: 'Ventas' },
@@ -160,6 +163,9 @@ export class ListComponent implements OnInit {
     //console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
+  /**
+   * Alterna la visualización del formulario de creación.
+   */
   crear(): void {
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false;
@@ -167,6 +173,10 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null;
   }
 
+  /**
+   * Abre el formulario de edición para la meta indicada.
+   * @param meta Meta seleccionada para editar.
+   */
   editar(meta: any): void {
     this.metaEditando = { ...meta };
     this.showEditForm = true;
@@ -175,6 +185,10 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null;
   }
 
+  /**
+   * Abre el panel de detalles para la meta indicada.
+   * @param meta Meta a detallar.
+   */
   detalles(meta: any): void {
     this.metaDetalle = { ...meta };
     this.showDetailsForm = true;
@@ -183,6 +197,10 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null;
   }
 
+  /**
+   * Abre el formulario de progreso/avance de la meta indicada y desplaza la vista al inicio.
+   * @param meta Meta para actualizar progreso.
+   */
     abrirProgreso(meta: any): void {
     this.metaProgreso = {...meta};
     this.mostrarProgresoForm = true;
@@ -234,31 +252,51 @@ export class ListComponent implements OnInit {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
   }
 
+  /**
+   * Alterna el menú de acciones por fila en la tabla.
+   * @param rowIndex Índice de la fila.
+   */
   onActionMenuClick(rowIndex: number) {
     this.activeActionRow = this.activeActionRow === rowIndex ? null : rowIndex;
   }
 
+  /**
+   * Cierra el formulario de creación.
+   */
   cerrarFormulario(): void {
     this.showCreateForm = false;
   }
 
+  /**
+   * Cierra el formulario de edición y limpia el modelo temporal.
+   */
   cerrarFormularioEdicion(): void {
     this.showEditForm = false;
     this.metaEditando = null;
   }
 
+  /**
+   * Cierra el panel de detalles y limpia el modelo temporal.
+   */
   cerrarFormularioDetalles(): void {
     this.showDetailsForm = false;
     this.metaDetalle = null;
   }
 
 
+/**
+ * Cierra el formulario de progreso y recarga datos.
+ */
 cerrarProgresoForm() {
   this.metaProgreso = null;
   this.mostrarProgresoForm = false;
   this.cargardatos(false);
 }
 
+  /**
+   * Callback al guardar una meta desde el formulario de creación.
+   * Refresca la lista y muestra un mensaje de éxito.
+   */
   guardarMeta(meta: any): void {
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
@@ -273,6 +311,9 @@ cerrarProgresoForm() {
     }, 1000);
   }
 
+  /**
+   * Callback al actualizar una meta desde el formulario de edición.
+   */
   actualizarMeta(meta: any): void {
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
@@ -287,18 +328,28 @@ cerrarProgresoForm() {
     }, 1000);
   }
 
+  /**
+   * Muestra modal de confirmación para eliminar la meta seleccionada.
+   * @param meta Meta a eliminar.
+   */
   confirmarEliminar(meta: any): void {
     this.metaEliminar = meta;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null;
   }
 
+  /**
+   * Cancela el proceso de eliminación y limpia estados.
+   */
   cancelarEliminar(): void {
     this.mostrarConfirmacionEliminar = false;
     this.metaEliminar = null;
     this.mostrarOverlayCarga = false;
   }
 
+  /**
+   * Elimina la meta llamando a la API y maneja los distintos resultados.
+   */
   eliminar(): void {
     if (!this.metaEliminar) return;
     this.mostrarOverlayCarga = true;
@@ -352,6 +403,9 @@ cerrarProgresoForm() {
     });
   }
 
+  /**
+   * Oculta todas las alertas visibles.
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -361,6 +415,9 @@ cerrarProgresoForm() {
     this.mensajeWarning = '';
   }
 
+  /**
+   * Lee los permisos del usuario desde localStorage y determina acciones disponibles.
+   */
   private cargarAccionesUsuario(): void {
     const permisosRaw = localStorage.getItem('permisosJson');
     let accionesArray: string[] = [];
@@ -384,6 +441,10 @@ cerrarProgresoForm() {
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
   }
 
+  /**
+   * Carga el listado de metas desde la API y las mapea para la tabla reactiva.
+   * @param state Si true muestra overlay de carga.
+   */
   private cargardatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
     this.http.get<Meta[]>(`${environment.apiBaseUrl}/Metas/ListarCompleto`, {
@@ -413,6 +474,9 @@ cerrarProgresoForm() {
   }
 
   // Exportación 
+  /**
+   * Exporta los datos en el formato solicitado utilizando el servicio de exportación.
+   */
   async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
     if (this.exportando) {
       this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
@@ -454,18 +518,30 @@ cerrarProgresoForm() {
     }
   }
 
+  /**
+   * Exporta la tabla a Excel.
+   */
   async exportarExcel(): Promise<void> {
     await this.exportar('excel');
   }
 
+  /**
+   * Exporta la tabla a PDF.
+   */
   async exportarPDF(): Promise<void> {
     await this.exportar('pdf');
   }
 
+  /**
+   * Exporta la tabla a CSV.
+   */
   async exportarCSV(): Promise<void> {
     await this.exportar('csv');
   }
 
+  /**
+   * Indica si se puede exportar según estado y datos disponibles.
+   */
   puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
     if (this.exportando) {
       return tipo ? this.tipoExportacion !== tipo : false;
@@ -473,6 +549,9 @@ cerrarProgresoForm() {
     return this.table.data$.value?.length > 0;
   }
 
+  /**
+   * Construye la configuración de exportación (encabezados, columnas y metadatos).
+   */
   private crearConfiguracionExport(): ExportConfig {
     return {
       title: this.exportConfig.title,
@@ -486,6 +565,9 @@ cerrarProgresoForm() {
     };
   }
 
+  /**
+   * Extrae y mapea los datos actuales de la tabla para exportación.
+   */
   private obtenerDatosExport(): any[] {
     try {
       const datos = this.table.data$.value;
@@ -501,6 +583,9 @@ cerrarProgresoForm() {
     }
   }
 
+  /**
+   * Muestra mensajes en UI según resultado de exportación.
+   */
   private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
     if (resultado.success) {
       this.mostrarMensaje('success', resultado.message);
@@ -509,6 +594,9 @@ cerrarProgresoForm() {
     }
   }
 
+  /**
+   * Valida que existan datos y solicita confirmación para volúmenes grandes.
+   */
   private validarDatosParaExport(): boolean {
     const datos = this.table.data$.value;
     if (!Array.isArray(datos) || datos.length === 0) {
@@ -525,6 +613,9 @@ cerrarProgresoForm() {
     return true;
   }
 
+  /**
+   * Limpia texto para exportación (espacios, caracteres especiales y longitud).
+   */
   private limpiarTexto(texto: any): string {
     if (!texto) return '';
     return String(texto)
@@ -534,6 +625,9 @@ cerrarProgresoForm() {
       .substring(0, 150);
   }
 
+  /**
+   * Formatea una fecha a dd/mm/aaaa para exportación/visualización.
+   */
   formatearFecha(fecha: any): string {
     if (!fecha) return '';
     const d = new Date(fecha);
@@ -545,6 +639,9 @@ cerrarProgresoForm() {
     }).format(d);
   }
 
+  /**
+   * Muestra una alerta temporal según el tipo indicado.
+   */
   private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
     this.cerrarAlerta();
     const duracion = tipo === 'error' ? 5000 : 3000;

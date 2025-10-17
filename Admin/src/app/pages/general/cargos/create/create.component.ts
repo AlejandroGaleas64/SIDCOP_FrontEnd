@@ -14,8 +14,10 @@ import { getUserId } from 'src/app/core/utils/user-utils';
   styleUrl: './create.component.scss'
 })
 export class CreateComponent {
+  // Eventos para comunicar acciones al padre (cerrar y recargar lista)
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Cargos>();
+  // Estado UI para validación y alertas
   isFocused = false;
   
   mostrarErrores = false;
@@ -26,8 +28,10 @@ export class CreateComponent {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
 
+  // Inyección de HttpClient para llamadas a API
   constructor(private http: HttpClient) {}
 
+  // Modelo de formulario inicializado con valores por defecto
   cargo: Cargos = {
     carg_Id: 0,
     carg_Descripcion: '',
@@ -43,6 +47,7 @@ export class CreateComponent {
     secuencia : 0
   };
 
+  // Limpia estado del formulario y emite cancelación al contenedor
   cancelar(): void {
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
@@ -68,6 +73,7 @@ export class CreateComponent {
     this.onCancel.emit();
   }
 
+  // Cierra cualquier alerta visible
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -77,18 +83,20 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
+  // Valida campos requeridos, arma el payload y realiza la inserción vía API
 guardar(): void {
   this.mostrarErrores = true;
   
   if (this.cargo.carg_Descripcion.trim()) {
-    // Limpiar alertas previas
+    // Limpiar alertas previas antes de intentar guardar
     this.mostrarAlertaWarning = false;
     this.mostrarAlertaError = false;
 
+    // Payload de inserción (server-side establece Id y auditoría adicional)
     const cargoGuardar = {
       carg_Id: 0,
       carg_Descripcion: this.cargo.carg_Descripcion,
-      usua_Creacion: getUserId(), // variable global
+      usua_Creacion: getUserId(), // usuario autenticado
       carg_FechaCreacion: new Date().toISOString(),
       usua_Modificacion: 0,
       carg_FechaModificacion : new Date().toISOString(),
@@ -97,6 +105,7 @@ guardar(): void {
       usuarioModificacion : ''
     };
 
+    // Llamada a API para insertar el cargo con encabezados requeridos
     this.http.post<any>(`${environment.apiBaseUrl}/Cargo/Insertar`, cargoGuardar, {
       headers: { 
         'X-Api-Key': environment.apiKey,
@@ -105,10 +114,11 @@ guardar(): void {
       }
     }).subscribe({
       next: (response) => {
+        // Interpretación de respuesta basada en code_Status del backend
         const status = response?.data?.code_Status;
 
         if (status === -1) {
-          // Error controlado (ej: duplicado)
+          // Error controlado (por ejemplo: duplicados u otras reglas de negocio)
           this.mostrarAlertaError = true;
           this.mensajeError = response?.data?.message_Status || 'Error en la operación.';
           this.mostrarAlertaExito = false;
@@ -119,7 +129,7 @@ guardar(): void {
           }, 5000);
 
         } else {
-          // Éxito
+          // Éxito: notifica, emite evento y restablece formulario
           this.mensajeExito = `Cargo "${this.cargo.carg_Descripcion}" guardado exitosamente`;
           this.mostrarAlertaExito = true;
           this.mostrarErrores = false;
@@ -132,6 +142,7 @@ guardar(): void {
         }
       },
       error: (error) => {
+        // Error no controlado en cliente/red/servidor
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al guardar el cargo. Por favor, intente nuevamente.';
         this.mostrarAlertaExito = false;
@@ -143,7 +154,7 @@ guardar(): void {
       }
     });
   } else {
-    // Mostrar alerta de warning para campos vacíos
+    // Validación: campo requerido vacío
     this.mostrarAlertaWarning = true;
     this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
     this.mostrarAlertaError = false;
@@ -157,3 +168,4 @@ guardar(): void {
 }
 
 }
+

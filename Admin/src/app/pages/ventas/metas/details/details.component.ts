@@ -25,12 +25,20 @@ export class DetailsComponent implements OnChanges {
   vendedorCharts: { [vendId: number]: any } = {};
   filterVendedor: string = '';
 
+  /**
+   * Lifecycle hook: reacciona a cambios en los inputs.
+   * Cuando cambia metaData, recarga detalles y gráficos por vendedor.
+   * @param changes Cambios detectados por Angular.
+   */
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['metaData'] && changes['metaData'].currentValue) {
       this.cargarDetallesSimulado(changes['metaData'].currentValue);
     }
   }
 
+  /**
+   * Lista derivada de vendedores filtrada por nombre completo.
+   */
   get vendedoresFiltrados(): any[] {
     if (!this.filterVendedor) return this.vendedoresParsed;
     const filter = this.filterVendedor.toLowerCase();
@@ -39,6 +47,10 @@ export class DetailsComponent implements OnChanges {
     );
   }
 
+  /**
+   * Simula la carga de detalles de meta y construye la configuración de gráficos por vendedor.
+   * @param data Objeto de meta a detallar.
+   */
   cargarDetallesSimulado(data: any): void {
     this.cargando = true;
     this.mostrarAlertaError = false;
@@ -70,15 +82,26 @@ export class DetailsComponent implements OnChanges {
     }, 500); // Simula tiempo de carga
   }
 
+  /**
+   * Emite evento de cierre hacia el componente padre.
+   */
   cerrar(): void {
     this.onClose.emit();
   }
 
+  /**
+   * Oculta y limpia la alerta de error.
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaError = false;
     this.mensajeError = '';
   }
 
+  /**
+   * Formatea fecha a 'es-HN' para mostrar en UI.
+   * @param fecha Fecha como string o Date.
+   * @returns Fecha formateada o 'N/A'.
+   */
   formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
     const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
@@ -92,6 +115,10 @@ export class DetailsComponent implements OnChanges {
     });
   }
 
+  /**
+   * Resuelve y normaliza colores desde variables CSS o valores hex/rgba declarados.
+   * @param colors JSON de colores.
+   */
   private getChartColorsArray(colors: any) {
     colors = JSON.parse(colors);
     return colors.map(function (value: any) {
@@ -116,6 +143,11 @@ export class DetailsComponent implements OnChanges {
     });
   }
 
+  /**
+   * Construye la configuración de ApexCharts radial para un vendedor según tipo de meta.
+   * @param vendedor Objeto vendedor con progreso.
+   * @returns Configuración de gráfico radial.
+   */
   getVendedorChartConfig(vendedor: any): any {
 
 
