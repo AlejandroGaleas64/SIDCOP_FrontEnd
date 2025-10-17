@@ -16,9 +16,11 @@ import { getUserId } from 'src/app/core/utils/user-utils';
   providers: [provideNgxMask()],
 })
 export class CreateComponent {
-   @Output() onCancel = new EventEmitter<void>();
+  // Eventos para notificar acciones al componente padre
+  @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Municipio>();
-  
+
+  // Estados de UI para validaciones y mensajes
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -29,9 +31,11 @@ export class CreateComponent {
   Departamentos: any[] = []; 
 
   constructor(private http: HttpClient) {
+    // Cargar catálogo de departamentos para el formulario de creación
     this.cargarDepartamentos();
   }
 
+  // Modelo local para el municipio que se creará
   municipio: Municipio = {
     muni_Codigo: '',
     muni_Descripcion: '',
@@ -46,12 +50,14 @@ export class CreateComponent {
     usuarioModificacion: ''
   };
 
+  // Solicita la lista de departamentos desde el backend
   cargarDepartamentos() {
-      this.http.get<any>(`${environment.apiBaseUrl}/Departamentos/Listar`, {
-        headers: { 'x-api-key': environment.apiKey }
-      }).subscribe((data) => this.Departamentos = data);
-    };
+    this.http.get<any>(`${environment.apiBaseUrl}/Departamentos/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe((data) => this.Departamentos = data);
+  };
 
+  // Cancela la creación y resetea el formulario
   cancelar(): void {
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
@@ -76,6 +82,7 @@ export class CreateComponent {
     this.onCancel.emit();
   }
 
+  // Reset de las alertas
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -85,13 +92,14 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
+  // Valida y envía la petición de creación al backend
   guardar(): void {
     this.mostrarErrores = true;
-    
+
     if (this.municipio.muni_Descripcion.trim() && this.municipio.muni_Codigo.trim()) {
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
-      
+
       const municipioGuardar = {
         muni_Codigo: this.municipio.muni_Codigo.trim(),
         muni_Descripcion: this.municipio.muni_Descripcion.trim(),
@@ -104,7 +112,7 @@ export class CreateComponent {
         usuarioCreacion: "", 
         usuarioModificacion: "" 
       };
-      
+
       this.http.post<any>(`${environment.apiBaseUrl}/Municipios/Insertar`, municipioGuardar, {
         headers: { 
           'X-Api-Key': environment.apiKey,
@@ -113,36 +121,36 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          if (response.data.code_Status === 1) 
-          {
+          if (response?.data?.code_Status === 1) {
+            // Creación exitosa
             this.mensajeExito = `Municipio "${this.municipio.muni_Descripcion}" guardado exitosamente`;
             this.mostrarAlertaExito = true;
             this.mostrarErrores = false;
-            
+
             setTimeout(() => {
               this.mostrarAlertaExito = false;
               this.onSave.emit(this.municipio);
               this.cancelar();
             }, 3000);
-          }
-          else 
-          {
+          } else {
+            // Respuesta de error desde la API
             this.mostrarAlertaError = true;
-            this.mensajeError = 'Error al guardar el municipio, ' + response.data.message_Status;
+            this.mensajeError = 'Error al guardar el municipio, ' + (response?.data?.message_Status || '');
             this.mostrarAlertaExito = false;
-            
+
             setTimeout(() => {
               this.mostrarAlertaError = false;
               this.mensajeError = '';
             }, 5000);
           }
-          
+
         },
-        error: (error) => {
+        error: () => {
+          // Error de red/servidor
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al guardar el municipio. Por favor, intente nuevamente.';
           this.mostrarAlertaExito = false;
-          
+
           setTimeout(() => {
             this.mostrarAlertaError = false;
             this.mensajeError = '';
@@ -150,11 +158,12 @@ export class CreateComponent {
         }
       });
     } else {
+      // Campos requeridos incompletos
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
       this.mostrarAlertaError = false;
       this.mostrarAlertaExito = false;
-      
+
       setTimeout(() => {
         this.mostrarAlertaWarning = false;
         this.mensajeWarning = '';

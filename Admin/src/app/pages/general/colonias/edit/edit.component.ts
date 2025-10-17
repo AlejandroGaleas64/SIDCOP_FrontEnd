@@ -15,37 +15,43 @@ import { getUserId } from 'src/app/core/utils/user-utils';
   styleUrls: ['./edit.component.scss']
 })
 export class EditComponent implements OnInit, OnChanges {
+  // Input: datos de la colonia que se van a editar
   @Input() coloniaData: Colonias | null = null;
+  // Outputs: eventos para notificar el guardado o cancelación al componente padre
   @Output() onSave = new EventEmitter<Colonias>();
   @Output() onCancel = new EventEmitter<void>();
 
+  // Retorna un resumen de los cambios detectados (útil para mostrar en modal de confirmación)
   obtenerListaCambios() {
-    const cambios = [];
-    
-    if (this.coloniaEditada.colo_Descripcion?.trim() !== this.coloniaOriginal?.trim()) {
+    const cambios: { label: string; anterior: string; nuevo: string }[] = [];
+
+    // Comparar descripción
+    if ((this.coloniaEditada.colo_Descripcion || '').trim() !== (this.coloniaOriginal || '').trim()) {
       cambios.push({
         label: 'Descripción',
         anterior: this.coloniaOriginal,
         nuevo: this.coloniaEditada.colo_Descripcion
       });
     }
-    
+
+    // Comparar municipio (por código) y mapear a nombres cuando estén disponibles
     const municipioOriginal = this.coloniaData?.muni_Codigo || '';
     const municipioActual = this.coloniaEditada.muni_Codigo || '';
     if (municipioActual !== municipioOriginal) {
       const municipioOriginalNombre = this.TodosMunicipios?.find((m: any) => m.muni_Codigo === municipioOriginal)?.muni_Descripcion || municipioOriginal;
       const municipioActualNombre = this.TodosMunicipios?.find((m: any) => m.muni_Codigo === municipioActual)?.muni_Descripcion || municipioActual;
-      
+
       cambios.push({
         label: 'Municipio',
         anterior: municipioOriginalNombre,
         nuevo: municipioActualNombre
       });
     }
-    
+
     return cambios;
   }
 
+  // Modelo local editable (clonado desde la entrada para evitar mutaciones)
   coloniaEditada: Colonias = {
     colo_Id: 0,
     colo_Descripcion: '',
@@ -63,6 +69,7 @@ export class EditComponent implements OnInit, OnChanges {
     muni_Descripcion: ''
   }
 
+  // Flags y estados de UI
   coloniaOriginal = '';
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -72,9 +79,9 @@ export class EditComponent implements OnInit, OnChanges {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
-  
-  Municipios: any[] = [];
 
+  // Listados y selectores
+  Municipios: any[] = [];
   selectedDepa: string = '';
   selectedMuni: string = '';
   cargando = false;
@@ -85,10 +92,12 @@ export class EditComponent implements OnInit, OnChanges {
 
   constructor(private http: HttpClient) { }
 
+  // Inicializar listados al montar el componente
   ngOnInit(): void {
     this.cargarListados();
   }
 
+  // Cuando cambia la entrada, clonar datos y preparar estado
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['coloniaData'] && changes['coloniaData'].currentValue) {
       this.coloniaEditada = { ...changes['coloniaData'].currentValue };
@@ -99,11 +108,13 @@ export class EditComponent implements OnInit, OnChanges {
     }
   }
 
+  // Cancelar edición y comunicar al padre
   cancelar(): void {
     this.cerrarAlerta();
     this.onCancel.emit();
   }
 
+  // Reset de alertas
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -113,6 +124,7 @@ export class EditComponent implements OnInit, OnChanges {
     this.mensajeWarning = '';
   }
 
+  // Validaciones antes de enviar la actualización al backend
   validarEdicion(): void {
     this.mostrarErrores = true;
 
@@ -123,6 +135,7 @@ export class EditComponent implements OnInit, OnChanges {
       const muniCodigoActual = (this.coloniaEditada.muni_Codigo ?? '').trim();
 
       if (descripcionActual !== descripcionOriginal || muniCodigoActual !== muniCodigoOriginal) {
+        // Si hay cambios, pedir confirmación
         this.mostrarConfirmacionEditar = true;
       } else {
         this.mostrarAlertaWarning = true;
@@ -145,6 +158,7 @@ export class EditComponent implements OnInit, OnChanges {
     this.guardar();
   }
 
+  // Envia la petición PUT para actualizar la colonia
   private guardar(): void {
     this.mostrarErrores = true;
 
@@ -170,9 +184,7 @@ export class EditComponent implements OnInit, OnChanges {
         }
       }).subscribe({
         next: (response) => {
-
-          if(response.data.code_Status === 1) 
-          {
+          if (response?.data?.code_Status === 1) {
             this.mensajeExito = `Colonia "${this.coloniaEditada.colo_Descripcion}" actualizada exitosamente`;
             this.mostrarAlertaExito = true;
             this.mostrarErrores = false;
@@ -182,16 +194,13 @@ export class EditComponent implements OnInit, OnChanges {
               this.onSave.emit(this.coloniaEditada);
               this.cancelar();
             }, 3000);
-          }
-          else
-          {
+          } else {
             this.mostrarAlertaError = true;
-            this.mensajeError = 'Error al actualizar la colonia, ', response.data.message_Status;
+            this.mensajeError = 'Error al actualizar la colonia, ' + (response?.data?.message_Status || '');
             setTimeout(() => this.cerrarAlerta(), 5000);
           }
-          
         },
-        error: (error) => {
+        error: () => {
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al actualizar la colonia. Por favor, intente nuevamente.';
           setTimeout(() => this.cerrarAlerta(), 5000);
@@ -204,7 +213,7 @@ export class EditComponent implements OnInit, OnChanges {
     }
   }
 
-
+  // Cargar listados de departamentos y municipios para los selects
   cargarListados(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Departamentos/Listar`, {
       headers: { 'x-api-key': environment.apiKey }

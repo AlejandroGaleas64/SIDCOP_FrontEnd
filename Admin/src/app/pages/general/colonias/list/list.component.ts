@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+
+// Componentes y servicios compartidos del proyecto
 import { BreadcrumbsComponent } from 'src/app/shared/breadcrumbs/breadcrumbs.component';
 import { ReactiveTableService } from 'src/app/shared/reactive-table.service';
 import { HttpClient } from '@angular/common/http';
@@ -12,8 +14,12 @@ import { PaginationModule } from 'ngx-bootstrap/pagination';
 import { CreateComponent } from '../create/create.component';
 import { EditComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
-import {Colonias} from 'src/app/Modelos/general/Colonias.Model';
-import {Municipio} from 'src/app/Modelos/general/Municipios.Model';
+
+// Modelos usados por este componente
+import { Colonias } from 'src/app/Modelos/general/Colonias.Model';
+import { Municipio } from 'src/app/Modelos/general/Municipios.Model';
+
+// Servicio de UI y animaciones
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
 import {
   trigger,
@@ -23,7 +29,7 @@ import {
   animate
 } from '@angular/animations';
 
-// Importar el servicio de exportación optimizado
+// Servicio de exportación (Excel, PDF, CSV)
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
 
 
@@ -77,22 +83,23 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
   ]
 })
 export class ListComponent implements OnInit {
+  // Configuración base para exportación (se usa por ExportService)
+  // - title/filename: metadatos del archivo
+  // - columns: columnas y formato para export
+  // - dataMapping: función para transformar cada entidad en fila exportable
   private readonly exportConfig = {
-    title: 'Listado de Colonias',                    
-    filename: 'Colonias',                          
-    department: 'General',                         
-    additionalInfo: '',         
-    
+    title: 'Listado de Colonias',
+    filename: 'Colonias',
+    department: 'General',
+    additionalInfo: '',
     columns: [
       { key: 'No', header: 'No.', width: 8, align: 'center' as const },
       { key: 'Descripción', header: 'Descripción', width: 50, align: 'left' as const }
     ] as ExportColumn[],
-    
     dataMapping: (colonia: Colonias, index: number) => ({
       'No': colonia?.secuencia || (index + 1),
       'Descripción': this.limpiarTexto(colonia?.colo_Descripcion)
-      // Agregar más campos aquí según necesites:
-      // 'Campo': this.limpiarTexto(colonia?.campo),
+      // Añadir más campos en caso de ser necesario
     })
   };
 
@@ -110,6 +117,7 @@ export class ListComponent implements OnInit {
   mensajeWarning = '';
   
   accionesDisponibles: string[] = [];
+  // Flags para mostrar/ocultar formularios y almacenar elemento en edición/detalle
   showCreateForm = false; 
   showEditForm = false; 
   showDetailsForm = false; 
@@ -172,6 +180,7 @@ export class ListComponent implements OnInit {
   coloniaAEliminar: Colonias | null = null;
 
   private cargardatos(mostrarOverlay: boolean = true): void {
+    // Mostrar overlay opcionalmente (si venimos de una acción ya ejecutada)
     if (mostrarOverlay) this.mostrarOverlayCarga = true;
     this.http.get<Colonias[]>(`${environment.apiBaseUrl}/Colonia/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -188,6 +197,7 @@ export class ListComponent implements OnInit {
         this.mostrarOverlayCarga = false;
       },
       error: (error) => {
+        // Manejo de errores de la llamada HTTP
         this.mostrarOverlayCarga = false;
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar las colonias.';
@@ -241,6 +251,7 @@ export class ListComponent implements OnInit {
       this.manejarResultadoExport(resultado);
       
     } catch (error) {
+      // Error general al crear el archivo de exportación
       this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
     } finally {
       this.exportando = false;
@@ -335,23 +346,24 @@ export class ListComponent implements OnInit {
   }
 
   private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
+    // Reiniciar alertas y mostrar el nuevo mensaje dependiendo del tipo
     this.cerrarAlerta();
-    
+
     const duracion = tipo === 'error' ? 5000 : 3000;
-    
+
     switch (tipo) {
       case 'success':
         this.mostrarAlertaExito = true;
         this.mensajeExito = mensaje;
         setTimeout(() => this.mostrarAlertaExito = false, duracion);
         break;
-        
+
       case 'error':
         this.mostrarAlertaError = true;
         this.mensajeError = mensaje;
         setTimeout(() => this.mostrarAlertaError = false, duracion);
         break;
-        
+
       case 'warning':
       case 'info':
         this.mostrarAlertaWarning = true;
@@ -381,8 +393,8 @@ export class ListComponent implements OnInit {
       try {
         const permisos = JSON.parse(permisosJson);
         if (Array.isArray(permisos)) {
-          // Buscar por ID de pantalla (17 para colonias)
-                    modulo = permisos.find((m: any) => m.Pant_Id === 11);
+          // Buscar por ID de pantalla (11 para colonias en este sistema)
+          modulo = permisos.find((m: any) => m.Pant_Id === 11);
         } else if (typeof permisos === 'object' && permisos !== null) {
           // Si es objeto, buscar por clave
           modulo = permisos['Colonias'] || permisos['colonias'] || null;

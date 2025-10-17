@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+
+// Componentes compartidos y servicios del proyecto
 import { BreadcrumbsComponent } from 'src/app/shared/breadcrumbs/breadcrumbs.component';
 import { ReactiveTableService } from 'src/app/shared/reactive-table.service';
 import { HttpClient } from '@angular/common/http';
@@ -12,12 +14,18 @@ import { PaginationModule } from 'ngx-bootstrap/pagination';
 import { CreateComponent } from '../create/create.component';
 import { EditComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
+
+// Modelos usados por este componente
 import { Municipio } from 'src/app/Modelos/general/Municipios.Model';
 import { Departamento } from 'src/app/Modelos/general/Departamentos.Model';
+
+// Servicio para el menú flotante
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
-// Importar el servicio de exportación
+
+// Servicio de exportación (Excel/PDF/CSV)
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
 
+// Animaciones para las transiciones de los formularios
 import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
@@ -82,6 +90,7 @@ export class ListComponent implements OnInit {
   mostrarOverlayCarga = false;
   
   accionesDisponibles: string[] = [];
+  // Controls para mostrar/ocultar formularios y almacenar el elemento en edición/detalle
   showCreateForm = false; 
   showEditForm = false; 
   showDetailsForm = false; 
@@ -134,6 +143,7 @@ export class ListComponent implements OnInit {
   municipioAEliminar: Municipio | null = null;
 
   private cargardatos(mostrarOverlay: boolean = true): void {
+    // Mostrar overlay de carga si se solicita
     this.mostrarOverlayCarga = true;
     this.http.get<Municipio[]>(`${environment.apiBaseUrl}/Municipios/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -147,10 +157,11 @@ export class ListComponent implements OnInit {
           : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
 
         this.table.setData(datosFiltrados);
-        
+        // Ocultar overlay cuando ya se cargó la información
         this.mostrarOverlayCarga = false;
       },
       error: (error) => {
+        // En caso de error al consultar la API, avisar al usuario
         this.mostrarOverlayCarga = false;
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los municipios.';
@@ -283,6 +294,7 @@ export class ListComponent implements OnInit {
   private limpiarTexto(texto: any): string {
     if (!texto) return '';
     return String(texto)
+      // Normaliza espacios, elimina caracteres raros y limita longitud
       .replace(/\s+/g, ' ')
       .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
@@ -329,8 +341,9 @@ export class ListComponent implements OnInit {
       try {
         const permisos = JSON.parse(permisosJson);
         if (Array.isArray(permisos)) {
-          // Buscar por ID de pantalla (16 para municipios)
-                    modulo = permisos.find((m: any) => m.Pant_Id === 18);
+          // Buscar por ID de pantalla. En este sistema los módulos pueden
+          // identificarse por Pant_Id; para municipios se usa el id 18.
+          modulo = permisos.find((m: any) => m.Pant_Id === 18);
         } else if (typeof permisos === 'object' && permisos !== null) {
           // Si es objeto, buscar por clave
           modulo = permisos['Municipios'] || permisos['municipios'] || null;
@@ -363,6 +376,7 @@ export class ListComponent implements OnInit {
     this.http.get<Departamento[]>(`${environment.apiBaseUrl}/Departamentos/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
+      // Cargar lista de departamentos para mostrar descripción en los municipios
       this.departamentos = data;
     }, error => {
     });

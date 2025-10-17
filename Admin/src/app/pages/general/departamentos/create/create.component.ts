@@ -16,9 +16,11 @@ import { getUserId } from 'src/app/core/utils/user-utils';
   providers: [provideNgxMask()],
 })
 export class CreateComponent {
-   @Output() onCancel = new EventEmitter<void>();
+  // Eventos para comunicar estado al componente padre
+  @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Departamento>();
-  
+
+  // Estados de UI
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -29,6 +31,7 @@ export class CreateComponent {
 
   constructor(private http: HttpClient) {}
 
+  // Modelo local para la creación
   departamento: Departamento = {
     depa_Codigo: '',
     depa_Descripcion: '',
@@ -43,6 +46,7 @@ export class CreateComponent {
     usuarioModificacion: ''
   };
 
+  // Cancelar y resetear el formulario
   cancelar(): void {
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
@@ -67,6 +71,7 @@ export class CreateComponent {
     this.onCancel.emit();
   }
 
+  // Reset de alertas
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -76,13 +81,14 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
+  // Validar y enviar petición al backend
   guardar(): void {
     this.mostrarErrores = true;
-    
+
     if (this.departamento.depa_Descripcion.trim() && this.departamento.depa_Codigo.trim()) {
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
-      
+
       const departamentoGuardar = {
         depa_Codigo: this.departamento.depa_Codigo.trim(),
         depa_Descripcion: this.departamento.depa_Descripcion.trim(),
@@ -103,36 +109,33 @@ export class CreateComponent {
         }
       }).subscribe({
         next: (response) => {
-          if (response.data.code_Status === 1) 
-          {
+          if (response?.data?.code_Status === 1) {
             this.mensajeExito = `Departamento "${this.departamento.depa_Descripcion}" guardado exitosamente`;
             this.mostrarAlertaExito = true;
             this.mostrarErrores = false;
-            
+
             setTimeout(() => {
               this.mostrarAlertaExito = false;
               this.onSave.emit(this.departamento);
               this.cancelar();
             }, 3000);
-          }
-          else 
-          {
+          } else {
             this.mostrarAlertaError = true;
-            this.mensajeError = 'Error al guardar el departamento, ' + response.data.message_Status;
+            this.mensajeError = 'Error al guardar el departamento, ' + (response?.data?.message_Status || '');
             this.mostrarAlertaExito = false;
-            
+
             setTimeout(() => {
               this.mostrarAlertaError = false;
               this.mensajeError = '';
             }, 5000);
           }
-          
+
         },
-        error: (error) => {
+        error: () => {
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al guardar el departamento. Por favor, intente nuevamente.';
           this.mostrarAlertaExito = false;
-          
+
           setTimeout(() => {
             this.mostrarAlertaError = false;
             this.mensajeError = '';
@@ -144,7 +147,7 @@ export class CreateComponent {
       this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
       this.mostrarAlertaError = false;
       this.mostrarAlertaExito = false;
-      
+
       setTimeout(() => {
         this.mostrarAlertaWarning = false;
         this.mensajeWarning = '';

@@ -7,7 +7,6 @@ import { Departamento } from 'src/app/Modelos/general/Departamentos.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
 
-
 @Component({
   selector: 'app-edit',
   standalone: true,
@@ -16,26 +15,15 @@ import { getUserId } from 'src/app/core/utils/user-utils';
   styleUrl: './edit.component.scss',
   providers: [provideNgxMask()],
 })
-export class EditComponent {
+export class EditComponent implements OnChanges {
+  // Input: el departamento a editar (puede venir null)
   @Input() departamentoData: Departamento | null = null;
+  // Output: eventos para comunicar acciones al padre
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Departamento>();
 
-  obtenerListaCambios() {
-    const cambios = [];
-    
-    if (this.departamento.depa_Descripcion?.trim() !== this.departamentoOriginal?.trim()) {
-      cambios.push({
-        label: 'Descripción',
-        anterior: this.departamentoOriginal,
-        nuevo: this.departamento.depa_Descripcion
-      });
-    }
-    
-    return cambios;
-  }
-
- departamento: Departamento = {
+  // Construcción del modelo local
+  departamento: Departamento = {
     depa_Codigo: '',
     depa_Descripcion: '',
     usua_Creacion: 0,
@@ -49,6 +37,7 @@ export class EditComponent {
     usuarioModificacion: ''
   };
 
+  // Datos auxiliares para la UI y control de cambios
   departamentoOriginal = '';
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -61,6 +50,7 @@ export class EditComponent {
 
   constructor(private http: HttpClient) {}
 
+  // Detecta cambios cuando el componente padre pasa un nuevo departamento
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['departamentoData'] && changes['departamentoData'].currentValue) {
       this.departamento = { ...changes['departamentoData'].currentValue };
@@ -70,11 +60,28 @@ export class EditComponent {
     }
   }
 
+  // Genera un resumen de los cambios detectados (para mostrar en un modal)
+  obtenerListaCambios() {
+    const cambios: { label: string; anterior: string; nuevo: string }[] = [];
+
+    if ((this.departamento.depa_Descripcion || '').trim() !== (this.departamentoOriginal || '').trim()) {
+      cambios.push({
+        label: 'Descripción',
+        anterior: this.departamentoOriginal,
+        nuevo: this.departamento.depa_Descripcion
+      });
+    }
+
+    return cambios;
+  }
+
+  // Cancelar edición y emitir evento al padre
   cancelar(): void {
     this.cerrarAlerta();
     this.onCancel.emit();
   }
 
+  // Reset de alertas
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -84,6 +91,7 @@ export class EditComponent {
     this.mensajeWarning = '';
   }
 
+  // Validación antes de guardar; si hay cambios, solicitar confirmación
   validarEdicion(): void {
     this.mostrarErrores = true;
 
@@ -111,6 +119,7 @@ export class EditComponent {
     this.guardar();
   }
 
+  // Envía la petición de actualización al backend (PUT)
   private guardar(): void {
     this.mostrarErrores = true;
 
@@ -135,9 +144,7 @@ export class EditComponent {
         }
       }).subscribe({
         next: (response) => {
-
-          if(response.data.code_Status === 1) 
-          {
+          if (response?.data?.code_Status === 1) {
             this.mensajeExito = `Departamento "${this.departamento.depa_Descripcion}" actualizado exitosamente`;
             this.mostrarAlertaExito = true;
             this.mostrarErrores = false;
@@ -147,16 +154,13 @@ export class EditComponent {
               this.onSave.emit(this.departamento);
               this.cancelar();
             }, 3000);
-          }
-          else
-          {
+          } else {
             this.mostrarAlertaError = true;
-            this.mensajeError = 'Error al actualizar el departamento, ', response.data.message_Status;
+            this.mensajeError = 'Error al actualizar el departamento, ' + (response?.data?.message_Status || '');
             setTimeout(() => this.cerrarAlerta(), 5000);
           }
-          
         },
-        error: (error) => {
+        error: () => {
           this.mostrarAlertaError = true;
           this.mensajeError = 'Error al actualizar el departamento. Por favor, intente nuevamente.';
           setTimeout(() => this.cerrarAlerta(), 5000);
