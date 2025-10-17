@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+
+// Componentes compartidos y servicios del proyecto
 import { BreadcrumbsComponent } from 'src/app/shared/breadcrumbs/breadcrumbs.component';
 import { ReactiveTableService } from 'src/app/shared/reactive-table.service';
 import { HttpClient } from '@angular/common/http';
@@ -12,12 +14,18 @@ import { PaginationModule } from 'ngx-bootstrap/pagination';
 import { CreateComponent } from '../create/create.component';
 import { EditComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
+
+// Modelos usados por este componente
 import { Municipio } from 'src/app/Modelos/general/Municipios.Model';
 import { Departamento } from 'src/app/Modelos/general/Departamentos.Model';
+
+// Servicio para el menú flotante
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
-// Importar el servicio de exportación
+
+// Servicio de exportación (Excel/PDF/CSV)
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
 
+// Animaciones para las transiciones de los formularios
 import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
@@ -72,7 +80,6 @@ import { trigger, transition, style, animate } from '@angular/animations';
 export class ListComponent implements OnInit {
 
   activeActionRow: number | null = null;
-  // Variables para control de alertas
   mostrarAlertaExito = false;
   mensajeExito = '';
   mostrarAlertaError = false;
@@ -82,19 +89,17 @@ export class ListComponent implements OnInit {
 
   mostrarOverlayCarga = false;
   
-  // Acciones disponibles para el usuario
   accionesDisponibles: string[] = [];
-  showCreateForm = false; // Control del collapse
-  showEditForm = false; // Control del collapse de edición
-  showDetailsForm = false; // Control del collapse de detalles
+  // Controls para mostrar/ocultar formularios y almacenar el elemento en edición/detalle
+  showCreateForm = false; 
+  showEditForm = false; 
+  showDetailsForm = false; 
   municipioEditando: Municipio | null = null;
   municipioDetalle: Municipio | null = null;
   departamentos: Departamento[] = [];
 
-  // Cierra el dropdown si se hace click fuera
   onDocumentClick(event: MouseEvent, rowIndex: number) {
     const target = event.target as HTMLElement;
-    // Busca el dropdown abierto
     const dropdowns = document.querySelectorAll('.dropdown-action-list');
     let clickedInside = false;
     dropdowns.forEach((dropdown, idx) => {
@@ -107,20 +112,19 @@ export class ListComponent implements OnInit {
     }
   }
 
-  // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
     this.showCreateForm = !this.showCreateForm;
-    this.showEditForm = false; // Cerrar edit si está abierto
-    this.showDetailsForm = false; // Cerrar details si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showEditForm = false; 
+    this.showDetailsForm = false; 
+    this.activeActionRow = null; 
   }
 
   editar(municipio: Municipio): void {
-    this.municipioEditando = { ...municipio }; // Hacer copia profunda
+    this.municipioEditando = { ...municipio }; 
     this.showEditForm = true;
-    this.showCreateForm = false; // Cerrar create si está abierto
-    this.showDetailsForm = false; // Cerrar details si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showCreateForm = false; 
+    this.showDetailsForm = false; 
+    this.activeActionRow = null; 
   }
 
    detalles(municipio: Municipio): void {
@@ -130,18 +134,16 @@ export class ListComponent implements OnInit {
       depa_Descripcion: depto ? depto.depa_Descripcion : 'N/A' 
     };
     this.showDetailsForm = true;
-    this.showCreateForm = false; // Cerrar create si está abierto
-    this.showEditForm = false; // Cerrar edit si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showCreateForm = false; 
+    this.showEditForm = false; 
+    this.activeActionRow = null; 
   }
 
-  // Propiedades para alertas (ya definidas al inicio de la clase)
-  
-  // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
   municipioAEliminar: Municipio | null = null;
 
   private cargardatos(mostrarOverlay: boolean = true): void {
+    // Mostrar overlay de carga si se solicita
     this.mostrarOverlayCarga = true;
     this.http.get<Municipio[]>(`${environment.apiBaseUrl}/Municipios/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -155,10 +157,11 @@ export class ListComponent implements OnInit {
           : data.filter(r => r.usua_Creacion?.toString() === userId.toString());
 
         this.table.setData(datosFiltrados);
-        
+        // Ocultar overlay cuando ya se cargó la información
         this.mostrarOverlayCarga = false;
       },
       error: (error) => {
+        // En caso de error al consultar la API, avisar al usuario
         this.mostrarOverlayCarga = false;
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los municipios.';
@@ -179,7 +182,6 @@ export class ListComponent implements OnInit {
       this.cargardatos(true);
     }
 
-  // ===== CONFIGURACIÓN FÁCIL DE EXPORTACIÓN =====
   private readonly exportConfig = {
     title: 'Listado de Municipios',
     filename: 'Municipios',
@@ -292,6 +294,7 @@ export class ListComponent implements OnInit {
   private limpiarTexto(texto: any): string {
     if (!texto) return '';
     return String(texto)
+      // Normaliza espacios, elimina caracteres raros y limita longitud
       .replace(/\s+/g, ' ')
       .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
@@ -320,8 +323,6 @@ export class ListComponent implements OnInit {
     }
   }
 
-
-  // Verificar si una acción está permitida
   accionPermitida(accion: string): boolean {
     const accionBuscada = accion.toLowerCase();
     const accionesMapeadas: {[key: string]: string} = {
@@ -332,7 +333,6 @@ export class ListComponent implements OnInit {
     return this.accionesDisponibles.some(a => a === accionReal);
   }
 
-  // Cargar acciones disponibles del usuario
   cargarAccionesUsuario() {
     let accionesArray: string[] = [];
     let modulo: any = null;
@@ -341,8 +341,9 @@ export class ListComponent implements OnInit {
       try {
         const permisos = JSON.parse(permisosJson);
         if (Array.isArray(permisos)) {
-          // Buscar por ID de pantalla (16 para municipios)
-                    modulo = permisos.find((m: any) => m.Pant_Id === 18);
+          // Buscar por ID de pantalla. En este sistema los módulos pueden
+          // identificarse por Pant_Id; para municipios se usa el id 18.
+          modulo = permisos.find((m: any) => m.Pant_Id === 18);
         } else if (typeof permisos === 'object' && permisos !== null) {
           // Si es objeto, buscar por clave
           modulo = permisos['Municipios'] || permisos['municipios'] || null;
@@ -361,7 +362,6 @@ export class ListComponent implements OnInit {
     this.accionesDisponibles = accionesArray;
   }
 
-  // Inicializar componente
   ngOnInit() {
     this.cargarAccionesUsuario();
     this.cargardatos();
@@ -376,14 +376,11 @@ export class ListComponent implements OnInit {
     this.http.get<Departamento[]>(`${environment.apiBaseUrl}/Departamentos/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
+      // Cargar lista de departamentos para mostrar descripción en los municipios
       this.departamentos = data;
     }, error => {
     });
   }
-
-  // (navigateToCreate eliminado, lógica movida a crear)
-
-  // (navigateToEdit y navigateToDetails eliminados, lógica movida a editar y detalles)
 
   cerrarFormulario(): void {
     this.showCreateForm = false;
@@ -426,7 +423,7 @@ export class ListComponent implements OnInit {
   confirmarEliminar(municipio: Municipio): void {
     this.municipioAEliminar = municipio;
     this.mostrarConfirmacionEliminar = true;
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.activeActionRow = null; 
   }
 
   cancelarEliminar(): void {
