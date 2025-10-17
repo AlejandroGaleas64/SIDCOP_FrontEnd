@@ -47,12 +47,11 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
   ]
 })
 export class ListComponent implements OnInit {
+  // Configuración para exportar datos a Excel, PDF y CSV
   private readonly exportConfig = {
-        // Configuración básica
-        title: 'Listado de Sucursales',                    // Título del reporte
-        filename: 'Sucursales',                           // Nombre base del archivo
+        title: 'Listado de Sucursales',
+        filename: 'Sucursales',
   
-        // Columnas a exportar - TODOS LOS DATOS DE SUCURSALES
         columns: [
           { key: 'No', header: 'No.', width: 8, align: 'center' as const },
           { key: 'ID', header: 'ID', width: 10, align: 'center' as const },
@@ -65,7 +64,6 @@ export class ListComponent implements OnInit {
           { key: 'Correo', header: 'Correo', width: 25, align: 'left' as const },
         ] as ExportColumn[],
 
-        // Mapeo de datos - TODOS LOS DATOS DE SUCURSALES
         dataMapping: (modelo: Sucursales, index: number) => ({
           'No': modelo?.secuencia || (index + 1),
           'ID': modelo?.sucu_Id ?? '',
@@ -78,11 +76,13 @@ export class ListComponent implements OnInit {
           'Correo': this.limpiarTexto(modelo?.sucu_Correo),
         })
       };
-  // Overlay de carga animado
   mostrarOverlayCarga = false;
   breadCrumbItems!: Array<{}>;
+
+  // Array de acciones permitidas según permisos del usuario
   accionesDisponibles: string[] = [];
 
+  // Verifica si el usuario tiene permiso para ejecutar una acción específica
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
   }

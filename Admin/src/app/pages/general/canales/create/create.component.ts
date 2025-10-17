@@ -18,6 +18,7 @@ export class CreateComponent {
   @Output() onSave = new EventEmitter<Canal>();
   @Output() onOverlayChange = new EventEmitter<boolean>();
 
+  // Modelo del canal a crear con valores iniciales
   canal: Canal = new Canal();
 
   mostrarErrores = false;
@@ -30,6 +31,7 @@ export class CreateComponent {
 
   constructor(private http: HttpClient) {}
 
+  // Limpia el formulario y emite evento de cancelación al padre
   cancelar(): void {
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
@@ -51,6 +53,7 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
+  // Valida campos requeridos y ejecuta POST al endpoint de inserción
   guardar(): void {
     this.mostrarErrores = true;
     this.onOverlayChange.emit(true);
