@@ -14,7 +14,7 @@ import { getUserId } from 'src/app/core/utils/user-utils';
   styleUrl: './edit.component.scss'
 })
 export class EditComponent implements OnChanges {
-  // Devuelve la lista de cambios detectados para el modal de confirmación
+  // Genera lista de cambios detectados para el modal de confirmación
   obtenerListaCambios() {
     const cambios = [];
     if (this.estadoCivil.esCv_Descripcion?.trim() !== this.estadoCivilOriginal?.trim()) {
@@ -80,6 +80,7 @@ export class EditComponent implements OnChanges {
     this.mensajeWarning = '';
   }
 
+  // Valida campos requeridos y detecta cambios antes de mostrar confirmación
   validarEdicion(): void {
     this.mostrarErrores = true;
 
@@ -107,6 +108,7 @@ export class EditComponent implements OnChanges {
     this.guardar();
   }
 
+  // Ejecuta PUT al endpoint de actualización con el payload del estado civil
   private guardar(): void {
     this.mostrarErrores = true;
     this.onOverlayChange.emit(true);
