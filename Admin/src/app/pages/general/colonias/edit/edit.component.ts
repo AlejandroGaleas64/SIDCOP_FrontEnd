@@ -23,7 +23,7 @@ export class EditComponent implements OnInit, OnChanges {
 
   // Retorna un resumen de los cambios detectados (útil para mostrar en modal de confirmación)
   obtenerListaCambios() {
-    const cambios: { label: string; anterior: string; nuevo: string }[] = [];
+    const cambios: { label: string; anterior: string; nuevo: string| undefined }[] = [];
 
     // Comparar descripción
     if ((this.coloniaEditada.colo_Descripcion || '').trim() !== (this.coloniaOriginal || '').trim()) {
