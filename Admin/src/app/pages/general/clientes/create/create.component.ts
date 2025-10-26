@@ -85,6 +85,7 @@ export class CreateComponent {
     }
   }
 
+  // Valida que el usuario ingrese un correo válido, aceptando cualquier dominio
   revisarCorreoValido(correo: string): boolean {
     if (!correo) return true;
     // Debe contener "@" y terminar en ".com" y aceptar cualquier dominio
@@ -106,6 +107,7 @@ export class CreateComponent {
       no = this.activeTab;
     }
 
+    // Lógica para la pestaña 1 de los datos personales
     if (no === 1) {
       this.mostrarErrores = true;
       if (
@@ -131,6 +133,7 @@ export class CreateComponent {
       return;
     }
 
+    // Lógica para la pestaña 2 de los datos del negocio
     if (no === 2) {
       this.mostrarErrores = true;
       if (
@@ -154,6 +157,7 @@ export class CreateComponent {
       return;
     }
 
+    // Lógica para la pestaña 3 de los datos de crédito
     if (no === 3) {
       this.mostrarErrores = true;
       if (
@@ -173,6 +177,7 @@ export class CreateComponent {
       return;
     }
 
+    // Lógica para datos de crédito para caso que el cliente solicita crédito
     if (no === 4) {
       this.mostrarErrores = true;
       if (this.tieneDatosCredito()) {
@@ -343,6 +348,7 @@ export class CreateComponent {
 
   trackByIndex(index: number) { return index; }
 
+  // Longitud y latitud seleccionadas
   onCoordenadasSeleccionadas(coords: { lat: number, lng: number }) {
     this.direccionPorCliente.diCl_Latitud = coords.lat;
     this.direccionPorCliente.diCl_Longitud = coords.lng;
@@ -375,6 +381,10 @@ export class CreateComponent {
       usua_Modificacion: 0,
       diCl_FechaModificacion: new Date()
     }
+  }
+
+  cerrarFormularioMapa(): void {
+    this.mostrarMapa = false;
   }
 
   constructor(
