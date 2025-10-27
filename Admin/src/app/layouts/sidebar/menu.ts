@@ -81,6 +81,7 @@ export const MENU: MenuItem[] = [
       { id: 18, label: 'MENUITEMS.GENERAL.LIST.MUNICIPIOS',       link: '/general/municipios',        parentId: 2, icon: 'ri-group-line' },
       { id: 19, label: 'MENUITEMS.GENERAL.LIST.PROVEEDORES',      link: '/general/proveedores',       parentId: 2, icon: 'ri-group-line' },
       { id: 20, label: 'MENUITEMS.GENERAL.LIST.SUCURSALES',       link: '/general/sucursales',        parentId: 2, icon: 'ri-group-line' },
+      { id: 82, label: 'MENUITEMS.GENERAL.LIST.TIPOVENDEDORES',   link: '/general/tipovendedores',    parentId: 2, icon: 'ri-group-line' },
       { id: 81, label: 'MENUITEMS.GENERAL.LIST.UNIDADESDEPESO',   link: '/general/unidadesDePeso',    parentId: 2, icon: 'ri-group-line' },
       { id: 71, label: 'MENUITEMS.GENERAL.LIST.VISITASCLIENTES',  link: '/general/visitas-clientes',  parentId: 2, icon: 'ri-group-line' }
     ],
