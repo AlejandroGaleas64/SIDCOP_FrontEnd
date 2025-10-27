@@ -14,6 +14,7 @@ import { getUserId } from 'src/app/core/utils/user-utils';
 import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 
+
 @Component({
   selector: 'app-create',
   standalone: true,
@@ -68,6 +69,8 @@ export class CreateComponent {
   //Id del cliente obtenido al crear el nuevo cliente
   idDelCliente: number = 0;
 
+  rutasVendedorCache: any[] = [];
+String: any;
 
   scrollToAval(index: number) {
     const container = this.tabsScroll.nativeElement;
@@ -202,11 +205,16 @@ export class CreateComponent {
 
   //Es una funcion creada para el if 4 que es de corroborar
   //que haya un credito para que el aval sea obligatorio
+  // tieneDatosCredito(): boolean {
+  //   return (
+  //     !!this.cliente.clie_LimiteCredito &&
+  //     !!this.cliente.clie_DiasCredito
+  //   );
+  // }
   tieneDatosCredito(): boolean {
-    return (
-      !!this.cliente.clie_LimiteCredito &&
-      !!this.cliente.clie_DiasCredito
-    );
+    const limite = Number(this.cliente?.clie_LimiteCredito ?? 0);
+    const dias = Number(this.cliente?.clie_DiasCredito ?? 0);
+    return limite > 0 && dias > 0;
   }
 
   //Verifica si el aval es valido- Si nungo campo este vacio
@@ -460,6 +468,38 @@ export class CreateComponent {
     }).subscribe(data => this.colonias = data);
   }
 
+
+  ngOnInit(): void {
+    // cargar la cache de rutas↔días desde Vendedores una sola vez
+    this.loadRutasVendedoresCache();
+    this.ensureInicialAval();
+  }
+
+  private loadRutasVendedoresCache(): void {
+    const url = `${environment.apiBaseUrl}/Vendedores/ListarPorRutas`;
+    console.log('[Clientes] solicitando cache Vendedores/ListarPorRutas ->', url);
+    this.http.get<any[]>(url, { headers: { 'x-api-key': environment.apiKey } }).subscribe({
+      next: (res) => {
+        console.log('[Clientes] respuesta ListarPorRutas:', res);
+        // adaptarse al formato real: si viene envuelto en { data: [...] } o directamente array
+        if (Array.isArray(res)) {
+          this.rutasVendedorCache = res;
+        } else if (res && Array.isArray((res as any).data)) {
+          this.rutasVendedorCache = (res as any).data;
+        } else {
+          // intentar mapear si viene en otra estructura
+          this.rutasVendedorCache = (res && (res as any).list) || [];
+        }
+      },
+      error: (err) => {
+        console.warn('[Clientes] error al cargar ListarPorRutas:', err);
+        this.rutasVendedorCache = [];
+      }
+    });
+  }
+
+
+
   obtenerDescripcionColonia(colo_Id: number): string {
     const colonia = this.colonias.find(c => c.colo_Id === colo_Id);
     return colonia?.colo_Descripcion || 'Colonia no encontrada';
@@ -524,6 +564,7 @@ export class CreateComponent {
     esCv_Descripcion: '',
     ruta_Id: 0,
     ruta_Descripcion: '',
+    clie_DiaVisita: '',
     clie_LimiteCredito: 0.00,
     clie_DiasCredito: 0,
     clie_Saldo: 0,
@@ -625,6 +666,7 @@ export class CreateComponent {
       esCv_Descripcion: '',
       ruta_Id: 0,
       ruta_Descripcion: '',
+      clie_DiaVisita: '',
       clie_LimiteCredito: 0,
       clie_DiasCredito: 0,
       clie_Saldo: 0,
@@ -753,8 +795,62 @@ export class CreateComponent {
     });
   }
 
+
+  //Aquí
+    ensureInicialAval(): void {
+    try {
+      if (!Array.isArray(this.avales)) {
+        this.avales = [];
+      }
+      if (this.avales.length === 0) {
+        // usar la misma estructura que usa agregarAval() — aquí un objeto vacío por defecto
+        const avalNuevo = {
+          aval_Id: 0,
+      clie_Id: 0,
+      aval_Nombres: '',
+      aval_Apellidos: '',
+      pare_Id: 0,
+      aval_DNI: '',
+      aval_Telefono: '',
+      tiVi_Id: 0,
+      aval_Observaciones: '',
+      aval_DireccionExacta: '',
+      colo_Id: 0,
+      aval_FechaNacimiento: null,
+      esCv_Id: 0,
+      aval_Sexo: 'M',
+      pare_Descripcion: '',
+      esCv_Descripcion: '',
+      tiVi_Descripcion: '',
+      muni_Descripcion: '',
+      depa_Descripcion: '',
+      usua_Creacion: getUserId(),
+      usuarioCreacion: '',
+      aval_FechaCreacion: new Date(),
+      usua_Modificacion: 0,
+      usuarioModificacion: '',
+      aval_FechaModificacion: new Date()
+        };
+        this.avales.push(avalNuevo);
+        this.avalActivoIndex = 0;
+      }
+    } catch (e) {
+      console.warn('ensureInicialAval error', e);
+    }
+  }
+
+
   guardarCliente(): void {
     this.mostrarErrores = true;
+
+    if (this.tieneDatosCredito() && (!Array.isArray(this.avales) || this.avales.length === 0)) {
+      this.mostrarErrores = true;
+      this.mensajeWarning = 'Si solicita crédito, debe agregar al menos un aval.';
+      this.mostrarAlertaWarning = true;
+      this.activeTab = 4; // llevar al usuario a la pestaña Aval
+      return;
+    }
+
     if (this.entrando) {
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
@@ -781,6 +877,7 @@ export class CreateComponent {
         esCv_Descripcion: this.cliente.esCv_Descripcion,
         ruta_Id: this.cliente.ruta_Id,
         ruta_Descripcion: this.cliente.ruta_Descripcion,
+        clie_DiaVisita: this.cliente.clie_DiaVisita,
         clie_LimiteCredito: this.cliente.clie_LimiteCredito,
         clie_DiasCredito: this.cliente.clie_DiasCredito,
         clie_Saldo: 110,
@@ -1069,5 +1166,161 @@ export class CreateComponent {
       }
     }
   }
+
+
+  diasSemana = [
+    { id: 1, nombre: 'Lunes' },
+    { id: 2, nombre: 'Martes' },
+    { id: 3, nombre: 'Miércoles' },
+    { id: 4, nombre: 'Jueves' },
+    { id: 5, nombre: 'Viernes' },
+    { id: 6, nombre: 'Sábado' },
+    { id: 7, nombre: 'Domingo' }
+  ];
+
+  // Opciones que alimentan el ng-select de "Día de Visita"
+  diasDisponibles: Array<{ id: number; nombre: string }> = [];
+
+  onRutaSeleccionadaCliente(rutaId: number) {
+    // mantener generación de código por ruta
+    this.generarCodigoClientePorRuta?.(rutaId);
+    console.log('[Clientes] onRutaSeleccionadaCliente ->', rutaId);
+
+    if (!rutaId) {
+      this.diasDisponibles = [];
+      if (this.cliente) this.cliente.clie_DiaVisita = '';
+      return;
+    }
+
+    // 1) info en this.rutas
+    const rutaLocal = this.rutas?.find(r => +r.ruta_Id === +rutaId);
+    if (rutaLocal) {
+      const posibles = rutaLocal.veRu_Dias ?? rutaLocal.dias ?? rutaLocal.diasSeleccionados ?? rutaLocal.diasConfig;
+      if (typeof posibles === 'string' && posibles.trim()) {
+        const ids = posibles.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
+        this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
+        console.log('[Clientes] diasDisponibles (rutaLocal string)=', this.diasDisponibles);
+        if (!this.diasDisponibles.some(d => d.id === Number(this.cliente?.clie_DiaVisita))) {
+          if (this.cliente) this.cliente.clie_DiaVisita = '';
+        }
+        return;
+      }
+      if (Array.isArray(posibles) && posibles.length > 0 && typeof posibles[0] === 'number') {
+        this.diasDisponibles = this.diasSemana.filter(d => (posibles as number[]).includes(d.id));
+        console.log('[Clientes] diasDisponibles (rutaLocal array ids)=', this.diasDisponibles);
+        if (!this.diasDisponibles.some(d => d.id === Number(this.cliente?.clie_DiaVisita))) {
+          if (this.cliente) this.cliente.clie_DiaVisita = '';
+        }
+        return;
+      }
+      if (Array.isArray(posibles) && posibles.length > 0) {
+        this.diasDisponibles = (posibles as any[]).map(d => ({
+          id: d.id ?? d.dia_Id ?? d.value,
+          nombre: d.nombre ?? d.dia_Descripcion ?? d.label ?? `${d}`
+        }));
+        console.log('[Clientes] diasDisponibles (rutaLocal array obj)=', this.diasDisponibles);
+        if (!this.diasDisponibles.some(d => d.id === Number(this.cliente?.clie_DiaVisita))) {
+          if (this.cliente) this.cliente.clie_DiaVisita = '';
+        }
+        return;
+      }
+    }
+
+    // 2) buscar en rutasVendedorCache (priorizar claves que indiquen días)
+    this.diasDisponibles = [];
+    if (!Array.isArray(this.rutasVendedorCache) || this.rutasVendedorCache.length === 0) {
+      console.warn('[Clientes] rutasVendedorCache vacía');
+      return;
+    }
+
+    console.log('[Clientes] claves primer registro cache:', Object.keys(this.rutasVendedorCache[0] || {}));
+
+    const registro = this.rutasVendedorCache.find(item => {
+      try {
+        for (const key of Object.keys(item)) {
+          const val = item[key];
+          if (val === null || val === undefined) continue;
+          // detectar si algún campo contiene exactamente el id de ruta (número o string)
+          if ((typeof val === 'number' && +val === +rutaId) ||
+              (typeof val === 'string' && val.trim() === String(rutaId))) {
+            return true;
+          }
+        }
+      } catch (e) { /* ignore */ }
+      return false;
+    });
+
+    console.log('[Clientes] registro encontrado (flexible):', registro);
+    if (!registro) {
+      console.warn('[Clientes] no se encontró registro en cache para rutaId:', rutaId);
+      return;
+    }
+
+    // Extraer campos que probablemente contienen los días:
+    // 1) Priorizar keys que contengan 'dia' o 'dias'
+    let diasRaw: any = null;
+    const keys = Object.keys(registro);
+    const prefDiasKey = keys.find(k => /dias?/i.test(k)); // veRu_Dias, dias, etc.
+    if (prefDiasKey) diasRaw = registro[prefDiasKey];
+
+    // 2) Si no hay pref, buscar campos concretos comunes
+    if (!diasRaw) {
+      diasRaw = registro.veRu_Dias ?? registro.veRu_dias ?? registro.dias ?? registro.Dias ?? registro.rutas ?? null;
+    }
+
+    console.log('[Clientes] diasRaw detectado (puede ser string/array/xml):', diasRaw);
+
+    // Si diasRaw es XML (string con "<"), parsear y extraer <dias> para la rutaId
+    if (typeof diasRaw === 'string' && diasRaw.includes('<')) {
+      try {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(diasRaw, 'application/xml');
+        const rutasNodes = Array.from(xml.getElementsByTagName('Ruta'));
+        for (const node of rutasNodes) {
+          const idNode = node.getElementsByTagName('Id')[0];
+          const diasNode = node.getElementsByTagName('dias')[0];
+          if (!idNode || !diasNode) continue;
+          const idVal = idNode.textContent?.trim();
+          if (idVal && +idVal === +rutaId) {
+            const diasTxt = diasNode.textContent?.trim() ?? '';
+            const ids = diasTxt.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
+            this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
+            console.log('[Clientes] diasDisponibles (xml parsed)=', this.diasDisponibles);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('[Clientes] error parseando XML de rutas:', e);
+      }
+    }
+
+    // Si diasRaw es string simple "1" o "1,5"
+    if (typeof diasRaw === 'string' && diasRaw.trim()) {
+      const ids = diasRaw.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
+      this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
+      console.log('[Clientes] diasDisponibles (string split)=', this.diasDisponibles);
+      return;
+    }
+
+    // Si diasRaw es array de números
+    if (Array.isArray(diasRaw) && typeof diasRaw[0] === 'number') {
+      this.diasDisponibles = this.diasSemana.filter(d => (diasRaw as number[]).includes(d.id));
+      console.log('[Clientes] diasDisponibles (array numbers)=', this.diasDisponibles);
+      return;
+    }
+
+    // Si diasRaw es array de objetos {id,nombre}
+    if (Array.isArray(diasRaw) && typeof diasRaw[0] === 'object') {
+      this.diasDisponibles = (diasRaw as any[]).map(d => ({
+        id: d.id ?? d.dia_Id ?? d.value,
+        nombre: d.nombre ?? d.dia_Descripcion ?? d.label ?? `${d}`
+      }));
+      console.log('[Clientes] diasDisponibles (array obj)=', this.diasDisponibles);
+      return;
+    }
+
+    console.warn('[Clientes] no se pudo extraer días del registro encontrado. registro:', registro);
+  }
+  
 }
 
