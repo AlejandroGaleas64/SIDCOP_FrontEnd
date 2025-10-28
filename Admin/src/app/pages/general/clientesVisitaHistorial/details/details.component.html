@@ -17,6 +17,44 @@
         </button>
     </div>
 
+    <!-- NUEVO: Filtro por día de la semana -->
+    <div *ngIf="!cargando && visitasDetalle && visitasDetalle.length > 0" class="filtro-container mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body py-3">
+                <div class="row align-items-center g-3">
+                    <div class="col-auto">
+                        <div class="d-flex align-items-center">
+                            <div class="filtro-icon-wrapper me-3">
+                                <i class="ri-calendar-check-line fs-4"></i>
+                            </div>
+                            <div>
+                                <label for="filtro-dia" class="form-label mb-0 fw-semibold">Filtrar por día de visita</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+  <select 
+      id="filtro-dia" 
+      [(ngModel)]="diaSeleccionado" 
+      (change)="filtrarPorDia()"
+      class="form-select"
+  >
+      <option *ngFor="let dia of diasDisponibles" [value]="dia.id">
+        {{ dia.nombre }}
+      </option>
+  </select>
+</div>
+                    <div class="col-auto ms-auto">
+                        <div class="badge bg-primary-subtle text-primary fs-6 px-3 py-2">
+                            <i class="ri-file-list-3-line me-1"></i>
+                            {{ visitasDetalle.length }} visita{{ visitasDetalle.length !== 1 ? 's' : '' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Contenido de detalles -->
     <div *ngIf="!cargando && visitasDetalle && visitasDetalle.length > 0" class="details-content">
         <div *ngFor="let visitaDetalle of visitasDetalle" class="row g-4 align-items-stretch mb-4">

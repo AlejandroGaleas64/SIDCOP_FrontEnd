@@ -1,7 +1,7 @@
 import { Component, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
 import { Cliente } from 'src/app/Modelos/general/Cliente.Model';
 import { environment } from 'src/environments/environment.prod';
 import { ChangeDetectorRef } from '@angular/core';
@@ -855,10 +855,10 @@ String: any;
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
       const clienteGuardar = {
-        clie_Id: 0,
+        // clie_Id: 0,
         clie_Codigo: this.cliente.clie_Codigo.trim(),
         clie_Nacionalidad: this.cliente.clie_Nacionalidad,
-        pais_Descripcion: this.cliente.pais_Descripcion,
+        pais_Descripcion: this.cliente.pais_Descripcion || '',
         clie_DNI: this.cliente.clie_DNI.trim(),
         clie_RTN: this.cliente.clie_RTN.trim(),
         clie_Nombres: this.cliente.clie_Nombres.trim(),
@@ -866,36 +866,61 @@ String: any;
         clie_NombreNegocio: this.cliente.clie_NombreNegocio.trim(),
         clie_ImagenDelNegocio: this.cliente.clie_ImagenDelNegocio,
         clie_Telefono: this.cliente.clie_Telefono.trim(),
-        clie_Correo: this.cliente.clie_Correo.trim(),
+        clie_Correo: this.cliente.clie_Correo.trim() || '',
         clie_Sexo: this.cliente.clie_Sexo,
-        clie_FechaNacimiento: new Date(),
+         clie_FechaNacimiento: this.cliente.clie_FechaNacimiento 
+      ? new Date(this.cliente.clie_FechaNacimiento).toISOString().split('T')[0]
+      : null,
         tiVi_Id: this.cliente.tiVi_Id,
-        tiVi_Descripcion: this.cliente.tiVi_Descripcion,
+        tiVi_Descripcion: this.cliente.tiVi_Descripcion || '',
         cana_Id: this.cliente.cana_Id,
-        cana_Descripcion: this.cliente.cana_Descripcion,
+        cana_Descripcion: this.cliente.cana_Descripcion || '',
         esCv_Id: this.cliente.esCv_Id,
-        esCv_Descripcion: this.cliente.esCv_Descripcion,
+        esCv_Descripcion: this.cliente.esCv_Descripcion || '',
         ruta_Id: this.cliente.ruta_Id,
-        ruta_Descripcion: this.cliente.ruta_Descripcion,
-        clie_DiaVisita: this.cliente.clie_DiaVisita,
-        clie_LimiteCredito: this.cliente.clie_LimiteCredito,
-        clie_DiasCredito: this.cliente.clie_DiasCredito,
-        clie_Saldo: 110,
+        ruta_Descripcion: this.cliente.ruta_Descripcion || '',
+        clie_DiaVisita: this.cliente.clie_DiaVisita.toString() || '',
+        clie_LimiteCredito: this.cliente.clie_LimiteCredito || 0,
+        clie_DiasCredito: this.cliente.clie_DiasCredito || 0,
+        clie_Saldo: this.cliente.clie_Saldo || 0,
         clie_Vencido: false,
-        clie_Observaciones: this.cliente.clie_Observaciones.trim(),
-        clie_ObservacionRetiro: this.cliente.clie_ObservacionRetiro.trim(),
+        clie_Observaciones: this.cliente.clie_Observaciones.trim() || '',
+        clie_ObservacionRetiro: this.cliente.clie_ObservacionRetiro.trim() || '',
         clie_Confirmacion: this.cliente.clie_Confirmacion,
         clie_Estado: true,
         usua_Creacion: getUserId(),
-        usua_Modificacion: getUserId(),
-        secuencia: 0,
-        clie_FechaCreacion: new Date(),
-        clie_FechaModificacion: new Date(),
-        code_Status: 0,
-        message_Status: '',
-        usuaC_Nombre: '',
-        usuaM_Nombre: ''
+        // usua_Modificacion: getUserId(),
+        // secuencia: 0,
+        clie_FechaCreacion: this.cliente.clie_FechaCreacion 
+      ? new Date(this.cliente.clie_FechaCreacion).toISOString().split('T')[0]
+      : null,
+        // clie_FechaModificacion: this.cliente.clie_FechaModificacion
+      // ? new Date(this.cliente.clie_FechaModificacion).toISOString().split('T')[0]
+      // : null,
+        // code_Status: 0,
+        // message_Status: '',
+        // usuaC_Nombre: '',
+        // usuaM_Nombre: ''
       }
+      const direccionGuardar = this.direccionesPorCliente.map(direccion => ({
+        diCl_Id: direccion.diCl_Id,
+        clie_Id: direccion.clie_Id,
+        colo_Id: direccion.colo_Id,
+        diCl_DireccionExacta: direccion.diCl_DireccionExacta.trim(),
+        diCl_Observaciones: direccion.diCl_Observaciones.trim(),
+        diCl_Latitud: direccion.diCl_Latitud,
+        diCl_Longitud: direccion.diCl_Longitud,
+        colo_Descripcion: direccion.colo_Descripcion,
+        muni_Descripcion: direccion.muni_Descripcion,
+        depa_Descripcion: direccion.depa_Descripcion,
+        usua_Creacion: getUserId(),
+        diCl_FechaCreacion: new Date(),
+        usua_Modificacion: getUserId(),
+        diCl_FechaModificacion: new Date(),
+        secuencia: 0
+      }));
+      console.log('Datos a enviar:', clienteGuardar, direccionGuardar);
+      console.log('JSON:', JSON.stringify(clienteGuardar,  null, 2));
       this.http.post<any>(`${environment.apiBaseUrl}/Cliente/Insertar`, clienteGuardar, {
         headers: {
           'X-Api-Key': environment.apiKey,
@@ -933,6 +958,7 @@ String: any;
             this.mostrarAlertaError = false;
             this.mensajeError = '';
           }, 3000);
+          console.error('Error al guardar el Cliente:', error);
         }
       });
     } else {
@@ -1265,7 +1291,7 @@ String: any;
 
     // 2) Si no hay pref, buscar campos concretos comunes
     if (!diasRaw) {
-      diasRaw = registro.veRu_Dias ?? registro.veRu_dias ?? registro.dias ?? registro.Dias ?? registro.rutas ?? null;
+      diasRaw = registro.veRu_Dias ?? registro.rutas ?? null;
     }
 
     console.log('[Clientes] diasRaw detectado (puede ser string/array/xml):', diasRaw);
