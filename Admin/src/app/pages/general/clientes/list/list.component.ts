@@ -506,6 +506,7 @@ export class ListComponent {
         this.currentPage = 1;
         this.itemsPerPage = 10;
         this.clientesFiltrados = [...this.clienteGrid];
+        debugger;
         this.cargandoDatos = false;
         this.actualizarClientesVisibles();
       }, 500);

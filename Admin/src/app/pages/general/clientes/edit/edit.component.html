@@ -416,16 +416,47 @@
                 backgroundColor: (!cliente.ruta_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
-              <select id="ruta_Id" class="form-select" [(ngModel)]="cliente.ruta_Id" (change)="onRutaChange($event)"
-                [class.is-invalid]="!cliente.ruta_Id && mostrarErrores" required>
-                <option value="0" disabled>Seleccione una ruta</option>
-                <option *ngFor="let ruta of rutas" [value]="ruta.ruta_Id">
-                  {{ ruta.ruta_Descripcion }}
-                </option>
-              </select>
+              <ng-select
+  class="w-100"
+  [items]="rutas"
+  bindLabel="ruta_Descripcion"
+  bindValue="ruta_Id"
+  [(ngModel)]="cliente.ruta_Id"
+  (ngModelChange)="onRutaSeleccionadaCliente($event)"
+  placeholder="Seleccione una ruta"
+  [clearable]="false"
+  [class.is-invalid]="mostrarErrores && !cliente.ruta_Id">
+</ng-select>
             </div>
             <div class="text-danger mt-1" *ngIf="!cliente.ruta_Id && mostrarErrores">
               <small>El campo Ruta es requerido</small>
+            </div>
+          </div>
+
+          <!-- NUEVO: Días -->
+           <div class="mb-2 col-12 mt-3">
+            <label for="clie_DiaVisita" class="form-label">Día de Visita</label>
+            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <div class="d-flex align-items-center">
+              <i class="ri-calendar-2-line" [ngStyle]="{
+                border: (mostrarErrores && !cliente.clie_DiaVisita) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (mostrarErrores && !cliente.clie_DiaVisita) ? '#fff5f6' : '#f2f3f9',
+                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'
+              }"></i>
+<ng-select
+  [items]="diasDisponibles"
+  bindLabel="nombre"
+  bindValue="id"
+  [(ngModel)]="cliente.clie_DiaVisita"
+  placeholder="Seleccione día de visita"
+  [clearable]="false"
+  [disabled]="!diasDisponibles || diasDisponibles.length === 0"
+  style="min-width: 180px;"
+  [class.is-invalid]="mostrarErrores && !cliente.clie_DiaVisita">
+</ng-select>
+            </div>
+            <div class="text-danger mt-1" *ngIf="mostrarErrores && !cliente.clie_DiaVisita">
+              <small>Seleccione el día de visita</small>
             </div>
           </div>
         </div>
