@@ -18,6 +18,8 @@ import { Cliente } from 'src/app/Modelos/general/Cliente.Model';
 import { CreateComponent } from '../create/create.component';
 import { DetailsComponent } from '../details/details.component';
 import { EditComponent } from '../edit/edit.component';
+// import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
+
 import {
   trigger,
   style,
@@ -51,6 +53,7 @@ import { ImageUploadService } from 'src/app/core/services/image-upload.service';
     CreateComponent,
     EditComponent,
     DetailsComponent,
+    // NgbTooltipModule,
   ],
   animations: [
     trigger('fadeExpand', [

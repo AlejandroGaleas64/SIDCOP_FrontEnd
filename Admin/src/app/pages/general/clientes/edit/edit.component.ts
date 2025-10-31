@@ -1940,4 +1940,8 @@ String: any;
     this.cliente.clie_DiaVisita = found ? String(found.id) : '';
     this.cdr.detectChanges();
   }
+
+  cerrarFormularioMapa(): void {
+    this.mostrarMapa = false;
+  }
 }
