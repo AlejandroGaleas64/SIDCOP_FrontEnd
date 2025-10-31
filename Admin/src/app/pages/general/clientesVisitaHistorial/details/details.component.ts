@@ -51,6 +51,10 @@ export class DetailsComponent implements OnChanges {
     // NUEVO: Propiedades para el filtro
   diaSeleccionado: string = 'todos';
 
+    // Mensaje cuando no hay visitas después de filtrar
+  mensajeNoVisitas = '';
+  mostrarMensajeNoVisitas = false;
+
   // Propiedades para el carrusel
   imagenesVisita: { [visitaId: string]: any[] } = {};
   currentSlideIndex: { [visitaId: string]: number } = {};
@@ -69,13 +73,13 @@ export class DetailsComponent implements OnChanges {
     this.mostrarAlertaError = false;
     setTimeout(() => {
       try {
-        this.visitasDetalle = Array.isArray(data) ? data : [data];
-        // this.visitasDetalle = [...this.visitasDetalleOriginal];
+        // guardar todas las visitas para filtrado
+        this.visitasDetalleAll = Array.isArray(data) ? [...data] : [data];
 
-        // NUEVO: Extraer los días disponibles de las visitas
-        // this.extraerDiasDisponibles();
+        // Si la API ya trae clie_DiaVisita no necesitamos inferir; construir DDL y aplicar filtro
+        this.buildDiasDisponiblesFromData();+        this.filtrarPorDia();
 
-        // Cargar imágenes para cada visita
+        // Cargar imágenes sólo de las visitas mostradas (o cambiar por visitasDetalleAll si se desea)
         this.visitasDetalle.forEach(visita => {
           this.cargarImagenesVisita(visita.clVi_Id);
         });
@@ -211,10 +215,16 @@ export class DetailsComponent implements OnChanges {
     console.log('[Details] filtrarPorDia seleccionado:', this.diaSeleccionado);
     if (!this.visitasDetalleAll || this.visitasDetalleAll.length === 0) {
       this.visitasDetalle = [];
+      this.mostrarMensajeNoVisitas = true;
+      this.mensajeNoVisitas = this.diaSeleccionado === 'todos'
+        ? 'No hay visitas registradas aún'
+        : `No hay visitas registradas los días ${this.getSelectedDayNombre()} aún`;
       return;
     }
     if (this.diaSeleccionado === 'todos') {
       this.visitasDetalle = [...this.visitasDetalleAll];
+      this.mostrarMensajeNoVisitas = this.visitasDetalle.length === 0;
+      this.mensajeNoVisitas = this.mostrarMensajeNoVisitas ? 'No hay visitas registradas aún' : '';
       return;
     }
 
@@ -225,9 +235,10 @@ export class DetailsComponent implements OnChanges {
       if (lookup) seleccionadoId = lookup;
     }
 
+    // Filtrar exclusivamente por clie_DiaVisita (string CSV | número | array)
     this.visitasDetalle = this.visitasDetalleAll.filter(v => {
-      const raw = v.clie_DiaVisita ?? v.clie_Dia ?? v.veRu_Dias ?? v.veRuDias ?? '';
-      if (raw === null || raw === undefined) return false;
+      const raw = v.clie_DiaVisita;
+      if (raw === null || raw === undefined || raw === '') return false;
       if (typeof raw === 'number') return String(raw) === seleccionadoId;
       if (typeof raw === 'string') {
         const txt = raw.trim();
@@ -240,10 +251,28 @@ export class DetailsComponent implements OnChanges {
       if (Array.isArray(raw)) return raw.map(String).includes(seleccionadoId);
       return false;
     });
+    this.mostrarMensajeNoVisitas = this.visitasDetalle.length === 0;
+    if (this.mostrarMensajeNoVisitas) {
+      const dayName = this.getSelectedDayNombre();
+      this.mensajeNoVisitas = dayName
+        ? `No hay visitas registradas los días ${dayName} aún`
+        : 'No hay visitas registradas aún';
+    } else {
+      this.mensajeNoVisitas = '';
+    }
 
     console.log('[Details] visitas tras filtrar:', this.visitasDetalle.length);
   }
 
+private getSelectedDayNombre(): string {
+    if (!this.diaSeleccionado || this.diaSeleccionado === 'todos') return '';
+    const id = String(this.diaSeleccionado);
+    if (this.DIAS_MAP[id]) return this.DIAS_MAP[id];
+    // si el usuario pasó el nombre (ej. 'jueves'), intentar normalizar
+    const lookup = this.DIAS_MAP_REVERSE[id.toLowerCase()];
+    if (lookup && this.DIAS_MAP[lookup]) return this.DIAS_MAP[lookup];
+    return String(this.diaSeleccionado);
+  }
 
     // opciones del select (usamos ids como strings para comparación sencilla)
   diasDisponibles = [
