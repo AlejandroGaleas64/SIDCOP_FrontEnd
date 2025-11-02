@@ -47,6 +47,22 @@ export class DetailsComponent implements OnChanges {
     this.cargarDepartamentos();
   }
 
+
+  diasSemana(d: any): string {
+    if (d === null || d === undefined || d === '') return 'N/A';
+    const s = String(d).trim();
+    const map: Record<string, string> = {
+      '1': 'Lunes',
+      '2': 'Martes',
+      '3': 'Miércoles',
+      '4': 'Jueves',
+      '5': 'Viernes',
+      '6': 'Sábado',
+      '7': 'Domingo'
+    };
+    return map[s] ?? map[String(Number(s))] ?? String(d);
+  }
+
   // Simulación de carga
   cargarDetallesSimulado(data: Cliente): void {
     this.cargando = true;
