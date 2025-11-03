@@ -421,7 +421,7 @@
           bindLabel="ruta_Descripcion"
           bindValue="ruta_Id"
           [(ngModel)]="cliente.ruta_Id"
-          (ngModelChange)="fetchDiasDisponiblesCliente($event)"
+          (ngModelChange)="onRutaSeleccionadaCliente($event)"
           placeholder="Seleccione una ruta"
           [clearable]="false"
           [class.is-invalid]="mostrarErrores && !cliente.ruta_Id">
