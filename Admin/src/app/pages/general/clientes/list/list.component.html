@@ -102,7 +102,7 @@
     <div *ngIf="showEditForm" [@fadeExpand]>
       <div class="mb-2 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
         <div class="container-fluid flex-grow-1">
-          <app-edit [clienteData]="clienteEditando!" (onCancel)="cerrarFormularioEdicion()"
+          <app-edit [clienteData]="clienteEditando!" (onCancel)="cerrarFormularioEdicion()" onclick="fetchDiasDisponiblesCliente()"
             (onSave)="actualizarCliente($event)"></app-edit>
         </div>
       </div>
