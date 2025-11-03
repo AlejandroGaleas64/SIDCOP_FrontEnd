@@ -92,6 +92,8 @@ String: any;
 
       // fallback: intentar extraer el día desde cualquier campo que contenga "dia"
      const rawFromCliente = this.getDiaFromClienteRaw(this.cliente);
+     // normalizar el tipo del día para que el select muestre la etiqueta correcta
+      //  this.normalizeDiaStringInModel();
      if (rawFromCliente && (!this.cliente.clie_DiaVisita || String(this.cliente.clie_DiaVisita).trim() === '')) {
        this.cliente.clie_DiaVisita = String(rawFromCliente);
      }
@@ -114,7 +116,11 @@ String: any;
       //Hacer lo mismo con canales, estados civiles y demas
       const rutaActual = this.rutas.find(ruta => ruta.ruta_Id === this.cliente.ruta_Id);
       this.cliente.ruta_Descripcion = rutaActual ? rutaActual.ruta_Descripcion : '';
-      this.clienteOriginal = { ...changes['clienteData'].currentValue };
+      // normalizar la copia original para que clie_DiaVisita sea string
+      this.clienteOriginal = {
+        ...changes['clienteData'].currentValue,
+        clie_DiaVisita: String((changes['clienteData'].currentValue?.clie_DiaVisita ?? ''))
+      };
       this.idDelCliente = this.cliente.clie_Id;
 
        if (this.rutas.length === 0) {
@@ -152,6 +158,23 @@ String: any;
       this.loadRutasVendedoresCache();
     }
   }
+
+  // private normalizeDiaStringInModel() {
+  //   try {
+  //     if (this.cliente && this.cliente.clie_DiaVisita !== undefined && this.cliente.clie_DiaVisita !== null) {
+  //       this.cliente.clie_DiaVisita = String(this.cliente.clie_DiaVisita);
+  //     }
+  //     if ((this as any).clienteOriginal && (this as any).clienteOriginal.clie_DiaVisita !== undefined && (this as any).clienteOriginal.clie_DiaVisita !== null) {
+  //       (this as any).clienteOriginal.clie_DiaVisita = String((this as any).clienteOriginal.clie_DiaVisita);
+  //     }
+  //     // también normalizar opciones por si vienen como number
+  //     if (Array.isArray(this.diasDisponibles)) {
+  //       this.diasDisponibles = (this.diasDisponibles as any[]).map(d => ({ id: String(d.id), nombre: d.nombre ?? d.label ?? String(d) })) as any;
+  //     }
+  //   } catch (e) {
+  //     console.warn('[Clientes] normalizeDiaStringInModel error', e);
+  //   }
+  // }
 
   asignarRutaDescripcionYCodigo() {
     const rutaActual = this.rutas.find(ruta => ruta.ruta_Id === this.cliente.ruta_Id);
@@ -943,7 +966,7 @@ String: any;
         esCv_Descripcion: this.cliente.esCv_Descripcion,
         ruta_Id: this.cliente.ruta_Id,
         ruta_Descripcion: this.cliente.ruta_Descripcion,
-        clie_DiaVisita: this.cliente.clie_DiaVisita || '',
+        clie_DiaVisita: String(this.cliente.clie_DiaVisita ?? ''),
         clie_LimiteCredito: this.cliente.clie_LimiteCredito ? this.cliente.clie_LimiteCredito : 0,
         clie_DiasCredito: this.cliente.clie_DiasCredito,
         clie_Saldo: this.cliente.clie_Saldo,
@@ -1397,6 +1420,16 @@ String: any;
     }
   }
 
+  // Convierte id/string del día a nombre legible
+  diasSemanaString(d: any): string {
+    if (d === null || d === undefined || String(d).trim() === '') return 'N/A';
+    const s = String(d).trim();
+    const map: Record<string,string> = {
+      '1': 'Lunes','2':'Martes','3':'Miércoles','4':'Jueves','5':'Viernes','6':'Sábado','7':'Domingo'
+    };
+    return map[s] ?? s;
+  }
+
   // Todo lo de mensaje de confirmación de edición
 
   obtenerListaCambios(): any[] {
@@ -1536,6 +1569,17 @@ String: any;
         anterior: b.ruta_Descripcion,
         nuevo: a.ruta_Descripcion,
         label: 'Ruta'
+      };
+    }
+
+    // Normalizar ambos a string para evitar falsos positivos por tipo (number vs string)
+    const diaA = String(a.clie_DiaVisita ?? '').trim();
+    const diaB = String(b.clie_DiaVisita ?? '').trim();
+    if (diaA !== diaB) {
+      this.cambiosDetectados.diaVisita = {
+        anterior: this.diasSemanaString(diaB),
+        nuevo: this.diasSemanaString(diaA),
+        label: 'Día de Visita'
       };
     }
 
