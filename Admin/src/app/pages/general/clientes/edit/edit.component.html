@@ -426,7 +426,7 @@
           bindLabel="ruta_Descripcion"
           bindValue="ruta_Id"
           [(ngModel)]="cliente.ruta_Id"
-          (ngModelChange)="onRutaSeleccionadaCliente($event)"
+          (ngModelChange)="fetchDiasDisponiblesCliente($event)"
           placeholder="Seleccione una ruta"
           [clearable]="false"
           [class.is-invalid]="mostrarErrores && !cliente.ruta_Id">
@@ -445,8 +445,8 @@
       <span class="text-danger" *ngIf="mostrarErrores">*</span>
       <div class="d-flex align-items-center">
         <i class="ri-calendar-2-line" [ngStyle]="{
-          border: (mostrarErrores && !cliente.clie_DiaVisita) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-          backgroundColor: (mostrarErrores && !cliente.clie_DiaVisita) ? '#fff5f6' : '#f2f3f9',
+          border: (mostrarErrores && diasSeleccionados.length === 0) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+          backgroundColor: (mostrarErrores && diasSeleccionados.length === 0) ? '#fff5f6' : '#f2f3f9',
           padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
           borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'
         }"></i>
@@ -455,14 +455,14 @@
           [items]="diasDisponibles"
           bindLabel="nombre"
           bindValue="id"
-          [(ngModel)]="cliente.clie_DiaVisita"
-          (ngModelChange)="cliente.clie_DiaVisita = String($event)"
-          placeholder="Seleccione día de visita"
+          [(ngModel)]="diasSeleccionados"
+          [multiple]="true"
+          placeholder="Seleccione días de visita"
           [clearable]="false">
         </ng-select>
       </div>
-      <div class="text-danger mt-1" *ngIf="mostrarErrores && !cliente.clie_DiaVisita">
-        <small>Seleccione el día de visita</small>
+      <div class="text-danger mt-1" *ngIf="mostrarErrores && diasSeleccionados.length === 0">
+        <small>Seleccione al menos un día de visita</small>
       </div>
     </div>
   </div>
