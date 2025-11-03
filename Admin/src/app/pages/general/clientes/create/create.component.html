@@ -402,28 +402,64 @@
             </div>
           </div>
 
-          <div class="mb-2 col-12">
-            <label for="ruta_Id" class="form-label">Ruta</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
-            <div class="d-flex align-items-center">
-              <i class="ri-pin-distance-line"
-                [ngStyle]="{
-                border: (!cliente.ruta_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.ruta_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
-              <select id="ruta_Id" class="form-select" [(ngModel)]="cliente.ruta_Id"
-                (change)="generarCodigoClientePorRuta(cliente.ruta_Id)"
-                [class.is-invalid]="!cliente.ruta_Id && mostrarErrores" required>
-                <option value="0" disabled selected>Seleccione una ruta</option>
-                <option *ngFor="let ruta of rutas" [value]="ruta.ruta_Id">
-                  {{ ruta.ruta_Descripcion }}
-                </option>
-              </select>
-            </div>
-            <div class="text-danger mt-1" *ngIf="!cliente.ruta_Id && mostrarErrores">
-              <small>El campo Ruta es requerido</small>
-            </div>
+          <div class="row">
+            <div class="col-md-6">
+    <div class="mb-2">
+      <label for="ruta_Id" class="form-label">Ruta</label>
+      <span class="text-danger" *ngIf="mostrarErrores">*</span>
+      <div class="d-flex align-items-center">
+        <i class="ri-pin-distance-line"
+          [ngStyle]="{
+            border: (!cliente.ruta_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (!cliente.ruta_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+            borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+        </i>
+        <ng-select
+          class="w-100"
+          [items]="rutas"
+          bindLabel="ruta_Descripcion"
+          bindValue="ruta_Id"
+          [(ngModel)]="cliente.ruta_Id"
+          (ngModelChange)="onRutaSeleccionadaCliente($event)"
+          placeholder="Seleccione una ruta"
+          [clearable]="false"
+          [class.is-invalid]="mostrarErrores && !cliente.ruta_Id">
+        </ng-select>
+      </div>
+      <div class="text-danger mt-1" *ngIf="!cliente.ruta_Id && mostrarErrores">
+        <small>El campo Ruta es requerido</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Día de Visita (mitad derecha) -->
+  <div class="col-md-6">
+    <div class="mb-2">
+      <label for="clie_DiaVisita" class="form-label">Día de Visita</label>
+      <span class="text-danger" *ngIf="mostrarErrores">*</span>
+      <div class="d-flex align-items-center">
+        <i class="ri-calendar-2-line" [ngStyle]="{
+            border: (mostrarErrores && !cliente.clie_DiaVisita) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (mostrarErrores && !cliente.clie_DiaVisita) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+            borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
+        <ng-select
+          [items]="diasDisponibles"
+          bindLabel="nombre"
+          bindValue="id"
+          placeholder="Seleccione"
+          [(ngModel)]="cliente.clie_DiaVisita"
+          [clearable]="true"
+          name="clie_DiaVisita"
+          class="w-100">
+        </ng-select>
+      </div>
+      <div class="text-danger mt-1" *ngIf="mostrarErrores && !cliente.clie_DiaVisita">
+        <small>Seleccione el día de visita</small>
+      </div>
+    </div>
+  </div>
           </div>
         </div>
 
@@ -597,7 +633,7 @@
           *ngIf="avales.length > 1">
           <i class="ri-arrow-right-s-line"></i>
         </button>
-        <button class="btn btn-primary" (click)="agregarAval()" title="Agregar aval">
+        <button class="btn btn-primary" (click)="agregarAval()" [disabled]="!tieneDatosCredito()" title="{{ tieneDatosCredito() ? 'Agregar aval' : 'Necesita solicitar crédito para agregar aval' }}">
           <span class="btn-text">Agregar</span>
           <span class="btn-icon"><i class="ri-add-line"></i></span>
         </button>
@@ -611,16 +647,16 @@
               <label for="avalDNI" class="form-label">DNI</label>
               <div class="d-flex align-items-center">
                 <i class="ri-polaroid-2-line" [ngStyle]="{
-                border: (!aval.aval_DNI.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!aval.aval_DNI.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
-                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                  border: (!aval.aval_DNI?.trim() && mostrarErrores && tieneDatosCredito()) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!aval.aval_DNI?.trim() && mostrarErrores && tieneDatosCredito()) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                  borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
-                <input type="text" class="form-control" id="avalDNI" [(ngModel)]="aval.aval_DNI"
-                  placeholder="Ingrese el DNI del aval" mask="0000-0000-00000"
-                  [class.is-invalid]="!aval.aval_DNI.trim() && mostrarErrores" required />
+                <input type="text" class="form-control"
+                  [(ngModel)]="aval.aval_DNI"
+                  [class.is-invalid]="mostrarErrores && tieneDatosCredito() && !aval.aval_DNI?.trim()" />
               </div>
-              <div class="text-danger mt-1" *ngIf="!aval.aval_DNI.trim() && mostrarErrores">
+              <div class="text-danger mt-1" *ngIf="mostrarErrores && tieneDatosCredito() && !aval.aval_DNI?.trim()">
                 <small>El campo DNI es requerido</small>
               </div>
             </div>
@@ -631,20 +667,20 @@
               <label for="pare_Id" class="form-label">Parentesco</label>
               <div class="d-flex align-items-center">
                 <i class="ri-parent-line" [ngStyle]="{
-                border: (!aval.pare_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!aval.pare_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
-                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                  border: (!aval.pare_Id && mostrarErrores && tieneDatosCredito()) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!aval.pare_Id && mostrarErrores && tieneDatosCredito()) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                  borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <select id="pare_Id" class="form-select" [(ngModel)]="aval.pare_Id"
-                  [class.is-invalid]="!aval.pare_Id && mostrarErrores" required>
+                  [class.is-invalid]="mostrarErrores && tieneDatosCredito() && (!aval.pare_Id || aval.pare_Id === 0)">
                   <option value="0" disabled selected>Seleccione un parentesco</option>
                   <option *ngFor="let parentesco of parentescos" [value]="parentesco.pare_Id">
                     {{ parentesco.pare_Descripcion }}
                   </option>
                 </select>
               </div>
-              <div class="text-danger mt-1" *ngIf="!aval.pare_Id && mostrarErrores">
+              <div class="text-danger mt-1" *ngIf="mostrarErrores && tieneDatosCredito() && (!aval.pare_Id || aval.pare_Id === 0)">
                 <small>El campo Parentesco es requerido</small>
               </div>
             </div>
@@ -655,36 +691,37 @@
               <label for="avalNombres" class="form-label">Nombres</label>
               <div class="d-flex align-items-center">
                 <i class="ri-contacts-line" [ngStyle]="{
-                border: (!aval.aval_Nombres.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!aval.aval_Nombres.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
-                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                  border: (!aval.aval_Nombres?.trim() && mostrarErrores && tieneDatosCredito()) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!aval.aval_Nombres?.trim() && mostrarErrores && tieneDatosCredito()) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                  borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <input type="text" class="form-control" id="avalNombres" [(ngModel)]="aval.aval_Nombres"
                   placeholder="Ingrese el nombre del aval"
-                  [class.is-invalid]="!aval.aval_Nombres.trim() && mostrarErrores" required />
+                  [class.is-invalid]="mostrarErrores && tieneDatosCredito() && !aval.aval_Nombres?.trim()" />
               </div>
-              <div class="text-danger mt-1" *ngIf="!aval.aval_Nombres.trim() && mostrarErrores">
+              <div class="text-danger mt-1" *ngIf="mostrarErrores && tieneDatosCredito() && !aval.aval_Nombres?.trim()">
                 <small>El campo Nombres es requerido</small>
               </div>
             </div>
           </div>
+
           <!-- Apellidos -->
           <div class="col-md-6">
             <div class="mb-3">
               <label for="avalApellidos" class="form-label">Apellidos</label>
               <div class="d-flex align-items-center">
                 <i class="ri-contacts-line" [ngStyle]="{
-                border: (!aval.aval_Apellidos.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!aval.aval_Apellidos.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
-                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+                  border: (!aval.aval_Apellidos?.trim() && mostrarErrores && tieneDatosCredito()) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                  backgroundColor: (!aval.aval_Apellidos?.trim() && mostrarErrores && tieneDatosCredito()) ? '#fff5f6' : '#f2f3f9',
+                  padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+                  borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <input type="text" class="form-control" id="avalApellidos" [(ngModel)]="aval.aval_Apellidos"
                   placeholder="Ingrese los apellidos del aval"
-                  [class.is-invalid]="!aval.aval_Apellidos.trim() && mostrarErrores" required />
+                  [class.is-invalid]="mostrarErrores && tieneDatosCredito() && !aval.aval_Apellidos?.trim()" />
               </div>
-              <div class="text-danger mt-1" *ngIf="!aval.aval_Apellidos.trim() && mostrarErrores">
+              <div class="text-danger mt-1" *ngIf="mostrarErrores && tieneDatosCredito() && !aval.aval_Apellidos?.trim()">
                 <small>El campo Apellidos es requerido</small>
               </div>
             </div>
@@ -718,65 +755,64 @@
               <span class="text-danger" *ngIf="mostrarErrores">*</span>
               <div class="d-flex align-items-center">
                 <i class="ri-hand-heart-line" [ngStyle]="{
-                border: (!aval.esCv_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!aval.esCv_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: (!aval.esCv_Id && mostrarErrores && tieneDatosCredito()) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!aval.esCv_Id && mostrarErrores && tieneDatosCredito()) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
                 borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <select id="esCv_Id" class="form-select" [(ngModel)]="aval.esCv_Id"
-                  [class.is-invalid]="!aval.esCv_Id && mostrarErrores" required>
+                  [class.is-invalid]="!aval.esCv_Id && mostrarErrores && tieneDatosCredito()">
                   <option value="0" disabled selected>Seleccione un estado civil</option>
                   <option *ngFor="let estadoCivil of estadosCiviles" [value]="estadoCivil.esCv_Id">
                     {{ estadoCivil.esCv_Descripcion }}
                   </option>
                 </select>
               </div>
-              <div class="text-danger mt-1" *ngIf="!aval.esCv_Id && mostrarErrores">
+              <div class="text-danger mt-1" *ngIf="tieneDatosCredito() && !aval.esCv_Id && mostrarErrores">
                 <small>El campo Estado Civil es requerido</small>
               </div>
             </div>
           </div>
           <!-- Teléfono -->
           <div class="col-md-6">
-            <div class="mb-3">
-              <label for="avalTelefono" class="form-label">Teléfono</label>
-              <div class="d-flex align-items-center">
-                <i class="ri-phone-line" [ngStyle]="{
-                border: (!aval.aval_Telefono.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!aval.aval_Telefono.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
-                borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-                </i>
-                <input type="text" class="form-control"
-                  [class.is-invalid]="!aval.aval_Telefono.trim() && mostrarErrores" id="avalTelefono"
-                  [(ngModel)]="aval.aval_Telefono" placeholder="Ingrese el teléfono del aval" mask="0000-0000"
-                  required />
-              </div>
-              <div class="text-danger mt-1" *ngIf="!aval.aval_Telefono.trim() && mostrarErrores">
-                <small>El campo Teléfono del Aval es requerido</small>
-              </div>
-            </div>
-          </div>
+  <div class="mb-3">
+    <label for="avalTelefono" class="form-label">Teléfono</label>
+    <div class="d-flex align-items-center">
+      <i class="ri-phone-line" [ngStyle]="{
+        border: (!aval.aval_Telefono?.trim() && mostrarErrores && tieneDatosCredito()) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+        backgroundColor: (!aval.aval_Telefono?.trim() && mostrarErrores && tieneDatosCredito()) ? '#fff5f6' : '#f2f3f9',
+        padding: '0.525rem 0.525rem', position: 'relative', left: '7px'}">
+      </i>
+      <input type="text" class="form-control"
+        [(ngModel)]="aval.aval_Telefono"
+        [class.is-invalid]="mostrarErrores && tieneDatosCredito() && !aval.aval_Telefono?.trim()"
+        placeholder="Ingrese el teléfono del aval" mask="0000-0000" />
+    </div>
+    <div class="text-danger mt-1" *ngIf="mostrarErrores && tieneDatosCredito() && !aval.aval_Telefono?.trim()">
+      <small>El campo Teléfono del Aval es requerido</small>
+    </div>
+  </div>
+</div>
           <!-- Tipos de Vivienda -->
           <div class="col-md-6">
             <div class="mb-3">
               <label for="tiVi_Id" class="form-label">Tipo de Vivienda</label>
               <div class="d-flex align-items-center">
                 <i class="ri-home-4-line" [ngStyle]="{
-                border: (!aval.tiVi_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!aval.tiVi_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: (!aval.tiVi_Id && mostrarErrores && tieneDatosCredito()) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!aval.tiVi_Id && mostrarErrores && tieneDatosCredito()) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
                 borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <select id="tiVi_Id" class="form-select" [(ngModel)]="aval.tiVi_Id"
-                  [class.is-invalid]="!aval.tiVi_Id && mostrarErrores" required>
+                  [class.is-invalid]="!aval.tiVi_Id && mostrarErrores && tieneDatosCredito()">
                   <option value="0" disabled selected>Seleccione un tipo de vivienda</option>
                   <option *ngFor="let tipoVivienda of tiposDeVivienda" [value]="tipoVivienda.tiVi_Id">
                     {{ tipoVivienda.tiVi_Descripcion }}
                   </option>
                 </select>
               </div>
-              <div class="text-danger mt-1" *ngIf="!aval.tiVi_Id && mostrarErrores">
+              <div class="text-danger mt-1" *ngIf="tieneDatosCredito() && !aval.tiVi_Id && mostrarErrores">
                 <small>El campo Tipo de Vivienda es requerido</small>
               </div>
             </div>
@@ -788,13 +824,13 @@
               <span class="text-danger" *ngIf="mostrarErrores">*</span>
               <div class="d-flex align-items-center">
                 <i class="ri-community-line" [ngStyle]="{
-                border: (!aval.colo_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!aval.colo_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: (!aval.colo_Id && mostrarErrores && tieneDatosCredito()) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!aval.colo_Id && mostrarErrores && tieneDatosCredito()) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
                 borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <select id="colo_Id" name="colo_Id" class="form-select" [(ngModel)]="aval.colo_Id"
-                  [class.is-invalid]="!aval.colo_Id && mostrarErrores" required>
+                  [class.is-invalid]="!aval.colo_Id && mostrarErrores && tieneDatosCredito()">
                   <option value="0" disabled selected>Seleccione una Colonia</option>
                   <option *ngFor="let colonia of TodasColoniasAval" [value]="colonia.colo_Id">
                     {{ colonia.colo_Descripcion }}
@@ -804,7 +840,7 @@
                   Cargando Colonias...
                 </div>
               </div>
-              <div class="text-danger mt-1" *ngIf="!aval.colo_Id && mostrarErrores">
+              <div class="text-danger mt-1" *ngIf="!aval.colo_Id && mostrarErrores && tieneDatosCredito()">
                 <small>El campo Colonias es requerido</small>
               </div>
             </div>
@@ -817,18 +853,18 @@
               <span class="text-danger" *ngIf="mostrarErrores">*</span>
               <div class="d-flex align-items-center">
                 <i class="ri-direction-line" [ngStyle]="{
-                border: (!aval.aval_DireccionExacta.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!aval.aval_DireccionExacta.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: (!aval.aval_DireccionExacta.trim() && mostrarErrores && tieneDatosCredito()) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!aval.aval_DireccionExacta.trim() && mostrarErrores && tieneDatosCredito()) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
                 borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <input type="text" class="form-control" id="avalDireccionExacta" [(ngModel)]="aval.aval_DireccionExacta"
-                  [class.is-invalid]="!aval.aval_DireccionExacta.trim() && mostrarErrores"
-                  placeholder="Ingrese la dirección exacta" required />
+  [class.is-invalid]="mostrarErrores && tieneDatosCredito() && !aval.aval_DireccionExacta?.trim()"
+  placeholder="Ingrese la dirección exacta" />
               </div>
-              <div class="text-danger mt-1" *ngIf="!aval.aval_DireccionExacta.trim() && mostrarErrores">
-                <small>El campo Dirección Exacta es requerido</small>
-              </div>
+              <div class="text-danger mt-1" *ngIf="mostrarErrores && tieneDatosCredito() && !aval.aval_DireccionExacta?.trim()">
+  <small>El campo Dirección Exacta es requerido</small>
+</div>
             </div>
           </div>
           <!-- Fecha de Nacimiento -->
@@ -838,16 +874,16 @@
               <span class="text-danger" *ngIf="mostrarErrores">*</span>
               <div class="d-flex align-items-center">
                 <i class="ri-calendar-todo-line" [ngStyle]="{
-                border: (!aval.aval_FechaNacimiento && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!aval.aval_FechaNacimiento && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: (!aval.aval_FechaNacimiento && mostrarErrores && tieneDatosCredito()) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (!aval.aval_FechaNacimiento && mostrarErrores && tieneDatosCredito()) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
                 borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
                 <input type="date" id="avalFechaNacimiento" class="form-control"
-                  [class.is-invalid]="!aval.aval_FechaNacimiento && mostrarErrores"
-                  [(ngModel)]="aval.aval_FechaNacimiento" required />
+                  [class.is-invalid]="!aval.aval_FechaNacimiento && tieneDatosCredito() && mostrarErrores"
+                  [(ngModel)]="aval.aval_FechaNacimiento"/>
               </div>
-              <div class="text-danger mt-1" *ngIf="!aval.aval_FechaNacimiento && mostrarErrores">
+              <div class="text-danger mt-1" *ngIf="!aval.aval_FechaNacimiento && tieneDatosCredito() && mostrarErrores">
                 <small>El campo Fecha Nacimiento es requerido</small>
               </div>
             </div>
@@ -1083,7 +1119,7 @@
           
           <div class="col-md-12 d-flex justify-content-end gap-2 mt-4">
             <button type="button" class="btn btn-primary gold" style="height: 100%; transform: rotate(180deg);"
-              (click)="cancelar()">
+              (click)="cerrarFormularioMapa()">
               <span class="btn-text" style="transform: rotate(180deg);">Cerrar</span>
               <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
             </button>
