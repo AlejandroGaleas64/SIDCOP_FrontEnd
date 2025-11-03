@@ -277,14 +277,15 @@ export class EditComponent implements OnChanges {
             .map((n: string) => Number(n));
 
           return {
-            ruta_Id: (r.ruta_Id ?? r.id) != null ? Number(r.ruta_Id ?? r.id) : null,                  // aceptar ambos nombres de campo y normalizar a número
-            diasSeleccionados: diasSel,     // para el ng-select de días
-            veRu_Dias: diasSel.join(',')    // para enviar al backend
+            veru_Id: r.veru_Id ?? r.veRu_Id ?? 0,  // Agrega el ID de la ruta-vendedor
+            ruta_Id: (r.ruta_Id ?? r.id) != null ? Number(r.ruta_Id ?? r.id) : null,
+            diasSeleccionados: diasSel,
+            veRu_Dias: diasSel.join(',')
           };
         });
       } else {
         // si no trae rutas, deja al menos una fila vacía
-        this.rutasVendedor = [{ ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' }];
+        this.rutasVendedor = [{ veru_Id: 0, ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' }];
       }
 
       // Recalcula listas filtradas para que no aparezcan duplicadas
@@ -391,8 +392,12 @@ export class EditComponent implements OnChanges {
     if (this.vendedor.vend_Nombres.trim()) {
 
       const rutasParaEnviar = this.rutasVendedor
-        .filter(rv => rv.ruta_Id != null && rv.veRu_Dias !== '')
-        .map(rv => ({ ruta_Id: rv.ruta_Id as number, veRu_Dias: rv.veRu_Dias }));
+      .filter(rv => rv.ruta_Id != null && rv.veRu_Dias !== '')
+      .map(rv => ({
+        veRu_Id: rv.veru_Id ?? 0,  // Incluye el ID (0 para nuevas)
+        ruta_Id: rv.ruta_Id as number,
+        veRu_Dias: rv.veRu_Dias
+      }));
       const VendedorActualizar: any = {
         vend_Id: this.vendedor.vend_Id,
         vend_Codigo: this.vendedor.vend_Codigo.trim(),
@@ -412,7 +417,8 @@ export class EditComponent implements OnChanges {
         usua_Modificacion: getUserId(),
         vend_FechaModificacion: new Date().toISOString(),
         usuarioModificacion: '',
-        rutas_Json: rutasParaEnviar
+        rutas_Json: rutasParaEnviar,
+        rutas_Json_Actualizar: rutasParaEnviar
       };
 
       // Solo agregar vend_Ayudante si tieneAyudante es true
@@ -454,9 +460,9 @@ export class EditComponent implements OnChanges {
 
   rutasDisponibles: any[] = [];
   rutasTodas: any[] = [];
-  rutasVendedor: { ruta_Id: number | null, diasSeleccionados: number[], veRu_Dias: string }[] = [
-    { ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' }
-  ];
+ rutasVendedor: { veru_Id: number, ruta_Id: number | null, diasSeleccionados: number[], veRu_Dias: string }[] = [
+  { veru_Id: 0, ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' }
+];
   // Snapshot serializado de rutas para detectar cambios
   private rutasVendedorSnapshot: string = '';
   // Listas precalculadas por índice para evitar funciones en el template
@@ -474,7 +480,7 @@ export class EditComponent implements OnChanges {
   ];
 
   agregarRuta() {
-    this.rutasVendedor.push({ ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' });
+    this.rutasVendedor.push({ veru_Id: 0, ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' });
     // Expandir arreglos filtrados para el nuevo índice
     this.rutasDisponiblesFiltradas.push([]);
     this.diasDisponiblesFiltradas.push([]);
