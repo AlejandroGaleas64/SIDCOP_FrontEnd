@@ -306,7 +306,8 @@ tieneAyudante: boolean = false;
       vend_FechaModificacion: new Date().toISOString(),
       usuarioCreacion: "",
       usuarioModificacion: "",
-      rutas_Json: rutasParaEnviar
+      rutas_Json: rutasParaEnviar,
+      rutas_Json_Actualizar: rutasParaEnviar
     };
 
     // Solo agregar vend_Ayudante si tieneAyudante es true
