@@ -73,8 +73,15 @@ export class EditComponent implements OnInit, OnChanges {
     { value: 'IM', label: 'Ingresos Administradas Manualmente' }
   ];
 
+  /**
+   * Constructor del componente de edición de metas.
+   * @param http Cliente HTTP para llamadas a la API.
+   */
   constructor(private http: HttpClient) {}
 
+  /**
+   * Hook de inicialización: carga catálogos y pre-carga la meta cuando esté disponible.
+   */
   ngOnInit(): void {
     this.cargarCategorias();
     this.cargarProductos();
@@ -84,6 +91,10 @@ export class EditComponent implements OnInit, OnChanges {
     }
   }
 
+  /**
+   * Hook de cambios: cuando metaData cambia, vuelve a precargar los datos en el formulario.
+   * @param changes Cambios detectados por Angular.
+   */
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['metaData'] && changes['metaData'].currentValue) {
       this.preloadMeta(changes['metaData'].currentValue);
@@ -112,6 +123,11 @@ export class EditComponent implements OnInit, OnChanges {
   //   this.selectAllVendedores = this.vendedoresSeleccionados.length === this.vendedores.length;
   // }
 
+  /**
+   * Pre-carga el formulario a partir del input meta, normalizando fechas y selección de vendedores
+   * desde vendedoresJson, vendedoresSeleccionados, vendedores o vendedoresXml.
+   * @param meta Objeto meta de entrada.
+   */
   preloadMeta(meta: any) {
   // Deep copy to avoid mutating input
   this.meta = {
@@ -140,6 +156,9 @@ export class EditComponent implements OnInit, OnChanges {
   }
 }
 
+  /**
+   * Carga categorías desde la API.
+   */
   cargarCategorias(): void {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Categorias/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -149,6 +168,9 @@ export class EditComponent implements OnInit, OnChanges {
     });
   }
 
+  /**
+   * Carga productos desde la API.
+   */
   cargarProductos(): void {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Productos/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -171,6 +193,9 @@ export class EditComponent implements OnInit, OnChanges {
   //   });
   // }
 
+  /**
+   * Carga vendedores desde la API y recalcula selección general.
+   */
   cargarVendedores(): void {
   this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
     headers: { 'x-api-key': environment.apiKey }
@@ -188,6 +213,9 @@ export class EditComponent implements OnInit, OnChanges {
 }
 
   // Stepper navigation
+  /**
+   * Avanza al siguiente paso del formulario de edición si es válido.
+   */
   irAlSiguientePaso() {
     this.mostrarErrores = true;
     if (this.validarPasoActual()) {
@@ -203,6 +231,9 @@ export class EditComponent implements OnInit, OnChanges {
     }
   }
 
+  /**
+   * Regresa al paso anterior del formulario de edición.
+   */
   irAlPasoAnterior() {
     if (this.activeStep > 1) {
       this.activeStep--;
@@ -210,6 +241,9 @@ export class EditComponent implements OnInit, OnChanges {
     }
   }
 
+  /**
+   * Resetea campos dependientes al cambiar el tipo de meta.
+   */
   onTipoChange() {
     const tipo = this.meta.meta_Tipo;
     // Reset all conditional fields
@@ -219,6 +253,9 @@ export class EditComponent implements OnInit, OnChanges {
     this.meta.cate_Id = null;
   }
 
+  /**
+   * Valida el paso actual de edición según el tipo de meta y campos requeridos.
+   */
   validarPasoActual(): boolean {
     if (this.activeStep === 1) {
       const tipo = this.meta.meta_Tipo;
@@ -241,10 +278,19 @@ export class EditComponent implements OnInit, OnChanges {
     return false;
   }
 
+  /**
+   * Determina si un vendedor está seleccionado.
+   * @param vend_Id Identificador del vendedor.
+   */
   isVendedorSeleccionado(vend_Id: number): boolean {
     return this.vendedoresSeleccionados.includes(vend_Id);
   }
 
+  /**
+   * Alterna la selección individual de un vendedor.
+   * @param vend_Id Identificador del vendedor.
+   * @param event Evento del checkbox.
+   */
   toggleVendedor(vend_Id: number, event: Event) {
     const checked = (event.target as HTMLInputElement).checked;
     if (checked) {
@@ -257,6 +303,10 @@ export class EditComponent implements OnInit, OnChanges {
     this.selectAllVendedores = this.vendedoresSeleccionados.length === this.vendedores.length;
   }
 
+  /**
+   * Selecciona o deselecciona todos los vendedores.
+   * @param event Evento del checkbox maestro.
+   */
   toggleSelectAllVendedores(event: any) {
     const checked = event.target.checked;
     this.selectAllVendedores = checked;
@@ -267,6 +317,9 @@ export class EditComponent implements OnInit, OnChanges {
     }
   }
 
+  /**
+   * Genera XML con vendedores seleccionados para la API.
+   */
   generateVendedoresXml(): string {
     if (!this.vendedoresSeleccionados.length) return '';
     let xml = '<root>';
@@ -277,6 +330,9 @@ export class EditComponent implements OnInit, OnChanges {
     return xml;
   }
 
+  /**
+   * Lista derivada de vendedores con filtro por nombre.
+   */
   get vendedoresFiltrados() {
     if (!this.filtroVendedor?.trim()) return this.vendedores;
     const filtro = this.filtroVendedor.trim().toLowerCase();
@@ -285,6 +341,9 @@ export class EditComponent implements OnInit, OnChanges {
     );
   }
 
+  /**
+   * Guarda los cambios de la meta editada llamando a la API y controla alertas.
+   */
   guardar(): void {
     this.mostrarErrores = true;
     if (!this.validarPasoActual()) {
@@ -359,6 +418,9 @@ export class EditComponent implements OnInit, OnChanges {
     });
   }
 
+  /**
+   * Restaura estado visual y emite cancelación al padre.
+   */
   cancelar(): void {
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
@@ -371,6 +433,9 @@ export class EditComponent implements OnInit, OnChanges {
     this.onCancel.emit();
   }
 
+  /**
+   * Cierra cualquier alerta visible.
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';

@@ -187,15 +187,15 @@
                 </div>
               </div>
 
-              <div class="col-12 col-sm-4" *ngIf="clienteDetalle.pais_Descripcion">
+              <div class="col-12 col-sm-4" *ngIf="clienteDetalle.esCv_Descripcion">
                 <div class="detail-item">
                   <div class="detail-icon bg-dark-blue text-white">
                     <i class="ri-flag-line"></i>
                   </div>
                   <div class="detail-content">
-                    <div class="detail-label">País de Nacimiento</div>
+                    <div class="detail-label">Estado Civil</div>
                     <div class="detail-value">
-                      {{ clienteDetalle.pais_Descripcion }}
+                      {{ clienteDetalle.esCv_Descripcion }}
                     </div>
                   </div>
                 </div>
@@ -243,15 +243,15 @@
                 </div>
               </div>
 
-              <div class="col-12 col-sm-4" *ngIf="clienteDetalle.esCv_Descripcion">
+              <div class="col-12 col-sm-4">
                 <div class="detail-item">
                   <div class="detail-icon bg-dark-blue text-white">
                     <i class="ri-hand-heart-line"></i>
                   </div>
                   <div class="detail-content">
-                    <div class="detail-label">Estado Civil</div>
+                    <div class="detail-label">Día que se le visita</div>
                     <div class="detail-value">
-                      {{ clienteDetalle.esCv_Descripcion }}
+                      {{ diasSemana(clienteDetalle.clie_DiaVisita) }}
                     </div>
                   </div>
                 </div>

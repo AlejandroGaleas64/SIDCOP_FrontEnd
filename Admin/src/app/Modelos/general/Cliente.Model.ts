@@ -25,6 +25,7 @@ export class Cliente{
     esCv_Descripcion: string = '';
     ruta_Id: number = 0;
     ruta_Descripcion: string = '';
+    clie_DiaVisita: string = '';
     clie_LimiteCredito: number = 0;
     clie_DiasCredito: number = 0;
     clie_Saldo: number = 0;

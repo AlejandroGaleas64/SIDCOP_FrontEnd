@@ -26,10 +26,12 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
   styleUrl: './edit.component.scss',
 })
 export class EditComponent implements OnChanges {
+  // ===== PROPIEDADES DE ENTRADA Y SALIDA =====
   @Input() RegistroCaiData: RegistroCAI | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<RegistroCAI>();
 
+  // ===== MODELO DE DATOS =====
   registroCai: RegistroCAI = {
     regC_Id: 0,
     regC_Descripcion: '',
@@ -59,6 +61,7 @@ export class EditComponent implements OnChanges {
     puEm_Descripcion: '',
   };
 
+  // ===== PROPIEDADES PARA ALERTAS =====
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -69,7 +72,7 @@ export class EditComponent implements OnChanges {
   mostrarConfirmacionEditar = false;
   RCOriginal: any = {};
 
-  // Información para el número de factura
+  // ===== PROPIEDADES PARA VISTA PREVIA =====
   numeroFacturaFormateado: string = '';
 
   // Función para obtener el valor numérico sin máscara
@@ -79,8 +82,12 @@ export class EditComponent implements OnChanges {
     return maskedValue.toString().replace(/\D/g, '');
   }
 
+  // ===== LISTAS PARA DROPDOWNS =====
   CAI: any[] = [];
   PE: any[] = [];
+  Sucursales: any[] = [];
+
+  // ===== MÉTODOS AUXILIARES =====
   searchCAI = (term: string, item: any) => {
     term = term.toLowerCase();
     return (
@@ -143,8 +150,6 @@ export class EditComponent implements OnChanges {
     );
   };
 
-  Sucursales: any[] = [];
-
   cargarSucursales() {
     this.http
       .get<any>(`${environment.apiBaseUrl}/Sucursales/Listar`, {
@@ -165,6 +170,7 @@ export class EditComponent implements OnChanges {
     this.cargarPE();
   }
 
+  // ===== MÉTODOS DE VISTA PREVIA =====
   actualizarNumeroFactura(): void {
     try {
       // Verificar que las listas estén cargadas antes de proceder
@@ -222,6 +228,7 @@ export class EditComponent implements OnChanges {
     this.actualizarNumeroFactura();
   }
 
+  // ===== CICLO DE VIDA DEL COMPONENTE =====
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['RegistroCaiData'] && changes['RegistroCaiData'].currentValue) {
       this.registroCai = { ...changes['RegistroCaiData'].currentValue };
@@ -242,6 +249,7 @@ export class EditComponent implements OnChanges {
     this.onCancel.emit();
   }
 
+  // ===== MÉTODOS DE CONTROL DE FORMULARIO =====
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -304,6 +312,7 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // ===== DETECCIÓN DE CAMBIOS =====
   obtenerListaCambios(): any[] {
     return Object.values(this.cambiosDetectados);
   }
@@ -418,6 +427,7 @@ if (a.regC_FechaFinalEmision !== b.regC_FechaFinalEmision) {
     this.guardar();
   }
 
+  // ===== GETTERS Y SETTERS =====
   get fechaInicioFormato(): string {
     return new Date(this.registroCai.regC_FechaInicialEmision)
       .toISOString()
@@ -438,8 +448,7 @@ if (a.regC_FechaFinalEmision !== b.regC_FechaFinalEmision) {
     this.registroCai.regC_FechaFinalEmision = new Date(value);
   }
 
-  
-
+  // ===== MÉTODOS PRIVADOS =====
   private guardar(): void {
     this.mostrarErrores = true;
 

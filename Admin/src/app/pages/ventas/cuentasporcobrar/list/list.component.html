@@ -1,3 +1,7 @@
+<!--
+  Componente de Breadcrumbs
+  Muestra la navegación jerárquica y el ícono de cuentas por cobrar.
+-->
 <app-breadcrumbs
   [title]="'Cuentas por Cobrar'"
   [breadcrumbItems]="breadCrumbItems"
@@ -10,12 +14,20 @@
   />
 </app-breadcrumbs>
 
+<!--
+  Contenedor principal de la vista de cuentas por cobrar.
+  Incluye pestañas para clientes y resumen de antigüedad, tablas, exportación, búsqueda y paginación.
+-->
 <div class="row">
   <div class="col-lg-12">
     <div class="card">
       <div class="card-body">
         <div class="flex-grow-1">
-          <!-- Aquí empiezan las pestañas -->
+          <!--
+            Navegación por pestañas:
+            - Clientes: muestra la tabla principal de cuentas por cobrar.
+            - Antigüedad: muestra el resumen de antigüedad de saldos.
+          -->
           <ul class="nav nav-tabs mb-3" role="tablist">
             <li class="nav-item" role="presentation">
               <button
@@ -41,13 +53,22 @@
             </li>
           </ul>
 
+          <!--
+            Contenido de las pestañas
+            Cada tab contiene su propia tabla, exportación y búsqueda.
+          -->
           <div class="tab-content">
-            <!-- TAB CUENTAS POR COBRAR -->
+            <!--
+              TAB 1: Tabla principal de cuentas por cobrar
+              Incluye exportación, búsqueda, acciones y paginación.
+            -->
             <div *ngIf="activeTab === 1">
               <div class="d-flex justify-content-between mb-3 flex-wrap">
                 <div></div>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                  <!-- Botones de exportación -->
+                  <!--
+                    Botones para exportar la tabla principal en Excel, PDF o CSV.
+                  -->
                   <div class="export-buttons d-flex gap-1 mb-2">
                     <button
                       type="button"
@@ -140,7 +161,9 @@
                     </button>
                   </div>
 
-                  <!-- Campo de búsqueda -->
+                  <!--
+                    Campo de búsqueda para filtrar clientes en la tabla principal.
+                  -->
                   <div class="search-box mb-2">
                     <input
                       type="text"
@@ -156,7 +179,10 @@
 
               <div class="table-radius-container">
                 <div class="table-responsive">
-                  <!-- TABLA COMPLETA -->
+                  <!--
+                    Tabla principal de cuentas por cobrar.
+                    Incluye columnas dinámicas, acciones y formato monetario.
+                  -->
                   <table class="table table-gridjs table-style">
                     <thead>
                       <tr>
@@ -446,14 +472,19 @@
                     </thead>
 
                     <tbody>
-                      <!-- Mensaje cuando no hay datos -->
+                      <!--
+                        Mensaje mostrado cuando no hay datos en la tabla principal.
+                      -->
                       <tr *ngIf="(table.data$ | async)?.length === 0">
                         <td [attr.colspan]="10" class="text-center">
                           No hay cuentas por cobrar disponibles
                         </td>
                       </tr>
 
-                      <!-- Filas de datos -->
+                      <!--
+                        Filas de datos de cuentas por cobrar.
+                        Incluye acciones de detalle y formato de columnas.
+                      -->
                       <tr *ngFor="let data of table.paginated$ | async">
                         <!-- Corregida la condición para mostrar acciones -->
                         <td *ngIf="accionPermitida('detalle')">
@@ -506,7 +537,10 @@
                 </div>
               </div>
 
-              <!-- Paginación corregida -->
+              <!--
+                Paginación para la tabla principal de cuentas por cobrar.
+                Muestra rango de registros y controles de página.
+              -->
               <div class="row justify-content-md-between align-items-md-center">
                 <ng-container *ngIf="table.paginated$ | async as paginados">
                   <div class="col-sm-12 col-md-5">
@@ -545,12 +579,17 @@
               </div>
             </div>
 
-            <!-- TAB RESUMEN ANTIGÜEDAD -->
+            <!--
+              TAB 2: Resumen de antigüedad de cuentas por cobrar
+              Incluye exportación, búsqueda, tabla y paginación.
+            -->
             <div *ngIf="activeTab === 2">
               <div class="d-flex justify-content-between mb-3 flex-wrap">
                 <div></div>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                  <!-- Botones de exportación para la tabla de Antigüedad -->
+                  <!--
+                    Botones para exportar el resumen de antigüedad en Excel, PDF o CSV.
+                  -->
                   <div class="export-buttons d-flex gap-1 mb-2">
                     <button
                       type="button"
@@ -657,7 +696,9 @@
                     </button>
                   </div>
 
-                  <!-- Campo de búsqueda -->
+                  <!--
+                    Campo de búsqueda para filtrar clientes en el resumen de antigüedad.
+                  -->
                   <div class="search-box mb-2">
                     <input
                       type="text"
@@ -673,6 +714,10 @@
 
               <div class="table-radius-container">
                 <div class="table-responsive">
+                  <!--
+                    Tabla de resumen de antigüedad de cuentas por cobrar.
+                    Incluye columnas de rangos de días y formato monetario.
+                  -->
                   <table class="table table-gridjs table-style">
                     <thead>
                       <tr>
@@ -948,6 +993,10 @@
                     </thead>
 
                     <tbody>
+                      <!--
+                        Filas de datos del resumen de antigüedad.
+                        Incluye acciones y formato de columnas.
+                      -->
                       <tr *ngFor="let item of resumenAntiguedadPaginado">
                         <!-- Celda de acciones para el resumen de antigüedad -->
                         <td *ngIf="accionPermitida('detalle')">
@@ -1003,6 +1052,9 @@
                           }}
                         </td>
                       </tr>
+                      <!--
+                        Mensaje mostrado cuando no hay datos en el resumen de antigüedad.
+                      -->
                       <tr *ngIf="!resumenAntiguedadPaginado.length">
                         <td colspan="10" class="text-center">
                           <span *ngIf="mostrarOverlayCarga"
@@ -1019,6 +1071,10 @@
                 </div>
               </div>
 
+              <!--
+                Paginación para el resumen de antigüedad.
+                Muestra rango de registros y controles de página.
+              -->
               <div class="row justify-content-md-between align-items-md-center">
                 <ng-container *ngIf="resumenAntiguedadPaginado as paginados">
                   <div class="col-sm-12 col-md-5">
@@ -1067,7 +1123,10 @@
 </div>
 <!-- end row -->
 
-<!-- Overlay de carga -->
+<!--
+  Overlay de carga animado.
+  Se muestra mientras se obtienen datos del servidor.
+-->
 <div *ngIf="mostrarOverlayCarga" class="overlay-carga">
   <div class="typing-indicator">
     <div class="typing-circle"></div>
@@ -1079,7 +1138,10 @@
   </div>
 </div>
 
-<!-- Contenedor de alertas flotantes -->
+<!--
+  Contenedor de alertas flotantes.
+  Muestra mensajes de éxito, advertencia y error.
+-->
 <div class="alert-container">
   <div
     *ngIf="mostrarAlertaExito"
@@ -1127,7 +1189,10 @@
   </div>
 </div>
 
-<!-- Modal de confirmación para eliminar -->
+<!--
+  Modal de confirmación para eliminar una cuenta por cobrar.
+  Solicita confirmación antes de proceder con la eliminación.
+-->
 <div
   class="modal fade custom-modal"
   [ngClass]="{ show: mostrarConfirmacionEliminar }"
@@ -1179,7 +1244,9 @@
   </div>
 </div>
 
-<!-- Overlay para el modal -->
+<!--
+  Overlay para el modal de confirmación de eliminación.
+-->
 <div
   class="modal-backdrop fade"
   [ngClass]="{ show: mostrarConfirmacionEliminar }"

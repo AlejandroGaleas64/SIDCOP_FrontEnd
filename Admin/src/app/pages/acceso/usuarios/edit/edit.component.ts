@@ -18,6 +18,7 @@ export class EditComponent implements OnChanges {
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Usuario>();
 
+  // Mensajes y Alertas
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -27,10 +28,12 @@ export class EditComponent implements OnChanges {
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
 
+  // Listas para los ddl
   roles: any[] = [];
   empleados: any[] = [];
   vendedores: any[] = [];
 
+  // Modelo de Usuario
   usuario: Usuario = {
     secuencia: 0,
     usua_Id: 0,
@@ -54,12 +57,14 @@ export class EditComponent implements OnChanges {
     message_Status: '',
   };
 
+  //Inyección de HttpClient
   constructor(private http: HttpClient) {
     this.cargarRoles();
     this.cargarEmpleados();
     this.cargarVendedores();
   }
 
+  // Detectar cambios en el Input usuarioData
   usuarioOriginal: any = {};
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['usuarioData'] && changes['usuarioData'].currentValue) {
@@ -76,6 +81,7 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // Manejar cambios en los ddl
   onRolChange(event: any) {
     const selectedId = +event.target.value;
     const rolSeleccionado = this.roles.find(rol => rol.role_Id === selectedId);
@@ -86,6 +92,7 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // Manejar cambios en los ddl
   onEmpleadoChange(event: any) {
     const selectedId = +event.target.value;
     const empleadoSeleccionado = this.empleados.find(emp => emp.empl_Id === selectedId);
@@ -96,6 +103,7 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // Manejar cambios en los ddl
   onVendedorChange(event: any) {
     const selectedId = +event.target.value;
     const vendedorSeleccionado = this.vendedores.find(emp => emp.vend_Id === selectedId);
@@ -106,29 +114,34 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  //Cargar datos para listas de los ddl
   cargarRoles() {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Roles/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => this.roles = data);
   }
 
+  //Cargar datos para listas de los ddl
   cargarEmpleados() {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Empleado/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => this.empleados = data);
   }
 
+  //Cargar datos para listas de los ddl
   cargarVendedores() {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => this.vendedores = data);
   }
 
+  // Para la accion del boton de cancelar
   cancelar(): void {
     this.cerrarAlerta();
     this.onCancel.emit();
   }
 
+  // Cerrar las alertas
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -138,15 +151,18 @@ export class EditComponent implements OnChanges {
     this.mensajeWarning = '';
   }
 
+  // Mostrar confirmación antes de editar
   cancelarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
   }
 
+  // Confirmar y proceder con la edición
   confirmarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
     this.guardar();
   }
 
+  // Si es admin, deshabilitar los ddl de rol y empleado
   onAdminToggle(): void {
     if (this.usuario.usua_EsAdmin) {
       this.usuario.role_Id = 1;
@@ -158,14 +174,17 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // Si es vendedor, deshabilitar el ddl de empleado
   onVendedorToggle(): void {
     if (!this.usuario.usua_EsVendedor) {
       this.usuario.usua_IdPersona = 0;
     }
   }
 
+  // Detectar diferencias entre el usuario original y el editado
   cambiosDetectados: any = {};
 
+  // Detectar diferencias entre el usuario original y el editado
   hayDiferencias(): boolean {
     const a = this.usuario;
     const b = this.usuarioOriginal;
@@ -265,6 +284,7 @@ export class EditComponent implements OnChanges {
     return Object.keys(this.cambiosDetectados).length > 0;
   }
 
+  // Validar antes de guardar
   validarEdicion(): void {
     this.mostrarErrores = true;
     if (this.usuario.usua_Usuario.trim() && this.usuario.role_Id && this.usuario.usua_IdPersona) {
@@ -278,10 +298,12 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // Obtener lista de cambios para mostrar en la confirmación
   obtenerListaCambios(): any[] {
     return Object.values(this.cambiosDetectados);
   }
 
+  // Para la accion del boton de guardar
   guardar(): void {
     this.mostrarErrores = true;
     if (this.usuario.usua_Usuario.trim() && this.usuario.role_Id && this.usuario.usua_IdPersona) {
@@ -355,6 +377,7 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // Cargar y subir la imagen al servidor
   onImagenSeleccionada(event: any) {
     const file = event.target.files[0];
 
@@ -402,6 +425,7 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // Manejar error al cargar la imagen
   onImgError(event: Event) {
     const target = event.target as HTMLImageElement;
     target.src = 'assets/images/users/32/user-dummy-img.jpg';

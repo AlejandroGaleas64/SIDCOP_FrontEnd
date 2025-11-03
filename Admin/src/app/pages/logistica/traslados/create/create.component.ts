@@ -53,25 +53,42 @@ export class CreateComponent implements OnInit {
   cargandoRecargas = false;
   recargaSeleccionada: any = null;
 
+  /**
+   * Constructor del componente
+   * @param http - Cliente HTTP para realizar peticiones al API
+   */
   constructor(private http: HttpClient) {
     this.inicializar();
   }
 
+  /**
+   * Inicializa el componente y carga la lista de productos
+   */
   ngOnInit(): void {
     this.listarProductos();
   }
 
+  /**
+   * Inicializa el componente configurando fecha actual y cargando datos iniciales
+   */
   private inicializar(): void {
     this.inicializarFechaActual();
     this.cargarDatosIniciales();
   }
 
+  /**
+   * Establece la fecha actual como fecha por defecto del traslado
+   */
   private inicializarFechaActual(): void {
     const hoy = new Date();
     this.fechaActual = hoy.toISOString().split('T')[0];
     this.traslado.tras_Fecha = hoy;
   }
 
+  /**
+   * Carga los datos iniciales necesarios: sucursales, bodegas y recargas
+   * Utiliza forkJoin para realizar las peticiones en paralelo
+   */
   private cargarDatosIniciales(): void {
     this.cargandoRecargas = true;
     const headers = { 'x-api-key': environment.apiKey };
@@ -86,9 +103,6 @@ export class CreateComponent implements OnInit {
         this.destinos = data.destinos;
         this.recargas = data.recargas;
         this.cargandoRecargas = false;
-        
-        // Log para verificar la estructura de los datos
-        //console.log('Recargas cargadas:', this.recargas);
       },
       error: (error) => {
         this.mostrarError('Error al cargar datos iniciales');
@@ -98,23 +112,27 @@ export class CreateComponent implements OnInit {
     });
   }
 
-  //para el swtich de recarga
-onEsRecargaChange(): void {
-  if (!this.traslado.tras_EsRecarga) {
-    // Si se desactiva el switch, limpiar la recarga seleccionada y el destino
-    this.traslado.reca_Id = 0;
-    this.traslado.tras_Destino = 0;
-    this.recargaSeleccionada = null;
-  } else {
-    // Si se activa el switch, limpiar el destino para que se establezca automáticamente
-    this.traslado.tras_Destino = 0;
+  /**
+   * Maneja el cambio del switch de recarga
+   * Limpia los campos relacionados cuando se activa/desactiva
+   */
+  onEsRecargaChange(): void {
+    if (!this.traslado.tras_EsRecarga) {
+      // Si se desactiva el switch, limpiar la recarga seleccionada y el destino
+      this.traslado.reca_Id = 0;
+      this.traslado.tras_Destino = 0;
+      this.recargaSeleccionada = null;
+    } else {
+      // Si se activa el switch, limpiar el destino para que se establezca automáticamente
+      this.traslado.tras_Destino = 0;
+    }
   }
-}
 
   // ========== MÉTODOS PARA MANEJO DE RECARGAS ==========
 
   /**
-   * Se ejecuta cuando cambia la recarga seleccionada
+   * Maneja el cambio de recarga seleccionada
+   * Establece automáticamente el destino según la recarga
    */
  onRecargaChange(): void {
   if (this.traslado.reca_Id && this.traslado.reca_Id > 0) {
@@ -137,16 +155,21 @@ onEsRecargaChange(): void {
   }
 }
 
-getNombreDestinoAutomatico(): string {
-  if (this.traslado.tras_EsRecarga && this.recargaSeleccionada && this.recargaSeleccionada.bode_Id) {
-    const destino = this.destinos.find(d => d.bode_Id === this.recargaSeleccionada.bode_Id);
-    return destino ? destino.bode_Descripcion : 'Destino de recarga';
+  /**
+   * Obtiene el nombre del destino automático para recargas
+   * @returns Nombre del destino o cadena vacía
+   */
+  getNombreDestinoAutomatico(): string {
+    if (this.traslado.tras_EsRecarga && this.recargaSeleccionada && this.recargaSeleccionada.bode_Id) {
+      const destino = this.destinos.find(d => d.bode_Id === this.recargaSeleccionada.bode_Id);
+      return destino ? destino.bode_Descripcion : 'Destino de recarga';
+    }
+    return '';
   }
-  return '';
-}
 
   /**
    * Obtiene el nombre de la recarga seleccionada
+   * @returns Nombre de la recarga o 'No seleccionada'
    */
   getNombreRecarga(): string {
     if (this.recargaSeleccionada) {
@@ -157,12 +180,17 @@ getNombreDestinoAutomatico(): string {
   }
 
   /**
-   * Verifica si hay una recarga seleccionada
+   * Verifica si hay una recarga seleccionada válida
+   * @returns true si hay recarga seleccionada, false en caso contrario
    */
   tieneRecargaSeleccionada(): boolean {
     return typeof this.traslado.reca_Id === 'number' && this.traslado.reca_Id > 0;
   }
 
+  /**
+   * Carga la lista de productos desde el API
+   * Inicializa propiedades adicionales para manejo de inventario
+   */
   listarProductos(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Productos/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -184,7 +212,8 @@ getNombreDestinoAutomatico(): string {
   // ========== MÉTODOS PARA MANEJO DE INVENTARIO ==========
 
   /**
-   * Se ejecuta cuando cambia la sucursal de origen
+   * Maneja el cambio de sucursal de origen
+   * Limpia cantidades y recarga el inventario de la nueva sucursal
    */
   onOrigenChange(): void {
     // Si cambió la sucursal, limpiar cantidades seleccionadas
@@ -201,7 +230,8 @@ getNombreDestinoAutomatico(): string {
   }
 
   /**
-   * Carga el inventario de la sucursal seleccionada
+   * Carga el inventario disponible en la sucursal seleccionada
+   * Actualiza el stock disponible de cada producto
    */
   private cargarInventarioSucursal(): void {
     this.cargandoInventario = true;
@@ -227,7 +257,8 @@ getNombreDestinoAutomatico(): string {
   }
 
   /**
-   * Actualiza el stock disponible de cada producto
+   * Actualiza el stock disponible de cada producto según el inventario de la sucursal
+   * Marca los productos que tienen stock disponible
    */
   private actualizarStockProductos(): void {
     this.productos.forEach(producto => {
@@ -246,7 +277,8 @@ getNombreDestinoAutomatico(): string {
   }
 
   /**
-   * Valida si hay productos con stock en la sucursal
+   * Valida si la sucursal tiene productos con stock disponible
+   * Muestra advertencia si no hay productos disponibles
    */
   private validarProductosConStock(): void {
     const productosConStock = this.productos.filter(p => p.tieneStock);
@@ -257,7 +289,8 @@ getNombreDestinoAutomatico(): string {
   }
 
   /**
-   * Limpia las cantidades seleccionadas cuando cambia la sucursal
+   * Limpia las cantidades seleccionadas de todos los productos
+   * Se ejecuta cuando cambia la sucursal de origen
    */
   private limpiarCantidadesSeleccionadas(): void {
     this.productos.forEach(producto => {
@@ -267,7 +300,7 @@ getNombreDestinoAutomatico(): string {
   }
 
   /**
-   * Limpia los datos de inventario
+   * Limpia todos los datos de inventario y resetea el stock de productos
    */
   private limpiarInventario(): void {
     this.inventarioSucursal = [];
@@ -278,7 +311,9 @@ getNombreDestinoAutomatico(): string {
   }
 
   /**
-   * Obtiene el stock disponible de un producto
+   * Obtiene el stock disponible de un producto específico
+   * @param prodId - ID del producto
+   * @returns Cantidad de stock disponible
    */
   getStockDisponible(prodId: number): number {
     const producto = this.productos.find(p => p.prod_Id === prodId);
@@ -286,7 +321,9 @@ getNombreDestinoAutomatico(): string {
   }
 
   /**
-   * Verifica si un producto tiene stock
+   * Verifica si un producto tiene stock disponible en la sucursal
+   * @param prodId - ID del producto
+   * @returns true si tiene stock, false en caso contrario
    */
   tieneStockDisponible(prodId: number): boolean {
     const producto = this.productos.find(p => p.prod_Id === prodId);
@@ -295,6 +332,10 @@ getNombreDestinoAutomatico(): string {
 
   // ========== MÉTODOS DE CANTIDAD CON VALIDACIÓN DE INVENTARIO ==========
   
+  /**
+   * Aumenta la cantidad de un producto validando stock disponible
+   * @param index - Índice del producto en el array
+   */
   aumentarCantidad(index: number): void {
     if (index >= 0 && index < this.productos.length) {
       const producto = this.productos[index];
@@ -322,6 +363,10 @@ getNombreDestinoAutomatico(): string {
     }
   }
   
+  /**
+   * Disminuye la cantidad de un producto
+   * @param index - Índice del producto en el array
+   */
   disminuirCantidad(index: number): void {
     if (index >= 0 && index < this.productos.length && this.productos[index].cantidad > 0) {
       this.productos[index].cantidad--;
@@ -329,6 +374,10 @@ getNombreDestinoAutomatico(): string {
     }
   }
   
+  /**
+   * Valida y ajusta la cantidad ingresada manualmente para un producto
+   * @param index - Índice del producto en el array
+   */
   validarCantidad(index: number): void {
     if (index >= 0 && index < this.productos.length) {
       const producto = this.productos[index];
@@ -367,17 +416,26 @@ getNombreDestinoAutomatico(): string {
 
   // ========== MÉTODOS PARA BÚSQUEDA Y PAGINACIÓN ==========
 
+  /**
+   * Ejecuta la búsqueda de productos y resetea la paginación
+   */
   buscarProductos(): void {
     this.paginaActual = 1;
     this.aplicarFiltros();
   }
 
+  /**
+   * Limpia el filtro de búsqueda y muestra todos los productos
+   */
   limpiarBusqueda(): void {
     this.busquedaProducto = '';
     this.paginaActual = 1;
     this.aplicarFiltros();
   }
 
+  /**
+   * Aplica los filtros de búsqueda a la lista de productos
+   */
   private aplicarFiltros(): void {
     if (!this.busquedaProducto.trim()) {
       this.productosFiltrados = [...this.productos];
@@ -389,26 +447,46 @@ getNombreDestinoAutomatico(): string {
     }
   }
 
+  /**
+   * Obtiene la lista de productos filtrados
+   * @returns Array de productos filtrados
+   */
   getProductosFiltrados(): any[] {
     return this.productosFiltrados;
   }
 
+  /**
+   * Obtiene los productos de la página actual
+   * @returns Array de productos paginados
+   */
   getProductosPaginados(): any[] {
     const inicio = (this.paginaActual - 1) * this.productosPorPagina;
     const fin = inicio + this.productosPorPagina;
     return this.productosFiltrados.slice(inicio, fin);
   }
 
+  /**
+   * Calcula el número total de páginas
+   * @returns Número total de páginas
+   */
   getTotalPaginas(): number {
     return Math.ceil(this.productosFiltrados.length / this.productosPorPagina);
   }
 
+  /**
+   * Cambia a una página específica
+   * @param pagina - Número de página a mostrar
+   */
   cambiarPagina(pagina: number): void {
     if (pagina >= 1 && pagina <= this.getTotalPaginas()) {
       this.paginaActual = pagina;
     }
   }
 
+  /**
+   * Calcula las páginas visibles en el paginador
+   * @returns Array con los números de página a mostrar
+   */
   getPaginasVisibles(): number[] {
     const totalPaginas = this.getTotalPaginas();
     const paginaActual = this.paginaActual;
@@ -437,21 +515,38 @@ getNombreDestinoAutomatico(): string {
     return paginas;
   }
 
+  /**
+   * Obtiene el número del primer registro de la página actual
+   * @returns Número del primer registro
+   */
   getInicioRegistro(): number {
     return (this.paginaActual - 1) * this.productosPorPagina + 1;
   }
 
+  /**
+   * Obtiene el número del último registro de la página actual
+   * @returns Número del último registro
+   */
   getFinRegistro(): number {
     const fin = this.paginaActual * this.productosPorPagina;
     return Math.min(fin, this.productosFiltrados.length);
   }
 
+  /**
+   * Obtiene el índice de un producto en el array por su ID
+   * @param prodId - ID del producto
+   * @returns Índice del producto o -1 si no se encuentra
+   */
   getProductoIndex(prodId: number): number {
     return this.productos.findIndex(p => p.prod_Id === prodId);
   }
 
   // ========== MÉTODOS DE NAVEGACIÓN DE TABS ==========
   
+  /**
+   * Cambia entre las pestañas del formulario
+   * @param tab - Número de pestaña a activar
+   */
   cambiarTab(tab: number): void {
     if (tab === 2 && !this.puedeAvanzarAResumen) {
       this.mostrarWarning('Complete los datos requeridos antes de continuar');
@@ -461,6 +556,9 @@ getNombreDestinoAutomatico(): string {
     this.limpiarAlertas();
   }
 
+  /**
+   * Navega a la pestaña de resumen validando los datos básicos
+   */
   irAResumen(): void {
     this.mostrarErrores = true;
     
@@ -471,6 +569,10 @@ getNombreDestinoAutomatico(): string {
     }
   }
 
+  /**
+   * Valida que los datos básicos del traslado estén completos
+   * @returns true si los datos son válidos, false en caso contrario
+   */
   private validarDatosBasicos(): boolean {
     const errores = [];
     
@@ -484,10 +586,10 @@ getNombreDestinoAutomatico(): string {
       errores.push('Fecha');
     }
     
-   // Validar recarga (solo si tras_EsRecarga es true)
-if (this.traslado.tras_EsRecarga && (!this.traslado.reca_Id || this.traslado.reca_Id == 0)) {
-  errores.push('Recarga');
-}
+    // Validar recarga (solo si tras_EsRecarga es true)
+    if (this.traslado.tras_EsRecarga && (!this.traslado.reca_Id || this.traslado.reca_Id == 0)) {
+      errores.push('Recarga');
+    }
     
     const productosSeleccionados = this.getProductosSeleccionados();
     if (productosSeleccionados.length === 0) {
@@ -504,22 +606,38 @@ if (this.traslado.tras_EsRecarga && (!this.traslado.reca_Id || this.traslado.rec
 
   // ========== MÉTODOS PARA EL RESUMEN ==========
 
+  /**
+   * Obtiene el nombre de la sucursal de origen seleccionada
+   * @returns Nombre de la sucursal o 'No seleccionado'
+   */
   getNombreOrigen(): string {
     const origen = this.origenes.find(o => o.sucu_Id == this.traslado.tras_Origen);
     return origen ? origen.sucu_Descripcion : 'No seleccionado';
   }
 
+  /**
+   * Obtiene el nombre de la bodega de destino seleccionada
+   * @returns Nombre de la bodega o 'No seleccionado'
+   */
   getNombreDestino(): string {
     const destino = this.destinos.find(d => d.bode_Id == this.traslado.tras_Destino);
     return destino ? destino.bode_Descripcion : 'No seleccionado';
   }
 
+  /**
+   * Calcula el total de unidades seleccionadas de todos los productos
+   * @returns Número total de unidades
+   */
   getTotalProductosSeleccionados(): number {
     return this.productos
       .filter(producto => producto.cantidad > 0)
       .reduce((total, producto) => total + producto.cantidad, 0);
   }
 
+  /**
+   * Obtiene la lista de productos que tienen cantidad seleccionada
+   * @returns Array de productos seleccionados
+   */
   getProductosSeleccionados(): any[] {
     return this.productos.filter(producto => producto.cantidad > 0);
   }
@@ -547,15 +665,24 @@ if (this.traslado.tras_EsRecarga && (!this.traslado.reca_Id || this.traslado.rec
 
   // ========== MÉTODOS DE ACCIONES PRINCIPALES ==========
 
+  /**
+   * Cancela la creación del traslado y limpia el formulario
+   */
   cancelar(): void {
     this.limpiarFormulario();
     this.onCancel.emit();
   }
 
+  /**
+   * Cierra todas las alertas activas
+   */
   cerrarAlerta(): void {
     this.limpiarAlertas();
   }
 
+  /**
+   * Guarda el traslado validando todos los datos
+   */
   guardar(): void {
     this.mostrarErrores = true;
     const productosSeleccionados = this.obtenerProductosSeleccionados();

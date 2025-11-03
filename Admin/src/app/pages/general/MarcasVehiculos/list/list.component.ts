@@ -1,3 +1,9 @@
+/**
+ * Componente para listar y gestionar marcas de vehículos
+ * Proporciona funcionalidades de listado, creación, edición, visualización de detalles,
+ * eliminación y exportación de datos de marcas de vehículos
+ */
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -34,36 +40,47 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
   styleUrls: ['./list.component.scss']
 })
 export class ListComponent implements OnInit {
-  // Variable para controlar el estado de carga
+  // Propiedades de control de UI
+  /** Controla la visibilidad del overlay de carga durante las peticiones HTTP */
   mostrarOverlayCarga = false;
 
-  // bread crumb items
+  /** Items del breadcrumb para la navegación */
   breadCrumbItems!: Array<{}>;
 
-  // Acciones disponibles para el usuario en esta pantalla
+  // Propiedades de permisos y acciones
+  /** Array de acciones disponibles para el usuario según sus permisos */
   accionesDisponibles: string[] = [];
 
-  // Método robusto para validar si una acción está permitida
+  /**
+   * Valida si una acción específica está permitida para el usuario actual
+   * @param accion Nombre de la acción a validar
+   * @returns true si la acción está permitida, false en caso contrario
+   */
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
   }
 
+  /**
+   * Método del ciclo de vida de Angular que se ejecuta al inicializar el componente
+   * Configura el breadcrumb y carga los permisos del usuario
+   */
   ngOnInit(): void {
-    /**
-     * BreadCrumb
-     */
+    // Configuración del breadcrumb para la navegación
     this.breadCrumbItems = [
       { label: 'General' },
       { label: 'Marcas De Vehiculos', active: true }
     ];
-    // Obtener acciones disponibles del usuario
+    // Carga las acciones permitidas para el usuario desde localStorage
     this.cargarAccionesUsuario();
     //console.log('Acciones disponibles:', this.accionesDisponibles);
   }
 
-  // Método para cargar las acciones disponibles del usuario
+  /**
+   * Carga las acciones disponibles del usuario desde localStorage
+   * Lee los permisos del usuario y extrae las acciones permitidas para este módulo
+   */
   private cargarAccionesUsuario(): void {
-    // Obtener permisosJson del localStorage
+    // Obtiene los permisos almacenados en localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
     //console.log('Valor bruto en localStorage (permisosJson):', permisosRaw);
     let accionesArray: string[] = [];
@@ -91,7 +108,11 @@ export class ListComponent implements OnInit {
     //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
-  // Cierra el dropdown si se hace click fuera
+  /**
+   * Maneja los clics fuera del dropdown de acciones para cerrarlo
+   * @param event Evento del mouse
+   * @param rowIndex Índice de la fila activa
+   */
   onDocumentClick(event: MouseEvent, rowIndex: number) {
     const target = event.target as HTMLElement;
     // Busca el dropdown abierto
@@ -106,7 +127,10 @@ export class ListComponent implements OnInit {
       this.activeActionRow = null;
     }
   }
-  // Métodos para los botones de acción principales (crear, editar, detalles)
+  /**
+   * Abre el formulario de creación de una nueva marca de vehículo
+   * Cierra otros formularios abiertos (edición y detalles)
+   */
   crear(): void {
     //console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
@@ -115,6 +139,11 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null; // Cerrar menú de acciones
   }
 
+  /**
+   * Abre el formulario de edición para una marca de vehículo específica
+   * Cierra otros formularios abiertos (creación y detalles)
+   * @param marcasVehiculos Objeto con los datos de la marca a editar
+   */
   editar(marcasVehiculos: MarcasVehiculos): void {
  
     this.marcasVehiculosEditando = { ...marcasVehiculos }; // Hacer copia profunda
@@ -124,6 +153,11 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null; // Cerrar menú de acciones
   }
 
+  /**
+   * Abre la vista de detalles para una marca de vehículo específica
+   * Cierra otros formularios abiertos (creación y edición)
+   * @param marcasVehiculos Objeto con los datos de la marca a visualizar
+   */
   detalles(marcasVehiculos: MarcasVehiculos): void {
     //console.log('Abriendo detalles para:', marcasVehiculos);
     this.marcasVehiculosDetalle = { ...marcasVehiculos }; // Hacer copia profunda
@@ -132,31 +166,60 @@ export class ListComponent implements OnInit {
     this.showEditForm = false; // Cerrar edit si está abierto
     this.activeActionRow = null; // Cerrar menú de acciones
   }
+  
+  // Propiedades para control de estado de la UI
+  /** Índice de la fila con el menú de acciones activo */
   activeActionRow: number | null = null;
+  /** Controla la visibilidad del botón de editar */
   showEdit = true;
+  /** Controla la visibilidad del botón de detalles */
   showDetails = true;
+  /** Controla la visibilidad del botón de eliminar */
   showDelete = true;
-  showCreateForm = false; // Control del collapse
-  showEditForm = false; // Control del collapse de edición
-  showDetailsForm = false; // Control del collapse de detalles
+  /** Controla la visibilidad del formulario de creación */
+  showCreateForm = false;
+  /** Controla la visibilidad del formulario de edición */
+  showEditForm = false;
+  /** Controla la visibilidad del formulario de detalles */
+  showDetailsForm = false;
+  /** Almacena los datos de la marca que se está editando */
   marcasVehiculosEditando: MarcasVehiculos | null = null;
+  /** Almacena los datos de la marca que se está visualizando */
   marcasVehiculosDetalle: MarcasVehiculos | null = null;
   
-  // Propiedades para alertas
+  // Propiedades para control de alertas
+  /** Controla la visibilidad de la alerta de éxito */
   mostrarAlertaExito = false;
+  /** Mensaje que se muestra en la alerta de éxito */
   mensajeExito = '';
+  /** Controla la visibilidad de la alerta de error */
   mostrarAlertaError = false;
+  /** Mensaje que se muestra en la alerta de error */
   mensajeError = '';
+  /** Controla la visibilidad de la alerta de advertencia */
   mostrarAlertaWarning = false;
+  /** Mensaje que se muestra en la alerta de advertencia */
   mensajeWarning = '';
   
   // Propiedades para confirmación de eliminación
+  /** Controla la visibilidad del modal de confirmación de eliminación */
   mostrarConfirmacionEliminar = false;
+  /** Almacena la marca que se va a eliminar */
   marcasVehiculosAEliminar: MarcasVehiculos | null = null;
-formatearNumero(valor: number): string {
+
+  /**
+   * Formatea un número eliminando decimales
+   * @param valor Número a formatear
+   * @returns String con el número sin decimales
+   */
+  formatearNumero(valor: number): string {
   return Math.floor(valor).toString();
 }
 
+  /**
+   * Configuración para la exportación de datos
+   * Define el título, columnas y mapeo de datos para Excel, PDF y CSV
+   */
   private readonly exportConfig = {
     
     // Configuración básica
@@ -182,9 +245,21 @@ formatearNumero(valor: number): string {
     })
   };
 
+  /** Indica si hay una exportación en progreso */
   exportando = false;
+  /** Tipo de exportación actual (excel, pdf o csv) */
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
 
+  /**
+   * Constructor del componente
+   * Inicializa los servicios necesarios y carga los datos iniciales
+   * @param table Servicio para gestionar la tabla reactiva
+   * @param http Cliente HTTP para peticiones al API
+   * @param router Servicio de enrutamiento
+   * @param route Ruta activa
+   * @param exportService Servicio para exportación de datos
+   * @param floatingMenuService Servicio para menú flotante
+   */
   constructor(public table: ReactiveTableService<MarcasVehiculos>, 
     private http: HttpClient, 
     private router: Router, 
@@ -194,28 +269,43 @@ formatearNumero(valor: number): string {
     this.cargardatos();
   }
 
+  /**
+   * Maneja el clic en el menú de acciones de una fila
+   * Alterna la visibilidad del menú de acciones
+   * @param rowIndex Índice de la fila
+   */
   onActionMenuClick(rowIndex: number) {
     this.activeActionRow = this.activeActionRow === rowIndex ? null : rowIndex;
   }
 
-  // (navigateToCreate eliminado, lógica movida a crear)
-
-  // (navigateToEdit y navigateToDetails eliminados, lógica movida a editar y detalles)
-
+  /**
+   * Cierra el formulario de creación
+   */
   cerrarFormulario(): void {
     this.showCreateForm = false;
   }
 
+  /**
+   * Cierra el formulario de edición y limpia los datos
+   */
   cerrarFormularioEdicion(): void {
     this.showEditForm = false;
     this.marcasVehiculosEditando = null;
   }
 
+  /**
+   * Cierra el formulario de detalles y limpia los datos
+   */
   cerrarFormularioDetalles(): void {
     this.showDetailsForm = false;
     this.marcasVehiculosDetalle = null;
   }
 
+  /**
+   * Callback ejecutado cuando se guarda exitosamente una marca desde el componente de creación
+   * Recarga los datos de la tabla y cierra el formulario
+   * @param marcasVehiculos Marca de vehículo guardada
+   */
   guardarMarcasVehiculos(marcasVehiculos: MarcasVehiculos): void {
     //console.log('Marcas vehículos guardado exitosamente desde create component:', marcasVehiculos);
     // Recargar los datos de la tabla
@@ -223,6 +313,11 @@ formatearNumero(valor: number): string {
     this.cerrarFormulario();
   }
 
+  /**
+   * Callback ejecutado cuando se actualiza exitosamente una marca desde el componente de edición
+   * Recarga los datos de la tabla y cierra el formulario
+   * @param marcasVehiculos Marca de vehículo actualizada
+   */
   actualizarMarcasVehiculos(marcasVehiculos: MarcasVehiculos): void {
     //console.log('Marcas vehículos actualizado exitosamente desde edit component:', marcasVehiculos);
     // Recargar los datos de la tabla
@@ -230,6 +325,10 @@ formatearNumero(valor: number): string {
     this.cerrarFormularioEdicion();
   }
 
+  /**
+   * Muestra el modal de confirmación para eliminar una marca de vehículo
+   * @param marcasVehiculos Marca de vehículo a eliminar
+   */
   confirmarEliminar(marcasVehiculos: MarcasVehiculos): void {
     //console.log('Solicitando confirmación para eliminar:', marcasVehiculos);
     this.marcasVehiculosAEliminar = marcasVehiculos;
@@ -237,22 +336,33 @@ formatearNumero(valor: number): string {
     this.activeActionRow = null; // Cerrar menú de acciones
   }
 
+  /**
+   * Cancela el proceso de eliminación
+   * Cierra el modal de confirmación y limpia los datos
+   */
   cancelarEliminar(): void {
     this.mostrarConfirmacionEliminar = false;
     this.marcasVehiculosAEliminar = null;
   }
 
+  /**
+   * Elimina una marca de vehículo del sistema
+   * Realiza una petición POST al API y maneja diferentes códigos de respuesta
+   * Muestra alertas de éxito o error según el resultado
+   */
   eliminar(): void {
     if (!this.marcasVehiculosAEliminar) return;
     
     //console.log('Eliminando marcas vehículos:', this.marcasVehiculosAEliminar);
     
+    // Realiza la petición POST al API para eliminar la marca
     this.http.post(`${environment.apiBaseUrl}/MarcasVehiculos/Eliminar/${this.marcasVehiculosAEliminar.maVe_Id}`, {}, {
       headers: { 
         'X-Api-Key': environment.apiKey,
         'accept': '*/*'
       }
     }).subscribe({
+      // Maneja la respuesta del servidor
       next: (response: any) => {
         //console.log('Respuesta del servidor:', response);
         
@@ -318,6 +428,9 @@ formatearNumero(valor: number): string {
     });
   }
 
+  /**
+   * Cierra todas las alertas activas (éxito, error y advertencia)
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mostrarAlertaError = false;
@@ -368,6 +481,11 @@ formatearNumero(valor: number): string {
     setTimeout(() => this.cerrarAlerta(), duracion);
   }
 
+  /**
+   * Exporta los datos de la tabla en el formato especificado
+   * Valida los datos, muestra mensajes de progreso y maneja errores
+   * @param tipo Formato de exportación: 'excel', 'pdf' o 'csv'
+   */
   async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
     if (this.exportando) {
       this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
@@ -480,26 +598,47 @@ formatearNumero(valor: number): string {
     return true;
   }
 
-  // Métodos específicos para cada tipo de exportación
+  /**
+   * Exporta los datos a formato Excel
+   * @returns Promise que se resuelve cuando la exportación finaliza
+   */
   exportarExcel(): Promise<void> {
     return this.exportar('excel');
   }
 
+  /**
+   * Exporta los datos a formato PDF
+   * @returns Promise que se resuelve cuando la exportación finaliza
+   */
   exportarPDF(): Promise<void> {
     return this.exportar('pdf');
   }
 
+  /**
+   * Exporta los datos a formato CSV
+   * @returns Promise que se resuelve cuando la exportación finaliza
+   */
   exportarCSV(): Promise<void> {
     return this.exportar('csv');
   }
 
-  // Verifica si se puede exportar un tipo específico
+  /**
+   * Verifica si se puede realizar una exportación
+   * Valida que no haya una exportación en progreso y que existan datos
+   * @param tipo Tipo de exportación (opcional)
+   * @returns true si se puede exportar, false en caso contrario
+   */
   puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
     if (this.exportando) return false;
     if (!this.table.data$.value || this.table.data$.value.length === 0) return false;
     return true;
   }
 
+  /**
+   * Carga los datos de marcas de vehículos desde el API
+   * Muestra un overlay de carga durante la petición
+   * Actualiza la tabla con los datos recibidos
+   */
   private cargardatos(): void {
     this.mostrarOverlayCarga = true;
     this.http.get<MarcasVehiculos[]>(`${environment.apiBaseUrl}/MarcasVehiculos/Listar`, {

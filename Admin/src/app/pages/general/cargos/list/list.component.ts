@@ -23,6 +23,10 @@ import { EditComponent } from '../edit/edit.component';
 import { DetailsComponent } from '../details/details.component';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
 
+/**
+ * Componente para la lista de cargos, incluye funcionalidades de exportación, 
+ * edición, eliminación y detalles de cada cargo.
+ */
 @Component({
   selector: 'app-list',
   standalone: true,
@@ -39,6 +43,7 @@ import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
   ],
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss'],
+  // Animación de entrada/salida para contenedores colapsables
   animations: [
     trigger('fadeExpand', [
       transition(':enter', [
@@ -74,9 +79,14 @@ import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
 })
 
 export class ListComponent implements OnInit {
-formatearNumero(valor: number): string {
-  return valor % 1 === 0 ? valor.toString() : valor.toFixed(2).replace(/\.?0+$/, '');
-}
+  /**
+   * Formatea número/secuencia para visualización/exportación.
+   * @param valor Número a formatear.
+   * @returns Número formateado como string.
+   */
+  formatearNumero(valor: number): string {
+    return valor % 1 === 0 ? valor.toString() : valor.toFixed(2).replace(/\.?0+$/, '');
+  }
 
   // Overlay de carga animado
   mostrarOverlayCarga = false;
@@ -84,10 +94,17 @@ formatearNumero(valor: number): string {
   // bread crumb items
   breadCrumbItems!: Array<{}>;
 
+  // Permisos por acción cargados desde localStorage
   accionesDisponibles: string[] = [];
+  /**
+   * Verifica si una acción específica está permitida según permisos cargados.
+   * @param accion Acción a verificar.
+   * @returns True si la acción está permitida, false de lo contrario.
+   */
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
   }
+  // Configuración de exportación (cabecera, columnas y mapeo de datos)
   private readonly exportConfig = {
     // Configuración básica
     title: 'Listado de Cargos',                    // Título del reporte
@@ -113,6 +130,7 @@ formatearNumero(valor: number): string {
     })
   };
 
+  // Flags de exportación (estado y tipo en progreso)
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
   ngOnInit(): void {
@@ -124,8 +142,10 @@ formatearNumero(valor: number): string {
     
   }
 
+  // Id de la pantalla (para resolver permisos por módulo)
   private readonly PANTALLA_CARGOS_ID = 9;
 
+  // Flags de UI para toggling de formularios y acciones de fila
   showEdit = true;
   showDetails = true;
   showDelete = true;
@@ -135,6 +155,7 @@ formatearNumero(valor: number): string {
   cargoEditando: Cargos | null = null;
   cargoDetalle: Cargos | null = null;
 
+  // Sistema de alertas en pantalla
   mostrarAlertaExito = false;
   mensajeExito = '';
   mostrarAlertaError = false;
@@ -142,9 +163,11 @@ formatearNumero(valor: number): string {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
 
+  // Eliminación con confirmación
   mostrarConfirmacionEliminar = false;
   cargoEliminar: Cargos | null = null;
 
+  // Paginación actual
   page: number = 1;
 
   constructor(
@@ -153,18 +176,25 @@ formatearNumero(valor: number): string {
     private router: Router,
     private route: ActivatedRoute,
     private exportService: ExportService,
+    // Servicio para menú contextual flotante en la tabla
     public floatingMenuService: FloatingMenuService // <-- Agrega el servicio aquí
     
   ) {
+    // Carga inicial y configuración de columnas para la tabla reactiva
     this.cargardatos();
     this.table.setConfig(['secuencia', 'carg_Descripcion']);
   }
 
+  /**
+   * Actualiza página y sincroniza con el servicio de tabla.
+   * @param nuevaPagina Número de página a mostrar.
+   */
   cambiarPagina(nuevaPagina: number): void {
     this.page = nuevaPagina;
     this.table.setPage(nuevaPagina);
   }
 
+  // Toggle formulario de creación
   crear(): void {
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false;
@@ -172,6 +202,10 @@ formatearNumero(valor: number): string {
     // Elimina activeActionRow
   }
 
+  /**
+   * Abre formulario de edición con el registro seleccionado.
+   * @param cargo Cargo a editar.
+   */
   editar(cargo: Cargos): void {
     this.cargoEditando = { ...cargo };
     this.showEditForm = true;
@@ -180,6 +214,10 @@ formatearNumero(valor: number): string {
     // Elimina activeActionRow
   }
 
+  /**
+   * Orquesta la exportación según tipo solicitado con manejo de estado.
+   * @param tipo Tipo de archivo a exportar (excel, pdf, csv).
+   */
   async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
     if (this.exportando) {
       this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
@@ -221,7 +259,8 @@ formatearNumero(valor: number): string {
     }
   }
     /**
-   * Crea la configuración de exportación de forma dinámica
+   * Crea la configuración de exportación de forma dinámica.
+   * @returns Configuración de exportación.
    */
   private crearConfiguracionExport(): ExportConfig {
     return {
@@ -237,7 +276,8 @@ formatearNumero(valor: number): string {
   }
 
   /**
-   * Obtiene y prepara los datos para exportación
+   * Obtiene y prepara los datos para exportación.
+   * @returns Datos preparados para exportación.
    */
   private obtenerDatosExport(): any[] {
     try {
@@ -260,7 +300,8 @@ formatearNumero(valor: number): string {
 
 
   /**
-   * Maneja el resultado de las exportaciones
+   * Maneja el resultado de las exportaciones.
+   * @param resultado Resultado de la exportación.
    */
   private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
     if (resultado.success) {
@@ -271,7 +312,8 @@ formatearNumero(valor: number): string {
   }
 
   /**
-   * Valida datos antes de exportar
+   * Valida datos antes de exportar.
+   * @returns True si se puede exportar, false de lo contrario.
    */
   private validarDatosParaExport(): boolean {
     const datos = this.table.data$.value;
@@ -293,7 +335,9 @@ formatearNumero(valor: number): string {
   }
 
   /**
-   * Limpia texto para exportación de manera más eficiente
+   * Limpia texto para exportación de manera más eficiente.
+   * @param texto Texto a limpiar.
+   * @returns Texto limpio.
    */
   private limpiarTexto(texto: any): string {
     if (!texto) return '';
@@ -306,7 +350,9 @@ formatearNumero(valor: number): string {
   }
 
   /**
-   * Sistema de mensajes mejorado con tipos adicionales
+   * Sistema de mensajes mejorado con tipos adicionales.
+   * @param tipo Tipo de mensaje (success, error, warning, info).
+   * @param mensaje Mensaje a mostrar.
    */
   private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
     this.cerrarAlerta();
@@ -336,7 +382,7 @@ formatearNumero(valor: number): string {
   }
 
   /**
-   * Métodos específicos para cada tipo (para usar en templates)
+   * Métodos específicos para cada tipo (para usar en templates).
    */
   async exportarExcel(): Promise<void> {
     await this.exportar('excel');
@@ -351,7 +397,9 @@ formatearNumero(valor: number): string {
   }
 
   /**
-   * Verifica si se puede exportar un tipo específico
+   * Verifica si se puede exportar un tipo específico.
+   * @param tipo Tipo de archivo a exportar.
+   * @returns True si se puede exportar, false de lo contrario.
    */
   puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
     if (this.exportando) {
@@ -360,6 +408,10 @@ formatearNumero(valor: number): string {
     return this.table.data$.value?.length > 0;
   }
 
+  /**
+   * Abre panel de detalles para el elemento seleccionado.
+   * @param cargo Cargo a mostrar detalles.
+   */
   detalles(cargo: Cargos): void {
     this.cargoDetalle = { ...cargo };
     this.showDetailsForm = true;
@@ -368,6 +420,9 @@ formatearNumero(valor: number): string {
     // Elimina activeActionRow
   }
 
+  /**
+   * Callbacks de cierre para cada formulario embebido.
+   */
   cerrarFormulario(): void {
     this.showCreateForm = false;
   }
@@ -382,6 +437,9 @@ formatearNumero(valor: number): string {
     this.cargoDetalle = null;
   }
 
+  /**
+   * Callbacks de éxito desde child components para recargar data.
+   */
   guardarCargo(cargo: Cargos): void {
     this.cargardatos();
     this.cerrarFormulario();
@@ -392,6 +450,9 @@ formatearNumero(valor: number): string {
     this.cerrarFormularioEdicion();
   }
 
+  /**
+   * Flujo de eliminación con confirmación modal.
+   */
   confirmarEliminar(cargo: Cargos): void {
     this.cargoEliminar = cargo;
     this.mostrarConfirmacionEliminar = true;
@@ -403,6 +464,9 @@ formatearNumero(valor: number): string {
     this.cargoEliminar = null;
   }
 
+  /**
+   * Llama a API de eliminación (PUT definido por backend) y muestra resultado.
+   */
   eliminar(): void {
     if (!this.cargoEliminar) return;
     // Si tu API requiere POST, cambia PUT por POST aquí
@@ -453,6 +517,9 @@ formatearNumero(valor: number): string {
     });
   }
 
+  /**
+   * Resetea todas las alertas visibles.
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -462,6 +529,9 @@ formatearNumero(valor: number): string {
     this.mensajeWarning = '';
   }
 
+  /**
+   * Carga datos desde API, filtra por permiso y los inyecta al servicio de tabla.
+   */
   private cargarAccionesUsuario(): void {
     const permisosRaw = localStorage.getItem('permisosJson');
     try {
@@ -483,6 +553,9 @@ formatearNumero(valor: number): string {
     }
   }
 
+  /**
+   * Carga datos desde API y los inyecta al servicio de tabla.
+   */
   private cargardatos(): void {
     this.mostrarOverlayCarga = true;
     this.http.get<Cargos[]>(`${environment.apiBaseUrl}/Cargo/Listar`, {

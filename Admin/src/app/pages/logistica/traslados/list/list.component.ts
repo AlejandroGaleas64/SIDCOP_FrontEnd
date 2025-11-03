@@ -65,46 +65,85 @@ private readonly exportConfig = {
   };
 
 
-  // bread crumb items
   breadCrumbItems!: Array<{}>;
 
-  // Acciones disponibles para el usuario en esta pantalla
+  /**
+   * Acciones disponibles para el usuario en esta pantalla
+   */
   accionesDisponibles: string[] = [];
 
-  // METODO PARA VALIDAR SI UNA ACCIÓN ESTÁ PERMITIDA
+  /**
+   * Valida si una acción específica está permitida para el usuario actual
+   * @param accion - Nombre de la acción a validar (ej: 'crear', 'editar', 'eliminar')
+   * @returns true si la acción está permitida, false en caso contrario
+   */
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
   }
 
-  // Estado de exportación
+  /**
+   * Estado de exportación
+   */
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
 
+  // Propiedades para control de formularios
+  activeActionRow: number | null = null;
+  showEdit = true;
+  showDetails = true;
+  showDelete = true;
+  showCreateForm = false;
+  showEditForm = false;
+  showDetailsForm = false;
+  trasladoEditando: Traslado | null = null;
+  trasladoDetalle: Traslado | null = null;
+  trasladoIdDetalle: number | null = null;
+  
+  // Propiedades para overlay de carga
+  mostrarOverlayCarga = false;
+  
+  // Propiedades para alertas
+  mostrarAlertaExito = false;
+  mensajeExito = '';
+  mostrarAlertaError = false;
+  mensajeError = '';
+  mostrarAlertaWarning = false;
+  mensajeWarning = '';
+  
+  // Propiedades para confirmación de eliminación
+  mostrarConfirmacionEliminar = false;
+  trasladoAEliminar: Traslado | null = null;
+
+  /**
+   * Inicializa el componente configurando breadcrumbs y cargando permisos de usuario
+   */
   ngOnInit(): void {
-    /**
-     * BreadCrumb
-     */
+    // Configurar navegación breadcrumb
     this.breadCrumbItems = [
       { label: 'Logística' },
       { label: 'Traslados', active: true }
     ];
 
-    // OBTENER ACCIONES DISPONIBLES DEL USUARIO
+    // Cargar acciones disponibles según permisos del usuario
     this.cargarAccionesUsuario();
-    //console.log('Acciones disponibles:', this.accionesDisponibles);
   }
   
-  // Métodos para los botones de acción principales (crear, editar, detalles)
+  /**
+   * Abre/cierra el formulario de creación de traslados
+   * Cierra otros formularios abiertos para evitar conflictos
+   */
   crear(): void {
-    //console.log('Toggleando formulario de creación...');
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
     this.activeActionRow = null; // Cerrar menú de acciones
   }
 
+  /**
+   * Abre el formulario de edición para un traslado específico
+   * @param traslado - Objeto traslado a editar
+   */
   editar(traslado: Traslado): void {
- 
     this.trasladoEditando = { ...traslado }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
@@ -112,10 +151,11 @@ private readonly exportConfig = {
     this.activeActionRow = null; // Cerrar menú de acciones
   }
 
+  /**
+   * Abre el formulario de detalles para un traslado específico
+   * @param traslado - Objeto traslado del cual mostrar detalles
+   */
   detalles(traslado: Traslado): void {
-    //console.log('Abriendo detalles para:', traslado);
-    //console.log('ID del traslado seleccionado:', traslado.tras_Id);
-    
     // Usar el ID para cargar datos actualizados desde el API
     this.trasladoIdDetalle = traslado.tras_Id;
     this.trasladoDetalle = null; // Limpiar datos previos
@@ -126,6 +166,10 @@ private readonly exportConfig = {
     this.activeActionRow = null; // Cerrar menú de acciones
   }
   
+  /**
+   * Constructor del componente
+   * Inyecta servicios y componentes necesarios
+   */
   constructor(public table: ReactiveTableService<Traslado>, 
     private http: HttpClient, 
     private router: Router, 
@@ -136,11 +180,9 @@ private readonly exportConfig = {
     this.cargardatos();
   }   
 
-
- // ===== MÉTODOS DE EXPORTACIÓN OPTIMIZADOS =====
-
   /**
-   * Método unificado para todas las exportaciones
+   * Método unificado para exportar datos en diferentes formatos
+   * @param tipo - Formato de exportación: 'excel', 'pdf' o 'csv'
    */
   async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
     if (this.exportando) {
@@ -184,22 +226,30 @@ private readonly exportConfig = {
   }
 
   /**
-   * Métodos específicos para cada tipo (para usar en templates)
+   * Exporta los datos de traslados a formato Excel
    */
   async exportarExcel(): Promise<void> {
     await this.exportar('excel');
   }
 
+  /**
+   * Exporta los datos de traslados a formato PDF
+   */
   async exportarPDF(): Promise<void> {
     await this.exportar('pdf');
   }
 
+  /**
+   * Exporta los datos de traslados a formato CSV
+   */
   async exportarCSV(): Promise<void> {
     await this.exportar('csv');
   }
 
   /**
-   * Verifica si se puede exportar un tipo específico
+   * Verifica si se puede exportar datos en un formato específico
+   * @param tipo - Formato de exportación a verificar (opcional)
+   * @returns true si se puede exportar, false en caso contrario
    */
   puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
     if (this.exportando) {
@@ -208,10 +258,9 @@ private readonly exportConfig = {
     return this.table.data$.value?.length > 0;
   }
 
-  // ===== MÉTODOS PRIVADOS DE EXPORTACIÓN =====
-
   /**
    * Crea la configuración de exportación de forma dinámica
+   * @returns Configuración de exportación
    */
   private crearConfiguracionExport(): ExportConfig {
     return {
@@ -227,6 +276,7 @@ private readonly exportConfig = {
 
   /**
    * Obtiene y prepara los datos para exportación
+   * @returns Datos preparados para exportación
    */
   private obtenerDatosExport(): any[] {
     try {
@@ -247,9 +297,9 @@ private readonly exportConfig = {
     }
   }
 
-
   /**
    * Maneja el resultado de las exportaciones
+   * @param resultado - Resultado de la exportación
    */
   private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
     if (resultado.success) {
@@ -261,6 +311,7 @@ private readonly exportConfig = {
 
   /**
    * Valida datos antes de exportar
+   * @returns true si se puede exportar, false en caso contrario
    */
   private validarDatosParaExport(): boolean {
     const datos = this.table.data$.value;
@@ -283,6 +334,8 @@ private readonly exportConfig = {
 
   /**
    * Limpia texto para exportación de manera más eficiente
+   * @param texto - Texto a limpiar
+   * @returns Texto limpio
    */
   private limpiarTexto(texto: any): string {
     if (!texto) return '';
@@ -295,7 +348,9 @@ private readonly exportConfig = {
   }
 
   /**
-   * Sistema de mensajes mejorado con tipos adicionales
+   * Muestra un mensaje al usuario
+   * @param tipo - Tipo de mensaje (success, error, warning, info)
+   * @param mensaje - Mensaje a mostrar
    */
   private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
     this.cerrarAlerta();
@@ -324,52 +379,49 @@ private readonly exportConfig = {
     }
   }
 
+  /**
+   * Cierra todas las alertas activas y limpia sus mensajes
+   */
+  cerrarAlerta(): void {
+    this.mostrarAlertaExito = false;
+    this.mensajeExito = '';
+    this.mostrarAlertaError = false;
+    this.mensajeError = '';
+    this.mostrarAlertaWarning = false;
+    this.mensajeWarning = '';
+  }
 
-  activeActionRow: number | null = null;
-  showEdit = true;
-  showDetails = true;
-  showDelete = true;
-  showCreateForm = false; // Control del collapse
-  showEditForm = false; // Control del collapse de edición
-  showDetailsForm = false; // Control del collapse de detalles
-  trasladoEditando: Traslado | null = null;
-  trasladoDetalle: Traslado | null = null;
-  trasladoIdDetalle: number | null = null; // Nuevo: para pasar ID al componente de detalles
-  
-  // Propiedades para overlay de carga
-  mostrarOverlayCarga = false;
-  
-  // Propiedades para alertas
-  mostrarAlertaExito = false;
-  mensajeExito = '';
-  mostrarAlertaError = false;
-  mensajeError = '';
-  mostrarAlertaWarning = false;
-  mensajeWarning = '';
-  
-  // Propiedades para confirmación de eliminación
-  mostrarConfirmacionEliminar = false;
-  trasladoAEliminar: Traslado | null = null;
-
+  /**
+   * Cierra el formulario de creación de traslados
+   */
   cerrarFormulario(): void {
     this.showCreateForm = false;
   }
 
+  /**
+   * Cierra el formulario de edición y limpia los datos temporales
+   */
   cerrarFormularioEdicion(): void {
     this.showEditForm = false;
     this.trasladoEditando = null;
   }
 
+  /**
+   * Cierra el formulario de detalles y limpia los datos temporales
+   */
   cerrarFormularioDetalles(): void {
     this.showDetailsForm = false;
     this.trasladoDetalle = null;
-    this.trasladoIdDetalle = null; // Limpiar también el ID
+    this.trasladoIdDetalle = null;
   }
 
+  /**
+   * Maneja el evento de guardado exitoso de un nuevo traslado
+   * @param traslado - Objeto traslado que fue guardado
+   */
   guardarTraslado(traslado: Traslado): void {
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
-      //console.log('Traslado guardado exitosamente desde create component:', traslado);
       this.cargardatos();
       this.showCreateForm = false;
       this.mensajeExito = `Traslado guardado exitosamente`;
@@ -381,10 +433,13 @@ private readonly exportConfig = {
     }, 1000);
   }
 
+  /**
+   * Maneja el evento de actualización exitosa de un traslado
+   * @param traslado - Objeto traslado que fue actualizado
+   */
   actualizarTraslado(traslado: Traslado): void {
     this.mostrarOverlayCarga = true;
     setTimeout(() => {
-      //console.log('Traslado actualizado exitosamente desde edit component:', traslado);
       this.cargardatos();
       this.showEditForm = false;
       this.mensajeExito = `Traslado actualizado exitosamente`;
@@ -396,28 +451,35 @@ private readonly exportConfig = {
     }, 1000);
   }
 
+  /**
+   * Muestra el modal de confirmación para eliminar un traslado
+   * @param traslado - Objeto traslado a eliminar
+   */
   confirmarEliminar(traslado: Traslado): void {
-    //console.log('Solicitando confirmación para eliminar:', traslado);
     this.trasladoAEliminar = traslado;
     this.mostrarConfirmacionEliminar = true;
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.activeActionRow = null;
   }
 
+  /**
+   * Cancela la operación de eliminación y cierra el modal de confirmación
+   */
   cancelarEliminar(): void {
     this.mostrarConfirmacionEliminar = false;
     this.trasladoAEliminar = null;
   }
 
+  /**
+   * Ejecuta la eliminación del traslado seleccionado
+   * Realiza validaciones y maneja la respuesta del servidor
+   */
   eliminar(): void {
     if (!this.trasladoAEliminar) return;
     
-    // Prevenir múltiples clicks - deshabilitar el botón
     if (this.mostrarOverlayCarga) return;
     
-    //console.log('Eliminando traslado:', this.trasladoAEliminar);
     this.mostrarOverlayCarga = true;
     
-    // Cerrar el modal inmediatamente para evitar doble click
     const trasladoTemp = { ...this.trasladoAEliminar };
     this.mostrarConfirmacionEliminar = false;
     
@@ -430,20 +492,13 @@ private readonly exportConfig = {
       next: (response: any) => {
         setTimeout(() => {
           this.mostrarOverlayCarga = false;
-          //console.log('Respuesta del servidor:', response);
-          
-          // Limpiar variables
           this.trasladoAEliminar = null;
           
-          // Verificar el código de estado en la respuesta
           if (response.success && response.data) {
             if (response.data.code_Status === 1) {
-              // Éxito: eliminado correctamente
-              //console.log('Traslado eliminado exitosamente');
               this.mensajeExito = `Traslado del "${trasladoTemp.origen}" al "${trasladoTemp.destino}" eliminado exitosamente`;
               this.mostrarAlertaExito = true;
               
-              // Ocultar la alerta después de 3 segundos
               setTimeout(() => {
                 this.mostrarAlertaExito = false;
                 this.mensajeExito = '';
@@ -451,8 +506,6 @@ private readonly exportConfig = {
               
               this.cargardatos();
             } else if (response.data.code_Status === -1) {
-              //result: está siendo utilizado
-              //console.log('El traslado está siendo utilizado');
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status || 'No se puede eliminar: el traslado está siendo utilizado.';
               
@@ -461,8 +514,6 @@ private readonly exportConfig = {
                 this.mensajeError = '';
               }, 5000);
             } else if (response.data.code_Status === 0) {
-              // Error general
-              //console.log('Error general al eliminar');
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status || 'Error al eliminar el traslado.';
               
@@ -472,8 +523,6 @@ private readonly exportConfig = {
               }, 5000);
             }
           } else {
-            // Respuesta inesperada
-            //console.log('Respuesta inesperada del servidor');
             this.mostrarAlertaError = true;
             this.mensajeError = response.message || 'Error inesperado al eliminar el traslado.';
             
@@ -501,16 +550,10 @@ private readonly exportConfig = {
     });
   }
 
-  cerrarAlerta(): void {
-    this.mostrarAlertaExito = false;
-    this.mensajeExito = '';
-    this.mostrarAlertaError = false;
-    this.mensajeError = '';
-    this.mostrarAlertaWarning = false;
-    this.mensajeWarning = '';
-  }
-
-  // AQUI EMPIEZA LO BUENO PARA LAS ACCIONES
+  /**
+   * Carga las acciones disponibles para el usuario desde localStorage
+   * Busca permisos específicos del módulo de traslados
+   */
   private cargarAccionesUsuario(): void {
     // OBTENEMOS PERMISOSJSON DEL LOCALSTORAGE
     const permisosRaw = localStorage.getItem('permisosJson');
@@ -542,44 +585,44 @@ private readonly exportConfig = {
     //console.log('Acciones finales:', this.accionesDisponibles);
   }
 
-  // Declaramos un estado en el cargarDatos, esto para hacer el overlay
-  // segun dicha funcion de recargar, ya que si vienes de hacer una accion
-  // es innecesario mostrar el overlay de carga
-private cargardatos(): void {
-  this.mostrarOverlayCarga = true;
+  /**
+   * Carga los datos de traslados desde el API
+   * Aplica filtros de permisos según el usuario
+   */
+  private cargardatos(): void {
+    this.mostrarOverlayCarga = true;
 
-  this.http.get<Traslado[]>(`${environment.apiBaseUrl}/Traslado/Listar`, {
-    headers: { 'x-api-key': environment.apiKey }
-  }).subscribe({
-    next: data => {
-      const tienePermisoListar = this.accionPermitida('listar');
-      const userId = getUserId();
+    this.http.get<Traslado[]>(`${environment.apiBaseUrl}/Traslado/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: data => {
+        const tienePermisoListar = this.accionPermitida('listar');
+        const userId = getUserId();
 
-      const datosFiltrados = tienePermisoListar
-        ? data
-        : data.filter(t => t.usua_Creacion?.toString() === userId.toString());
+        const datosFiltrados = tienePermisoListar
+          ? data
+          : data.filter(t => t.usua_Creacion?.toString() === userId.toString());
 
-      // Asignar numeración de filas
-      datosFiltrados.forEach((traslado, index) => {
-        traslado.No = index + 1;
-        traslado.tras_Observaciones =
-    traslado.tras_Observaciones == null ||
-    this.limpiarTexto(traslado.tras_Observaciones) === ''
-      ? 'Sin Observaciones'
-      : traslado.tras_Observaciones;
-      });
+        // Asignar numeración de filas
+        datosFiltrados.forEach((traslado, index) => {
+          traslado.No = index + 1;
+          traslado.tras_Observaciones =
+            traslado.tras_Observaciones == null ||
+            this.limpiarTexto(traslado.tras_Observaciones) === ''
+              ? 'Sin Observaciones'
+              : traslado.tras_Observaciones;
+        });
 
-      setTimeout(() => {
+        setTimeout(() => {
+          this.mostrarOverlayCarga = false;
+          this.table.setData(datosFiltrados);
+        }, 500);
+      },
+      error: error => {
+        console.error('Error al cargar traslados:', error);
         this.mostrarOverlayCarga = false;
-        //console.log('Datos recargados:', datosFiltrados);
-        this.table.setData(datosFiltrados);
-      }, 500);
-    },
-    error: error => {
-      console.error('Error al cargar traslados:', error);
-      this.mostrarOverlayCarga = false;
-      this.table.setData([]);
-    }
-  });
+        this.table.setData([]);
+      }
+    });
 }
 }

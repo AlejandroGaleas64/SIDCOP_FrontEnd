@@ -113,6 +113,13 @@ const routes: Routes = [
       import('./unidadesDeMedida/unidadesDePeso.module').then(m => m.UnidadesDePesoModule),
     canActivate: [PermisoGuard],
     data: { pantallaId: 81 } 
+  },
+  {
+    path: 'tipovendedores',
+    loadChildren: () =>
+      import('./tipoVendedores/tipoVendedores.module').then(m => m.TipoVendedoresModule),
+    canActivate: [PermisoGuard],
+    data: { pantallaId: 82 } // ID 82: Tipo de Vendedores
   }
 ];
 

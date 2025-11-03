@@ -2,6 +2,10 @@ import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from
 import { CommonModule } from '@angular/common';
 import { Producto } from 'src/app/Modelos/inventario/Producto.Model';
 
+/**
+ * Componente para visualizar detalles de promociones en modo solo lectura.
+ * Parsea y muestra información de productos y clientes asociados a la promoción.
+ */
 @Component({
   selector: 'app-details',
   standalone: true,
@@ -27,7 +31,6 @@ export class DetailsComponent implements OnChanges{
     if (changes['productoData'] && changes['productoData'].currentValue) {
       this.cargarDetallesSimulado(changes['productoData'].currentValue);
 
-      // Parsear productos de la promoción si existen
       const productosRaw = changes['productoData'].currentValue.productos ?? '[]';
       try {
         let productosJson = productosRaw;
@@ -43,7 +46,6 @@ export class DetailsComponent implements OnChanges{
         this.productosPromocion = [];
       }
 
-      // Parsear clientes de la promoción si existen
       const clientesRaw = changes['productoData'].currentValue.clientes ?? '[]';
       try {
         let clientesJson = clientesRaw;
@@ -61,7 +63,6 @@ export class DetailsComponent implements OnChanges{
     }
   }
 
-  // Simulación de carga
   cargarDetallesSimulado(data: Producto): void {
     this.cargando = true;
     this.mostrarAlertaError = false;
@@ -76,18 +77,18 @@ export class DetailsComponent implements OnChanges{
         this.mensajeError = 'Error al cargar los detalles del producto.';
         this.cargando = false;
       }
-    }, 500); // Simula tiempo de carga
+    }, 500);
   }
 
   cerrar(): void {
     this.onClose.emit();
   }
-  
+
   cerrarAlerta(): void {
     this.mostrarAlertaError = false;
     this.mensajeError = '';
   }
-  
+
   formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
     const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
@@ -98,6 +99,6 @@ export class DetailsComponent implements OnChanges{
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit'
-  });
+    });
   }
 }

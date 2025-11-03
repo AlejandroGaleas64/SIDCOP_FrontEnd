@@ -15,6 +15,7 @@ import { getUserId } from 'src/app/core/utils/user-utils';
   styleUrl: './edit.component.scss'
 })
 export class EditComponent implements OnInit, OnChanges {
+  // Función de búsqueda para ng-select de colonias (busca en colonia/municipio/departamento)
   searchColonias = (term: string, item: any) => {
     term = term.toLowerCase();
     return (
@@ -24,6 +25,7 @@ export class EditComponent implements OnInit, OnChanges {
     );
   };
 
+  // Carga lista de colonias al inicializar el componente
   ngOnInit(): void {
     // Obtener colonias igual que en crear
     this.http.get<any>(`${environment.apiBaseUrl}/Colonia/Listar`, {
@@ -35,9 +37,12 @@ export class EditComponent implements OnInit, OnChanges {
     });
   }
 
+  // Asigna el ID numérico de la colonia seleccionada al modelo
   onColoniaSeleccionada(id: any) {
     this.sucursal.colo_Id = typeof id === 'object' && id !== null ? Number(id.colo_Id) : Number(id);
   }
+
+  // Compara valores actuales vs originales y devuelve true si hay diferencias
   hayDiferencias(): boolean {
     const a = this.sucursal;
     const b: Sucursales = this.sucursalData ?? {
@@ -108,9 +113,12 @@ export class EditComponent implements OnInit, OnChanges {
   }
   cambiosDetectados: any = {};
 
+  // Genera array de cambios detectados para mostrar en modal de confirmación
   obtenerListaCambios(): any[] {
     return Object.values(this.cambiosDetectados); 
   }
+
+  // Aplica máscara XXXX-XXXX a números de teléfono (8 dígitos)
   aplicarMascaraTelefono(valor: string): string {
     valor = valor.replace(/[^\d]/g, '').slice(0, 8);
     let resultado = '';
@@ -121,6 +129,7 @@ export class EditComponent implements OnInit, OnChanges {
     return resultado;
   }
 
+  // Maneja input de teléfono aplicando máscara y limitando a 8 dígitos
   onTelefonoInput(event: Event, campo: 'sucu_Telefono1' | 'sucu_Telefono2') {
     const input = event.target as HTMLInputElement;
     if (input && input.value !== undefined) {
@@ -134,10 +143,12 @@ export class EditComponent implements OnInit, OnChanges {
     }
   }
 
+  // Limita el código de sucursal a 3 dígitos numéricos
 aplicarmascaracodigo(valor: string): string {
   return valor.replace(/[^\d]/g, '').slice(0, 3);
 }
 
+  // Maneja input de código limitando a 3 dígitos
   oncodigoinput(event: Event, campo: 'sucu_Codigo') {
     const input = event.target as HTMLInputElement;
     if (input && input.value !== undefined) {
@@ -151,25 +162,25 @@ aplicarmascaracodigo(valor: string): string {
     }
   }
 
+  // Valida formato básico de correo (contiene @ y termina en .com)
   aplicarmascaracorreo(correo: string): string {
     return correo.includes("@") && correo.trim().endsWith(".com") ? correo : '';
   }
 
+  // Valida formato de correo electrónico usando expresión regular
   validarCorreo(correo: string): boolean {
     if (!correo) return false;
     const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return regex.test(correo.trim());
   }
 
-    
-
-  // Overlay de carga animado
   mostrarOverlayCarga = false;
   @Input() sucursalData: Sucursales | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Sucursales>();
   @Output() onOverlayChange = new EventEmitter<boolean>();
 
+  // Modelo de la sucursal en edición
   sucursal: Sucursales = {
     sucu_Id: 0,
     secuencia: 0,
@@ -205,6 +216,7 @@ aplicarmascaracodigo(valor: string): string {
 
   constructor(private http: HttpClient) {}
 
+  // Detecta cambios en el Input y carga los datos de la sucursal a editar
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['sucursalData'] && changes['sucursalData'].currentValue) {
       // Normalizar los campos para evitar null/undefined
@@ -306,6 +318,7 @@ aplicarmascaracodigo(valor: string): string {
     this.mensajeWarning = '';
   }
 
+  // Valida campos requeridos y detecta cambios antes de mostrar confirmación
   validarEdicion(): void {
     this.mostrarErrores = true;
 

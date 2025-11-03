@@ -39,6 +39,12 @@ export class CreateComponent {
     message_Status: ''
   };
 
+  /**
+   * Cancela la creación del CAI y limpia el formulario
+   * - Oculta los errores de validación
+   * - Reinicia el objeto CAI a sus valores por defecto
+   * - Emite evento para cerrar el formulario
+   */
   cancelar(): void {
     this.mostrarErrores = false;
     this.cai = {
@@ -55,6 +61,11 @@ export class CreateComponent {
     this.onCancel.emit();
   }
 
+  /**
+   * Cierra todas las alertas de notificación
+   * - Oculta alertas de éxito, error y advertencia
+   * - Limpia todos los mensajes de alerta
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -64,7 +75,14 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
-  // Función para formatear el código CAI con la máscara
+  /**
+   * Formatea el código CAI aplicando una máscara específica
+   * Formato: XXXXXX-XXXXXX-XXXXXX-XXXXXX-XXXXXX-XX
+   * - Convierte a mayúsculas
+   * - Elimina caracteres especiales
+   * - Limita a 32 caracteres
+   * - Aplica guiones separadores cada 6 caracteres
+   */
   formatCaiCode(event: any): void {
     let value = event.target.value;
     
@@ -97,7 +115,12 @@ export class CreateComponent {
     event.target.value = formatted;
   }
 
-  // Función para manejar el pegado de texto
+  /**
+   * Maneja el pegado de texto en el campo código CAI
+   * - Previene el comportamiento por defecto del pegado
+   * - Aplica automáticamente el formato al texto pegado
+   * - Utiliza la función formatCaiCode para dar formato
+   */
   onPasteCaiCode(event: ClipboardEvent): void {
     event.preventDefault();
     const pastedText = event.clipboardData?.getData('text') || '';
@@ -109,6 +132,13 @@ export class CreateComponent {
     this.formatCaiCode({ target });
   }
 
+  /**
+   * Guarda un nuevo CAI en la base de datos
+   * - Valida que los campos requeridos estén completos
+   * - Envía petición HTTP POST al backend
+   * - Maneja respuestas de éxito y error
+   * - Muestra mensajes de confirmación al usuario
+   */
   guardar(): void {
   this.mostrarErrores = true;
 

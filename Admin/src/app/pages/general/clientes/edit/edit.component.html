@@ -406,28 +406,67 @@
             </div>
           </div>
 
-          <div class="mb-2 col-12">
-            <label for="ruta_Id" class="form-label">Ruta</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
-            <div class="d-flex align-items-center">
-              <i class="ri-pin-distance-line"
-                [ngStyle]="{
-                border: (!cliente.ruta_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.ruta_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
-                padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
-              </i>
-              <select id="ruta_Id" class="form-select" [(ngModel)]="cliente.ruta_Id" (change)="onRutaChange($event)"
-                [class.is-invalid]="!cliente.ruta_Id && mostrarErrores" required>
-                <option value="0" disabled>Seleccione una ruta</option>
-                <option *ngFor="let ruta of rutas" [value]="ruta.ruta_Id">
-                  {{ ruta.ruta_Descripcion }}
-                </option>
-              </select>
-            </div>
-            <div class="text-danger mt-1" *ngIf="!cliente.ruta_Id && mostrarErrores">
-              <small>El campo Ruta es requerido</small>
-            </div>
-          </div>
+          <div class="row gx-3 mb-3">
+  <!-- Ruta -->
+  <div class="col-12 col-md-6">
+    <div class="mb-2">
+      <label for="ruta_Id" class="form-label">Ruta</label>
+      <span class="text-danger" *ngIf="mostrarErrores">*</span>
+      <div class="d-flex align-items-center">
+        <i class="ri-pin-distance-line"
+           [ngStyle]="{
+             border: (!cliente.ruta_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+             backgroundColor: (!cliente.ruta_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+             padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+             borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
+        </i>
+        <ng-select
+          class="w-100"
+          [items]="rutas"
+          bindLabel="ruta_Descripcion"
+          bindValue="ruta_Id"
+          [(ngModel)]="cliente.ruta_Id"
+          (ngModelChange)="onRutaSeleccionadaCliente($event)"
+          placeholder="Seleccione una ruta"
+          [clearable]="false"
+          [class.is-invalid]="mostrarErrores && !cliente.ruta_Id">
+        </ng-select>
+      </div>
+      <div class="text-danger mt-1" *ngIf="!cliente.ruta_Id && mostrarErrores">
+        <small>El campo Ruta es requerido</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Día de Visita -->
+  <div class="col-12 col-md-6">
+    <div class="mb-2">
+      <label for="clie_DiaVisita" class="form-label">Día de Visita</label>
+      <span class="text-danger" *ngIf="mostrarErrores">*</span>
+      <div class="d-flex align-items-center">
+        <i class="ri-calendar-2-line" [ngStyle]="{
+          border: (mostrarErrores && !cliente.clie_DiaVisita) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+          backgroundColor: (mostrarErrores && !cliente.clie_DiaVisita) ? '#fff5f6' : '#f2f3f9',
+          padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
+          borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'
+        }"></i>
+        <ng-select
+          class="w-100"
+          [items]="diasDisponibles"
+          bindLabel="nombre"
+          bindValue="id"
+          [(ngModel)]="cliente.clie_DiaVisita"
+          (ngModelChange)="cliente.clie_DiaVisita = String($event)"
+          placeholder="Seleccione día de visita"
+          [clearable]="false">
+        </ng-select>
+      </div>
+      <div class="text-danger mt-1" *ngIf="mostrarErrores && !cliente.clie_DiaVisita">
+        <small>Seleccione el día de visita</small>
+      </div>
+    </div>
+  </div>
+</div>
         </div>
 
         <div style="display: flex; justify-content: space-between;" class="mb-2 mt-4">
@@ -1103,7 +1142,7 @@
           </div>
           <div class="col-md-12 d-flex justify-content-end gap-2 mt-4">
             <button type="button" class="btn btn-primary gold" style="height: 100%; transform: rotate(180deg);"
-              (click)="cancelar()">
+              (click)="cerrarFormularioMapa()">
               <span class="btn-text" style="transform: rotate(180deg);">Cerrar</span>
               <span class="btn-icon"><i class="ri-close-circle-line"></i></span>
             </button>

@@ -17,6 +17,7 @@ export class CreateComponent {
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<any>();
 
+  //Mensajes y alertas
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -25,13 +26,16 @@ export class CreateComponent {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
 
+  //Listas para ddl
   roles: any[] = [];
   empleados: any[] = [];
   vendedores: any[] = [];
 
+  //Para validacion de la clave
   claveDatos: number = 0;
   claveMensaje: string = '';
 
+  //Modelo de Usuario
   usuario: Usuario = {
     secuencia: 0,
     usua_Id: 0,
@@ -55,30 +59,35 @@ export class CreateComponent {
     message_Status: '',
   };
 
+  //Inyección de HttpClient
   constructor(private http: HttpClient) {
     this.cargarRoles();
     this.cargarEmpleados();
     this.cargarVendedores();
   }
 
+  //Cargar datos para listas de los ddl
   cargarRoles() {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Roles/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => this.roles = data);
   }
 
+  //Cargar datos para listas de los ddl
   cargarEmpleados() {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Empleado/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => this.empleados = data);
   }
 
+  //Cargar datos para listas de los ddl
   cargarVendedores() {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => this.vendedores = data);
   }
 
+  // Validar la fortaleza de la clave
   corroborarClave(clave: string) {
     if (clave.length === 0) {
       this.claveDatos = 0;
@@ -119,6 +128,7 @@ export class CreateComponent {
     }
   }
 
+  // Para la accion del boton de cancelar
   cancelar(): void {
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
@@ -152,6 +162,7 @@ export class CreateComponent {
     this.onCancel.emit();
   }
 
+  // Cerrar las alertas
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -161,6 +172,7 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
+  // Si es admin, deshabilitar los ddl de rol y empleado
   onAdminToggle(): void {
     if (this.usuario.usua_EsAdmin) {
       this.usuario.role_Id = 1;
@@ -168,6 +180,7 @@ export class CreateComponent {
     }
   }
 
+  // Para la accion del boton de guardar
   guardar(): void {
     this.mostrarErrores = true;
 
@@ -251,6 +264,7 @@ export class CreateComponent {
     }
   }
 
+  // Cargar y subir la imagen al servidor
   onImagenSeleccionada(event: any) {
     const file = event.target.files[0];
 

@@ -96,22 +96,36 @@ listaAGuardar: any = null;
     prod_Id: 0,
   };
 
+  /**
+   * Abre el modal de confirmación para guardar cambios de una lista específica.
+   * @param lista Lista seleccionada cuyos cambios se desean guardar.
+   */
 abrirModalGuardarCambios(lista: any) {
   this.listaAGuardar = lista;
   this.mostrarConfirmacionGuardar = true;
 }
 
+  /**
+   * Cierra el modal de confirmación de guardado sin aplicar cambios.
+   */
 cancelarGuardarCambios() {
   this.mostrarConfirmacionGuardar = false;
   this.listaAGuardar = null;
 }
 
+  /**
+   * Cancela el flujo de creación de una nueva lista y limpia errores de creación.
+   */
 cancelarNuevaLista() {
   this.isCreatingNewLista = false;
   this.nocreando = true;
   this.createError = '';
 }
 
+  /**
+   * Confirma el guardado de cambios de la lista preparada en el modal.
+   * Si existe una lista pendiente en "listaAGuardar", delega en {@link guardarCambios}.
+   */
 confirmarGuardarCambios() {
   this.mostrarConfirmacionGuardar = false;
   if (this.listaAGuardar) {
@@ -120,6 +134,9 @@ confirmarGuardarCambios() {
   }
 }
 
+  /**
+   * Cierra y limpia todos los banners/alertas visibles en pantalla.
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -129,6 +146,10 @@ confirmarGuardarCambios() {
     this.mensajeWarning = '';
   }
 
+  /**
+   * Constructor del componente. Inicializa breadcrumbs y carga datos base (clientes, productos, canales).
+   * @param http Cliente HTTP para realizar peticiones a la API.
+   */
   constructor(private http: HttpClient) {
     this.breadCrumbItems = [
       { label: 'Ventas' },
@@ -139,6 +160,9 @@ confirmarGuardarCambios() {
     this.cargarCanales();
   }
 
+  /**
+   * Carga el listado de productos desde la API y construye un display amigable.
+   */
   cargarProductos(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Productos/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -157,6 +181,9 @@ confirmarGuardarCambios() {
     });
   }
 
+  /**
+   * Carga el listado de clientes desde la API y agrega bandera "checked" para selección.
+   */
   cargarClientes(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Cliente/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -171,6 +198,9 @@ confirmarGuardarCambios() {
     });
   }
 
+  /**
+   * Carga el listado de canales desde la API y agrega bandera "checked" para selección.
+   */
   cargarCanales(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Canal/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -185,6 +215,10 @@ confirmarGuardarCambios() {
     });
   }
 
+  /**
+   * Carga y agrupa las listas de precios para el producto seleccionado.
+   * Controla el mensaje cuando no existen listas.
+   */
   cargarListasPrecios(): void {
     if (!this.productoSeleccionado) {
       this.listasAgrupadas = [];
@@ -218,6 +252,11 @@ confirmarGuardarCambios() {
     });
   }
 
+  /**
+   * Agrupa registros devueltos por la API por id de lista de precios.
+   * @param data Registros planos de listas por producto.
+   * @returns Arreglo de grupos con { listaId, items }.
+   */
   agruparListas(data: any[]): any[] {
     const agrupadas: { [key: number]: any[] } = {};
     data.forEach((item) => {
@@ -231,19 +270,39 @@ confirmarGuardarCambios() {
     }));
   }
 
+  /**
+   * Obtiene clientes pertenecientes a un canal específico.
+   * @param canalId Id del canal.
+   */
   getClientesPorCanal(canalId: number) {
     return this.clientesLista.filter(c => c.cana_Id === canalId);
   }
 
+  /**
+   * Verifica si un cliente está seleccionado en una lista dada.
+   * @param lista Lista de trabajo.
+   * @param clienteId Id del cliente.
+   */
   isClienteChecked(lista: any, clienteId: number): boolean {
     return lista.clientesChecked.includes(clienteId);
   }
 
+  /**
+   * Indica si todos los clientes del canal están seleccionados en la lista.
+   * @param lista Lista de trabajo.
+   * @param canal Canal evaluado.
+   */
   isCanalFullyChecked(lista: any, canal: any): boolean {
     const clientes = this.getClientesPorCanal(canal.cana_Id);
     return clientes.length > 0 && clientes.every(c => this.isClienteChecked(lista, c.clie_Id));
   }
 
+  /**
+   * Marca o desmarca todos los clientes de un canal en la lista (checkbox padre).
+   * @param lista Lista de trabajo.
+   * @param canal Canal afectado.
+   * @param event Evento del checkbox.
+   */
   toggleParentCheckbox(lista: any, canal: any, event: any) {
     const checked = event.target.checked;
     const clientes = this.getClientesPorCanal(canal.cana_Id);
@@ -256,6 +315,13 @@ confirmarGuardarCambios() {
     });
   }
 
+  /**
+   * Gestiona la selección individual de un cliente dentro de un canal.
+   * @param lista Lista de trabajo.
+   * @param canal Canal al que pertenece el cliente.
+   * @param clienteId Id del cliente.
+   * @param event Evento del checkbox.
+   */
   onChildCheckboxChange(lista: any, canal: any, clienteId: number, event: any) {
     if (event.target.checked) {
       if (!lista.clientesChecked.includes(clienteId)) {
@@ -266,16 +332,29 @@ confirmarGuardarCambios() {
     }
   }
 
+  /**
+   * Devuelve true si hay selección parcial de clientes dentro de un canal (estado indeterminado).
+   * @param lista Lista de trabajo.
+   * @param canal Canal evaluado.
+   */
   isIndeterminate(lista: any, canal: any): boolean {
     const clientes = this.getClientesPorCanal(canal.cana_Id);
     const checkedCount = clientes.filter(c => this.isClienteChecked(lista, c.clie_Id)).length;
     return checkedCount > 0 && checkedCount < clientes.length;
   }
 
+  /**
+   * Alterna el estado de colapso/expansión de una lista existente.
+   * @param lista Lista afectada.
+   */
   toggleCollapse(lista: any) {
     lista.isCollapsed = !lista.isCollapsed;
   }
 
+  /**
+   * Handler al cambiar el producto seleccionado: recarga listas y resetea banderas de creación/errores.
+   * @param event Evento de selección de producto.
+   */
   onProductoChange(event: any) {
     this.cargarListasPrecios();
     this.nocreando = true;
@@ -285,6 +364,9 @@ confirmarGuardarCambios() {
   }
 
   // Lista Nueva
+  /**
+   * Inicia el flujo para crear una nueva lista validando que exista un producto seleccionado.
+   */
   startCreateNewLista() {
     if (!this.productoSeleccionado) {
       this.createError = 'Debes seleccionar un producto antes de crear una lista.';
@@ -311,10 +393,19 @@ confirmarGuardarCambios() {
     };
   }
 
+  /**
+   * Alterna el colapso de un canal en el panel de creación de lista.
+   * @param canalId Id del canal a expandir/colapsar.
+   */
   toggleNewCanalCollapse(canalId: number) {
     this.newLista.canalesOpen[canalId] = !this.newLista.canalesOpen[canalId];
   }
 
+  /**
+   * Marca o desmarca todos los clientes de un canal en la nueva lista (checkbox padre).
+   * @param canal Canal afectado.
+   * @param event Evento del checkbox.
+   */
   toggleNewParentCheckbox(canal: any, event: any) {
     const checked = event.target.checked;
     const clientes = this.getClientesPorCanal(canal.cana_Id);
@@ -327,6 +418,11 @@ confirmarGuardarCambios() {
     });
   }
 
+  /**
+   * Gestiona la selección individual de un cliente al crear una nueva lista.
+   * @param clienteId Id del cliente.
+   * @param event Evento del checkbox.
+   */
   toggleNewChildCheckbox(clienteId: number, event: any) {
     if (event.target.checked) {
       if (!this.newLista.clientesChecked.includes(clienteId)) {
@@ -337,11 +433,19 @@ confirmarGuardarCambios() {
     }
   }
 
+  /**
+   * Indica si todos los clientes del canal están seleccionados en la nueva lista.
+   * @param canal Canal evaluado.
+   */
   isNewCanalFullyChecked(canal: any): boolean {
     const clientes = this.getClientesPorCanal(canal.cana_Id);
     return clientes.length > 0 && clientes.every(c => this.newLista.clientesChecked.includes(c.clie_Id));
   }
 
+  /**
+   * Devuelve true si hay selección parcial (indeterminado) en el canal durante la creación de nueva lista.
+   * @param canal Canal evaluado.
+   */
   isNewIndeterminate(canal: any): boolean {
     const clientes = this.getClientesPorCanal(canal.cana_Id);
     const checkedCount = clientes.filter(c => this.newLista.clientesChecked.includes(c.clie_Id)).length;
@@ -349,6 +453,11 @@ confirmarGuardarCambios() {
   }
 
   // --- XML GENERATION ---
+  /**
+   * Genera un XML simple con los IDs de clientes requeridos por la API.
+   * @param clienteIds Arreglo de ids de clientes.
+   * @returns Cadena XML con la forma <root><item><clie_id>...</clie_id></item>...</root> o string vacío si no hay ids.
+   */
   generateClientesXml(clienteIds: number[]): string {
     if (!clienteIds.length) return '';
     let xml = '<root>';
@@ -359,7 +468,12 @@ confirmarGuardarCambios() {
     return xml;
   }
 
-  // --- VALIDATION ---
+  // --- Validacion al crear lista ---
+  /**
+   * Valida los campos obligatorios para crear una nueva lista.
+   * Establece mensajes por campo en {@link inputErrors}.
+   * @returns true si los campos son válidos; de lo contrario false.
+   */
   validateNewLista(): boolean {
   let valid = true;
   this.inputErrors = {
@@ -398,6 +512,10 @@ confirmarGuardarCambios() {
 }
 
   
+  /**
+   * Envía a la API la creación de una nueva lista de precios para el producto seleccionado.
+   * Previamente valida campos con {@link validateNewLista} y construye el payload requerido.
+   */
   crearNuevaLista() {
     this.createError = '';
     if (!this.validateNewLista()) {
@@ -418,8 +536,6 @@ confirmarGuardarCambios() {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe({
       next: (data) => {
-
-        //console.log('Lista creada:', data);
 
 
         if(data.data.code_Status == 1){
@@ -462,11 +578,18 @@ confirmarGuardarCambios() {
       },
       error: (error) => {
         this.createError = 'Error al crear la lista. Intenta de nuevo.';
-        console.error(error);
+        
       }
     });
   }
 
+  //Validacion al editar lista
+  /**
+   * Valida los campos de una lista existente antes de guardar cambios.
+   * Rellena "lista.inputErrors" con mensajes específicos.
+   * @param lista Lista a validar.
+   * @returns true cuando los campos son válidos.
+   */
   validateListaEdicion(lista: any): boolean {
     let valid = true;
     lista.inputErrors = {
@@ -501,6 +624,11 @@ confirmarGuardarCambios() {
   }
 
 
+  /**
+   * Persiste cambios de una lista existente llamando a la API.
+   * Aplica validaciones con {@link validateListaEdicion} y muestra alertas según respuesta.
+   * @param lista Lista a actualizar.
+   */
   guardarCambios(lista: any) {
 
     if (!this.validateListaEdicion(lista)) {
@@ -572,6 +700,11 @@ confirmarGuardarCambios() {
   }
 
 
+  /**
+   * Muestra modal de confirmación para eliminar una lista.
+   * @param listaId Identificador de la lista a eliminar.
+   * @param prod_Id Identificador del producto al que pertenece la lista.
+   */
   confirmarEliminar(listaId: any, prod_Id: number): void {
     //console.log('Solicitando confirmación para eliminar: lista ', listaId, ', de producto ', prod_Id);
     this.listaAEliminar.listaId = listaId;
@@ -580,16 +713,26 @@ confirmarGuardarCambios() {
     this.mostrarConfirmacionEliminar = true;
   }
 
+  /**
+   * Cancela el proceso de eliminación y limpia el estado temporal.
+   */
   cancelarEliminar(): void {
     this.mostrarConfirmacionEliminar = false;
     this.listaAEliminar = {listaId: 0, prod_Id: 0};
   }
 
+  /**
+   * Cierra el panel de clientes en conflicto y limpia el arreglo correspondiente.
+   */
   cancelarClientesConflicto(): void {
     this.mostrarClientesConflicto = false;
     this.listaClientesConflicto = [];
   }
 
+  /**
+   * Elimina la lista indicada tras confirmación, llamando a la API.
+   * Gestiona estados de éxito y error mostrando las alertas correspondientes.
+   */
   eliminar(): void {
   if (!this.listaAEliminar) return;
 
@@ -685,6 +828,12 @@ confirmarGuardarCambios() {
   });
   }
 
+  /**
+   * Obtiene clientes de un canal opcionalmente filtrando por texto (id, nombre, apellido o negocio).
+   * @param canalId Id del canal a filtrar.
+   * @param filter Texto de filtro; si está vacío retorna todos los clientes del canal.
+   * @returns Arreglo de clientes que cumplen el filtro.
+   */
   getClientesPorCanalFiltrado(canalId: number, filter: string): any[] {
     const clientes = this.getClientesPorCanal(canalId);
     if (!filter) return clientes;

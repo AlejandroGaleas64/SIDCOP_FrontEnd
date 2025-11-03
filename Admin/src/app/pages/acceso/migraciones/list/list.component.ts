@@ -13,13 +13,7 @@ import { Migracion } from 'src/app/Modelos/acceso/migraciones.model';
 import { ConfiguracionFactura } from 'src/app/Modelos/ventas/ConfiguracionFactura.Model';
 
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
-// Importar el servicio de exportación optimizado
-import {
-  ExportService,
-  ExportConfig,
-  ExportColumn,
-} from 'src/app/shared/export.service';
-
+//Importaciones de Animaciones
 import {
   trigger,
   state,
@@ -28,6 +22,12 @@ import {
   animate,
 } from '@angular/animations';
 import { set } from 'lodash';
+// Importar el servicio de exportación optimizado
+import {
+  ExportService,
+  ExportConfig,
+  ExportColumn,
+} from 'src/app/shared/export.service';
 
 @Component({
   selector: 'app-list',
@@ -77,8 +77,8 @@ import { set } from 'lodash';
   //Animaciones para collapse
 })
 export class ListComponent implements OnInit {
-  // ===== CONFIGURACIÓN FÁCIL DE EXPORTACIÓN =====
-  // 🔧 PERSONALIZA AQUÍ TU CONFIGURACIÓN DE EXPORTACIÓN 🔧
+
+  // ===== CONFIGURACIÓN DE EXPORTACIÓN =====
   private readonly exportConfig = {
     // Configuración básica
     title: 'Migraciones', // Título del reporte
@@ -115,14 +115,10 @@ export class ListComponent implements OnInit {
     }),
   };
 
-  // Estado de exportación
+  // ===== PROPIEDADES GENERALES =====
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
-
-  // bread crumb items
   breadCrumbItems!: Array<{}>;
-
-  // Acciones disponibles para el usuario en esta pantalla
   accionesDisponibles: string[] = [];
 
   // Método robusto para validar si una acción está permitida
@@ -157,11 +153,11 @@ export class ListComponent implements OnInit {
     this.activeActionRow = null; // Cerrar menú de acciones
   }
 
-  PEEliminar: Migracion | null = null;
+  // ===== PROPIEDADES ESPECÍFICAS DE MIGRACIÓN =====
   infoconfiguracion: any[] = [];
-
-mostrarConfirmacionMigrar = false;
-migracionPendiente: Migracion | null = null;
+  mostrarConfirmacionMigrar = false;
+  mostrarConfirmacionMigrarGeneral = false;
+  migracionPendiente: Migracion | null = null;
 
 
   cargarconfiguracion() {
@@ -227,8 +223,7 @@ confirmarMigrar(): void {
   }
 }
 
-mostrarConfirmacionMigrarGeneral = false;
-
+// ===== MÉTODOS DE MIGRACIÓN =====
 confirmarMigracionGeneral(): void {
   this.mostrarConfirmacionMigrarGeneral = true;
 }
@@ -308,15 +303,16 @@ confirmarMigrarGeneral(): void {
 
   // ...existing code...
 
+  // ===== CONTROL DE FORMULARIOS =====
   activeActionRow: number | null = null;
   showEdit = true;
   showDetails = true;
   showDelete = true;
-  showCreateForm = false; // Control del collapse
-  showEditForm = false; // Control del collapse de edición
-  showDetailsForm = false; // Control del collapse de detalles
+  showCreateForm = false;
+  showEditForm = false;
+  showDetailsForm = false;
 
-  // Propiedades para alertas
+  // ===== PROPIEDADES PARA ALERTAS =====
   mostrarOverlayCarga = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -324,8 +320,6 @@ confirmarMigrarGeneral(): void {
   mensajeError = '';
   mostrarAlertaWarning = false;
   mensajeWarning = '';
-
-  // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
 
   constructor(
@@ -340,7 +334,7 @@ confirmarMigrarGeneral(): void {
     this.cargarconfiguracion();
   }
 
-  //Info async para exportar
+  // ===== MÉTODOS DE EXPORTACIÓN =====
   async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
     if (this.exportando) {
       this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
@@ -530,6 +524,7 @@ confirmarMigrarGeneral(): void {
     return this.table.data$.value?.length > 0;
   }
 
+  // ===== CONTROL DE FORMULARIOS =====
   cerrarFormulario(): void {
     this.showCreateForm = false;
   }
@@ -563,6 +558,7 @@ confirmarMigrarGeneral(): void {
     this.mensajeWarning = '';
   }
 
+  // ===== MÉTODOS PRIVADOS =====
   private cargarAccionesUsuario(): void {
     // Obtener permisosJson del localStorage
     const permisosRaw = localStorage.getItem('permisosJson');
@@ -657,6 +653,9 @@ confirmarMigrarGeneral(): void {
       });
   }
 
+  //Declaramos un estado en el cargarDatos, esto para hacer el overlay
+  //segun dicha funcion de recargar, ya que si vienes de hacer una accion
+  //es innecesario mostrar el overlay de carga
   private cargardatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
 

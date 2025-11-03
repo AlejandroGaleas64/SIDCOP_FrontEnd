@@ -10,12 +10,15 @@ import { PuntoEmision } from 'src/app/Modelos/ventas/PuntoEmision.Model';
   styleUrl: './details.component.scss'
 })
 export class DetailsComponent implements OnChanges {
+  // ===== PROPIEDADES DE ENTRADA Y SALIDA =====
   @Input() PEData: PuntoEmision | null = null;
   @Output() onClose = new EventEmitter<void>();
 
+  // ===== PROPIEDADES DE DATOS =====
   PEDetalle: PuntoEmision | null = null;
   cargando = false;
 
+  // ===== PROPIEDADES PARA ALERTAS =====
   mostrarAlertaError = false;
   mensajeError = '';
 
@@ -25,6 +28,7 @@ export class DetailsComponent implements OnChanges {
     }
   }
 
+  // ===== MÉTODOS DE CARGA DE DATOS =====
   // Simulación de carga
   cargarDetallesSimulado(data: PuntoEmision): void {
     this.cargando = true;
@@ -43,6 +47,7 @@ export class DetailsComponent implements OnChanges {
     }, 500); // Simula tiempo de carga
   }
 
+  // ===== MÉTODOS DE CONTROL DEL COMPONENTE =====
   cerrar(): void {
     this.onClose.emit();
   }
@@ -52,7 +57,8 @@ export class DetailsComponent implements OnChanges {
     this.mensajeError = '';
   }
 
-   formatearFecha(fecha: string | Date | null): string {
+  // ===== MÉTODOS AUXILIARES =====
+  formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
     const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
     if (isNaN(dateObj.getTime())) return 'N/A';

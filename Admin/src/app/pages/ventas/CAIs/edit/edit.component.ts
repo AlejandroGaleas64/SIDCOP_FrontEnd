@@ -44,6 +44,13 @@ export class EditComponent implements OnChanges {
 
   constructor(private http: HttpClient) {}
 
+  /**
+   * Detecta cambios en las propiedades de entrada del componente
+   * @param changes - Objeto con los cambios detectados
+   * - Actualiza el CAI local cuando se reciben nuevos datos
+   * - Guarda la descripción original para comparaciones
+   * - Reinicia el estado de errores y alertas
+   */
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['caiData'] && changes['caiData'].currentValue) {
       this.cai = { ...changes['caiData'].currentValue };
@@ -53,11 +60,21 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  /**
+   * Cancela la edición del CAI
+   * - Cierra todas las alertas activas
+   * - Emite evento para cerrar el formulario de edición
+   */
   cancelar(): void {
     this.cerrarAlerta();
     this.onCancel.emit();
   }
 
+  /**
+   * Cierra todas las alertas de notificación
+   * - Oculta alertas de éxito, error y advertencia
+   * - Limpia todos los mensajes de alerta
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -67,6 +84,13 @@ export class EditComponent implements OnChanges {
     this.mensajeWarning = '';
   }
 
+  /**
+   * Valida los datos antes de proceder con la edición
+   * - Verifica que los campos requeridos estén completos
+   * - Compara los datos actuales con los originales
+   * - Muestra confirmación si hay cambios válidos
+   * - Muestra advertencias si no hay cambios o faltan datos
+   */
   validarEdicion(): void {
     this.mostrarErrores = true;
 
@@ -88,15 +112,32 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  /**
+   * Cancela la confirmación de edición
+   * - Oculta el modal de confirmación
+   */
   cancelarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
   }
 
+  /**
+   * Confirma y procede con la edición
+   * - Oculta el modal de confirmación
+   * - Ejecuta el proceso de guardado
+   */
   confirmarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
     this.guardar();
   }
 
+  /**
+   * Guarda los cambios del CAI en la base de datos
+   * - Valida que los campos requeridos estén completos
+   * - Prepara el objeto con los datos actualizados
+   * - Envía petición HTTP PUT al backend
+   * - Maneja respuestas de éxito y error
+   * - Emite evento de guardado exitoso
+   */
   private guardar(): void {
     this.mostrarErrores = true;
 

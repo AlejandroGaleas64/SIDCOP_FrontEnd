@@ -32,6 +32,8 @@ export class EditComponent implements OnChanges {
     vend_DNI: '',
     vend_Sexo: '',
     vend_Tipo: '',
+    tiVe_Id: 0,
+    tiVe_TipoVendedor: '',
     vend_DireccionExacta: '',
     vend_Supervisor: 0,
     vend_Ayudante: 0,
@@ -57,6 +59,7 @@ export class EditComponent implements OnChanges {
   supervisores: any[] = [];
   ayudantes: any[] = [];
   modelos: any[] = [];
+  tiposVendedor: any[] = [];
 
 
   searchSucursal = (term: string, item: any) => {
@@ -98,6 +101,15 @@ export class EditComponent implements OnChanges {
       this.recomputarOpciones();
     });
   }
+
+    listarTiposdeVendedor(): void {
+      this.http.get<any>(`${environment.apiBaseUrl}/TiposDeVendedor/Listar`, {
+          headers: { 'x-api-key': environment.apiKey }
+        }).subscribe((data) => {
+          this.tiposVendedor = data;
+          console.log(this.tiposVendedor);
+        });
+      }
 
   listarRutasDisponibles(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Rutas/Listar`, {
@@ -181,6 +193,8 @@ export class EditComponent implements OnChanges {
     vend_DNI: '',
     vend_Sexo: '',
     vend_Tipo: '',
+    tiVe_Id: 0,
+    tiVe_TipoVendedor: '',
     vend_DireccionExacta: '',
     vend_Supervisor: 0,
     vend_Ayudante: 0,
@@ -216,6 +230,7 @@ export class EditComponent implements OnChanges {
     this.listarColonias();
     this.listarRutas();
     this.listarRutasDisponibles();
+    this.listarTiposdeVendedor();
   }
 
 
@@ -227,6 +242,11 @@ export class EditComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['vendedorData'] && changes['vendedorData'].currentValue) {
       this.vendedor = { ...changes['vendedorData'].currentValue };
+      console.log(this.vendedor);
+      // Asegurar que tive_Id sea un número
+      if (this.vendedor) {
+        this.vendedor.tiVe_Id = Number(this.vendedor.tiVe_Id);
+      }
       // Create a deep copy of the vendedor object for comparison
       this.vendedorOriginal = JSON.parse(JSON.stringify(this.vendedor));
 
@@ -316,7 +336,7 @@ export class EditComponent implements OnChanges {
       !this.vendedor.vend_DireccionExacta.trim() ||
       !this.vendedor.sucu_Id ||
       !this.vendedor.colo_Id ||
-      !this.vendedor.vend_Tipo.trim() ||
+      !this.vendedor.tiVe_Id ||
       !this.vendedor.vend_Supervisor ||
       (this.tieneAyudante && !this.vendedor.vend_Ayudante)
       || !rutasValidas
@@ -337,7 +357,7 @@ export class EditComponent implements OnChanges {
       this.vendedor.vend_Telefono.trim() !== (this.vendedorOriginal?.vend_Telefono?.trim() ?? '') ||
       this.vendedor.vend_Correo.trim() !== (this.vendedorOriginal?.vend_Correo?.trim() ?? '') ||
       this.vendedor.vend_Sexo !== (this.vendedorOriginal?.vend_Sexo ?? '') ||
-      this.vendedor.vend_Tipo.trim() !== (this.vendedorOriginal?.vend_Tipo?.trim() ?? '') ||
+      this.vendedor.tiVe_Id !== (this.vendedorOriginal?.tiVe_Id ?? 0) ||
       this.vendedor.vend_DireccionExacta.trim() !== (this.vendedorOriginal?.vend_DireccionExacta?.trim() ?? '') ||
       this.vendedor.sucu_Id !== (this.vendedorOriginal?.sucu_Id ?? 0) ||
       this.vendedor.colo_Id !== (this.vendedorOriginal?.colo_Id ?? 0) ||
@@ -382,7 +402,7 @@ export class EditComponent implements OnChanges {
         vend_Telefono: this.vendedor.vend_Telefono.trim(),
         vend_Correo: this.vendedor.vend_Correo.trim(),
         vend_Sexo: this.vendedor.vend_Sexo,
-        vend_Tipo: this.vendedor.vend_Tipo.trim(),
+        tive_Id: this.vendedor.tiVe_Id,
         vend_DireccionExacta: this.vendedor.vend_DireccionExacta.trim(),
         sucu_Id: this.vendedor.sucu_Id,
         colo_Id: this.vendedor.colo_Id,
@@ -614,7 +634,6 @@ export class EditComponent implements OnChanges {
       { key: 'vend_Telefono', label: 'Teléfono' },
       { key: 'vend_Correo', label: 'Correo' },
       { key: 'vend_DireccionExacta', label: 'Dirección Exacta' },
-      { key: 'vend_Tipo', label: 'Tipo de Vendedor' },
       { key: 'vend_EsExterno', label: 'Es Contratista' }
     ];
 
@@ -640,12 +659,11 @@ export class EditComponent implements OnChanges {
 
 
     // Verificar tipo de vendedor (mapeado legible)
-    if (nuevo.vend_Tipo !== original.vend_Tipo) {
-      const tipos = { 'P': 'Preventista', 'V': 'Venta Directa', 'F': 'Entregador' } as const;
-      const tipoOriginal = (tipos as any)[original.vend_Tipo] || original.vend_Tipo || '—';
-      const tipoNuevo = (tipos as any)[nuevo.vend_Tipo] || nuevo.vend_Tipo || '—';
+    if (nuevo.tive_Id !== original.tive_Id) {
+      const tipoOriginal = this.tiposVendedor.find(t => t.tiVe_Id === original.tive_Id)?.tiVe_TipoVendedor || `ID: ${original.tive_Id}` || '—';
+      const tipoNuevo = this.tiposVendedor.find(t => t.tiVe_Id === nuevo.tive_Id)?.tiVe_TipoVendedor || `ID: ${nuevo.tive_Id}` || '—';
       const item = { anterior: tipoOriginal, nuevo: tipoNuevo, label: 'Tipo de Vendedor' };
-      this.cambiosDetectados.tipo = item as any;
+      this.cambiosDetectados.tipoVendedor = item as any;
       cambios.push(item);
     }
 

@@ -39,11 +39,9 @@
         <!-- Selected Meta Content -->
         <ng-container *ngIf="selectedMeta">
           <div class="card shadow-sm" [style.border-color]="'#14192e'">
-            <!-- Meta Header with subtle background -->
-            <div class="card-header border-bottom-0" 
-              style="background: linear-gradient(to bottom, rgba(20,25,46,0.03), transparent); padding: 1.5rem;">
-              <!-- Meta Info -->
-              <div class="d-flex flex-wrap gap-3">
+            <!-- Meta Header with subtle division -->
+            <div class="card-header bg-light border-bottom py-3">
+              <div class="d-flex flex-wrap gap-3 align-items-center">
                 <div class="flex-grow-1">
                   <span class="badge mb-2" [style.background-color]="'#14192e'">
                     <i [class]="getMetaTipo(selectedMeta.meta_Tipo).icon" class="me-1"></i>
@@ -54,7 +52,6 @@
                     <i class="ri-calendar-line me-1"></i>
                     {{ formatDate(selectedMeta.meta_FechaInicio) }} — {{ formatDate(selectedMeta.meta_FechaFin) }}
                   </div>
-                  <!-- Product/Category info -->
                   <div class="mt-2" *ngIf="selectedMeta.prod_Id || selectedMeta.cate_Id">
                     <small class="text-muted me-3" *ngIf="selectedMeta.prod_Id">
                       <i class="ri-price-tag-3-line me-1"></i>
@@ -80,9 +77,11 @@
               </div>
             </div>
 
-            <div class="card-body pt-3">
-              <!-- Search & Stats -->
+            <div class="card-body">
+              
+              <!-- Controls section -->
               <div class="d-flex align-items-center gap-3 mb-4">
+                <!-- Search -->
                 <div class="input-group" style="max-width: 300px;">
                   <span class="input-group-text border-0" [style.background-color]="'rgba(20, 25, 46, 0.1)'">
                     <i class="ri-search-line"></i>
@@ -94,10 +93,60 @@
                     [(ngModel)]="filterText" 
                     (ngModelChange)="onFilterChange()">
                 </div>
-                <span class="badge border" [style.color]="'#14192e'" [style.border-color]="'#14192e'">
+
+                <div class="d-flex gap-2">
+                  <!-- Sort Actions -->
+                  <button type="button" 
+                          class="btn btn-sm" 
+                          [ngStyle]="{
+                            'background-color': ordenActual === 'asc' ? '#14192e' : '#e8e8f7',
+                            'border': '1px solid #14192e',
+                            'color': ordenActual === 'asc' ? '#fff' : '#14192e'
+                          }"
+                          (click)="ordenarPorProgreso(false)">
+                    <i class="ri-sort-asc-line me-1"></i>
+                    Menor a Mayor
+                  </button>
+                  <button type="button" 
+                          class="btn btn-sm"
+                          [ngStyle]="{
+                            'background-color': ordenActual === 'desc' ? '#14192e' : '#e8e8f7',
+                            'border': '1px solid #14192e',
+                            'color': ordenActual === 'desc' ? '#fff' : '#14192e'
+                          }"
+                          (click)="ordenarPorProgreso(true)">
+                    <i class="ri-sort-desc-line me-1"></i>
+                    Mayor a Menor
+                  </button>
+
+                  <!-- Top 5 Toggle -->
+                  <button type="button" 
+                          class="btn btn-sm"
+                          [ngStyle]="{
+                            'background-color': false ? '#14192e' : '#e8e8f7',
+                            'border': '1px solid #14192e',
+                            'color': false ? '#fff' : '#14192e'
+                          }"
+                          (click)="toggleTop5()">
+                    <i [class]="mostrandoTop5 ? 'ri-list-unordered-line me-1' : 'ri-trophy-line me-1'"></i>
+                    {{ mostrandoTop5 ? 'Mostrar Todos' : 'Top 5' }}
+                  </button>
+
+                  <!-- Counter Badge -->
+                  <!-- <span class="badge" 
+                        [style.background-color]="'rgba(20, 25, 46, 0.1)'"
+                        [style.color]="'#14192e'">
+                    <i class="ri-user-line me-1"></i>
+                    {{ vendedores.length }} vendedores
+                  </span> -->
+                  <span class="badge border btn btn-sm" [style.color]="'#14192e'" [style.border-color]="'#14192e'">
                   {{ vendedores.length }} vendedores
                 </span>
+                </div>
               </div>
+
+
+              
 
               <!-- Chart -->
               <div *ngIf="vendedores.length > 0">
