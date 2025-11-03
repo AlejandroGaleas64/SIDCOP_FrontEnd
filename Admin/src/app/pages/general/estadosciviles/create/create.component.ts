@@ -28,6 +28,7 @@ export class CreateComponent {
 
   constructor(private http: HttpClient) {}
 
+  // Modelo del estado civil a crear con valores iniciales
   estadoCivil: EstadoCivil = {
     esCv_Id: 0,
     esCv_Descripcion: '',
@@ -42,6 +43,7 @@ export class CreateComponent {
     usuarioModificacion: ''
   };
 
+  // Limpia el formulario y emite evento de cancelación al padre
   cancelar(): void {
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
@@ -76,6 +78,7 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
+  // Valida campos requeridos y ejecuta POST al endpoint de inserción
   guardar(): void {
     this.mostrarErrores = true;
     this.onOverlayChange.emit(true);

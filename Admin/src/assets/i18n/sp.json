@@ -29,6 +29,7 @@
          "EMPLEADOS": "Empleados",
          "VISITASCLIENTES": "Visitas Clientes",
          "ESTADOSVISITA": "Estado de Visita",
+         "TIPOVENDEDORES": "Tipo de Vendedores",
          "UNIDADESDEPESO": "Unidades de Peso"
       }
     },

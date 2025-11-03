@@ -73,35 +73,30 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
   ]
 })
 export class ListComponent implements OnInit {
+  // Configuración para exportar datos a Excel, PDF y CSV
   private readonly exportConfig = {
-        // Configuración básica
-        title: 'Listado de Canales',                    // Título del reporte
-        filename: 'Canales',                           // Nombre base del archivo
+        title: 'Listado de Canales',
+        filename: 'Canales',
 
-        // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
         columns: [
           { key: 'No', header: 'No.', width: 8, align: 'center' as const },
           { key: 'Descripción', header: 'Descripción', width: 25, align: 'left' as const },
           { key: 'Observaciones', header: 'Observaciones', width: 25, align: 'left' as const }
         ] as ExportColumn[],
         
-        // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
         dataMapping: (modelo: Canal, index: number) => ({
           'No': modelo?.secuencia || (index + 1),
           'Descripción': this.limpiarTexto(modelo?.cana_Descripcion),
           'Observaciones': this.limpiarTexto(modelo?.cana_Observaciones)
-          
-          // Agregar más campos aquí según necesites:
-          // 'Campo': this.limpiarTexto(modelo?.campo),
         })
       };
-  // Overlay de carga animado
   mostrarOverlayCarga = false;
   breadCrumbItems!: Array<{}>;
 
-
+  // Array de acciones permitidas según permisos del usuario
   accionesDisponibles: string[] = [];
 
+  // Verifica si el usuario tiene permiso para ejecutar una acción específica
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
   }

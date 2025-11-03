@@ -19,6 +19,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
 })
 export class CreateComponent implements OnInit {
 
+  // Valida formato de correo electrónico usando expresión regular
   validarCorreo(correo: string): boolean {
     if (!correo) return false;
 
@@ -26,6 +27,7 @@ export class CreateComponent implements OnInit {
     return regex.test(correo.trim());
   }
 
+  // Aplica máscara XXXX-XXXX a números de teléfono (8 dígitos)
   aplicarMascaraTelefono(valor: string): string {
     valor = valor.replace(/[^\d]/g, '').slice(0, 8);
     let resultado = '';
@@ -36,6 +38,7 @@ export class CreateComponent implements OnInit {
     return resultado;
   }
 
+  // Maneja input de teléfono aplicando máscara y limitando a 8 dígitos
   onTelefonoInput(event: Event, campo: 'sucu_Telefono1' | 'sucu_Telefono2') {
     const input = event.target as HTMLInputElement;
     if (input && input.value !== undefined) {
@@ -48,10 +51,12 @@ export class CreateComponent implements OnInit {
     }
   }
 
+  // Limita el código de sucursal a 3 dígitos numéricos
   aplicarmascaracodigo(valor: string): string {
     return valor.replace(/[^\d]/g, '').slice(0, 3);
   }
 
+  // Maneja input de código limitando a 3 dígitos
   oncodigoinput(event: Event, campo: 'sucu_Codigo') {
     const input = event.target as HTMLInputElement;
     if (input && input.value !== undefined) {
@@ -83,8 +88,7 @@ municipioSeleccionado: string = '';
 coloniasfiltro: Colonias[] = [];
 colonias: any[] = [];
 
-// Array unificado para el dropdown
-
+  // Modelo de la sucursal a crear con valores iniciales
   sucursal: Sucursales = {
     sucu_Id: 0,
     secuencia: 0,
@@ -102,6 +106,7 @@ colonias: any[] = [];
 
   constructor(private http: HttpClient) {}
 
+  // Carga colonias, genera código autoincrementable y obtiene departamentos/municipios
   ngOnInit(): void {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Sucursales/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
@@ -153,6 +158,7 @@ colonias: any[] = [];
     });
   }
 
+  // Función de búsqueda para ng-select de colonias (busca en colonia/municipio/departamento)
   searchColonias = (term: string, item: any) => {
     term = term.toLowerCase();
     return (
@@ -162,12 +168,12 @@ colonias: any[] = [];
     );
   };
 
-
-
+  // Asigna el ID numérico de la colonia seleccionada al modelo
   onColoniaSeleccionada(id: any) {
     this.sucursal.colo_Id = typeof id === 'object' && id !== null ? Number(id.colo_Id) : Number(id);
   }
 
+  // Limpia formulario, resetea valores y emite evento de cancelación
   cancelar(): void {
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
@@ -209,6 +215,7 @@ colonias: any[] = [];
     this.mensajeWarning = '';
   }
 
+  // Valida campos requeridos y ejecuta POST al endpoint de inserción
   guardar(): void {
   this.sucursal.colo_Id = Number(this.sucursal.colo_Id);
     this.mostrarErrores = true;

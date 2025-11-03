@@ -39,6 +39,12 @@ export class CreateComponent {
     message_Status: ''
   };
 
+  /**
+   * Cancela la creación del CAI y limpia el formulario
+   * - Oculta los errores de validación
+   * - Reinicia el objeto CAI a sus valores por defecto
+   * - Emite evento para cerrar el formulario
+   */
   cancelar(): void {
     this.mostrarErrores = false;
     this.cai = {
@@ -55,6 +61,11 @@ export class CreateComponent {
     this.onCancel.emit();
   }
 
+  /**
+   * Cierra todas las alertas de notificación
+   * - Oculta alertas de éxito, error y advertencia
+   * - Limpia todos los mensajes de alerta
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -64,6 +75,70 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
+  /**
+   * Formatea el código CAI aplicando una máscara específica
+   * Formato: XXXXXX-XXXXXX-XXXXXX-XXXXXX-XXXXXX-XX
+   * - Convierte a mayúsculas
+   * - Elimina caracteres especiales
+   * - Limita a 32 caracteres
+   * - Aplica guiones separadores cada 6 caracteres
+   */
+  formatCaiCode(event: any): void {
+    let value = event.target.value;
+    
+    // Remover todos los caracteres que no sean letras o números
+    value = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    
+    // Limitar a 32 caracteres (5 grupos de 6 + 1 grupo de 2)
+    if (value.length > 32) {
+      value = value.substring(0, 32);
+    }
+    
+    // Aplicar la máscara: XXXXXX-XXXXXX-XXXXXX-XXXXXX-XXXXXX-XX
+    let formatted = '';
+    for (let i = 0; i < value.length; i++) {
+      // Agregar guión después de cada grupo de 6 caracteres, excepto al final
+      if (i > 0 && i % 6 === 0 && i < 30) {
+        formatted += '-';
+      }
+      // Agregar guión antes del último grupo de 2 caracteres
+      else if (i === 30 && value.length > 30) {
+        formatted += '-';
+      }
+      formatted += value[i];
+    }
+    
+    // Actualizar el valor del modelo
+    this.cai.nCai_Codigo = formatted;
+    
+    // Actualizar el valor del input
+    event.target.value = formatted;
+  }
+
+  /**
+   * Maneja el pegado de texto en el campo código CAI
+   * - Previene el comportamiento por defecto del pegado
+   * - Aplica automáticamente el formato al texto pegado
+   * - Utiliza la función formatCaiCode para dar formato
+   */
+  onPasteCaiCode(event: ClipboardEvent): void {
+    event.preventDefault();
+    const pastedText = event.clipboardData?.getData('text') || '';
+    
+    // Simular el evento de input con el texto pegado
+    const target = event.target as HTMLInputElement;
+    target.value = pastedText;
+    
+    this.formatCaiCode({ target });
+  }
+
+  /**
+   * Guarda un nuevo CAI en la base de datos
+   * - Valida que los campos requeridos estén completos
+   * - Envía petición HTTP POST al backend
+   * - Maneja respuestas de éxito y error
+   * - Muestra mensajes de confirmación al usuario
+   */
   guardar(): void {
   this.mostrarErrores = true;
 

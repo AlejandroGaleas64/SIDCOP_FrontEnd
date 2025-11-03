@@ -9,6 +9,12 @@ import { useAnimation } from '@angular/animations';
 import { Promocion } from 'src/app/Modelos/inventario/PromocionModel';
 import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
+/**
+ * Componente para crear promociones.
+ * Gestiona un formulario multi-paso (información general, productos relacionados, clientes)
+ * con validación de cada paso, búsqueda/paginación de productos, selección de clientes por canal,
+ * y carga de imagen.
+ */
 @Component({
   selector: 'app-create',
   standalone: true,
@@ -112,17 +118,17 @@ export class CreateComponent {
     this.producto.prod_PagaImpuesto = this.producto.prod_PagaImpuesto || 'N';
     this.producto.impu_Id = this.producto.impu_Id || 0;
     this.cargarPromos();
- // si usas todo el listado para algo
     if (this.categoria.cate_Id) {
       this.filtrarSubcategoriasPorCategoria(this.categoria.cate_Id);
     }
   }
 
+  /**
+   * Valida que el precio unitario cumpla con el formato: máximo 10 enteros y 2 decimales.
+   */
   validarPrecioUnitario() {
     const valor = this.producto.prod_PrecioUnitario;
-    // Convertir a string para validar con regex
     const valorStr = valor?.toString() || "";
-    // Validar si el valor cumple el formato 10 enteros + 2 decimales
     const regex = /^\d{1,10}(\.\d{1,2})?$/;
 
     this.precioFormatoValido = regex.test(valorStr);
@@ -146,12 +152,15 @@ export class CreateComponent {
     this.filtrarSubcategoriasPorCategoria(categoriaId);
   }
 
+  /**
+   * Carga y agrupa los clientes por canal de distribución.
+   */
   listarClientes(): void {
-      this.http.get<any>(`${environment.apiBaseUrl}/Cliente/Listar`, {
-          headers: { 'x-api-key': environment.apiKey }
-        }).subscribe((data) => {
+    this.http.get<any>(`${environment.apiBaseUrl}/Cliente/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe((data) => {
       const agrupados: { [canal: string]: any[] } = {};
-  
+
       for (const cliente of data) {
         const canal = cliente.cana_Descripcion || 'Sin canal';
         if (!agrupados[canal]) {
@@ -159,12 +168,12 @@ export class CreateComponent {
         }
         agrupados[canal].push(cliente);
       }
-  
+
       this.clientesAgrupados = Object.keys(agrupados).map(canal => ({
         canal,
-        filtro: '', // Se agrega filtro para el buscador individual
+        filtro: '',
         clientes: agrupados[canal],
-        collapsed: true // Inicialmente todos los canales están expandidos
+        collapsed: true
       }));
     });
   }
@@ -174,38 +183,34 @@ export class CreateComponent {
   cargarPromos() {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Promociones/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => {this.promociones = data; this.producto.prod_Codigo = this.generarSiguienteCodigo();},
-      error => {
-        console.error('Error al cargar las promociones:', error);
-      }
-    );
+    }).subscribe(data => {
+      this.promociones = data;
+      this.producto.prod_Codigo = this.generarSiguienteCodigo();
+    }, error => {
+      console.error('Error al cargar las promociones:', error);
+    });
   }
-
-
 
   cargarImpuestos() {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Impuestos/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(data => {this.impuestos = data;},
-      error => {
-        console.error('Error al cargar los impuestos:', error);
-      }
-    );
+    }).subscribe(data => {
+      this.impuestos = data;
+    }, error => {
+      console.error('Error al cargar los impuestos:', error);
+    });
   }
-
-  
 
   isCargandoSubcategorias: boolean = false;
 
   filtrarSubcategoriasPorCategoria(categoriaId: number) {
-    //console.log('Filtrando subcategorías para categoría:', categoriaId);
     if (!categoriaId) {
       this.subcategoriasFiltradas = [];
       this.producto.subc_Id = 0;
       this.isCargandoSubcategorias = false;
       return;
     }
-    this.isCargandoSubcategorias = true; // comienza carga  
+    this.isCargandoSubcategorias = true;
     const categoriaBuscar: Categoria = {
       cate_Id: categoriaId,
       cate_Descripcion: '',
@@ -223,20 +228,18 @@ export class CreateComponent {
     }
     this.http.post<{data: Categoria[]}>(`${environment.apiBaseUrl}/Categorias/FiltrarSubcategorias`, categoriaBuscar, {
       headers: { 
-          'X-Api-Key': environment.apiKey,
-          'Content-Type': 'application/json',
-          'accept': '*/*'
-        }
+        'X-Api-Key': environment.apiKey,
+        'Content-Type': 'application/json',
+        'accept': '*/*'
+      }
     }).subscribe(response  => {
-      //console.log('Subcategorías recibidas:', response);
       this.subcategoriasFiltradas = response.data;
-      //console.log('Subcategorías filtradas:', this.subcategoriasFiltradas);
-      this.producto.subc_Id = 0; // Reset subcategory selection
-      this.isCargandoSubcategorias = false; // terminó carga
+      this.producto.subc_Id = 0;
+      this.isCargandoSubcategorias = false;
     }, error => {
       console.error('Error al filtrar subcategorías por categoría:', error);
       this.subcategoriasFiltradas = [];
-      this.isCargandoSubcategorias = false; // error, pero terminó carga
+      this.isCargandoSubcategorias = false;
     });
   }
 
@@ -297,55 +300,54 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
-      guardar(): void {
-        //console.log('guardar() llamado');
-        this.mostrarErrores = true;
-        if (this.producto.prod_Codigo.trim() && this.producto.prod_Descripcion.trim() && this.producto.prod_DescripcionCorta.trim() 
-          && (this.producto.prod_PrecioUnitario != null && this.producto.prod_PrecioUnitario >= 0) )
-
-        {
-          const productosSeleccionados = this.obtenerProductosSeleccionados();
-          this.mostrarAlertaWarning = false;
-          this.mostrarAlertaError = false;
-          const promocionGuardar = {
-            prod_Id: 0,
-            secuencia: 0,
-            prod_Codigo: this.producto.prod_Codigo.trim(),
-            prod_CodigoBarra: '',
-            prod_Descripcion: this.producto.prod_Descripcion.trim(),
-            prod_DescripcionCorta: this.producto.prod_DescripcionCorta.trim(),
-            prod_Imagen: this.producto.prod_Imagen,
-            cate_Id: 0,
-            cate_Descripcion: '',
-            subc_Id: 0,
-            marc_Id: 0,
-            prov_Id: 0,
-            impu_Id: this.producto.prod_PagaImpuesto ? Number(this.producto.impu_Id) : 0,
-            prod_PrecioUnitario: Number(this.producto.prod_PrecioUnitario),
-            prod_CostoTotal: 0,
-            prod_PagaImpuesto: this.producto.prod_PagaImpuesto ? 'S' : 'N',
-            prod_EsPromo: 'N',
-            prod_Estado: true,
-            usua_Creacion: getUserId(),
-            prod_FechaCreacion: new Date().toISOString(),
-            usua_Modificacion: 0,
-            prod_FechaModificacion: new Date().toISOString(),
-            marc_Descripcion: '',
-            prov_NombreEmpresa: '',
-            subc_Descripcion: '',
-            impu_Descripcion: '',
-            usuarioCreacion: '',
-            usuarioModificacion: '',
-             idClientes: this.clientesSeleccionados,
-            productos: '',
-            clientes: '',
-            productos_Json: productosSeleccionados,
-          };
-          //console.log(promocionGuardar);
-          if (this.producto.prod_PagaImpuesto) {
-            promocionGuardar.impu_Id = Number(this.producto.impu_Id);
-          }
-          //console.log('Datos a enviar:', promocionGuardar);
+  /**
+   * Valida y guarda la promoción en el servidor.
+   * Incluye validación de campos requeridos, construcción del payload con productos y clientes seleccionados.
+   */
+  guardar(): void {
+    this.mostrarErrores = true;
+    if (this.producto.prod_Codigo.trim() && this.producto.prod_Descripcion.trim() && this.producto.prod_DescripcionCorta.trim() 
+      && (this.producto.prod_PrecioUnitario != null && this.producto.prod_PrecioUnitario >= 0)) {
+      const productosSeleccionados = this.obtenerProductosSeleccionados();
+      this.mostrarAlertaWarning = false;
+      this.mostrarAlertaError = false;
+      const promocionGuardar = {
+        prod_Id: 0,
+        secuencia: 0,
+        prod_Codigo: this.producto.prod_Codigo.trim(),
+        prod_CodigoBarra: '',
+        prod_Descripcion: this.producto.prod_Descripcion.trim(),
+        prod_DescripcionCorta: this.producto.prod_DescripcionCorta.trim(),
+        prod_Imagen: this.producto.prod_Imagen,
+        cate_Id: 0,
+        cate_Descripcion: '',
+        subc_Id: 0,
+        marc_Id: 0,
+        prov_Id: 0,
+        impu_Id: this.producto.prod_PagaImpuesto ? Number(this.producto.impu_Id) : 0,
+        prod_PrecioUnitario: Number(this.producto.prod_PrecioUnitario),
+        prod_CostoTotal: 0,
+        prod_PagaImpuesto: this.producto.prod_PagaImpuesto ? 'S' : 'N',
+        prod_EsPromo: 'N',
+        prod_Estado: true,
+        usua_Creacion: getUserId(),
+        prod_FechaCreacion: new Date().toISOString(),
+        usua_Modificacion: 0,
+        prod_FechaModificacion: new Date().toISOString(),
+        marc_Descripcion: '',
+        prov_NombreEmpresa: '',
+        subc_Descripcion: '',
+        impu_Descripcion: '',
+        usuarioCreacion: '',
+        usuarioModificacion: '',
+        idClientes: this.clientesSeleccionados,
+        productos: '',
+        clientes: '',
+        productos_Json: productosSeleccionados,
+      };
+      if (this.producto.prod_PagaImpuesto) {
+        promocionGuardar.impu_Id = Number(this.producto.impu_Id);
+      }
           this.http.post<any>(`${environment.apiBaseUrl}/Promociones/Insertar`, promocionGuardar, {
             headers: { 
               'X-Api-Key': environment.apiKey,
@@ -379,7 +381,7 @@ export class CreateComponent {
               console.error('Error HTTP detectado:', error);
               console.error('Error completo:', error);
               if (error.status === 400) {
-                console.error('400 Bad Request:', error.error); // posible detalle del error
+                console.error('400 Bad Request:', error.error);
               }
               this.mostrarAlertaError = true;
               this.mensajeError = 'Error al guardar la promocion. Por favor, revise los datos e intente nuevamente.';
@@ -389,17 +391,6 @@ export class CreateComponent {
                 this.mensajeError = '';
               }, 5000);
             }
-            // error: (error) => {
-            //   console.error('Error completo:', error); // ⬅️ Esto es clave
-            //   console.error('Detalle del error:', error.error);
-            //   this.mostrarAlertaError = true;
-            //   this.mensajeError = 'Error al guardar el producto. Por favor, intente nuevamente.';
-            //   this.mostrarAlertaExito = false;
-            //   setTimeout(() => {
-            //     this.mostrarAlertaError = false;
-            //     this.mensajeError = '';
-            //   }, 5000);
-            // }
           });
         } else {
           if(this.producto.prod_PrecioUnitario == null || this.producto.prod_PrecioUnitario < 0) {
@@ -407,12 +398,11 @@ export class CreateComponent {
             this.mensajeWarning = 'El precio unitario debe ser mayor o igual a 0.';
             this.mostrarAlertaError = false;
             this.mostrarAlertaExito = false;
-          }
-          else{
-          this.mostrarAlertaWarning = true;
-          this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
-          this.mostrarAlertaError = false;
-          this.mostrarAlertaExito = false;
+          } else {
+            this.mostrarAlertaWarning = true;
+            this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
+            this.mostrarAlertaError = false;
+            this.mostrarAlertaExito = false;
           }
           setTimeout(() => {
             this.mostrarAlertaWarning = false;
@@ -421,26 +411,22 @@ export class CreateComponent {
         }
   }
 
+  /**
+   * Procesa la imagen seleccionada, la sube al servidor y actualiza la URL.
+   */
   onImagenSeleccionada(event: any) {
-    // Obtenemos el archivo seleccionado desde el input tipo file
     const file = event.target.files[0];
 
     if (file) {
-      // Mostrar indicador de carga
       this.mostrarOverlayCarga = true;
-      
-      // Crear una URL temporal para mostrar la imagen inmediatamente
       const tempImageUrl = URL.createObjectURL(file);
       this.producto.prod_Imagen = tempImageUrl;
-      
-      // Usar el servicio de carga de imágenes
+
       this.imageUploadService.uploadImageAsync(file)
         .then(imagePath => {
-          // Construir la URL completa para mostrar la imagen
           const baseUrl = environment.apiBaseUrl.replace('/api', '');
           this.producto.prod_Imagen = `${baseUrl}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
           this.mostrarOverlayCarga = false;
-          //console.log('Imagen subida correctamente:', this.producto.prod_Imagen);
         })
         .catch(error => {
           console.error('Error al subir la imagen:', error);
@@ -470,61 +456,52 @@ export class CreateComponent {
   }
 }
 
+/**
+ * Valida que el paso de información general tenga todos los datos requeridos.
+ * Incluye validación de impuesto cuando prod_PagaImpuesto está activado.
+ */
 validarPasoInformacionGeneral(): boolean {
   const d = this.producto;
-    //console.log('Validando paso de Información General:', d);
   const isv = d.prod_PagaImpuesto? 'S' : 'N';
   return !!d.prod_Codigo?.trim()
     && !!d.prod_Descripcion?.trim()
     && !!d.prod_DescripcionCorta?.trim()
     && d.prod_PrecioUnitario != null
     && d.prod_PrecioUnitario > 0
-     && (
-      (isv === 'N') ||
-      (isv === 'S'  && d.impu_Id != null && d.impu_Id > 0)
-    );
-
-
+    && ((isv === 'N') || (isv === 'S'  && d.impu_Id != null && d.impu_Id > 0));
 }
-
 
 irAlSiguientePaso() {
   this.mostrarErrores = true;
 
   if (this.validarPasoActual()) {
     this.mostrarErrores = false;
-   
     this.activeTab ++;
-    
   } else {
     this.mostrarAlertaWarning = true;
     this.mensajeWarning= 'Debe Completar todos los campos'
-
     setTimeout(() => {
-          this.mostrarAlertaError = false;
-          this.mensajeError = '';
-        }, 2000);
-    // Podrías mostrar una alerta o dejar que los mensajes de error visibles lo indiquen
+      this.mostrarAlertaError = false;
+      this.mensajeError = '';
+    }, 2000);
   }
 }
 
-// Nueva función para navegación inteligente de tabs
+/**
+ * Navega entre pasos validando hacia adelante, permitiendo libre navegación hacia atrás.
+ */
 navegar(tabDestino: number) {
-  // Si intenta ir hacia atrás, permitir siempre
   if (tabDestino < this.activeTab) {
     this.activeTab = tabDestino;
     this.mostrarErrores = false;
     return;
   }
-  
-  // Si intenta ir hacia adelante, validar todos los pasos intermedios
+
   if (tabDestino > this.activeTab) {
-    // Validar todos los pasos desde el actual hasta el destino
     for (let paso = this.activeTab; paso < tabDestino; paso++) {
       if (!this.validarPaso(paso)) {
         this.mostrarAlertaWarning = true;
         this.mensajeWarning = `Debe completar todos los campos del paso ${this.getNombrePaso(paso)} antes de continuar.`;
-        
         setTimeout(() => {
           this.mostrarAlertaWarning = false;
           this.mensajeWarning = '';
@@ -532,35 +509,30 @@ navegar(tabDestino: number) {
         return;
       }
     }
-    
-    // Si todos los pasos intermedios están válidos, navegar
     this.activeTab = tabDestino;
     this.mostrarErrores = false;
     return;
   }
-  
-  // Si es el mismo tab, no hacer nada
+
   if (tabDestino === this.activeTab) {
     return;
   }
 }
 
-// Función auxiliar para validar un paso específico
 validarPaso(paso: number): boolean {
   switch (paso) {
-    case 1: // Información general
+    case 1:
       return this.validarPasoInformacionGeneral();
-    case 2: // Aplica para
-    const productosSeleccionados = this.obtenerProductosSeleccionados();
+    case 2:
+      const productosSeleccionados = this.obtenerProductosSeleccionados();
       return productosSeleccionados.length > 0;
-    case 3: // Clientes
+    case 3:
       return this.clientesSeleccionados.length > 0;
     default:
       return false;
   }
 }
 
-// Función auxiliar para obtener el nombre del paso
 getNombrePaso(paso: number): string {
   switch (paso) {
     case 1: return 'Información General';
@@ -572,9 +544,8 @@ getNombrePaso(paso: number): string {
 
 
 productos: any[] = [];
-  Math = Math; // para usar Math en la plantilla
+  Math = Math;
 
-  // ========== PROPIEDADES PARA BÚSQUEDA Y PAGINACIÓN MEJORADAS ==========
   busquedaProducto = '';
   productosFiltrados: any[] = [];
   paginaActual = 1;
@@ -590,7 +561,7 @@ productos: any[] = [];
           cantidad: 0,
           precio: producto.prod_PrecioUnitario || 0
         }));
-        this.aplicarFiltros(); // Usar el nuevo método de filtrado
+        this.aplicarFiltros();
       },
       error: () => {
         this.mostrarAlertaError = true;
@@ -598,8 +569,6 @@ productos: any[] = [];
       }
     });
   }
-
-  // ========== MÉTODOS PARA BÚSQUEDA Y PAGINACIÓN MEJORADOS ==========
 
   buscarProductos(): void {
     this.paginaActual = 1;
@@ -685,8 +654,6 @@ productos: any[] = [];
     return this.productos.findIndex(p => p.prod_Id === prodId);
   }
 
-  // ========== MÉTODOS DE CANTIDAD MEJORADOS ==========
-
   aumentarCantidad(prodId: number): void {
     const index = this.getProductoIndex(prodId);
     if (index >= 0 && index < this.productos.length) {
@@ -709,7 +676,6 @@ productos: any[] = [];
     }
   }
 
-  // Método para obtener la cantidad de un producto específico
   getCantidadProducto(prodId: number): number {
     const producto = this.productos.find(p => p.prod_Id === prodId);
     return producto ? (producto.cantidad || 0) : 0;
@@ -724,7 +690,7 @@ productos: any[] = [];
       }));
   }
 
-   getTotalProductosSeleccionados(): number {
+  getTotalProductosSeleccionados(): number {
     return this.productos
       .filter(producto => producto.cantidad > 0)
       .reduce((total, producto) => total + producto.cantidad, 0);
@@ -748,9 +714,7 @@ getClientesFiltrados(grupo: any): any[] {
 }
 
 alternarCliente(clienteId: number, checked: boolean): void {
- if (checked) {
-    
-
+  if (checked) {
     this.clientesSeleccionados.push(clienteId);
   } else {
     this.clientesSeleccionados = this.clientesSeleccionados.filter(id => id !== clienteId);
@@ -762,43 +726,35 @@ onClickCheckbox(event: MouseEvent, clienteId: number) {
   const isChecked = input.checked;
 
   if (isChecked) {
-
-
     this.clientesSeleccionados.push(clienteId);
   } else {
-    // Si estaba desmarcando, solo actualizar modelo
     this.clientesSeleccionados = this.clientesSeleccionados.filter(id => id !== clienteId);
   }
 }
 
-
-
-// Verificar si todos los clientes de un canal están seleccionados
 estanTodosSeleccionados(grupo: any): boolean {
   return grupo.clientes.every((c: { clie_Id: number; }) => this.clientesSeleccionados.includes(c.clie_Id));
 }
 
-// Seleccionar/deseleccionar todos los clientes de un canal
 seleccionarTodosClientes(grupo: any, seleccionar: boolean): void {
   grupo.clientes.forEach((cliente: { clie_Id: number; }) => {
     this.alternarCliente(cliente.clie_Id, seleccionar);
   });
 }
 
-// Alternar el estado colapsado/expandido de un canal
 toggleCanal(grupo: any): void {
   grupo.collapsed = !grupo.collapsed;
 }
 
+/**
+ * Genera el siguiente código secuencial de promoción en formato PROM-XXXXX.
+ */
 generarSiguienteCodigo(): string {
-  
-  // Supón que tienes un array de promociones existentes llamado promociones
   const codigos = this.promociones
     .map(p => p.prod_Codigo)
     .filter(c => /^PROM-\d{5}$/.test(c));
   if (codigos.length === 0) return 'PROM-00001';
 
-  // Ordena y toma el mayor
   const ultimoCodigo = codigos.sort().pop()!;
   const numero = parseInt(ultimoCodigo.split('-')[1], 10) + 1;
   return `PROM-${numero.toString().padStart(5, '0')}`;

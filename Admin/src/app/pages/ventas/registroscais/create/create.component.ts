@@ -18,9 +18,11 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
   styleUrl: './create.component.scss',
 })
 export class CreateComponent {
+  // ===== PROPIEDADES DE SALIDA =====
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<RegistroCAI>();
 
+  // ===== PROPIEDADES PARA ALERTAS =====
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mensajeExito = '';
@@ -29,11 +31,12 @@ export class CreateComponent {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
 
+  // ===== LISTAS PARA DROPDOWNS =====
   CAI: any[] = [];
   PE: any[] = [];
+  Sucursales: any[] = [];
 
-  //Funcion para poder buscar en el ng-select
-
+  // ===== MÉTODOS AUXILIARES =====
   searchCAI = (term: string, item: any) => {
     term = term.toLowerCase();
     return (
@@ -86,8 +89,6 @@ export class CreateComponent {
     );
   };
 
-  Sucursales: any[] = [];
-
   cargarSucursales() {
     this.http
       .get<any>(`${environment.apiBaseUrl}/Sucursales/Listar`, {
@@ -105,6 +106,7 @@ export class CreateComponent {
     this.cargarPE();
   }
 
+  // ===== MÉTODOS DE VISTA PREVIA =====
   actualizarNumeroFactura(): void {
     const sucursalSeleccionada = this.Sucursales.find(s => s.sucu_Id === this.registroCai.sucu_Id);
     const puntoEmisionSeleccionado = this.PE.find(pe => pe.puEm_Id === this.registroCai.puEm_Id);
@@ -157,10 +159,9 @@ export class CreateComponent {
     this.actualizarNumeroFactura();
   }
 
+  // ===== PROPIEDADES PARA VISTA PREVIA =====
   fechaInicialEmision: string = '';
   fechaFinalEmision: string = '';
-
-  // Información para el número de factura
   numeroFacturaFormateado: string = '';
 
   // Función para obtener el valor numérico sin máscara
@@ -168,6 +169,7 @@ export class CreateComponent {
     return maskedValue ? maskedValue.replace(/\D/g, '') : '';
   }
 
+  // ===== MODELO DE DATOS =====
   registroCai: RegistroCAI = {
     regC_Id: 0,
     regC_Descripcion: '',
@@ -237,6 +239,7 @@ export class CreateComponent {
     this.onCancel.emit();
   }
 
+  // ===== MÉTODOS DE CONTROL DE FORMULARIO =====
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -246,6 +249,7 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
+  // ===== MÉTODOS CRUD =====
   guardar(): void {
     this.mostrarErrores = true;
 

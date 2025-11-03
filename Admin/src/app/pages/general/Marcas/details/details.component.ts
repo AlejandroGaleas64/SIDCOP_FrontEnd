@@ -1,3 +1,8 @@
+/**
+ * Componente para mostrar los detalles de una marca
+ * Muestra información detallada de una marca seleccionada y permite cerrar la vista
+ */
+
 import { Component, Output, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Marcas } from 'src/app/Modelos/general/Marcas.Model';
@@ -10,28 +15,49 @@ import { Marcas } from 'src/app/Modelos/general/Marcas.Model';
   styleUrl: './details.component.scss'
 })
 export class DetailsComponent implements OnChanges {
+  // Propiedades de entrada y salida para comunicación con componentes padre
+  /** Datos de la marca recibidos desde el componente padre */
   @Input() marcaData: Marcas | null = null;
+  /** Evento emitido cuando el usuario cierra la vista de detalles */
   @Output() onClose = new EventEmitter<void>();
 
+  // Propiedades para gestionar el estado del componente
+  /** Almacena los detalles de la marca a mostrar */
   marcaDetalle: Marcas | null = null;
+  /** Indica si los datos están siendo cargados */
   cargando = false;
 
+  // Propiedades para controlar alertas de error
+  /** Controla la visibilidad de la alerta de error */
   mostrarAlertaError = false;
+  /** Mensaje que se muestra en la alerta de error */
   mensajeError = '';
 
+  /**
+   * Detecta cambios en las propiedades de entrada del componente
+   * Se ejecuta cuando marcaData cambia y carga los detalles de la marca
+   * @param changes Objeto que contiene los cambios detectados en las propiedades
+   */
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['marcaData'] && changes['marcaData'].currentValue) {
       this.cargarDetallesSimulado(changes['marcaData'].currentValue);
     }
   }
 
+  /**
+   * Simula la carga de detalles de una marca
+   * Copia los datos recibidos y maneja posibles errores durante el proceso
+   * @param data Objeto con los datos de la marca a cargar
+   */
   // Simulación de carga
   cargarDetallesSimulado(data: Marcas): void {
     this.cargando = true;
     this.mostrarAlertaError = false;
 
+    // Simula un retraso en la carga de datos
     setTimeout(() => {
       try {
+        // Crea una copia de los datos recibidos
         this.marcaDetalle = { ...data };
         this.cargando = false;
       } catch (error) {
@@ -43,15 +69,29 @@ export class DetailsComponent implements OnChanges {
     }, 500); // Simula tiempo de carga
   }
 
+  /**
+   * Cierra la vista de detalles
+   * Emite el evento onClose para notificar al componente padre
+   */
   cerrar(): void {
     this.onClose.emit();
   }
 
+  /**
+   * Cierra la alerta de error activa
+   * Oculta la alerta y limpia el mensaje de error
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaError = false;
     this.mensajeError = '';
   }
 
+ /**
+   * Formatea una fecha al formato local de Honduras
+   * Convierte fechas en formato string o Date a un formato legible
+   * @param fecha Fecha a formatear (puede ser string, Date o null)
+   * @returns Fecha formateada en formato 'dd/mm/yyyy hh:mm' o 'N/A' si la fecha es inválida
+   */
  formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
     const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;

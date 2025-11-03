@@ -19,6 +19,11 @@ import { set } from 'lodash';
 import { Promocion } from 'src/app/Modelos/inventario/PromocionModel';
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
 
+/**
+ * Componente de listado de promociones.
+ * Gestiona visualización, búsqueda, paginación, exportación (Excel/PDF/CSV),
+ * y operaciones CRUD con control de permisos de usuario.
+ */
 @Component({
   selector: 'app-list',
   standalone: true,
@@ -70,260 +75,208 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
 })
 export class ListComponent implements OnInit {
 
-
   private readonly exportConfig = {
-            // Configuración básica
-            title: 'Listado de Promociones',                    // Título del reporte
-            filename: 'Promociones',                           // Nombre base del archivo
-            department: 'Invetario',  
-            additionalInfo: '',                       // Departamento        
-            
-            // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
-            columns: [
-              { key: 'No', header: 'No.', width: 5, align: 'center' as const },
-              { key: 'Codigo', header: 'Codigo', width: 25, align: 'left' as const },
-              { key: 'Descripcion', header: 'Descripcion', width: 25, align: 'left' as const },
-              { key: 'Descripcion Corta', header: 'Descripcion Corta', width: 25, align: 'left' as const },
-              { key: 'Precio', header: 'Precio', width: 17, align: 'left' as const },
-              { key: 'Esta Activo', header: 'Esta Activo', width: 17, align: 'left' as const },
-              
-              
-            ] as ExportColumn[],
-            
-            // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
-            dataMapping: (promocion: Promocion, index: number) => ({
-              'No': promocion?.secuencia || (index + 1),
-              'Codigo': this.limpiarTexto(promocion?.prod_Codigo),
-              'Descripcion': this.limpiarTexto(promocion?.prod_Descripcion),
-              'Descripcion Corta': this.limpiarTexto(promocion?.prod_DescripcionCorta),
-              'Precio': this.limpiarTexto('L. ' + promocion?.prod_PrecioUnitario.toFixed(2) ),
-              'Esta Activo': this.limpiarTexto(promocion?.prod_Estado? 'Si' : 'No'),
+    title: 'Listado de Promociones',
+    filename: 'Promociones',
+    department: 'Invetario',  
+    additionalInfo: '',
+    
+    columns: [
+      { key: 'No', header: 'No.', width: 5, align: 'center' as const },
+      { key: 'Codigo', header: 'Codigo', width: 25, align: 'left' as const },
+      { key: 'Descripcion', header: 'Descripcion', width: 25, align: 'left' as const },
+      { key: 'Descripcion Corta', header: 'Descripcion Corta', width: 25, align: 'left' as const },
+      { key: 'Precio', header: 'Precio', width: 17, align: 'left' as const },
+      { key: 'Esta Activo', header: 'Esta Activo', width: 17, align: 'left' as const },
+    ] as ExportColumn[],
 
-               // Combina dirección, municipio y departamento
-              // Agregar más campos aquí según necesites:
-              // 'Campo': this.limpiarTexto(modelo?.campo),
-            })
-          };
+    dataMapping: (promocion: Promocion, index: number) => ({
+      'No': promocion?.secuencia || (index + 1),
+      'Codigo': this.limpiarTexto(promocion?.prod_Codigo),
+      'Descripcion': this.limpiarTexto(promocion?.prod_Descripcion),
+      'Descripcion Corta': this.limpiarTexto(promocion?.prod_DescripcionCorta),
+      'Precio': this.limpiarTexto('L. ' + promocion?.prod_PrecioUnitario.toFixed(2) ),
+      'Esta Activo': this.limpiarTexto(promocion?.prod_Estado? 'Si' : 'No'),
+    })
+  };
       
-           async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
-          if (this.exportando) {
-            this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
-            return;
-          }
-      
-          if (!this.validarDatosParaExport()) {
-            return;
-          }
-      
-          try {
-            this.exportando = true;
-            this.tipoExportacion = tipo;
-            this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
-            
-            const config = this.crearConfiguracionExport();
-            let resultado;
-            
-            switch (tipo) {
-              case 'excel':
-                resultado = await this.exportService.exportToExcel(config);
-                break;
-              case 'pdf':
-                resultado = await this.exportService.exportToPDF(config);
-                break;
-              case 'csv':
-                resultado = await this.exportService.exportToCSV(config);
-                break;
-            }
-            
-            this.manejarResultadoExport(resultado);
-            
-          } catch (error) {
-            console.error(`Error en exportación ${tipo}:`, error);
-            this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
-          } finally {
-            this.exportando = false;
-            this.tipoExportacion = null;
-          }
-        }
-      
-        /**
-         * Métodos específicos para cada tipo (para usar en templates)
-         */
-        async exportarExcel(): Promise<void> {
-          await this.exportar('excel');
-        }
-      
-        async exportarPDF(): Promise<void> {
-         
-          await this.exportar('pdf');
-        }
-      
-        async exportarCSV(): Promise<void> {
-          await this.exportar('csv');
-        }
-      
-        /**
-         * Verifica si se puede exportar un tipo específico
-         */
-        puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
-          if (this.exportando) {
-            return tipo ? this.tipoExportacion !== tipo : false;
-          }
-          return this.table.data$.value?.length > 0;
-        }
-      
-        // ===== MÉTODOS PRIVADOS DE EXPORTACIÓN =====
-      
-        /**
-         * Crea la configuración de exportación de forma dinámica
-         */
-        private crearConfiguracionExport(): ExportConfig {
-          return {
-            title: this.exportConfig.title,
-            filename: this.exportConfig.filename,
-            data: this.obtenerDatosExport(),
-            columns: this.exportConfig.columns,
-            metadata: {
-              department: this.exportConfig.department,
-              additionalInfo: this.exportConfig.additionalInfo
-            }
-          };
-        }
-      
-        /**
-         * Obtiene y prepara los datos para exportación
-         */
-        private obtenerDatosExport(): any[] {
-          try {
-            // Usa productosFiltrados para exportar lo que ves en pantalla
-            const datos = this.productos;
-            
+  async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
+    if (this.exportando) {
+      this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
+      return;
+    }
 
-            if (!Array.isArray(datos) || datos.length === 0) {
-              throw new Error('No hay datos disponibles para exportar');
-            }
+    if (!this.validarDatosParaExport()) {
+      return;
+    }
 
-            return datos.map((modelo, index) =>
-              this.exportConfig.dataMapping.call(this, modelo, index)
-            );
-          } catch (error) {
-            console.error('Error obteniendo datos:', error);
-            throw error;
-          }
-        }
+    try {
+      this.exportando = true;
+      this.tipoExportacion = tipo;
+      this.mostrarMensaje('info', `Generando archivo ${tipo.toUpperCase()}...`);
       
+      const config = this.crearConfiguracionExport();
+      let resultado;
       
-        /**
-         * Maneja el resultado de las exportaciones
-         */
-        private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
-          if (resultado.success) {
-            this.mostrarMensaje('success', resultado.message);
-          } else {
-            this.mostrarMensaje('error', resultado.message);
-          }
-        }
+      switch (tipo) {
+        case 'excel':
+          resultado = await this.exportService.exportToExcel(config);
+          break;
+        case 'pdf':
+          resultado = await this.exportService.exportToPDF(config);
+          break;
+        case 'csv':
+          resultado = await this.exportService.exportToCSV(config);
+          break;
+      }
       
-        /**
-         * Valida datos antes de exportar
-         */
-        private validarDatosParaExport(): boolean {
-           const datos = this.productosFiltrados.length > 0 || this.busqueda.trim()
-            ? this.productosFiltrados
-            : this.productos;
+      this.manejarResultadoExport(resultado);
+      
+    } catch (error) {
+      console.error(`Error en exportación ${tipo}:`, error);
+      this.mostrarMensaje('error', `Error al exportar archivo ${tipo.toUpperCase()}`);
+    } finally {
+      this.exportando = false;
+      this.tipoExportacion = null;
+    }
+  }
 
-          if (!Array.isArray(datos) || datos.length === 0) {
-            this.mostrarMensaje('warning', 'No hay datos disponibles para exportar');
-            return false;
-          }
+  async exportarExcel(): Promise<void> {
+    await this.exportar('excel');
+  }
 
-          if (datos.length > 10000) {
-            const continuar = confirm(
-              `Hay ${datos.length.toLocaleString()} registros. ` +
-              'La exportación puede tomar varios minutos. ¿Desea continuar?'
-            );
-            if (!continuar) return false;
-          }
+  async exportarPDF(): Promise<void> {
+    await this.exportar('pdf');
+  }
 
-          return true;
-        }
-      
-        /**
-         * Limpia texto para exportación de manera más eficiente
-         */
-        private limpiarTexto(texto: any): string {
-          if (!texto) return '';
-          
-          return String(texto)
-            .replace(/\s+/g, ' ')
-            .replace(/[^\w\s\-.,;:()\[\]]/g, '')
-            .trim()
-            .substring(0, 150);
-        }
-      
-        /**
-         * Sistema de mensajes mejorado con tipos adicionales
-         */
-        private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
-          this.cerrarAlerta();
-          
-          const duracion = tipo === 'error' ? 5000 : 3000;
-          
-          switch (tipo) {
-            case 'success':
-              this.mostrarAlertaExito = true;
-              this.mensajeExito = mensaje;
-              setTimeout(() => this.mostrarAlertaExito = false, duracion);
-              break;
-              
-            case 'error':
-              this.mostrarAlertaError = true;
-              this.mensajeError = mensaje;
-              setTimeout(() => this.mostrarAlertaError = false, duracion);
-              break;
-              
-            case 'warning':
-            case 'info':
-              this.mostrarAlertaWarning = true;
-              this.mensajeWarning = mensaje;
-              setTimeout(() => this.mostrarAlertaWarning = false, duracion);
-              break;
-          }
-        }
-    exportando = false;
-      tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
-  // bread crumb items
+  async exportarCSV(): Promise<void> {
+    await this.exportar('csv');
+  }
+
+  puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
+    if (this.exportando) {
+      return tipo ? this.tipoExportacion !== tipo : false;
+    }
+    return this.table.data$.value?.length > 0;
+  }
+
+  private crearConfiguracionExport(): ExportConfig {
+    return {
+      title: this.exportConfig.title,
+      filename: this.exportConfig.filename,
+      data: this.obtenerDatosExport(),
+      columns: this.exportConfig.columns,
+      metadata: {
+        department: this.exportConfig.department,
+        additionalInfo: this.exportConfig.additionalInfo
+      }
+    };
+  }
+
+  private obtenerDatosExport(): any[] {
+    try {
+      const datos = this.productos;
+
+      if (!Array.isArray(datos) || datos.length === 0) {
+        throw new Error('No hay datos disponibles para exportar');
+      }
+
+      return datos.map((modelo, index) =>
+        this.exportConfig.dataMapping.call(this, modelo, index)
+      );
+    } catch (error) {
+      console.error('Error obteniendo datos:', error);
+      throw error;
+    }
+  }
+
+  private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
+    if (resultado.success) {
+      this.mostrarMensaje('success', resultado.message);
+    } else {
+      this.mostrarMensaje('error', resultado.message);
+    }
+  }
+
+  private validarDatosParaExport(): boolean {
+    const datos = this.productosFiltrados.length > 0 || this.busqueda.trim()
+      ? this.productosFiltrados
+      : this.productos;
+
+    if (!Array.isArray(datos) || datos.length === 0) {
+      this.mostrarMensaje('warning', 'No hay datos disponibles para exportar');
+      return false;
+    }
+
+    if (datos.length > 10000) {
+      const continuar = confirm(
+        `Hay ${datos.length.toLocaleString()} registros. ` +
+        'La exportación puede tomar varios minutos. ¿Desea continuar?'
+      );
+      if (!continuar) return false;
+    }
+
+    return true;
+  }
+  private limpiarTexto(texto: any): string {
+    if (!texto) return '';
+    
+    return String(texto)
+      .replace(/\s+/g, ' ')
+      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
+      .trim()
+      .substring(0, 150);
+  }
+
+  private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
+    this.cerrarAlerta();
+    
+    const duracion = tipo === 'error' ? 5000 : 3000;
+    
+    switch (tipo) {
+      case 'success':
+        this.mostrarAlertaExito = true;
+        this.mensajeExito = mensaje;
+        setTimeout(() => this.mostrarAlertaExito = false, duracion);
+        break;
+        
+      case 'error':
+        this.mostrarAlertaError = true;
+        this.mensajeError = mensaje;
+        setTimeout(() => this.mostrarAlertaError = false, duracion);
+        break;
+        
+      case 'warning':
+      case 'info':
+        this.mostrarAlertaWarning = true;
+        this.mensajeWarning = mensaje;
+        setTimeout(() => this.mostrarAlertaWarning = false, duracion);
+        break;
+    }
+  }
+
+  exportando = false;
+  tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
   breadCrumbItems!: Array<{}>;
-
-  // Acciones disponibles para el usuario en esta pantalla
   accionesDisponibles: string[] = [];
-
   busqueda: string = '';
   productosFiltrados: any[] = [];
 
-  // Método robusto para validar si una acción está permitida
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
   }
 
   ngOnInit(): void {
-    /**
-     * BreadCrumb
-     */
     this.breadCrumbItems = [
       { label: 'Inventario' },
       { label: 'Productos', active: true }
     ];
 
-    // Obtener acciones disponibles del usuario (ejemplo: desde API o localStorage)
     this.cargarAccionesUsuario();
-
   }
 
-  // Cierra el dropdown si se hace click fuera
   onDocumentClick(event: MouseEvent, rowIndex: number) {
     const target = event.target as HTMLElement;
-    // Busca el dropdown abierto
     const dropdowns = document.querySelectorAll('.dropdown-action-list');
     let clickedInside = false;
     dropdowns.forEach((dropdown, idx) => {
@@ -335,43 +288,40 @@ export class ListComponent implements OnInit {
       this.activeActionRow = null;
     }
   }
-  // Métodos para los botones de acción principales (crear, editar, detalles)
-  crear(): void {
 
+  crear(): void {
     this.showCreateForm = !this.showCreateForm;
-    this.showEditForm = false; // Cerrar edit si está abierto
-    this.showDetailsForm = false; // Cerrar details si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showEditForm = false;
+    this.showDetailsForm = false;
+    this.activeActionRow = null;
   }
 
   editar(producto: Producto): void {
-  
-    this.productoEditando = { ...producto }; // Hacer copia profunda
+    console.log('Producto a editar:', producto);
+    this.productoEditando = { ...producto };
     this.showEditForm = true;
-    this.showCreateForm = false; // Cerrar create si está abierto
-    this.showDetailsForm = false; // Cerrar details si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showCreateForm = false;
+    this.showDetailsForm = false;
+    this.activeActionRow = null;
   }
 
   detalles(producto: Producto): void {
-
-    this.productoDetalle = { ...producto }; // Hacer copia profunda
+    this.productoDetalle = { ...producto };
     this.showDetailsForm = true;
-    this.showCreateForm = false; // Cerrar create si está abierto
-    this.showEditForm = false; // Cerrar edit si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showCreateForm = false;
+    this.showEditForm = false;
+    this.activeActionRow = null;
   }
   activeActionRow: number | null = null;
   showEdit = true;
   showDetails = true;
   showDelete = true;
-  showCreateForm = false; // Control del collapse
-  showEditForm = false; // Control del collapse de edición
-  showDetailsForm = false; // Control del collapse de detalles
+  showCreateForm = false;
+  showEditForm = false;
+  showDetailsForm = false;
   productoEditando: Producto | null = null;
   productoDetalle: Producto | null = null;
 
-  // Propiedades para alertas
   mostrarAlertaExito = false;
   mensajeExito = '';
   mostrarAlertaError = false;
@@ -379,8 +329,7 @@ export class ListComponent implements OnInit {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
   mostrarOverlayCarga = false;
-  
-  // Propiedades para confirmación de eliminación
+
   mostrarConfirmacionEliminar = false;
   productoAEliminar: Producto | null = null;
 
@@ -392,10 +341,6 @@ export class ListComponent implements OnInit {
     this.activeActionRow = this.activeActionRow === rowIndex ? null : rowIndex;
   }
 
-  // (navigateToCreate eliminado, lógica movida a crear)
-
-  // (navigateToEdit y navigateToDetails eliminados, lógica movida a editar y detalles)
-
   cerrarFormulario(): void {
     this.showCreateForm = false;
   }
@@ -404,12 +349,12 @@ export class ListComponent implements OnInit {
     this.showEditForm = false;
     this.productoEditando = null;
   }
-  
+
   cerrarFormularioDetalles(): void {
     this.showDetailsForm = false;
     this.productoDetalle = null;
   }
-  
+
   guardarProducto(producto: Producto): void {
     this.mostrarOverlayCarga = true;
     setTimeout(()=> {
@@ -425,7 +370,7 @@ export class ListComponent implements OnInit {
   }
 
   actualizarProducto(producto: Producto): void {
-     this.mostrarOverlayCarga = true;
+    this.mostrarOverlayCarga = true;
     setTimeout(() => {
       this.cargardatos(false);
       this.showEditForm = false;
@@ -437,12 +382,11 @@ export class ListComponent implements OnInit {
       }, 3000);
     }, 1000);
   }
-  
-  confirmarEliminar(producto: Producto): void {
 
+  confirmarEliminar(producto: Producto): void {
     this.productoAEliminar = producto;
     this.mostrarConfirmacionEliminar = true;
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.activeActionRow = null;
   }
 
   cancelarEliminar(): void {
@@ -464,61 +408,48 @@ export class ListComponent implements OnInit {
         setTimeout(() => {
           this.mostrarOverlayCarga = false;
 
-        
           if (response.success && response.data) {
             if (response.data.code_Status === 1) {
-              // Éxito: eliminado correctamente
               this.mensajeExito = response.data.message_Status;
               this.mostrarAlertaExito = true;
-              
-              // Ocultar la alerta después de 3 segundos
+
               setTimeout(() => {
                 this.mostrarAlertaExito = false;
                 this.mensajeExito = '';
               }, 3000);
-              
 
               this.cargardatos(false);
               this.cancelarEliminar();
             } else if (response.data.code_Status === -1) {
-              //result: está siendo utilizado
-
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status || 'No se puede eliminar: el rol está siendo utilizado.';
-              
+
               setTimeout(() => {
                 this.mostrarAlertaError = false;
                 this.mensajeError = '';
               }, 5000);
-              
-              // Cerrar el modal de confirmación
+
               this.cancelarEliminar();
             } else if (response.data.code_Status === 0) {
-              // Error general
-
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status || 'Error al eliminar el rol.';
-              
+
               setTimeout(() => {
                 this.mostrarAlertaError = false;
                 this.mensajeError = '';
               }, 5000);
-              
-              // Cerrar el modal de confirmación
+
               this.cancelarEliminar();
             }
           } else {
-            // Respuesta inesperada
-
             this.mostrarAlertaError = true;
             this.mensajeError = response.message || 'Error inesperado al eliminar el rol.';
-            
+
             setTimeout(() => {
               this.mostrarAlertaError = false;
               this.mensajeError = '';
             }, 5000);
-            
-            // Cerrar el modal de confirmación
+
             this.cancelarEliminar();
           }
         })
@@ -584,12 +515,10 @@ export class ListComponent implements OnInit {
         (producto.prod_PrecioUnitario || '').toString().toLowerCase().includes(termino)
       );
     }
-     // Resetear la página actual a 1 cuando se filtra
     this.currentPage = 1;
-    
-    // Actualizar los productos visibles basados en la paginación
     this.actualizarProductosVisibles();
   }
+
   private actualizarProductosVisibles(): void {
     const startItem = (this.currentPage - 1) * this.itemsPerPage;
     const endItem = this.currentPage * this.itemsPerPage;
@@ -601,10 +530,9 @@ export class ListComponent implements OnInit {
     this.http.get<Promocion[]>(`${environment.apiBaseUrl}/Promociones/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe(data => {
-      
       setTimeout(() => {
         this.mostrarOverlayCarga = false;
-         const tienePermisoListar = this.accionPermitida('listar');
+        const tienePermisoListar = this.accionPermitida('listar');
         const userId = getUserId();
 
         const datosFiltrados = tienePermisoListar

@@ -1,0 +1,184 @@
+<app-breadcrumbs
+  [title]="'Dashboard de Metas'"
+  [breadcrumbItems]="breadCrumbItems"
+>
+  <img class="breadcrumbs-icon ms-2 icon-breadcrumb" src="assets/images/imagenes/goal.svg" alt="icono breadcrumb" width="70"/>
+</app-breadcrumbs>
+
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <!-- Meta Selector -->
+        <div class="row mb-4">
+          <div class="col-12">
+            <label class="form-label mb-2" [style.color]="'#14192e'">
+              <i class="ri-flag-line me-1"></i>
+              Seleccione una Meta
+            </label>
+            <ng-select 
+              [items]="metas"
+              bindLabel="meta_Descripcion"
+              [(ngModel)]="selectedMeta"
+              [clearable]="true"
+              [searchable]="true"
+              (change)="onMetaChange()"
+              placeholder="Buscar y seleccionar meta..."
+              class="w-100">
+              <ng-template ng-option-tmp let-item="item">
+                <i [class]="getMetaTipo(item.meta_Tipo).icon" [style.color]="'#14192e'" class="me-2"></i>
+                <strong>{{ item.meta_Descripcion }}</strong>
+                <small class="text-muted d-block">
+                  {{ formatDate(item.meta_FechaInicio) }} — {{ formatDate(item.meta_FechaFin) }}
+                </small>
+              </ng-template>
+            </ng-select>
+          </div>
+        </div>
+
+        <!-- Selected Meta Content -->
+        <ng-container *ngIf="selectedMeta">
+          <div class="card shadow-sm" [style.border-color]="'#14192e'">
+            <!-- Meta Header with subtle division -->
+            <div class="card-header bg-light border-bottom py-3">
+              <div class="d-flex flex-wrap gap-3 align-items-center">
+                <div class="flex-grow-1">
+                  <span class="badge mb-2" [style.background-color]="'#14192e'">
+                    <i [class]="getMetaTipo(selectedMeta.meta_Tipo).icon" class="me-1"></i>
+                    {{ getMetaTipo(selectedMeta.meta_Tipo).text }}
+                  </span>
+                  <h5 class="mb-1">{{ selectedMeta.meta_Descripcion }}</h5>
+                  <div class="text-muted">
+                    <i class="ri-calendar-line me-1"></i>
+                    {{ formatDate(selectedMeta.meta_FechaInicio) }} — {{ formatDate(selectedMeta.meta_FechaFin) }}
+                  </div>
+                  <div class="mt-2" *ngIf="selectedMeta.prod_Id || selectedMeta.cate_Id">
+                    <small class="text-muted me-3" *ngIf="selectedMeta.prod_Id">
+                      <i class="ri-price-tag-3-line me-1"></i>
+                      Producto: {{ selectedMeta.prod_Id }}
+                    </small>
+                    <small class="text-muted" *ngIf="selectedMeta.cate_Id">
+                      <i class="ri-folder-3-line me-1"></i>
+                      Categoría: {{ selectedMeta.cate_Id }}
+                    </small>
+                  </div>
+                </div>
+                <div class="text-end">
+                  <div class="text-muted mb-1">Objetivo</div>
+                  <h4 class="mb-0" [style.color]="'#14192e'">
+                    <ng-container *ngIf="['IM','IT','IP','PC'].includes(selectedMeta.meta_Tipo)">
+                      {{ selectedMeta.meta_Ingresos | currency:'HNL':'symbol':'1.2-2':'es-HN' }}
+                    </ng-container>
+                    <ng-container *ngIf="['TP','CN','PE','CM'].includes(selectedMeta.meta_Tipo)">
+                      {{ selectedMeta.meta_Unidades | number:'1.0-0' }} unidades
+                    </ng-container>
+                  </h4>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-body">
+              
+              <!-- Controls section -->
+              <div class="d-flex align-items-center gap-3 mb-4">
+                <!-- Search -->
+                <div class="input-group" style="max-width: 300px;">
+                  <span class="input-group-text border-0" [style.background-color]="'rgba(20, 25, 46, 0.1)'">
+                    <i class="ri-search-line"></i>
+                  </span>
+                  <input type="text" 
+                    class="form-control border-0" 
+                    [style.background-color]="'rgba(20, 25, 46, 0.1)'"
+                    placeholder="Filtrar vendedor..." 
+                    [(ngModel)]="filterText" 
+                    (ngModelChange)="onFilterChange()">
+                </div>
+
+                <div class="d-flex gap-2">
+                  <!-- Sort Actions -->
+                  <button type="button" 
+                          class="btn btn-sm" 
+                          [ngStyle]="{
+                            'background-color': ordenActual === 'asc' ? '#14192e' : '#e8e8f7',
+                            'border': '1px solid #14192e',
+                            'color': ordenActual === 'asc' ? '#fff' : '#14192e'
+                          }"
+                          (click)="ordenarPorProgreso(false)">
+                    <i class="ri-sort-asc-line me-1"></i>
+                    Menor a Mayor
+                  </button>
+                  <button type="button" 
+                          class="btn btn-sm"
+                          [ngStyle]="{
+                            'background-color': ordenActual === 'desc' ? '#14192e' : '#e8e8f7',
+                            'border': '1px solid #14192e',
+                            'color': ordenActual === 'desc' ? '#fff' : '#14192e'
+                          }"
+                          (click)="ordenarPorProgreso(true)">
+                    <i class="ri-sort-desc-line me-1"></i>
+                    Mayor a Menor
+                  </button>
+
+                  <!-- Top 5 Toggle -->
+                  <button type="button" 
+                          class="btn btn-sm"
+                          [ngStyle]="{
+                            'background-color': false ? '#14192e' : '#e8e8f7',
+                            'border': '1px solid #14192e',
+                            'color': false ? '#fff' : '#14192e'
+                          }"
+                          (click)="toggleTop5()">
+                    <i [class]="mostrandoTop5 ? 'ri-list-unordered-line me-1' : 'ri-trophy-line me-1'"></i>
+                    {{ mostrandoTop5 ? 'Mostrar Todos' : 'Top 5' }}
+                  </button>
+
+                  <!-- Counter Badge -->
+                  <!-- <span class="badge" 
+                        [style.background-color]="'rgba(20, 25, 46, 0.1)'"
+                        [style.color]="'#14192e'">
+                    <i class="ri-user-line me-1"></i>
+                    {{ vendedores.length }} vendedores
+                  </span> -->
+                  <span class="badge border btn btn-sm" [style.color]="'#14192e'" [style.border-color]="'#14192e'">
+                  {{ vendedores.length }} vendedores
+                </span>
+                </div>
+              </div>
+
+
+              
+
+              <!-- Chart -->
+              <div *ngIf="vendedores.length > 0">
+                <div *ngIf="chartOptions" [style.height.px]="chartOptions.chart.height">
+                  <apx-chart
+                    [series]="chartOptions.series"
+                    [chart]="chartOptions.chart"
+                    [plotOptions]="chartOptions.plotOptions"
+                    [dataLabels]="chartOptions.dataLabels"
+                    [xaxis]="chartOptions.xaxis"
+                    [yaxis]="chartOptions.yaxis"
+                    [grid]="chartOptions.grid"
+                    [tooltip]="chartOptions.tooltip"
+                    [colors]="chartOptions.colors"
+                    dir="ltr">
+                  </apx-chart>
+                </div>
+              </div>
+
+              <!-- No Data Message -->
+              <div *ngIf="vendedores.length === 0" 
+                class="alert" 
+                [style.background-color]="'rgba(20, 25, 46, 0.1)'"
+                [style.color]="'#14192e'"
+                [style.border]="'none'">
+                <i class="ri-information-line me-2"></i>
+                No hay vendedores asignados a esta meta.
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>

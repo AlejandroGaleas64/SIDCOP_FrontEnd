@@ -25,6 +25,7 @@ export class DetailsComponent implements OnChanges {
     }
   }
 
+  // Carga los detalles del canal con delay simulado
   cargarDetallesSimulado(data: Canal): void {
     this.cargando = true;
     this.mostrarAlertaError = false;
@@ -51,6 +52,7 @@ export class DetailsComponent implements OnChanges {
     this.mensajeError = '';
   }
 
+  // Convierte fecha a formato legible en español
   formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
     const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;

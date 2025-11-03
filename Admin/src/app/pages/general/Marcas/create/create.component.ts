@@ -1,3 +1,8 @@
+/**
+ * Componente para crear nuevas marcas
+ * Permite al usuario ingresar y guardar información de marcas en el sistema
+ */
+
 import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -14,19 +19,38 @@ import { getUserId } from 'src/app/core/utils/user-utils';
   styleUrl: './create.component.scss'
 })
 export class CreateComponent {
+  // Eventos de salida para comunicación con componentes padre
+  /** Evento emitido cuando el usuario cancela la operación de creación */
   @Output() onCancel = new EventEmitter<void>();
+  /** Evento emitido cuando se guarda exitosamente una marca */
   @Output() onSave = new EventEmitter<Marcas>();
   
+  // Propiedades para controlar la visualización de mensajes y alertas
+  /** Controla si se muestran los mensajes de error de validación en el formulario */
   mostrarErrores = false;
+  /** Controla la visibilidad de la alerta de éxito */
   mostrarAlertaExito = false;
+  /** Mensaje que se muestra en la alerta de éxito */
   mensajeExito = '';
+  /** Controla la visibilidad de la alerta de error */
   mostrarAlertaError = false;
+  /** Mensaje que se muestra en la alerta de error */
   mensajeError = '';
+  /** Controla la visibilidad de la alerta de advertencia */
   mostrarAlertaWarning = false;
+  /** Mensaje que se muestra en la alerta de advertencia */
   mensajeWarning = '';
 
+  /**
+   * Constructor del componente
+   * @param http Cliente HTTP para realizar peticiones al API
+   */
   constructor(private http: HttpClient) {}
 
+  /**
+   * Objeto que contiene los datos de la marca a crear
+   * Inicializado con valores por defecto
+   */
   marca: Marcas = {
     marc_Id: 0,
     marc_Descripcion: '',
@@ -42,6 +66,11 @@ export class CreateComponent {
     secuencia: 0,
   };
 
+  /**
+   * Cancela la operación de creación y resetea el formulario
+   * Limpia todas las alertas y mensajes, resetea el objeto marca a sus valores iniciales
+   * y emite el evento onCancel para notificar al componente padre
+   */
   cancelar(): void {
     this.mostrarErrores = false;
     this.mostrarAlertaExito = false;
@@ -67,6 +96,10 @@ export class CreateComponent {
     this.onCancel.emit();
   }
 
+  /**
+   * Cierra todas las alertas activas (éxito, error y advertencia)
+   * Limpia los mensajes asociados a cada tipo de alerta
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -76,14 +109,22 @@ export class CreateComponent {
     this.mensajeWarning = '';
   }
 
+  /**
+   * Guarda una nueva marca en el sistema
+   * Valida que el campo de descripción no esté vacío antes de realizar la petición HTTP
+   * Muestra alertas de éxito, error o advertencia según el resultado de la operación
+   */
   guardar(): void {
+    // Habilita la visualización de errores de validación
     this.mostrarErrores = true;
     
+    // Valida que el campo de descripción no esté vacío
     if (this.marca.marc_Descripcion.trim()) {
       // Limpiar alertas previas
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
       
+      // Prepara el objeto con los datos necesarios para enviar al API
       const marcaGuardar = {
         marc_Id: 0,
         marc_Descripcion: this.marca.marc_Descripcion.trim(),
@@ -98,6 +139,7 @@ export class CreateComponent {
 
       //console.log('Guardando marca:', marcaGuardar);
       
+      // Realiza la petición POST al API para insertar la nueva marca
       this.http.post<any>(`${environment.apiBaseUrl}/Marcas/Insertar`, marcaGuardar, {
         headers: { 
           'X-Api-Key': environment.apiKey,
@@ -105,6 +147,7 @@ export class CreateComponent {
           'accept': '*/*'
         }
       }).subscribe({
+        // Maneja la respuesta exitosa del servidor
         next: (response) => {
           //console.log('Marca guardada exitosamente:', response);
           this.mensajeExito = `Marca "${this.marca.marc_Descripcion}" guardada exitosamente`;
@@ -118,6 +161,7 @@ export class CreateComponent {
             this.cancelar();
           }, 3000);
         },
+        // Maneja los errores que ocurran durante la petición HTTP
         error: (error) => {
           console.error('Error al guardar marca:', error);
           this.mostrarAlertaError = true;
@@ -132,6 +176,7 @@ export class CreateComponent {
         }
       });
     } else {
+      // Maneja el caso cuando el campo de descripción está vacío
       // Mostrar alerta de warning para campos vacíos
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';

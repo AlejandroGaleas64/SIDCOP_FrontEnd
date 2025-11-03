@@ -1,3 +1,4 @@
+// ===== IMPORTACIONES DE ANGULAR CORE =====
 import {
   Component,
   Output,
@@ -7,15 +8,25 @@ import {
   SimpleChanges,
   OnInit,
 } from '@angular/core';
+
+// ===== IMPORTACIONES DE MÓDULOS ANGULAR =====
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+
+// ===== IMPORTACIONES DE MODELOS Y SERVICIOS =====
 import { Pedido } from 'src/app/Modelos/ventas/Pedido.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
+
+// ===== IMPORTACIONES DE BIBLIOTECAS EXTERNAS =====
 import { NgSelectModule } from '@ng-select/ng-select';
 import { DatePipe } from '@angular/common';
 
+/**
+ * Componente para editar pedidos existentes
+ * Maneja formularios complejos con productos, cantidades y cálculos automáticos
+ */
 @Component({
   selector: 'app-edit',
   standalone: true,
@@ -24,29 +35,41 @@ import { DatePipe } from '@angular/common';
   styleUrl: './edit.component.scss',
 })
 export class EditComponent implements OnInit, OnChanges {
+  // ===== COMUNICACIÓN CON COMPONENTE PADRE =====
   @Input() PedidoData: Pedido | null = null;
   @Output() onCancel = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<Pedido>();
 
-  //Clientes: any[] = [];
-  //Direccines: any[] = [];
+  // ===== GESTIÓN DE PRODUCTOS Y BÚSQUEDA =====
   productos: any[] = [];
   busquedaProducto = '';
   productosFiltrados: any[] = [];
   paginaActual = 1;
   productosPorPagina = 8;
 
+  /**
+   * Busca productos según el término ingresado
+   * Reinicia la paginación para mostrar resultados desde el inicio
+   */
   buscarProductos(): void {
     this.paginaActual = 1;
     this.aplicarFiltros();
   }
 
+  /**
+   * Limpia el campo de búsqueda y muestra todos los productos
+   * Útil para resetear filtros rápidamente
+   */
   limpiarBusqueda(): void {
     this.busquedaProducto = '';
     this.paginaActual = 1;
     this.aplicarFiltros();
   }
 
+  /**
+   * Aplica filtros de búsqueda y paginación a la lista de productos
+   * Filtra por nombre de producto usando coincidencia parcial
+   */
   private aplicarFiltros(): void {
     if (!this.busquedaProducto.trim()) {
       this.productosFiltrados = [...this.productos];
@@ -58,45 +81,70 @@ export class EditComponent implements OnInit, OnChanges {
     }
   }
 
+  /**
+   * Obtiene la lista completa de productos filtrados
+   * Útil para conteos y validaciones
+   */
   getProductosFiltrados(): any[] {
     return this.productosFiltrados;
   }
 
+  /**
+   * Obtiene productos para la página actual según paginación
+   * Implementa slice para mostrar solo productos de la página seleccionada
+   */
   getProductosPaginados(): any[] {
     const inicio = (this.paginaActual - 1) * this.productosPorPagina;
     const fin = inicio + this.productosPorPagina;
     return this.productosFiltrados.slice(inicio, fin);
   }
 
+  /**
+   * Calcula el número total de páginas necesarias
+   * Basado en productos filtrados y productos por página
+   */
   getTotalPaginas(): number {
     return Math.ceil(this.productosFiltrados.length / this.productosPorPagina);
   }
 
+  /**
+   * Cambia a una página específica con validación de límites
+   * Previene navegación fuera del rango válido de páginas
+   */
   cambiarPagina(pagina: number): void {
     if (pagina >= 1 && pagina <= this.getTotalPaginas()) {
       this.paginaActual = pagina;
     }
   }
 
+  /**
+   * Calcula qué páginas mostrar en el navegador de páginas
+   * Implementa lógica inteligente para mostrar máximo 5 páginas relevantes
+   */
   getPaginasVisibles(): number[] {
     const totalPaginas = this.getTotalPaginas();
     const paginaActual = this.paginaActual;
     const paginas: number[] = [];
 
     if (totalPaginas <= 5) {
+      // Si hay 5 o menos páginas, mostrar todas
       for (let i = 1; i <= totalPaginas; i++) {
         paginas.push(i);
       }
     } else {
+      // Lógica compleja para mostrar páginas relevantes
       if (paginaActual <= 3) {
+        // Inicio: mostrar páginas 1-5
         for (let i = 1; i <= 5; i++) {
           paginas.push(i);
         }
       } else if (paginaActual >= totalPaginas - 2) {
+        // Final: mostrar últimas 5 páginas
         for (let i = totalPaginas - 4; i <= totalPaginas; i++) {
           paginas.push(i);
         }
       } else {
+        // Medio: mostrar página actual ± 2
         for (let i = paginaActual - 2; i <= paginaActual + 2; i++) {
           paginas.push(i);
         }
@@ -106,22 +154,39 @@ export class EditComponent implements OnInit, OnChanges {
     return paginas;
   }
 
+  // ===== MÉTODOS AUXILIARES DE PAGINACIÓN =====
+  
+  /**
+   * Calcula el número del primer registro mostrado en la página actual
+   * Útil para mostrar "Mostrando 1-10 de 50 registros"
+   */
   getInicioRegistro(): number {
     return (this.paginaActual - 1) * this.productosPorPagina + 1;
   }
 
+  /**
+   * Calcula el número del último registro mostrado en la página actual
+   * Considera que la última página puede tener menos registros
+   */
   getFinRegistro(): number {
     const fin = this.paginaActual * this.productosPorPagina;
     return Math.min(fin, this.productosFiltrados.length);
   }
 
-  // Método para obtener el índice real del producto en el array principal
+  /**
+   * Encuentra el índice de un producto en el array principal
+   * Útil para operaciones que requieren la posición exacta del producto
+   */
   getProductoIndex(prodId: number): number {
     return this.productos.findIndex((p) => p.prod_Id === prodId);
   }
 
-  // ========== MÉTODOS DE CANTIDAD MEJORADOS ==========
+  // ===== GESTIÓN DE CANTIDADES DE PRODUCTOS =====
 
+  /**
+   * Aumenta la cantidad de un producto específico
+   * Recalcula automáticamente el precio según descuentos por volumen
+   */
   aumentarCantidad(prodId: number): void {
     const index = this.getProductoIndex(prodId);
     if (index >= 0 && index < this.productos.length) {
@@ -131,6 +196,10 @@ export class EditComponent implements OnInit, OnChanges {
     }
   }
 
+  /**
+   * Disminuye la cantidad de un producto específico
+   * Valida que la cantidad no sea menor a 0 y recalcula precios
+   */
   disminuirCantidad(prodId: number): void {
     const index = this.getProductoIndex(prodId);
     if (
@@ -144,10 +213,18 @@ export class EditComponent implements OnInit, OnChanges {
     }
   }
 
+  /**
+   * Actualiza el precio de un producto basado en su cantidad actual
+   * Útil para recalcular después de cambios manuales de cantidad
+   */
   actualizarPrecio(producto: any): void {
     producto.precio = this.getPrecioPorCantidad(producto, producto.cantidad);
   }
 
+  /**
+   * Valida y corrige la cantidad ingresada por el usuario
+   * Establece límites mínimos (0) y máximos (999) para prevenir errores
+   */
   validarCantidad(prodId: number): void {
     const index = this.getProductoIndex(prodId);
     if (index >= 0 && index < this.productos.length) {
@@ -158,19 +235,29 @@ export class EditComponent implements OnInit, OnChanges {
     }
   }
 
-  // Método para obtener la cantidad de un producto específico
+  // ===== MÉTODOS AUXILIARES DE PRODUCTOS =====
+
+  /**
+   * Obtiene la cantidad actual de un producto específico
+   * Retorna 0 si el producto no existe o no tiene cantidad definida
+   */
   getCantidadProducto(prodId: number): number {
     const producto = this.productos.find((p) => p.prod_Id === prodId);
     return producto ? producto.cantidad || 0 : 0;
   }
 
+  /**
+   * Calcula el precio unitario basado en cantidad y escalas de descuento
+   * Implementa lógica de precios por volumen usando listasPrecio_JSON
+   */
   getPrecioPorCantidad(producto: any, cantidad: number): number {
     let precioBase = producto.prod_PrecioUnitario || 0;
 
-    // Si hay lista de precios y cantidad válida
+    // Aplicar descuentos por volumen si existen escalas de precio
     if (producto.listasPrecio_JSON && cantidad > 0) {
       let escalaAplicada = null;
 
+      // Buscar escala que corresponda a la cantidad
       for (const lp of producto.listasPrecio_JSON) {
         if (cantidad >= lp.PreP_InicioEscala && cantidad <= lp.PreP_FinEscala) {
           escalaAplicada = lp;
@@ -178,7 +265,7 @@ export class EditComponent implements OnInit, OnChanges {
         }
       }
 
-      // Si no encontró escala, usa la última si la cantidad excede
+      // Si la cantidad excede todas las escalas, usar la última
       if (!escalaAplicada && producto.listasPrecio_JSON.length > 0) {
         const ultimaEscala =
           producto.listasPrecio_JSON[producto.listasPrecio_JSON.length - 1];
@@ -187,15 +274,20 @@ export class EditComponent implements OnInit, OnChanges {
         }
       }
 
+      // Aplicar precio de la escala encontrada
       if (escalaAplicada) {
         precioBase = escalaAplicada.PreP_PrecioContado;
       }
     }
 
-    // Aplica descuento si corresponde
+    // Aplicar descuentos adicionales si corresponde
     return this.aplicarDescuento(producto, cantidad, precioBase);
   }
 
+  /**
+   * Aplica descuentos específicos según configuración del producto
+   * Maneja descuentos por escala y tipos de factura específicos
+   */
   aplicarDescuento(
     producto: any,
     cantidad: number,
@@ -203,6 +295,7 @@ export class EditComponent implements OnInit, OnChanges {
   ): number {
     const descEsp = producto.desc_EspecificacionesJSON || {};
 
+    // Validar si aplican descuentos (solo para tipo de factura 'AM')
     if (
       !producto.descuentosEscala_JSON ||
       !descEsp ||
@@ -212,9 +305,9 @@ export class EditComponent implements OnInit, OnChanges {
     }
 
     const descuentosEscala = producto.descuentosEscala_JSON;
-
     let descuentoAplicado = null;
 
+    // Buscar descuento que corresponda a la cantidad
     for (const desc of descuentosEscala) {
       if (
         cantidad >= desc.DeEs_InicioEscala &&
@@ -225,7 +318,7 @@ export class EditComponent implements OnInit, OnChanges {
       }
     }
 
-    // Si no encontró descuento, usa el último si la cantidad excede
+    // Si la cantidad excede todas las escalas, usar el último descuento
     if (!descuentoAplicado && descuentosEscala.length > 0) {
       const ultimoDescuento = descuentosEscala[descuentosEscala.length - 1];
       if (cantidad > ultimoDescuento.DeEs_FinEscala) {
@@ -233,6 +326,7 @@ export class EditComponent implements OnInit, OnChanges {
       }
     }
 
+    // Aplicar el descuento encontrado
     if (descuentoAplicado) {
       return this.calcularDescuento(
         precioBase,
@@ -244,6 +338,10 @@ export class EditComponent implements OnInit, OnChanges {
     return precioBase;
   }
 
+  /**
+   * Calcula el descuento final aplicando porcentajes o valores fijos
+   * Maneja diferentes tipos de descuento según configuración
+   */
   calcularDescuento(
     precioBase: number,
     descEsp: any,
@@ -273,6 +371,8 @@ export class EditComponent implements OnInit, OnChanges {
   
 
   cargarProductosPorCliente(clienteId: number): void {
+    this.mostrarOverlayCarga = true; // Activar el overlay
+    
     this.http
       .get<any>(
         `${environment.apiBaseUrl}/Productos/ListaPrecio/${clienteId}`,
@@ -318,6 +418,7 @@ export class EditComponent implements OnInit, OnChanges {
           });
 
           this.aplicarFiltros();
+          this.mostrarOverlayCarga = false; // Desactivar el overlay
        
         },
         error: (error) => {
@@ -325,6 +426,7 @@ export class EditComponent implements OnInit, OnChanges {
           this.mostrarAlertaWarning = true;
           this.mensajeWarning =
             'No se pudieron obtener los productos para el cliente seleccionado.';
+          this.mostrarOverlayCarga = false; // Desactivar el overlay en caso de error
         },
       });
   }
@@ -380,6 +482,9 @@ export class EditComponent implements OnInit, OnChanges {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
   mostrarConfirmacionEditar = false;
+
+  // Variable para el overlay de carga (mismo patrón que list)
+  mostrarOverlayCarga = false;
 
   trackByProducto(index: number, producto: any): number {
     return producto.prod_Id;
@@ -744,6 +849,8 @@ export class EditComponent implements OnInit, OnChanges {
   }
 
   cargarListados(): void {
+    this.mostrarOverlayCarga = true; // Activar el overlay
+    
     this.http
       .get<any>(`${environment.apiBaseUrl}/Cliente/Listar`, {
         headers: { 'x-api-key': environment.apiKey },
@@ -764,9 +871,18 @@ export class EditComponent implements OnInit, OnChanges {
                 //console.log('Direcciones cargadas:', direcciones);
                 this.TodasDirecciones = direcciones;
                 this.configurarUbicacionInicial();
+                this.mostrarOverlayCarga = false; // Desactivar el overlay cuando todo esté cargado
               },
+              error: (error) => {
+                console.error('Error al cargar direcciones:', error);
+                this.mostrarOverlayCarga = false; // Desactivar el overlay en caso de error
+              }
             });
         },
+        error: (error) => {
+          console.error('Error al cargar clientes:', error);
+          this.mostrarOverlayCarga = false; // Desactivar el overlay en caso de error
+        }
       });
   }
 

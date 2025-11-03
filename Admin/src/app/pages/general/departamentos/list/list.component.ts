@@ -22,7 +22,7 @@ import {
   animate
 } from '@angular/animations';
 
-// Importar el servicio de exportación optimizado
+//Importación de animaciones
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
 
 @Component({
@@ -75,7 +75,6 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
   ]
 })
 export class ListComponent implements OnInit {
-  // Acciones disponibles para el usuario en esta pantalla
   accionesDisponibles: string[] = [];
   mostrarOverlayCarga= false;
 
@@ -89,17 +88,19 @@ export class ListComponent implements OnInit {
     this.cargardatos(true);
   }
 
-  // ===== CONFIGURACIÓN FÁCIL DE EXPORTACIÓN =====
   private readonly exportConfig = {
+    //Configuración basica
     title: 'Listado de Departamentos',
     filename: 'Departamentos',
     department: 'General',
     additionalInfo: '',
+    //Columnas a configurar - Según los datos usados
     columns: [
       { key: 'No', header: 'No.', width: 8, align: 'center' as const },
       { key: 'Código', header: 'Código', width: 25, align: 'left' as const },
       { key: 'Descripción', header: 'Descripción', width: 50, align: 'left' as const }
     ] as ExportColumn[],
+    //Mapeo de datos - según el modelo
     dataMapping: (depa: Departamento, index: number) => ({
       'No': depa?.secuencia || (index + 1),
       'Código': this.limpiarTexto(depa?.depa_Codigo),
@@ -143,15 +144,21 @@ export class ListComponent implements OnInit {
       this.tipoExportacion = null;
     }
   }
+
+  //metodos especificos para cada tipo
   async exportarExcel(): Promise<void> { await this.exportar('excel'); }
   async exportarPDF(): Promise<void> { await this.exportar('pdf'); }
   async exportarCSV(): Promise<void> { await this.exportar('csv'); }
+
+  //validar si puede exportar a un tipo de documento especifico
   puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
     if (this.exportando) {
       return tipo ? this.tipoExportacion !== tipo : false;
     }
     return this.table.data$.value?.length > 0;
   }
+
+  //crea la configuración de exportación de forma dinamica
   private crearConfiguracionExport(): ExportConfig {
     return {
       title: this.exportConfig.title,
@@ -164,17 +171,23 @@ export class ListComponent implements OnInit {
       }
     };
   }
+
+  //obtiene y prepara los datos para la exportación
   private obtenerDatosExport(): any[] {
     try {
       const datos = this.table.data$.value;
       if (!Array.isArray(datos) || datos.length === 0) {
         throw new Error('No hay datos disponibles para exportar');
       }
+
+      //usar el mapeo configurado
       return datos.map((depa, index) => this.exportConfig.dataMapping.call(this, depa, index));
     } catch (error) {
       throw error;
     }
   }
+
+  //Manejar el resultado de las exportaciones
   private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
     if (resultado.success) {
       this.mostrarMensaje('success', resultado.message);
@@ -182,6 +195,8 @@ export class ListComponent implements OnInit {
       this.mostrarMensaje('error', resultado.message);
     }
   }
+
+  //validar datos antes de exportar
   private validarDatosParaExport(): boolean {
     const datos = this.table.data$.value;
     if (!Array.isArray(datos) || datos.length === 0) {
@@ -197,12 +212,16 @@ export class ListComponent implements OnInit {
     }
     return true;
   }
+
+  //limpiar texto de exportación de manera eficiente
   private limpiarTexto(texto: any): string {
     if (!texto) return '';
     return String(texto)
       .trim()
       .substring(0, 150);
   }
+
+  //Sistema de mensajes mejorado con tipos adicionales
   private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
     if (typeof this.cerrarAlerta === 'function') this.cerrarAlerta();
     const duracion = tipo === 'error' ? 5000 : 3000;
@@ -226,14 +245,12 @@ export class ListComponent implements OnInit {
     }
   }
   
-  // Método para verificar si una acción está permitida
+  // Método robusto para validar si una acción está permitida
   accionPermitida(accion: string): boolean {
-    // Convertir a minúsculas para hacer la comparación insensible a mayúsculas
     const accionBuscada = accion.toLowerCase();
-    // Mapear nombres de acciones si es necesario
     const accionesMapeadas: {[key: string]: string} = {
-      'detalles': 'detalle',  // Mapear 'detalles' a 'detalle' si es necesario
-      'nuevo': 'crear'       // Mapear 'nuevo' a 'crear' para el botón de nuevo
+      'detalles': 'detalle',  
+      'nuevo': 'crear'       
     };
     
     const accionReal = accionesMapeadas[accionBuscada] || accionBuscada;
@@ -243,20 +260,20 @@ export class ListComponent implements OnInit {
 
   
 
-  // Método para cargar las acciones disponibles del usuario
   cargarAccionesUsuario() {
     let accionesArray: string[] = [];
     let modulo: any = null;
-    // Buscar permisos en localStorage - NOTA: La clave correcta es 'permisosJson'
+    // Obtener permisosJson del localStorage
     const permisosJson = localStorage.getItem('permisosJson');
     
     if (permisosJson) {
       try {
         const permisos = JSON.parse(permisosJson);
-        
+        // Buscar el módulo de departamentos
+        // Buscar por ID de pantalla
         if (Array.isArray(permisos)) {
           modulo = permisos.find((m: any) => {
-            return m.Pant_Id === 12;  // ID para Departamentos
+            return m.Pant_Id === 12; 
           });
         } else if (typeof permisos === 'object' && permisos !== null) {
           // Si es objeto, buscar por clave
@@ -265,7 +282,7 @@ export class ListComponent implements OnInit {
         
         if (modulo) {
           if (modulo.Acciones && Array.isArray(modulo.Acciones)) {
-            // Extraer solo el nombre de la acción y convertirlo a minúsculas
+            // Extraer solo el nombre de la acción
             accionesArray = modulo.Acciones
               .map((a: any) => {
                 const accion = a.Accion || a.accion || a;
@@ -286,13 +303,13 @@ export class ListComponent implements OnInit {
   showEdit = true;
   showDetails = true;
   showDelete = true;
-  showCreateForm = false; // Control del collapse
-  showEditForm = false; // Control del collapse de edición
-  showDetailsForm = false; // Control del collapse de detalles
+  showCreateForm = false; 
+  showEditForm = false; 
+  showDetailsForm = false; 
   departamentoEditando: Departamento | null = null;
   departamentoDetalle: Departamento | null = null;
 
-  // Cierra el dropdown si se hace click fuera
+   // Cierra el dropdown si se hace click fuera
   onDocumentClick(event: MouseEvent, rowIndex: number) {
     const target = event.target as HTMLElement;
     // Busca el dropdown abierto
@@ -311,28 +328,27 @@ export class ListComponent implements OnInit {
   // Métodos para los botones de acción principales (crear, editar, detalles)
   crear(): void {
     this.showCreateForm = !this.showCreateForm;
-    this.showEditForm = false; // Cerrar edit si está abierto
-    this.showDetailsForm = false; // Cerrar details si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showEditForm = false; 
+    this.showDetailsForm = false; 
+    this.activeActionRow = null; 
   }
 
   editar(departamento: Departamento): void {
-    this.departamentoEditando = { ...departamento }; // Hacer copia profunda
+    this.departamentoEditando = { ...departamento };  
     this.showEditForm = true;
-    this.showCreateForm = false; // Cerrar create si está abierto
-    this.showDetailsForm = false; // Cerrar details si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showCreateForm = false; 
+    this.showDetailsForm = false; 
+    this.activeActionRow = null; 
   }
 
    detalles(departamento: Departamento): void {
-    this.departamentoDetalle = { ...departamento }; // Hacer copia profunda
+    this.departamentoDetalle = { ...departamento }; 
     this.showDetailsForm = true;
-    this.showCreateForm = false; // Cerrar create si está abierto
-    this.showEditForm = false; // Cerrar edit si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.showCreateForm = false; 
+    this.showEditForm = false; 
+    this.activeActionRow = null; 
   }
 
-  // Propiedades para alertas
   mostrarAlertaExito = false;
   mensajeExito = '';
   mostrarAlertaError = false;
@@ -340,10 +356,12 @@ export class ListComponent implements OnInit {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
   
-  // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
   departamentoAEliminar: Departamento | null = null;
 
+  //Declaramos un estado en el cargarDatos, esto para hacer el overlay
+  //segun dicha funcion de recargar, ya que si vienes de hacer una accion
+  //es innecesario mostrar el overlay de carga
   private cargardatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
     this.http.get<Departamento[]>(`${environment.apiBaseUrl}/Departamentos/Listar`, {
@@ -362,11 +380,6 @@ export class ListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // BreadCrumb (si aplica)
-    // this.breadCrumbItems = [
-    //   { label: 'General' },
-    //   { label: 'Departamentos', active: true }
-    // ];
     this.cargarAccionesUsuario();
   }
 
@@ -416,7 +429,7 @@ export class ListComponent implements OnInit {
   confirmarEliminar(departamento: Departamento): void {
     this.departamentoAEliminar = departamento;
     this.mostrarConfirmacionEliminar = true;
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.activeActionRow = null; 
   }
 
   cancelarEliminar(): void {
@@ -437,14 +450,14 @@ export class ListComponent implements OnInit {
     }).subscribe({
       next: (response: any) => {
         setTimeout(() => {
-          this.cargardatos(false);          
+          this.cargardatos(false);   
+           // Verificar el código de estado en la respuesta       
           if (response.success && response.data) {
             if (response.data.code_Status === 1) {
-              // Éxito: eliminado correctamente
               this.mensajeExito = `Departamento "${this.departamentoAEliminar!.depa_Descripcion}" eliminado exitosamente`;
               this.mostrarAlertaExito = true;
 
-              // Ocultar la alerta después de 3 segundos
+              //Ocultar alerta luego de cierto tiempo (3s)
               setTimeout(() => {
                 this.mostrarAlertaExito = false;
                 this.mensajeExito = '';
@@ -452,8 +465,9 @@ export class ListComponent implements OnInit {
 
               this.cargardatos(false);
               this.cancelarEliminar();
+
+              //error general
             } else if (response.data.code_Status === -1) {
-              //result: está siendo utilizado
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status || 'No se puede eliminar: el departamento está siendo utilizado.';
 
@@ -462,11 +476,11 @@ export class ListComponent implements OnInit {
                 this.mensajeError = '';
               }, 5000);
 
-              // Cerrar el modal de confirmación
               this.cancelarEliminar();
+
+              //Respuesta inesperado
             } else if (response.data.code_Status === 0) 
             {
-              // Error general
               this.mostrarAlertaError = true;
               this.mensajeError = response.data.message_Status || 'Error al eliminar el departamento.';
 
@@ -475,11 +489,9 @@ export class ListComponent implements OnInit {
                 this.mensajeError = '';
               }, 5000);
 
-              // Cerrar el modal de confirmación
               this.cancelarEliminar();
             }
           } else {
-            // Respuesta inesperada
             this.mostrarAlertaError = true;
             this.mensajeError = response.message || 'Error inesperado al eliminar el departamento.';
 
@@ -488,7 +500,6 @@ export class ListComponent implements OnInit {
               this.mensajeError = '';
             }, 5000);
 
-            // Cerrar el modal de confirmación
             this.cancelarEliminar();
           }
         }, 1000);

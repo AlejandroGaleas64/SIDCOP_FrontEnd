@@ -74,56 +74,42 @@ import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export
 })
 export class ListComponent implements OnInit {
 
+  // Configuración para exportar datos a Excel, PDF y CSV
   private readonly exportConfig = {
-      // Configuración básica
-      title: 'Listado de Estados Civiles',                    // Título del reporte
-      filename: 'Estados Civiles',                           // Nombre base del archivo
+      title: 'Listado de Estados Civiles',
+      filename: 'Estados Civiles',
 
-      // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
       columns: [
         { key: 'No', header: 'No.', width: 8, align: 'center' as const },
         { key: 'Descripción', header: 'Descripción', width: 25, align: 'left' as const },
       ] as ExportColumn[],
       
-      // Mapeo de datos - PERSONALIZA SEGÚN TU MODELO
       dataMapping: (modelo: EstadoCivil, index: number) => ({
         'No': modelo?.secuencia || (index + 1),
         'Descripción': this.limpiarTexto(modelo?.esCv_Descripcion)
-        // Agregar más campos aquí según necesites:
-        // 'Campo': this.limpiarTexto(modelo?.campo),
       })
     };
-  // Overlay de carga animado
   mostrarOverlayCarga = false;
-  // bread crumb items
   breadCrumbItems!: Array<{}>;
 
-  // Acciones disponibles para el usuario en esta pantalla
+  // Array de acciones permitidas según permisos del usuario
   accionesDisponibles: string[] = [];
 
-  // METODO PARA VALIDAR SI UNA ACCIÓN ESTÁ PERMITIDA
+  // Verifica si el usuario tiene permiso para ejecutar una acción específica
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
   }
 
   ngOnInit(): void {
-    /**
-     * BreadCrumb
-     */
     this.breadCrumbItems = [
       { label: 'General' },
       { label: 'Estados Civiles', active: true }
     ];
 
-    // OBTENER ACCIONES DISPONIBLES DEL USUARIO
     this.cargarAccionesUsuario();
   }
 
-// ===== MÉTODOS DE EXPORTACIÓN OPTIMIZADOS =====
-
-  /**
-   * Método unificado para todas las exportaciones
-   */
+  // Ejecuta exportación en el formato especificado (Excel, PDF o CSV)
   async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
     if (this.exportando) {
       this.mostrarMensaje('warning', 'Ya hay una exportación en progreso...');
@@ -165,9 +151,6 @@ export class ListComponent implements OnInit {
     }
   }
 
-  /**
-   * Métodos específicos para cada tipo (para usar en templates)
-   */
   async exportarExcel(): Promise<void> {
     await this.exportar('excel');
   }
@@ -180,9 +163,6 @@ export class ListComponent implements OnInit {
     await this.exportar('csv');
   }
 
-  /**
-   * Verifica si se puede exportar un tipo específico
-   */
   puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
     if (this.exportando) {
       return tipo ? this.tipoExportacion !== tipo : false;
@@ -190,11 +170,7 @@ export class ListComponent implements OnInit {
     return this.table.data$.value?.length > 0;
   }
 
-  // ===== MÉTODOS PRIVADOS DE EXPORTACIÓN =====
-
-  /**
-   * Crea la configuración de exportación de forma dinámica
-   */
+  // Genera objeto de configuración para el servicio de exportación
   private crearConfiguracionExport(): ExportConfig {
     return {
       title: this.exportConfig.title,
@@ -206,9 +182,7 @@ export class ListComponent implements OnInit {
     };
   }
 
-  /**
-   * Obtiene y prepara los datos para exportación
-   */
+  // Transforma los datos de la tabla al formato requerido para exportación
   private obtenerDatosExport(): any[] {
     try {
       const datos = this.table.data$.value;
@@ -228,10 +202,7 @@ export class ListComponent implements OnInit {
     }
   }
 
-
-  /**
-   * Maneja el resultado de las exportaciones
-   */
+  // Muestra mensaje de éxito o error según resultado de exportación
   private manejarResultadoExport(resultado: { success: boolean; message: string }): void {
     if (resultado.success) {
       this.mostrarMensaje('success', resultado.message);
@@ -240,9 +211,7 @@ export class ListComponent implements OnInit {
     }
   }
 
-  /**
-   * Valida datos antes de exportar
-   */
+  // Verifica que existan datos y cantidad razonable antes de exportar
   private validarDatosParaExport(): boolean {
     const datos = this.table.data$.value;
     
@@ -262,9 +231,7 @@ export class ListComponent implements OnInit {
     return true;
   }
 
-  /**
-   * Limpia texto para exportación de manera más eficiente
-   */
+  // Normaliza y sanitiza texto eliminando caracteres especiales
   private limpiarTexto(texto: any): string {
     if (!texto) return '';
     
@@ -275,9 +242,7 @@ export class ListComponent implements OnInit {
       .substring(0, 150);
   }
 
-  /**
-   * Sistema de mensajes mejorado con tipos adicionales
-   */
+  // Muestra alertas de éxito, error, warning o info con duración automática
   private mostrarMensaje(tipo: 'success' | 'error' | 'warning' | 'info', mensaje: string): void {
     this.cerrarAlerta();
     
@@ -305,31 +270,32 @@ export class ListComponent implements OnInit {
     }
   }
 
-
-  // Métodos para los botones de acción principales (crear, editar, detalles)
+  // Muestra el formulario de creación y cierra otros formularios abiertos
   crear(): void {
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false; // Cerrar edit si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.activeActionRow = null;
   }
 
+  // Carga datos del estado civil en formulario de edición
   editar(estadoCivil: EstadoCivil): void {
     this.estadoCivilEditando = { ...estadoCivil }; // Hacer copia profunda
     this.showEditForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
     this.showDetailsForm = false; // Cerrar details si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.activeActionRow = null;
   }
 
+  // Muestra vista de detalles del estado civil seleccionado
   detalles(estadoCivil: EstadoCivil): void {
     this.estadoCivilDetalle = { ...estadoCivil }; // Hacer copia profunda
     this.showDetailsForm = true;
     this.showCreateForm = false; // Cerrar create si está abierto
     this.showEditForm = false; // Cerrar edit si está abierto
-    this.activeActionRow = null; // Cerrar menú de acciones
+    this.activeActionRow = null;
   }
-  // Estado de exportación
+
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
 
@@ -354,7 +320,6 @@ export class ListComponent implements OnInit {
   estadoCivilEditando: EstadoCivil | null = null;
   estadoCivilDetalle: EstadoCivil | null = null;
   
-  // Propiedades para alertas
   mostrarAlertaExito = false;
   mensajeExito = '';
   mostrarAlertaError = false;
@@ -362,7 +327,6 @@ export class ListComponent implements OnInit {
   mostrarAlertaWarning = false;
   mensajeWarning = '';
   
-  // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
   estadoCivilAEliminar: EstadoCivil | null = null;
 
@@ -403,6 +367,7 @@ export class ListComponent implements OnInit {
     this.estadoCivilAEliminar = null;
   }
 
+  // Ejecuta POST al endpoint de eliminación y maneja respuesta
   eliminar(): void {
     if (!this.estadoCivilAEliminar) return;
     
@@ -481,35 +446,30 @@ export class ListComponent implements OnInit {
     this.mensajeWarning = '';
   }
 
-  // AQUI EMPIEZA LO BUENO PARA LAS ACCIONES
+  // Carga acciones permitidas desde localStorage según permisos del usuario
   private cargarAccionesUsuario(): void {
-    // OBTENEMOS PERMISOSJSON DEL LOCALSTORAGE
     const permisosRaw = localStorage.getItem('permisosJson');
     let accionesArray: string[] = [];
     if (permisosRaw) {
       try {
         const permisos = JSON.parse(permisosRaw);
-        // BUSCAMOS EL MÓDULO DE ESTADOS CIVILES
         let modulo = null;
         if (Array.isArray(permisos)) {
-          // BUSCAMOS EL MÓDULO DE ESTADOS CIVILES POR ID
           modulo = permisos.find((m: any) => m.Pant_Id === 14);
         } else if (typeof permisos === 'object' && permisos !== null) {
-          // ESTO ES PARA CUANDO LOS PERMISOS ESTÁN EN UN OBJETO CON CLAVES
           modulo = permisos['Estados Civiles'] || permisos['estados civiles'] || null;
         }
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
-          // AQUI SACAMOS SOLO EL NOMBRE DE LA ACCIÓN
           accionesArray = modulo.Acciones.map((a: any) => a.Accion).filter((a: any) => typeof a === 'string');
         }
       } catch (e) {
         console.error('Error al parsear permisosJson:', e);
       }
-    } 
-    // AQUI FILTRAMOS Y NORMALIZAMOS LAS ACCIONES
+    }
     this.accionesDisponibles = accionesArray.filter(a => typeof a === 'string' && a.length > 0).map(a => a.trim().toLowerCase());
   }
 
+  // Ejecuta GET al endpoint de listar y filtra según permisos del usuario
   private cargardatos(state: boolean): void {
     this.mostrarOverlayCarga = state;
     this.http.get<EstadoCivil[]>(`${environment.apiBaseUrl}/EstadosCiviles/Listar`, {

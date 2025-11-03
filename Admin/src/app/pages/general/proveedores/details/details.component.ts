@@ -24,6 +24,7 @@ export class DetailsComponent implements OnChanges {
     }
   }
 
+  // Simula la carga de detalles del proveedor como si viniera de la API pero en realidad usa el input
   cargarDetallesSimulado(data: Proveedor): void {
     this.cargando = true;
     this.mostrarAlertaError = false;
@@ -31,6 +32,7 @@ export class DetailsComponent implements OnChanges {
       try {
         this.proveedorDetalle = { ...data };
         this.cargando = false;
+
       } catch (error) {
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los detalles del proveedor.';
@@ -43,11 +45,14 @@ export class DetailsComponent implements OnChanges {
     this.onClose.emit();
   }
 
+  // Cierra la alerta de error
   cerrarAlerta(): void {
     this.mostrarAlertaError = false;
     this.mensajeError = '';
   }
 
+
+  // Formatea fechas a formato legible o muestra 'N/A' si es inválida
   formatearFecha(fecha: string | Date | null): string {
     if (!fecha) return 'N/A';
     const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;

@@ -111,7 +111,12 @@ export class ListComponent implements OnInit {
   // ===== MÉTODOS DE EXPORTACIÓN OPTIMIZADOS =====
 
   /**
-   * Método unificado para todas las exportaciones
+   * Método unificado para exportar datos de modelos a diferentes formatos
+   * @param tipo - Tipo de exportación: 'excel', 'pdf' o 'csv'
+   * - Valida que no haya otra exportación en progreso
+   * - Verifica que existan datos para exportar
+   * - Ejecuta la exportación según el tipo seleccionado
+   * - Maneja errores y muestra mensajes al usuario
    */
   async exportar(tipo: 'excel' | 'pdf' | 'csv'): Promise<void> {
     if (this.exportando) {
@@ -155,22 +160,35 @@ export class ListComponent implements OnInit {
   }
 
   /**
-   * Métodos específicos para cada tipo (para usar en templates)
+   * Exporta los datos de modelos a formato Excel (.xlsx)
+   * Método específico que utiliza la función exportar general
    */
   async exportarExcel(): Promise<void> {
     await this.exportar('excel');
   }
 
+  /**
+   * Exporta los datos de modelos a formato PDF
+   * Método específico que utiliza la función exportar general
+   */
   async exportarPDF(): Promise<void> {
     await this.exportar('pdf');
   }
 
+  /**
+   * Exporta los datos de modelos a formato CSV (valores separados por comas)
+   * Método específico que utiliza la función exportar general
+   */
   async exportarCSV(): Promise<void> {
     await this.exportar('csv');
   }
 
   /**
-   * Verifica si se puede exportar un tipo específico
+   * Verifica si se puede realizar una exportación de modelos
+   * @param tipo - Tipo específico de exportación (opcional)
+   * @returns true si se puede exportar, false en caso contrario
+   * - Verifica que no haya exportación en progreso
+   * - Confirma que existan datos en la tabla
    */
   puedeExportar(tipo?: 'excel' | 'pdf' | 'csv'): boolean {
     if (this.exportando) {
@@ -295,18 +313,35 @@ export class ListComponent implements OnInit {
   }
   // ===== MÉTODOS EXISTENTES (SIN CAMBIOS) =====
 
-  // Método para validar si una acción está permitida
+  /**
+   * Valida si una acción específica está permitida para el usuario
+   * @param accion - Nombre de la acción a validar
+   * @returns true si la acción está permitida, false en caso contrario
+   * - Compara con las acciones disponibles del usuario
+   * - Normaliza el texto para comparación
+   */
   accionPermitida(accion: string): boolean {
     return this.accionesDisponibles.some(a => a.trim().toLowerCase() === accion.trim().toLowerCase());
   }
 
-  // Métodos principales de CRUD
+  /**
+   * Abre el formulario para crear un nuevo modelo
+   * - Alterna la visibilidad del formulario de creación
+   * - Cierra otros formularios abiertos (edición, detalles)
+   */
   crear(): void {
     this.showCreateForm = !this.showCreateForm;
     this.showEditForm = false;
     this.showDetailsForm = false;
   }
 
+  /**
+   * Abre el formulario para editar un modelo existente
+   * @param modelo - El objeto modelo a editar
+   * - Crea una copia del modelo para edición
+   * - Muestra el formulario de edición
+   * - Cierra otros formularios abiertos
+   */
   editar(modelo: Modelo): void {
     this.modeloEditando = { ...modelo };
     this.showEditForm = true;
@@ -314,6 +349,13 @@ export class ListComponent implements OnInit {
     this.showDetailsForm = false;
   }
 
+  /**
+   * Abre la vista de detalles de un modelo
+   * @param modelo - El objeto modelo del cual mostrar detalles
+   * - Crea una copia del modelo para visualización
+   * - Muestra el formulario de detalles
+   * - Cierra otros formularios abiertos
+   */
   detalles(modelo: Modelo): void {
     this.modeloDetalle = { ...modelo };
     this.showDetailsForm = true;
@@ -321,45 +363,89 @@ export class ListComponent implements OnInit {
     this.showEditForm = false;
   }
 
+  /**
+   * Solicita confirmación para eliminar un modelo
+   * @param modelo - El modelo que se desea eliminar
+   * - Guarda referencia al modelo a eliminar
+   * - Muestra modal de confirmación
+   */
   confirmarEliminar(modelo: Modelo): void {
     this.modeloAEliminar = modelo;
     this.mostrarConfirmacionEliminar = true;
   }
 
-  // Métodos para cerrar formularios
+  /**
+   * Cierra el formulario de creación de modelo
+   * - Oculta el formulario de creación
+   */
   cerrarFormulario(): void {
     this.showCreateForm = false;
   }
 
+  /**
+   * Cierra el formulario de edición de modelo
+   * - Oculta el formulario de edición
+   * - Limpia la referencia al modelo que se estaba editando
+   */
   cerrarFormularioEdicion(): void {
     this.showEditForm = false;
     this.modeloEditando = null;
   }
 
+  /**
+   * Cierra el formulario de detalles de modelo
+   * - Oculta el formulario de detalles
+   * - Limpia la referencia al modelo del cual se mostraban detalles
+   */
   cerrarFormularioDetalles(): void {
     this.showDetailsForm = false;
     this.modeloDetalle = null;
   }
 
+  /**
+   * Cancela la operación de eliminación
+   * - Oculta el modal de confirmación
+   * - Limpia la referencia al modelo a eliminar
+   */
   cancelarEliminar(): void {
     this.mostrarConfirmacionEliminar = false;
     this.modeloAEliminar = null;
   }
 
-  // Métodos de respuesta de componentes hijos
+  /**
+   * Maneja el evento de guardado exitoso de un nuevo modelo
+   * @param modelo - El modelo que fue guardado
+   * - Recarga los datos de la tabla para mostrar el nuevo registro
+   * - Cierra el formulario de creación
+   * - Muestra mensaje de éxito
+   */
   guardarModelo(modelo: Modelo): void {
     this.cargarDatos();
     this.cerrarFormulario();
     this.mostrarMensaje('success', 'Modelo guardado exitosamente');
   }
 
+  /**
+   * Maneja el evento de actualización exitosa de un modelo
+   * @param modelo - El modelo que fue actualizado
+   * - Recarga los datos de la tabla para mostrar los cambios
+   * - Cierra el formulario de edición
+   * - Muestra mensaje de éxito
+   */
   actualizarModelo(modelo: Modelo): void {
     this.cargarDatos();
     this.cerrarFormularioEdicion();
     this.mostrarMensaje('success', 'Modelo actualizado exitosamente');
   }
 
-  // Método de eliminación optimizado
+  /**
+   * Ejecuta la eliminación de un modelo
+   * - Verifica que exista un modelo seleccionado para eliminar
+   * - Envía petición HTTP POST al backend
+   * - Maneja diferentes tipos de respuesta (exitosa, error)
+   * - Muestra mensajes apropiados según el resultado
+   * - Recarga los datos si la eliminación fue exitosa
+   */
   eliminar(): void {
     if (!this.modeloAEliminar) return;
 
@@ -389,6 +475,11 @@ export class ListComponent implements OnInit {
     });
   }
 
+  /**
+   * Cierra todas las alertas de notificación
+   * - Oculta alertas de éxito, error y advertencia
+   * - Limpia todos los mensajes de alerta
+   */
   cerrarAlerta(): void {
     this.mostrarAlertaExito = false;
     this.mensajeExito = '';
@@ -398,7 +489,13 @@ export class ListComponent implements OnInit {
     this.mensajeWarning = '';
   }
 
-  // Métodos privados de utilidad
+  /**
+   * Extrae el resultado de un procedimiento almacenado
+   * @param response - Respuesta del servidor
+   * @returns Objeto con el resultado extraído
+   * - Maneja diferentes formatos de respuesta del backend
+   * - Normaliza la estructura de datos
+   */
   private extraerResultadoSP(response: any): any {
     if (response.data && typeof response.data === 'object') {
       return response.data;
@@ -408,6 +505,13 @@ export class ListComponent implements OnInit {
     return response;
   }
 
+  /**
+   * Obtiene un mensaje de error amigable basado en el código de estado HTTP
+   * @param error - Objeto de error de la petición HTTP
+   * @returns Mensaje de error descriptivo para el usuario
+   * - Traduce códigos de estado HTTP a mensajes comprensibles
+   * - Proporciona mensajes genéricos para errores desconocidos
+   */
   private obtenerMensajeError(error: any): string {
     if (error.status === 404) return 'El endpoint no fue encontrado.';
     if (error.status === 401) return 'No autorizado. Verifica tu API Key.';
@@ -417,6 +521,13 @@ export class ListComponent implements OnInit {
     return 'Error de comunicación con el servidor.';
   }
 
+  /**
+   * Carga las acciones disponibles para el usuario desde localStorage
+   * - Obtiene los permisos del usuario desde localStorage
+   * - Busca el módulo de Modelos por ID de pantalla
+   * - Extrae las acciones permitidas para este módulo
+   * - Normaliza los nombres de las acciones
+   */
   private cargarAccionesUsuario(): void {
     const permisosRaw = localStorage.getItem('permisosJson');
     let accionesArray: string[] = [];
@@ -447,6 +558,13 @@ export class ListComponent implements OnInit {
       .map(a => a.trim().toLowerCase());
   }
 
+  /**
+   * Carga los datos de modelos desde el backend
+   * - Realiza petición HTTP GET al endpoint de listado
+   * - Asigna números secuenciales a cada modelo
+   * - Actualiza la tabla con los datos obtenidos
+   * - Se ejecuta al inicializar el componente y después de operaciones CRUD
+   */
   private cargarDatos(): void {
     this.http.get<Modelo[]>(`${environment.apiBaseUrl}/Modelo/Listar`, {
       headers: { 'x-api-key': environment.apiKey }
