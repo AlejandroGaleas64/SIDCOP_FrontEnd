@@ -543,9 +543,9 @@ String: any;
     }
 
     if (no == 4) {
-      //console.log(4);
+      //// // console.log(4);
       if (this.tieneDatosCredito()) {
-        //console.log('tieneDatosCredito');
+        //// // console.log('tieneDatosCredito');
         this.mostrarErrores = true;
         if (
           this.avales.length > 0 &&
@@ -1015,7 +1015,7 @@ String: any;
         usuaC_Nombre: this.cliente.usuaC_Nombre,
         usuaM_Nombre: this.cliente.usuaM_Nombre,
       };
-      console.log('Los datos que se envían:', clienteActualizar);
+      // // console.log('Los datos que se envían:', clienteActualizar);
       this.http
         .put<any>(
           `${environment.apiBaseUrl}/Cliente/Actualizar`,
@@ -1135,7 +1135,7 @@ String: any;
       )
       .subscribe({
         next: (response) => {
-          //console.log('Dirección insertada correctamente:', response);
+          //// // console.log('Dirección insertada correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al insertar dirección:', error);
@@ -1165,7 +1165,7 @@ String: any;
       )
       .subscribe({
         next: (response) => {
-          //console.log('Dirección actualizada correctamente:', response);
+          //// console.log('Dirección actualizada correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al actualizar dirección:', error);
@@ -1188,7 +1188,7 @@ String: any;
       )
       .subscribe({
         next: (response) => {
-          //console.log('Dirección eliminada correctamente:', response);
+          //// console.log('Dirección eliminada correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al eliminar dirección:', error);
@@ -1234,7 +1234,7 @@ String: any;
       })
       .subscribe({
         next: (response) => {
-          //console.log('Aval insertado correctamente:', response);
+          //// console.log('Aval insertado correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al insertar aval:', error);
@@ -1269,7 +1269,7 @@ String: any;
       Aval_FechaModificacion: new Date(),
       Aval_Estado: true,
     };
-    //console.log(avalActualizar);
+    //// console.log(avalActualizar);
     this.http
       .put<any>(`${environment.apiBaseUrl}/Aval/Actualizar`, avalActualizar, {
         headers: {
@@ -1280,7 +1280,7 @@ String: any;
       })
       .subscribe({
         next: (response) => {
-          //console.log('Aval actualizado correctamente:', response);
+          //// console.log('Aval actualizado correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al actualizar aval:', error);
@@ -1303,7 +1303,7 @@ String: any;
       )
       .subscribe({
         next: (response) => {
-          //console.log('Aval eliminado correctamente:', response);
+          //// console.log('Aval eliminado correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al eliminar aval:', error);
@@ -1679,7 +1679,7 @@ String: any;
     // Normalizar días (soporta CSV, number, array) y comparar como CSV ordenado
     const diaA = this.normalizeDiaCsv(a.clie_DiaVisita ?? this.diasSeleccionados);
     const diaB = this.normalizeDiaCsv(b.clie_DiaVisita ?? '');
-    console.log('[Clientes] hayDiferencias - dias normalizados A/B:', diaA, diaB);
+    // console.log('[Clientes] hayDiferencias - dias normalizados A/B:', diaA, diaB);
     if (diaA !== diaB) {
       this.cambiosDetectados.diaVisita = {
         anterior: this.diasCsvToNames(diaB),
@@ -1968,19 +1968,19 @@ String: any;
     return arr.sort((a, b) => a - b);
   }
   public fetchDiasDisponiblesCliente(veruId: number): void {
-    console.log('[Clientes] fetchDiasDisponiblesCliente veruId:', veruId);
+    // console.log('[Clientes] fetchDiasDisponiblesCliente veruId:', veruId);
     if (!veruId) { this.diasDisponibles = []; return; }
     const url = `${environment.apiBaseUrl}/Cliente/DiasDisponibles/${veruId}`;
     this.http.get<any>(url, { headers: { 'x-api-key': environment.apiKey } }).subscribe({
       next: (res) => {
         let payload = res && res.data ? res.data : res;
         try {
-          console.log('dias: ', payload);
+          // console.log('dias: ', payload);
           // string CSV -> ids
  
 
             const ids = this.mergeVeruDiasFromPayload(payload);
-            console.log('dias con merge', ids);
+            // console.log('dias con merge', ids);
              this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
    
             this.cdr.detectChanges();

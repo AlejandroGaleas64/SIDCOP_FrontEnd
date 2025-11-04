@@ -477,10 +477,10 @@ String: any;
 
   private loadRutasVendedoresCache(): void {
     const url = `${environment.apiBaseUrl}/Vendedores/ListarPorRutas`;
-    console.log('[Clientes] solicitando cache Vendedores/ListarPorRutas ->', url);
+    // // console.log('[Clientes] solicitando cache Vendedores/ListarPorRutas ->', url);
     this.http.get<any[]>(url, { headers: { 'x-api-key': environment.apiKey } }).subscribe({
       next: (res) => {
-        console.log('[Clientes] respuesta ListarPorRutas:', res);
+        // // console.log('[Clientes] respuesta ListarPorRutas:', res);
         // adaptarse al formato real: si viene envuelto en { data: [...] } o directamente array
         if (Array.isArray(res)) {
           this.rutasVendedorCache = res;
@@ -794,7 +794,7 @@ String: any;
       this.cliente.clie_Codigo = `CLIE-RT-${codigoRuta}-${siguiente}`;
     });
 
-    console.log('Código generado para el cliente:', codigoRuta);
+    // // console.log('Código generado para el cliente:', codigoRuta);
   }
 
 
@@ -921,8 +921,8 @@ String: any;
         diCl_FechaModificacion: new Date(),
         secuencia: 0
       }));
-      console.log('Datos a enviar:', clienteGuardar, direccionGuardar);
-      console.log('JSON:', JSON.stringify(clienteGuardar,  null, 2));
+      // console.log('Datos a enviar:', clienteGuardar, direccionGuardar);
+      // console.log('JSON:', JSON.stringify(clienteGuardar,  null, 2));
       this.http.post<any>(`${environment.apiBaseUrl}/Cliente/Insertar`, clienteGuardar, {
         headers: {
           'X-Api-Key': environment.apiKey,
@@ -1219,7 +1219,7 @@ String: any;
   onRutaSeleccionadaCliente(rutaId: number) {
     // mantener generación de código por ruta
     this.generarCodigoClientePorRuta?.(rutaId);
-    console.log('[Clientes] onRutaSeleccionadaCliente ->', rutaId);
+    // console.log('[Clientes] onRutaSeleccionadaCliente ->', rutaId);
 
     this.fetchDiasDisponiblesCliente?.(rutaId);
 
@@ -1236,7 +1236,7 @@ String: any;
       if (typeof posibles === 'string' && posibles.trim()) {
         const ids = posibles.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
         this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
-        console.log('[Clientes] diasDisponibles (rutaLocal string)=', this.diasDisponibles);
+        // console.log('[Clientes] diasDisponibles (rutaLocal string)=', this.diasDisponibles);
         if (!this.diasDisponibles.some(d => d.id === Number(this.cliente?.clie_DiaVisita))) {
           if (this.cliente) this.cliente.clie_DiaVisita = '';
         }
@@ -1244,7 +1244,7 @@ String: any;
       }
       if (Array.isArray(posibles) && posibles.length > 0 && typeof posibles[0] === 'number') {
         this.diasDisponibles = this.diasSemana.filter(d => (posibles as number[]).includes(d.id));
-        console.log('[Clientes] diasDisponibles (rutaLocal array ids)=', this.diasDisponibles);
+        // console.log('[Clientes] diasDisponibles (rutaLocal array ids)=', this.diasDisponibles);
         if (!this.diasDisponibles.some(d => d.id === Number(this.cliente?.clie_DiaVisita))) {
           if (this.cliente) this.cliente.clie_DiaVisita = '';
         }
@@ -1255,7 +1255,7 @@ String: any;
           id: d.id ?? d.dia_Id ?? d.value,
           nombre: d.nombre ?? d.dia_Descripcion ?? d.label ?? `${d}`
         }));
-        console.log('[Clientes] diasDisponibles (rutaLocal array obj)=', this.diasDisponibles);
+        // console.log('[Clientes] diasDisponibles (rutaLocal array obj)=', this.diasDisponibles);
         if (!this.diasDisponibles.some(d => d.id === Number(this.cliente?.clie_DiaVisita))) {
           if (this.cliente) this.cliente.clie_DiaVisita = '';
         }
@@ -1270,7 +1270,7 @@ String: any;
       return;
     }
 
-    console.log('[Clientes] claves primer registro cache:', Object.keys(this.rutasVendedorCache[0] || {}));
+    // console.log('[Clientes] claves primer registro cache:', Object.keys(this.rutasVendedorCache[0] || {}));
 
     const registro = this.rutasVendedorCache.find(item => {
       try {
@@ -1287,7 +1287,7 @@ String: any;
       return false;
     });
 
-    console.log('[Clientes] registro encontrado (flexible):', registro);
+    // console.log('[Clientes] registro encontrado (flexible):', registro);
     if (!registro) {
       console.warn('[Clientes] no se encontró registro en cache para rutaId:', rutaId);
       return;
@@ -1305,7 +1305,7 @@ String: any;
       diasRaw = registro.veRu_Dias ?? registro.rutas ?? null;
     }
 
-    console.log('[Clientes] diasRaw detectado (puede ser string/array/xml):', diasRaw);
+    // console.log('[Clientes] diasRaw detectado (puede ser string/array/xml):', diasRaw);
 
     // Si diasRaw es XML (string con "<"), parsear y extraer <dias> para la rutaId
     if (typeof diasRaw === 'string' && diasRaw.includes('<')) {
@@ -1322,7 +1322,7 @@ String: any;
             const diasTxt = diasNode.textContent?.trim() ?? '';
             const ids = diasTxt.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
             this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
-            console.log('[Clientes] diasDisponibles (xml parsed)=', this.diasDisponibles);
+            // console.log('[Clientes] diasDisponibles (xml parsed)=', this.diasDisponibles);
             return;
           }
         }
@@ -1335,14 +1335,14 @@ String: any;
     if (typeof diasRaw === 'string' && diasRaw.trim()) {
       const ids = diasRaw.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
       this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
-      console.log('[Clientes] diasDisponibles (string split)=', this.diasDisponibles);
+      // console.log('[Clientes] diasDisponibles (string split)=', this.diasDisponibles);
       return;
     }
 
     // Si diasRaw es array de números
     if (Array.isArray(diasRaw) && typeof diasRaw[0] === 'number') {
       this.diasDisponibles = this.diasSemana.filter(d => (diasRaw as number[]).includes(d.id));
-      console.log('[Clientes] diasDisponibles (array numbers)=', this.diasDisponibles);
+      // console.log('[Clientes] diasDisponibles (array numbers)=', this.diasDisponibles);
       return;
     }
 
@@ -1352,7 +1352,7 @@ String: any;
         id: d.id ?? d.dia_Id ?? d.value,
         nombre: d.nombre ?? d.dia_Descripcion ?? d.label ?? `${d}`
       }));
-      console.log('[Clientes] diasDisponibles (array obj)=', this.diasDisponibles);
+      // console.log('[Clientes] diasDisponibles (array obj)=', this.diasDisponibles);
       return;
     }
 
@@ -1449,16 +1449,16 @@ String: any;
   }
 
   public fetchDiasDisponiblesCliente(veruId: number): void {
-    console.log('[Clientes] fetchDiasDisponiblesCliente veruId:', veruId);
+    // console.log('[Clientes] fetchDiasDisponiblesCliente veruId:', veruId);
     if (!veruId) { this.diasDisponibles = []; this.diasSeleccionados = []; return; }
     const url = `${environment.apiBaseUrl}/Cliente/DiasDisponibles/${veruId}`;
     this.http.get<any>(url, { headers: { 'x-api-key': environment.apiKey } }).subscribe({
       next: (res) => {
         let payload = res && res.data ? res.data : res;
         try {
-          console.log('dias: ', payload);
+          // console.log('dias: ', payload);
           const ids = this.mergeVeruDiasFromPayload(payload); // number[]
-          console.log('dias con merge', ids);
+          // console.log('dias con merge', ids);
           // poblar opciones (array de objetos)
           this.diasDisponibles = this.diasSemana
             .filter(d => ids.includes(d.id))
@@ -1489,6 +1489,30 @@ String: any;
         this.diasSeleccionados = [];
       }
     });
+  }
+
+
+  onRutaChange(selectedValue: any) {
+    const selectedId = Number(selectedValue) || 0;
+
+    // limpiar selección previa inmediatamente (evita ver días de la ruta anterior)
+    this.diasSeleccionados = [];
+    this.cliente.clie_DiaVisita = '';
+    this.diasDisponibles = [];
+    this.cdr.detectChanges();
+
+    const rutaSeleccionada = this.rutas.find(r => Number(r.ruta_Id) === selectedId);
+    this.cliente.ruta_Descripcion = rutaSeleccionada ? rutaSeleccionada.ruta_Descripcion : '';
+
+    if (selectedId) {
+      // carga los días de la ruta seleccionada
+      this.fetchDiasDisponiblesCliente(selectedId);
+      // genera código basado en la ruta seleccionada (si aplica)
+      this.generarCodigoClientePorRuta(selectedId);
+    } else {
+      // fallback si deseleccionan
+      this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
+    }
   }
 }
 
