@@ -402,6 +402,7 @@ export class ListComponent implements OnInit {
           } else if (response.data.code_Status === -1) {
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'No se puede eliminar: la sucursal está siendo utilizada.';
+            this.mostrarOverlayCarga = false;
             setTimeout(() => {
               this.mostrarAlertaError = false;
               this.mensajeError = '';
@@ -410,6 +411,7 @@ export class ListComponent implements OnInit {
           } else if (response.data.code_Status === 0) {
             this.mostrarAlertaError = true;
             this.mensajeError = response.data.message_Status || 'Error al eliminar la sucursal.';
+            this.mostrarOverlayCarga = false;
             setTimeout(() => {
               this.mostrarAlertaError = false;
               this.mensajeError = '';
@@ -419,10 +421,12 @@ export class ListComponent implements OnInit {
         } else {
           this.mostrarAlertaError = true;
           this.mensajeError = response.message || 'Error inesperado al eliminar la sucursal.';
+          this.mostrarOverlayCarga = false;
           setTimeout(() => {
             this.mostrarAlertaError = false;
             this.mensajeError = '';
           }, 5000);
+          
           this.cancelarEliminar();
         }
       },
@@ -450,6 +454,7 @@ export class ListComponent implements OnInit {
   }
 
   cancelarEliminar(): void {
+    this.mostrarOverlayCarga = false;
     this.mostrarConfirmacionEliminar = false;
     this.sucursalAEliminar = null;
   }
