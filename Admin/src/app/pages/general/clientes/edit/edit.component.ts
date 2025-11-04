@@ -49,6 +49,7 @@ export class EditComponent implements OnChanges {
   mostrarConfirmacionEditar = false;
   mensajeWarning = '';
   mostrarMapa = false;
+  diasDisponiblesFiltradas: any[][] = [[]];
 
   //Arreglos de las listas
   nacionalidades: any[] = [];
@@ -60,6 +61,8 @@ export class EditComponent implements OnChanges {
   parentescos: any[] = [];
   TodasColonias: any[] = [];
   TodasColoniasAval: any[] = [];
+
+  diasSeleccionados: number[] = [];
 
   //Variables para el mapa
   latitudSeleccionada: number | null = null;
@@ -86,95 +89,104 @@ export class EditComponent implements OnChanges {
   @Input() coordenadasIniciales?: { lat: number, lng: number };
 String: any;
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['clienteData']?.currentValue) {
-      this.cliente = { ...changes['clienteData'].currentValue };
+ ngOnChanges(changes: SimpleChanges): void {
+  if (changes['clienteData']?.currentValue) {
+    this.cliente = { ...changes['clienteData'].currentValue };
 
-      // fallback: intentar extraer el día desde cualquier campo que contenga "dia"
-     const rawFromCliente = this.getDiaFromClienteRaw(this.cliente);
-     // normalizar el tipo del día para que el select muestre la etiqueta correcta
-      //  this.normalizeDiaStringInModel();
-     if (rawFromCliente && (!this.cliente.clie_DiaVisita || String(this.cliente.clie_DiaVisita).trim() === '')) {
-       this.cliente.clie_DiaVisita = String(rawFromCliente);
-     }
-     // normalizar a string (opción B)
-     if (this.cliente.clie_DiaVisita !== null && this.cliente.clie_DiaVisita !== undefined) {
-       this.cliente.clie_DiaVisita = String(this.cliente.clie_DiaVisita);
-     } else {
-       this.cliente.clie_DiaVisita = '';
-     }
+    // Guardar el cliente original (normalizando clie_DiaVisita a CSV string)
+    this.clienteOriginal = {
+      ...changes['clienteData'].currentValue,
+      clie_DiaVisita: String((changes['clienteData'].currentValue?.clie_DiaVisita ?? '')).trim()
+    };
+    // Si ya tenemos rutas / canales cargadas, completar descripciones en el original
+    try {
+      const orig = this.clienteOriginal;
+      if (orig && orig.ruta_Id) {
+        const r = (this.rutas || []).find(x => String(x.ruta_Id) === String(orig.ruta_Id));
+        if (r) orig.ruta_Descripcion = orig.ruta_Descripcion || (r.ruta_Descripcion ?? '');
+      }
+      if (orig && orig.cana_Id) {
+        const c = (this.canales || []).find(x => String(x.cana_Id) === String(orig.cana_Id));
+        if (c) orig.cana_Descripcion = orig.cana_Descripcion || (c.cana_Descripcion ?? '');
+      }
+    } catch (e) { /* no bloquear */ }
+    this.idDelCliente = this.cliente.clie_Id;
 
-     // Normalizar clie_DiaVisita a número si es posible (ng-select suele usar id:number)
-      const diaIni = this.cliente.clie_DiaVisita;
-    //  if (diaIni === null || diaIni === undefined || diaIni === '') {
-    //    this.cliente.clie_DiaVisita = '';
-    //  } else {
-       const n = Number(diaIni);
-      // Opción B: mantener el modelo como string -> siempre asignar string
-      this.cliente.clie_DiaVisita = !isNaN(n) ? String(n) : String(diaIni);
-    //  }
-      //Hacer lo mismo con canales, estados civiles y demas
-      const rutaActual = this.rutas.find(ruta => ruta.ruta_Id === this.cliente.ruta_Id);
-      this.cliente.ruta_Descripcion = rutaActual ? rutaActual.ruta_Descripcion : '';
-      // normalizar la copia original para que clie_DiaVisita sea string
+    // Parsear días seleccionados del cliente
+    if (this.cliente.clie_DiaVisita) {
+      const diasString = String(this.cliente.clie_DiaVisita).trim();
+      if (diasString) {
+        this.diasSeleccionados = diasString
+          .split(',')
+          .map(d => Number(d.trim()))
+          .filter(n => !isNaN(n) && n >= 1 && n <= 7);
+      } else {
+        this.diasSeleccionados = [];
+      }
+    } else {
+      this.diasSeleccionados = [];
+    }
+
+    // Cargar días disponibles
+    if (this.cliente.ruta_Id) {
+      this.fetchDiasDisponiblesCliente(this.cliente.ruta_Id);
+    }
+    
+
+      // Si está vacío, intentar fallback
+      if (!this.cliente.clie_DiaVisita) {
+        const rawFromCliente = this.getDiaFromClienteRaw(this.cliente);
+        if (rawFromCliente) {
+          this.cliente.clie_DiaVisita = String(rawFromCliente).trim();
+        }
+      }
+
+      // Normalizar la copia original
       this.clienteOriginal = {
         ...changes['clienteData'].currentValue,
         clie_DiaVisita: String((changes['clienteData'].currentValue?.clie_DiaVisita ?? ''))
       };
       this.idDelCliente = this.cliente.clie_Id;
 
-       if (this.rutas.length === 0) {
-         this.cargarRutas().then(() => {
-           this.asignarRutaDescripcionYCodigo();
-           // Asegurarse de poblar diasDisponibles al cargar el cliente
-           this.onRutaSeleccionadaCliente(this.cliente.ruta_Id);
-          // Si el día guardado no está en la lista, intentar mapear por nombre o limpiar
-          if (this.cliente.clie_DiaVisita !== '' && this.diasDisponibles?.length) {
-            const found = this.diasDisponibles.find(d =>
-              // d.id === String(this.cliente.clie_DiaVisita) ||
-              String(d.nombre).toLowerCase() === String(this.cliente.clie_DiaVisita).toLowerCase()
-            );
-            this.cliente.clie_DiaVisita = found ? String(found.id) : '';
+      // Cargar rutas y luego poblar días disponibles
+      const procesarDiaVisita = () => {
+        this.asignarRutaDescripcionYCodigo();
+        // IMPORTANTE: Poblar diasDisponibles ANTES de validar
+        
+        
+        // Esperar un tick para que diasDisponibles se pueble
+        setTimeout(() => {
+          if (this.cliente.clie_DiaVisita && this.diasDisponibles?.length > 0) {
+            // Buscar coincidencia por id o nombre
+            const found = this.diasDisponibles.find(d => {
+              const diaStr = String(this.cliente.clie_DiaVisita).trim();
+              return String(d.id) === diaStr || 
+                     String(d.nombre).toLowerCase() === diaStr.toLowerCase();
+            });
+            
+            if (found) {
+              this.cliente.clie_DiaVisita = String(found.id);
+            } else {
+              console.warn(`[Clientes] Día "${this.cliente.clie_DiaVisita}" no encontrado en días disponibles:`, this.diasDisponibles);
+            }
           }
           this.cdr.detectChanges();
-         });
-       } else {
-         this.asignarRutaDescripcionYCodigo();
-         // Asegurarse de poblar diasDisponibles al cargar el cliente
-        this.onRutaSeleccionadaCliente(this.cliente.ruta_Id);
-       if (this.cliente.clie_DiaVisita !== '' && this.diasDisponibles?.length) {
-         const valNum = Number(this.cliente.clie_DiaVisita);
-         const found = this.diasDisponibles.find(d =>
-           d.id === (isNaN(valNum) ? this.cliente.clie_DiaVisita : valNum) ||
-           String(d.nombre).toLowerCase() === String(this.cliente.clie_DiaVisita).toLowerCase()
-         );
-         this.cliente.clie_DiaVisita = found ? String(found.id) : '';
-       }
-       this.cdr.detectChanges();
-       }
+        }, 100);
+      };
+
+      if (this.rutas.length === 0) {
+        this.cargarRutas().then(() => {
+          procesarDiaVisita();
+        });
+      } else {
+        procesarDiaVisita();
+      }
 
       this.cargarDireccionesExistentes();
       this.cargarAvalesExistentes();
-      this.loadRutasVendedoresCache();
+     
     }
   }
-
-  // private normalizeDiaStringInModel() {
-  //   try {
-  //     if (this.cliente && this.cliente.clie_DiaVisita !== undefined && this.cliente.clie_DiaVisita !== null) {
-  //       this.cliente.clie_DiaVisita = String(this.cliente.clie_DiaVisita);
-  //     }
-  //     if ((this as any).clienteOriginal && (this as any).clienteOriginal.clie_DiaVisita !== undefined && (this as any).clienteOriginal.clie_DiaVisita !== null) {
-  //       (this as any).clienteOriginal.clie_DiaVisita = String((this as any).clienteOriginal.clie_DiaVisita);
-  //     }
-  //     // también normalizar opciones por si vienen como number
-  //     if (Array.isArray(this.diasDisponibles)) {
-  //       this.diasDisponibles = (this.diasDisponibles as any[]).map(d => ({ id: String(d.id), nombre: d.nombre ?? d.label ?? String(d) })) as any;
-  //     }
-  //   } catch (e) {
-  //     console.warn('[Clientes] normalizeDiaStringInModel error', e);
-  //   }
-  // }
 
   asignarRutaDescripcionYCodigo() {
     const rutaActual = this.rutas.find(ruta => ruta.ruta_Id === this.cliente.ruta_Id);
@@ -232,15 +244,27 @@ String: any;
     }
   }
 
-  onRutaChange(event: any) {
-    const selectedId = +event.target.value;
-    const rutaSeleccionada = this.rutas.find(r => r.ruta_Id === selectedId);
-    if (rutaSeleccionada) {
-      this.cliente.ruta_Descripcion = rutaSeleccionada.ruta_Descripcion;
+  onRutaChange(selectedValue: any) {
+    const selectedId = Number(selectedValue) || 0;
+
+    // limpiar selección previa inmediatamente (evita ver días de la ruta anterior)
+    this.diasSeleccionados = [];
+    this.cliente.clie_DiaVisita = '';
+    this.diasDisponibles = [];
+    this.cdr.detectChanges();
+
+    const rutaSeleccionada = this.rutas.find(r => Number(r.ruta_Id) === selectedId);
+    this.cliente.ruta_Descripcion = rutaSeleccionada ? rutaSeleccionada.ruta_Descripcion : '';
+
+    if (selectedId) {
+      // carga los días de la ruta seleccionada
+      this.fetchDiasDisponiblesCliente(selectedId);
+      // genera código basado en la ruta seleccionada (si aplica)
+      this.generarCodigoClientePorRuta(selectedId);
     } else {
-      this.cliente.ruta_Descripcion = '';
+      // fallback si deseleccionan
+      this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
     }
-    this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
   }
 
   esCorreoValido(correo: string): boolean {
@@ -519,9 +543,9 @@ String: any;
     }
 
     if (no == 4) {
-      //console.log(4);
+      //// // console.log(4);
       if (this.tieneDatosCredito()) {
-        //console.log('tieneDatosCredito');
+        //// // console.log('tieneDatosCredito');
         this.mostrarErrores = true;
         if (
           this.avales.length > 0 &&
@@ -939,6 +963,12 @@ String: any;
 
   guardarCliente(): void {
     this.mostrarErrores = true;
+
+    if (this.diasSeleccionados && this.diasSeleccionados.length > 0) {
+      this.cliente.clie_DiaVisita = this.diasSeleccionados.sort((a, b) => a - b).join(',');
+    } else {
+      this.cliente.clie_DiaVisita = '';
+    }
     if (this.entrando) {
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
@@ -985,7 +1015,7 @@ String: any;
         usuaC_Nombre: this.cliente.usuaC_Nombre,
         usuaM_Nombre: this.cliente.usuaM_Nombre,
       };
-      console.log('Los datos que se envían:', clienteActualizar);
+      // // console.log('Los datos que se envían:', clienteActualizar);
       this.http
         .put<any>(
           `${environment.apiBaseUrl}/Cliente/Actualizar`,
@@ -1105,7 +1135,7 @@ String: any;
       )
       .subscribe({
         next: (response) => {
-          //console.log('Dirección insertada correctamente:', response);
+          //// // console.log('Dirección insertada correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al insertar dirección:', error);
@@ -1135,7 +1165,7 @@ String: any;
       )
       .subscribe({
         next: (response) => {
-          //console.log('Dirección actualizada correctamente:', response);
+          //// console.log('Dirección actualizada correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al actualizar dirección:', error);
@@ -1158,7 +1188,7 @@ String: any;
       )
       .subscribe({
         next: (response) => {
-          //console.log('Dirección eliminada correctamente:', response);
+          //// console.log('Dirección eliminada correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al eliminar dirección:', error);
@@ -1204,7 +1234,7 @@ String: any;
       })
       .subscribe({
         next: (response) => {
-          //console.log('Aval insertado correctamente:', response);
+          //// console.log('Aval insertado correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al insertar aval:', error);
@@ -1239,7 +1269,7 @@ String: any;
       Aval_FechaModificacion: new Date(),
       Aval_Estado: true,
     };
-    //console.log(avalActualizar);
+    //// console.log(avalActualizar);
     this.http
       .put<any>(`${environment.apiBaseUrl}/Aval/Actualizar`, avalActualizar, {
         headers: {
@@ -1250,7 +1280,7 @@ String: any;
       })
       .subscribe({
         next: (response) => {
-          //console.log('Aval actualizado correctamente:', response);
+          //// console.log('Aval actualizado correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al actualizar aval:', error);
@@ -1273,7 +1303,7 @@ String: any;
       )
       .subscribe({
         next: (response) => {
-          //console.log('Aval eliminado correctamente:', response);
+          //// console.log('Aval eliminado correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al eliminar aval:', error);
@@ -1430,6 +1460,60 @@ String: any;
     return map[s] ?? s;
   }
 
+
+  // normaliza CSV/array/number a CSV ordenado (ej. "4,3" -> "3,4")
+  private normalizeDiaCsv(v: any): string {
+    if (v == null) return '';
+    if (Array.isArray(v)) {
+      const nums = v.map(x => Number(x)).filter(n => !isNaN(n));
+      return Array.from(new Set(nums)).sort((a, b) => a - b).join(',');
+    }
+    const s = String(v).trim();
+    if (!s) return '';
+    const parts = s.split(/[,;|\s]+/).map(p => Number(p.trim())).filter(n => !isNaN(n));
+    return Array.from(new Set(parts)).sort((a, b) => a - b).join(',');
+  }
+
+  // convierte CSV ordenado de días ("3,4") a nombres ("Miércoles, Jueves")
+  private diasCsvToNames(csv: string): string {
+    if (!csv) return 'N/A';
+    const map: Record<string, string> = {
+      '1': 'Lunes',
+      '2': 'Martes',
+      '3': 'Miércoles',
+      '4': 'Jueves',
+      '5': 'Viernes',
+      '6': 'Sábado',
+      '7': 'Domingo'
+    };
+    const parts = String(csv).split(',').map(p => p.trim()).filter(p => p !== '');
+    const names = parts.map(p => map[p] ?? p);
+    // eliminar duplicados manteniendo orden
+    return Array.from(new Set(names)).join(', ');
+  }
+
+  // Handler que actualiza el modelo cuando el ng-select de días cambia
+  onDiasSeleccionadosChange(selected: any[]) {
+    this.diasSeleccionados = (selected || []).map(s => Number(s)).filter(n => !isNaN(n) && n >= 1 && n <= 7);
+    this.cliente.clie_DiaVisita = this.diasSeleccionados.length ? this.diasSeleccionados.sort((a,b)=>a-b).join(',') : '';
+    this.cdr.detectChanges();
+  }
+
+   private findRutaDescripcionById(id: any): string {
+    if (id == null || id === '') return '';
+    const key = String(id).trim();
+    const found = (this.rutas || []).find(r => String(r.ruta_Id ?? r.id ?? '').trim() === key);
+    return found ? (found.ruta_Descripcion ?? String(id)) : (this.clienteOriginal?.ruta_Descripcion ?? String(id));
+  }
+
+  // helper para obtener descripción de canal por id a partir de this.canales
+  private findCanalDescripcionById(id: any): string {
+    if (id == null || id === '') return '';
+    const key = String(id).trim();
+    const found = (this.canales || []).find(c => String(c.cana_Id ?? c.id ?? '').trim() === key);
+    return found ? (found.cana_Descripcion ?? String(id)) : (this.clienteOriginal?.cana_Descripcion ?? String(id));
+  }
+
   // Todo lo de mensaje de confirmación de edición
 
   obtenerListaCambios(): any[] {
@@ -1446,6 +1530,16 @@ String: any;
     const e = this.nuevoAval();
     const f = this.avalOriginal;
     this.cambiosDetectados = {};
+
+    const num = (v: any) => (v == null || v === '') ? null : Number(v);
+    const str = (v: any) => (v == null ? '' : String(v).trim());
+
+    const idChanged = (aId: any, bId: any) => {
+      const A = num(aId);
+      const B = num(bId);
+      return (A === null && B === null) ? false : (A !== B);
+    };
+
 
     // Verificar cada campo y almacenar los cambios
     if (a.clie_Nacionalidad !== b.clie_Nacionalidad) {
@@ -1496,10 +1590,10 @@ String: any;
       };
     }
 
-    if (a.esCv_Id !== b.esCv_Id) {
+    if (num(a.esCv_Id) !== num(b.esCv_Id)) {
       this.cambiosDetectados.marca = {
-        anterior: b.esCv_Descripcion,
-        nuevo: a.esCv_Descripcion,
+        anterior: str(b.esCv_Descripcion),
+        nuevo: str(a.esCv_Descripcion),
         label: 'Estado Civil'
       };
     }
@@ -1564,30 +1658,33 @@ String: any;
       };
     }
 
-    if (a.ruta_Id !== b.ruta_Id) {
+    // Canal: comparar por id numérico y mostrar descripciones (buscar en listas si el original no tiene)
+    if (idChanged(a.cana_Id, b.cana_Id)) {
+      this.cambiosDetectados.canal = {
+        anterior: this.findCanalDescripcionById(b.cana_Id) || str(b.cana_Descripcion) || `${str(b.cana_Id)}`,
+        nuevo: this.findCanalDescripcionById(a.cana_Id) || str(a.cana_Descripcion) || `${str(a.cana_Id)}`,
+        label: 'Canal'
+      };
+    }
+
+    // Ruta: comparar por id numérico y mostrar descripciones (buscar en listas si el original no tiene)
+    if (idChanged(a.ruta_Id, b.ruta_Id)) {
       this.cambiosDetectados.ruta = {
-        anterior: b.ruta_Descripcion,
-        nuevo: a.ruta_Descripcion,
+        anterior: this.findRutaDescripcionById(b.ruta_Id) || str(b.ruta_Descripcion) || `${str(b.ruta_Id)}`,
+        nuevo: this.findRutaDescripcionById(a.ruta_Id) || str(a.ruta_Descripcion) || `${str(a.ruta_Id)}`,
         label: 'Ruta'
       };
     }
 
-    // Normalizar ambos a string para evitar falsos positivos por tipo (number vs string)
-    const diaA = String(a.clie_DiaVisita ?? '').trim();
-    const diaB = String(b.clie_DiaVisita ?? '').trim();
+    // Normalizar días (soporta CSV, number, array) y comparar como CSV ordenado
+    const diaA = this.normalizeDiaCsv(a.clie_DiaVisita ?? this.diasSeleccionados);
+    const diaB = this.normalizeDiaCsv(b.clie_DiaVisita ?? '');
+    // console.log('[Clientes] hayDiferencias - dias normalizados A/B:', diaA, diaB);
     if (diaA !== diaB) {
       this.cambiosDetectados.diaVisita = {
-        anterior: this.diasSemanaString(diaB),
-        nuevo: this.diasSemanaString(diaA),
+        anterior: this.diasCsvToNames(diaB),
+        nuevo: this.diasCsvToNames(diaA),
         label: 'Día de Visita'
-      };
-    }
-
-    if (a.cana_Id !== b.cana_Id) {
-      this.cambiosDetectados.canal = {
-        anterior: b.cana_Descripcion,
-        nuevo: a.cana_Descripcion,
-        label: 'Canal'
       };
     }
 
@@ -1784,207 +1881,129 @@ String: any;
 
   // Opciones que alimentan el ng-select de "Día de Visita"
   diasDisponibles: Array<{ id: number; nombre: string }> = [];
-  rutasVendedorCache: any[] = [];
-
-   onRutaSeleccionadaCliente(rutaId: number) {
-    // mantener generación de código por ruta
-    this.generarCodigoClientePorRuta?.(rutaId);
-    console.log('[Clientes] onRutaSeleccionadaCliente ->', rutaId);
-
-    // resetear opciones antes de calcular
-   this.diasDisponibles = [];
-
-   // ayuda a debug: ver qué rutaLocal y posibles trae la fuente
-    if (!rutaId) {
-      this.diasDisponibles = [];
-      if (this.cliente) this.cliente.clie_DiaVisita = '';
-      return;
-    }
-
-    // 1) info en this.rutas
-    const rutaLocal = this.rutas?.find(r => +r.ruta_Id === +rutaId);
-    console.log('[Clientes] rutaLocal para rutaId:', rutaLocal);
-    if (rutaLocal) {
-      const posibles = rutaLocal.veRu_Dias ?? rutaLocal.dias ?? rutaLocal.diasSeleccionados ?? rutaLocal.diasConfig;
-      console.log('[Clientes] posibles (desde rutaLocal):', posibles);
-      if (typeof posibles === 'string' && posibles.trim()) {
-        const ids = posibles.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
-        this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
-        console.log('[Clientes] diasDisponibles (rutaLocal string)=', this.diasDisponibles);
-        // aplicar valor guardado SOLO después de poblar opciones
-        this.setDiaSeleccionadoFromCliente();
-        return;
-      }
-      if (Array.isArray(posibles) && posibles.length > 0 && typeof posibles[0] === 'number') {
-        this.diasDisponibles = this.diasSemana.filter(d => (posibles as number[]).includes(d.id));
-        console.log('[Clientes] diasDisponibles (rutaLocal array ids)=', this.diasDisponibles);
-        this.setDiaSeleccionadoFromCliente();
-        return;
-      }
-      if (Array.isArray(posibles) && posibles.length > 0) {
-        this.diasDisponibles = (posibles as any[]).map(d => ({
-          id: d.id ?? d.dia_Id ?? d.value,
-          nombre: d.nombre ?? d.dia_Descripcion ?? d.label ?? `${d}`
-        }));
-        console.log('[Clientes] diasDisponibles (rutaLocal array obj)=', this.diasDisponibles);
-        this.setDiaSeleccionadoFromCliente();
-        return;
-      }
-    }
-
-    // 2) buscar en rutasVendedorCache (priorizar claves que indiquen días)
-    this.diasDisponibles = [];
-    if (!Array.isArray(this.rutasVendedorCache) || this.rutasVendedorCache.length === 0) {
-      console.warn('[Clientes] rutasVendedorCache vacía');
-      return;
-    }
-
-    console.log('[Clientes] buscando en rutasVendedorCache para rutaId', rutaId);
-    console.log('[Clientes] claves primer registro cache:', Object.keys(this.rutasVendedorCache[0] || {}));
-
-    const registro = this.rutasVendedorCache.find(item => {
-      try {
-        for (const key of Object.keys(item)) {
-          const val = item[key];
-          if (val === null || val === undefined) continue;
-          // detectar si algún campo contiene exactamente el id de ruta (número o string)
-          if ((typeof val === 'number' && +val === +rutaId) ||
-              (typeof val === 'string' && val.trim() === String(rutaId))) {
-            return true;
-          }
-        }
-      } catch (e) { /* ignore */ }
-      return false;
-    });
-
-    console.log('[Clientes] registro encontrado (flexible):', registro);
-    if (!registro) {
-      console.warn('[Clientes] no se encontró registro en cache para rutaId:', rutaId);
-      return;
-    }
-
-    // Extraer campos que probablemente contienen los días:
-    // 1) Priorizar keys que contengan 'dia' o 'dias'
-    let diasRaw: any = null;
-    const keys = Object.keys(registro);
-    const prefDiasKey = keys.find(k => /dias?/i.test(k)); // veRu_Dias, dias, etc.
-    if (prefDiasKey) diasRaw = registro[prefDiasKey];
-
-    // 2) Si no hay pref, buscar campos concretos comunes
-    if (!diasRaw) {
-      diasRaw = registro.veRu_Dias ?? registro.rutas ?? null;
-    }
-
-    console.log('[Clientes] diasRaw detectado (puede ser string/array/xml):', diasRaw);
-
-    // Si diasRaw es XML (string con "<"), parsear y extraer <dias> para la rutaId
-    if (typeof diasRaw === 'string' && diasRaw.includes('<')) {
-      try {
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(diasRaw, 'application/xml');
-        const rutasNodes = Array.from(xml.getElementsByTagName('Ruta'));
-        for (const node of rutasNodes) {
-          const idNode = node.getElementsByTagName('Id')[0];
-          const diasNode = node.getElementsByTagName('dias')[0];
-          if (!idNode || !diasNode) continue;
-          const idVal = idNode.textContent?.trim();
-          if (idVal && +idVal === +rutaId) {
-            const diasTxt = diasNode.textContent?.trim() ?? '';
-            const ids = diasTxt.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
-            this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
-            console.log('[Clientes] diasDisponibles (xml parsed)=', this.diasDisponibles);
-            return;
-          }
-        }
-      } catch (e) {
-        console.warn('[Clientes] error parseando XML de rutas:', e);
-      }
-    }
-
-    // Si diasRaw es string simple "1" o "1,5"
-    if (typeof diasRaw === 'string' && diasRaw.trim()) {
-      const ids = diasRaw.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
-      this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
-      console.log('[Clientes] diasDisponibles (string split)=', this.diasDisponibles);
-      return;
-    }
-
-    // Si diasRaw es array de números
-    if (Array.isArray(diasRaw) && typeof diasRaw[0] === 'number') {
-      this.diasDisponibles = this.diasSemana.filter(d => (diasRaw as number[]).includes(d.id));
-      console.log('[Clientes] diasDisponibles (array numbers)=', this.diasDisponibles);
-      return;
-    }
-
-    // Si diasRaw es array de objetos {id,nombre}
-    if (Array.isArray(diasRaw) && typeof diasRaw[0] === 'object') {
-      this.diasDisponibles = (diasRaw as any[]).map(d => ({
-        id: d.id ?? d.dia_Id ?? d.value,
-        nombre: d.nombre ?? d.dia_Descripcion ?? d.label ?? `${d}`
+ 
+  rutasDisponibles: any[] = [];
+  rutasTodas: any[] = [];
+  rutasVendedor: { ruta_Id: number | null, diasSeleccionados: number[], veRu_Dias: string }[] = [
+    { ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' }
+  ];
+   // Verificar rutas y días
+    // (Nota: estas transformaciones deben ejecutarse dentro de un método en tiempo de ejecución;
+    // mover la lógica aquí para evitar declarar 'const' a nivel de clase)
+    private mapRutasDesdeOriginal(original: any, rutasVendedor: any[] = []): Array<{ ruta_Id: number; ruta_Descripcion?: string; diasSeleccionados: any[] }> {
+      const rutasOriginales = Array.isArray(original?.rutas) ? original.rutas : [];
+      const rutasNuevas = (rutasVendedor || []).map(rv => ({
+        ruta_Id: rv.ruta_Id as number,
+        ruta_Descripcion: (this.rutasTodas || this.rutasDisponibles || []).find((r: any) => Number(r.ruta_Id ?? r.id) === Number(rv.ruta_Id))?.ruta_Descripcion,
+        diasSeleccionados: Array.isArray(rv.diasSeleccionados) ? rv.diasSeleccionados : (rv.veRu_Dias ? String(rv.veRu_Dias).split(',').map((x: string) => Number(x)).filter(n => !isNaN(n)) : [])
       }));
-      console.log('[Clientes] diasDisponibles (array obj)=', this.diasDisponibles);
-      return;
+      // devuelve las rutas nuevas calculadas (las originales se conservan si es necesario)
+      return rutasNuevas;
+    }
+    
+  private formatearDias = (dias: any[]): string => {
+      if (!dias || !dias.length) return 'Sin días';
+      const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      return dias.map(d => {
+        if (typeof d === 'object' && d !== null && 'nombre' in d) {
+          return (d as any).nombre;
+        }
+        return diasSemana[Number(d)] || d;
+      }).join(', ');
+    };
+    
+
+    // ...existing code...
+  /**
+   * Llama al endpoint Cliente/DiasDisponibles/{rutaId} y normaliza la respuesta
+   * Soporta: CSV string ("1,2"), array de números, array de objetos {id,nombre}, o { data: [...] }
+   */
+
+   private mergeVeruDiasFromPayload(payload: any): number[] {
+    const addNumsFrom = (src: any, set: Set<number>) => {
+      if (src == null) return;
+      if (typeof src === 'number') {
+        if (!isNaN(src)) set.add(Number(src));
+        return;
+      }
+      if (typeof src === 'string') {
+        // soporta CSV y multilinea
+        const lines = src.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+        for (const line of lines) {
+          line.split(',').map(s => s.trim()).forEach(part => {
+            const n = Number(part);
+            if (!isNaN(n)) set.add(n);
+          });
+        }
+        return;
+      }
+      if (Array.isArray(src)) {
+        for (const it of src) addNumsFrom(it, set);
+        return;
+      }
+      if (typeof src === 'object') {
+        // prioridades de campos que suelen traer días
+        const candidate = src.veru_Dias ?? src.veRu_Dias ?? src.dias ?? src.diasDisponibles ?? src.value ?? '';
+        addNumsFrom(candidate, set);
+      }
+    };
+
+    const resultSet = new Set<number>();
+    if (payload == null) return [];
+    // payload puede ser un objeto que contiene varias filas (ej. { data: [...] }) o un array de filas
+    if (Array.isArray(payload)) {
+      for (const row of payload) addNumsFrom(row, resultSet);
+    } else if (typeof payload === 'object') {
+      // si trae .data con array, usarlo
+      if (Array.isArray((payload as any).data)) {
+        for (const row of (payload as any).data) addNumsFrom(row, resultSet);
+      } else {
+        addNumsFrom(payload, resultSet);
+      }
+    } else {
+      addNumsFrom(payload, resultSet);
     }
 
-    console.warn('[Clientes] no se pudo extraer días del registro encontrado. registro:', registro);
+    const arr = Array.from(resultSet.values()).filter(n => !isNaN(n));
+    return arr.sort((a, b) => a - b);
   }
-  
-  // cargarRutasVendedor(): void {
-  // this.http
-  //   .get<any[]>(`${environment.apiBaseUrl}/Vendedores/ListarPorRutas`, {
-  //     headers: { 'x-api-key': environment.apiKey },
-  //   })
-  //   .subscribe({
-  //     next: (data) => {
-  //       this.rutasVendedorCache = data;
-  //       console.log('[Clientes] rutasVendedorCache cargado:', this.rutasVendedorCache);
-  //     },
-  //     error: (err) => {
-  //       console.error('[Clientes] Error cargando rutasVendedorCache:', err);
-  //     }
-  //   });
-  // }
-
-  private loadRutasVendedoresCache(): void {
-    const url = `${environment.apiBaseUrl}/Vendedores/ListarPorRutas`;
-    console.log('[Clientes] solicitando cache Vendedores/ListarPorRutas ->', url);
-    this.http.get<any[]>(url, { headers: { 'x-api-key': environment.apiKey } }).subscribe({
+  public fetchDiasDisponiblesCliente(veruId: number): void {
+    // console.log('[Clientes] fetchDiasDisponiblesCliente veruId:', veruId);
+    if (!veruId) { this.diasDisponibles = []; return; }
+    const url = `${environment.apiBaseUrl}/Cliente/DiasDisponibles/${veruId}`;
+    this.http.get<any>(url, { headers: { 'x-api-key': environment.apiKey } }).subscribe({
       next: (res) => {
-        console.log('[Clientes] respuesta ListarPorRutas:', res);
-        // adaptarse al formato real: si viene envuelto en { data: [...] } o directamente array
-        if (Array.isArray(res)) {
-          this.rutasVendedorCache = res;
-        } else if (res && Array.isArray((res as any).data)) {
-          this.rutasVendedorCache = (res as any).data;
-        } else {
-          // intentar mapear si viene en otra estructura
-          this.rutasVendedorCache = (res && (res as any).list) || [];
+        let payload = res && res.data ? res.data : res;
+        try {
+          // console.log('dias: ', payload);
+          // string CSV -> ids
+ 
+
+            const ids = this.mergeVeruDiasFromPayload(payload);
+            // console.log('dias con merge', ids);
+             this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
+   
+            this.cdr.detectChanges();
+            return;
+   
+         
+          
+        } catch (err) {
+          console.warn('[Clientes] error normalizando diasDisponibles desde API', err);
         }
+        // fallback: vacío
+        this.diasDisponibles = [];
+ 
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        console.warn('[Clientes] error al cargar ListarPorRutas:', err);
-        this.rutasVendedorCache = [];
+        console.warn('[Clientes] fetchDiasDisponiblesCliente error:', err);
+        // no interrumpir flujo; dejar que la lógica local intente extraer días
+        this.diasDisponibles = [];
       }
     });
   }
-
-  private setDiaSeleccionadoFromCliente(): void {
-    if (!this.cliente) return;
-    const raw = this.cliente.clie_DiaVisita ?? '';
-    const valStr = String(raw).trim();
-    if (!valStr) {
-      this.cliente.clie_DiaVisita = '';
-      this.cdr.detectChanges();
-      return;
-    }
-    // buscar por id (string) o por nombre (case-insensitive)
-    const found = (this.diasDisponibles || []).find(d =>
-      String(d.id) === valStr || String(d.nombre).toLowerCase() === valStr.toLowerCase()
-    );
-    this.cliente.clie_DiaVisita = found ? String(found.id) : '';
-    this.cdr.detectChanges();
-  }
-
+// ...existing code...
   cerrarFormularioMapa(): void {
     this.mostrarMapa = false;
   }
