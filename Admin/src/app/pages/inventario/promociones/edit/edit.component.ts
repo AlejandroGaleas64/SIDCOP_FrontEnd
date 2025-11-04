@@ -312,6 +312,7 @@ export class EditComponent implements OnInit, OnChanges {
   cancelar(): void {
     this.activeTab = 1
     this.cerrarAlerta();
+    this.productos.forEach(p => p.cantidad = 0);
     this.producto = { ...this.productoOriginal };
     this.productoData = null;
     this.seleccionados = [];
