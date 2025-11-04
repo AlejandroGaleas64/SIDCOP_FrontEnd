@@ -66,6 +66,9 @@ export class EditConfigFacturaComponent implements OnChanges {
   isSvgFile = false;
   svgPreviewUrl: string | null = null;
 
+  // Controla si usar el ZPL personalizado (true) o generar automáticamente (false)
+  useCustomZPL = false;
+
   mostrarErrores = false;
   mostrarAlertaExito = false;
   mostrarAlertaError = false;
@@ -262,8 +265,8 @@ export class EditConfigFacturaComponent implements OnChanges {
               console.log('Imagen subida exitosamente. Ruta:', imagePath);
               this.configFactura.coFa_Logo = imagePath;
               
-              // Convertir la imagen a formato ZPL
-              const zplCode = await this.convertImageToZPL(canvas);
+              // Convertir la imagen a formato ZPL (usar personalizado o generar automáticamente)
+              const zplCode = this.useCustomZPL ? this.getCustomZPLLogo() : await this.convertImageToZPL(canvas);
               this.configFactura.coFa_LogoZPL = zplCode;
               
               this.logoSeleccionado = true;
@@ -577,6 +580,15 @@ export class EditConfigFacturaComponent implements OnChanges {
   }
 
   /**
+   * Genera el código ZPL del logo predefinido (optimizado y oscuro)
+   * @returns Código ZPL como string
+   */
+  private getCustomZPLLogo(): string {
+    return `^GFA,1950,1666,17,
+,::::::M07U018O0M0EU01EO0L01EV0FO00000807EV0F802L00001807CV0FC06L00001C0FCV07E07L00003C1FCV07E07L00003C1F8V03F0FL00003E3FW03F0F8K00003E3F0001F8Q01F8F8K00003E3E00071CR0F8F8K00007E3C000E0CR078F8K00007E21801E0CQ0318F8K00003E07001ES03C0F8K00003E0F003ES01E0F8K00003E3F003ES01F0F8K00043C3E007CS01F8F0800000061C7E007CT0FC70C000000618FE007CT0FE21C000000F00FC007CT07E01C000000F81F80078T07E03C000000F81F80078T03F03C000000F81F000F8T01F07C000000FC1E000FV0F07C000000FC12000FV0907C0000007C06000EV0C0FC0000007C0E001EV0E0FC0000007C1E001C0000FFFF8M0F0F80000003C3C00380007F7FFEM0F8F80000003C7C0070001E03C1FM0FC7K0001CFC00FE003807C078L07C7040000608FC01FFC06007C078L07E60C0000701F80787E0C0078078L07E01C0000781F80F01F180078078L03F03C00007C1F00E00F980078078L03F07C00007E1F004007F000F00FM01F0F800007E1E200003F060F01EL010F1F800003F1C6K0F8F0F03CL01871F800003F00EK079F0FFF8L01C13F000001F80EK03FE1EFEM01E03F000001F81EL0FC1E3CM01F03E000000F83EN01C3CM01F07E000000783EN03C1EM01F87C000000383EN03C1EM01F83K01C087EN0381EN0F82070000F007EN0780FN0FC03E0000FC07CN0780FN0FC0FE00007F07CN0700F8M07C1FC00007F8784M0F0078L047C3F800003FC78CM0E0078L063C7F800001FE71CM0E003CL071CFF000000FE43CM0C003EL0708FE0000007E03CP01EL0F81F80000001F03CP01FL0F81FK0K07CQ0F8K0F81L0070007C2P07800C10FC003C00003F007C3P03C00C18FC01F800003FC07C7P01E00C187C0FF000001FF0FC7Q0F81C3C7C1FF000000FF87C78P07E383C7C3FE0000007FC78F8P01FE03C7C7FC0000003FC78F8T03E3CFFK0000FE70F88R043E18FEK00003E20F8CR047E08F8K0M0F8ER0E7EO0M0F8FQ01E7EO0000FE00F8FQ03E3E01FEK0000FFC0F8F8P03E3E0FFCK00007FF0F8F8P07E3C1FF8K00003FF870FCP07E1C3FFL00000FFC60FCP07C087FEL000003FC007C6M01CFC00FF8L0K0FC007C7CL0F8FC00FEM0O07E3FK03F8F8Q0L03C03C3FC00007F0F80F8N0K0FFF83C1FE0001FE0F07FFCM0K07FFE1C0FF0003FE060FFFCM0K03FFF0C07F8003FC041FFF8M0L0FFF0003F8007F8001FFEN0L01FC0000FC007E00007FO0P0E003C007801ER0O0FFCN07FEQ0N03FFE00038000FFF8P0N0FFFC00078000FFFEP0M01FFF80F0781E03FFFP0N07FE0FFC38FFC0FF8P0Q03FFE00FFFT0Q0FFFC007FFCS0P01FFF0003FFFS0Q07FC0000FFCS0,`;
+  }
+
+  /**
    * Convierte una imagen de canvas a formato ZPL
    * @param canvas Canvas con la imagen a convertir
    * @returns Código ZPL como string
@@ -616,13 +628,14 @@ export class EditConfigFacturaComponent implements OnChanges {
     }
 
     // Aplicar Floyd-Steinberg dithering para mejor calidad
+    const THRESHOLD = 128; // Umbral estándar para mejor balance
     const binaryData: number[] = new Array(width * height).fill(0);
     
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const idx = y * width + x;
         const oldPixel = grayscale[idx];
-        const newPixel = oldPixel < 128 ? 0 : 255;
+        const newPixel = oldPixel < THRESHOLD ? 0 : 255;
         binaryData[idx] = newPixel === 0 ? 1 : 0; // 1 = negro, 0 = blanco
         
         const error = oldPixel - newPixel;
@@ -646,8 +659,10 @@ export class EditConfigFacturaComponent implements OnChanges {
     // Convertir datos binarios a formato hexadecimal para ZPL
     const bytesPerRow = Math.ceil(width / 8);
     const totalBytes = bytesPerRow * height;
-    const hexData: string[] = [];
 
+    // Construir el string hexadecimal sin compresión primero
+    let hexString = '';
+    
     for (let y = 0; y < height; y++) {
       for (let byteIndex = 0; byteIndex < bytesPerRow; byteIndex++) {
         let byte = 0;
@@ -660,73 +675,113 @@ export class EditConfigFacturaComponent implements OnChanges {
             }
           }
         }
-        hexData.push(byte.toString(16).toUpperCase().padStart(2, '00'));
+        hexString += byte.toString(16).toUpperCase().padStart(2, '00');
       }
     }
 
-    // Comprimir datos usando run-length encoding (RLE) para ZPL
-    const compressedHex = this.compressZPLData(hexData);
+    // Comprimir usando ZPL compression (ASCII format)
+    const compressedData = this.compressZPLHexString(hexString);
 
-    // Generar comando ZPL completo
-    const zplCode = `^GFA,${totalBytes},${totalBytes},${bytesPerRow},${compressedHex}`;
+    // Generar comando ZPL completo con formato correcto
+    const zplCode = `^GFA,${totalBytes},${totalBytes},${bytesPerRow},\n${compressedData}`;
     
     return zplCode;
   }
 
   /**
-   * Comprime los datos hexadecimales usando run-length encoding para ZPL
-   * @param hexData Array de strings hexadecimales
-   * @returns String comprimido
+   * Comprime los datos hexadecimales usando el formato de compresión ZPL ASCII
+   * @param hexString String hexadecimal completo
+   * @returns String comprimido en formato ZPL
    */
-  private compressZPLData(hexData: string[]): string {
+  private compressZPLHexString(hexString: string): string {
     let compressed = '';
-    let count = 1;
-    let current = hexData[0];
+    let i = 0;
+    const maxLineLength = 60; // Longitud máxima de línea recomendada para ZPL
+    let currentLineLength = 0;
 
-    for (let i = 1; i < hexData.length; i++) {
-      if (hexData[i] === current && count < 400) {
+    while (i < hexString.length) {
+      const currentChar = hexString.substring(i, i + 2);
+      let count = 1;
+      
+      // Contar repeticiones del mismo byte (máximo 400 repeticiones según especificación ZPL)
+      while (i + (count * 2) < hexString.length && 
+             hexString.substring(i + (count * 2), i + ((count + 1) * 2)) === currentChar && 
+             count < 400) {
         count++;
-      } else {
-        // Agregar el dato comprimido
-        if (count > 1) {
-          compressed += this.encodeZPLCount(count);
-        }
-        compressed += current;
-        current = hexData[i];
-        count = 1;
       }
-    }
 
-    // Agregar el último grupo
-    if (count > 1) {
-      compressed += this.encodeZPLCount(count);
+      // Codificar según el número de repeticiones
+      let encoded = '';
+      if (count === 1) {
+        // Un solo byte, escribirlo directamente
+        encoded = currentChar;
+      } else if (count === 2) {
+        // Dos bytes, escribirlos directamente (más eficiente que comprimir)
+        encoded = currentChar + currentChar;
+      } else {
+        // Tres o más bytes, usar compresión
+        encoded = this.encodeZPLRepeat(count, currentChar);
+      }
+
+      // Añadir salto de línea si la línea es demasiado larga
+      if (currentLineLength + encoded.length > maxLineLength) {
+        compressed += '\n';
+        currentLineLength = 0;
+      }
+
+      compressed += encoded;
+      currentLineLength += encoded.length;
+      i += count * 2;
     }
-    compressed += current;
 
     return compressed;
   }
 
   /**
-   * Codifica el conteo para el formato ZPL
-   * @param count Número de repeticiones
+   * Codifica una repetición según el formato de compresión ZPL
+   * @param count Número de repeticiones (3-400)
+   * @param hexByte Byte hexadecimal a repetir
    * @returns String codificado
    */
-  private encodeZPLCount(count: number): string {
-    if (count <= 0) return '';
-    
-    // ZPL usa un sistema especial para codificar repeticiones
+  private encodeZPLRepeat(count: number, hexByte: string): string {
+    if (count < 3 || count > 400) {
+      // Fuera de rango para compresión, devolver sin comprimir
+      return hexByte.repeat(count);
+    }
+
+    // Formato de compresión ZPL:
+    // G-Z = 1-19 (multiplicador básico)
+    // g-z = 20-400 en pasos de 20 (multiplicador de 20)
+    // También se pueden combinar
+
     if (count <= 19) {
-      return String.fromCharCode(0x47 + count); // G-Z representa 1-19
-    } else if (count <= 399) {
-      const hundreds = Math.floor(count / 20);
-      const remainder = count % 20;
-      let result = String.fromCharCode(0x66 + hundreds); // g-z representa múltiplos de 20
-      if (remainder > 0) {
-        result += String.fromCharCode(0x47 + remainder);
-      }
-      return result;
+      // Rango G-Z (1-19)
+      // G=1, H=2, I=3... Z=19
+      const charCode = 'G'.charCodeAt(0) + count - 1;
+      return String.fromCharCode(charCode) + hexByte;
     } else {
-      return count.toString();
+      // Para 20-400, usar formato g-z
+      const twenties = Math.floor(count / 20);
+      const remainder = count % 20;
+      
+      let result = '';
+      
+      if (twenties >= 1 && twenties <= 20) {
+        // g=20, h=40, i=60... z=400
+        const charCode = 'g'.charCodeAt(0) + twenties - 1;
+        result = String.fromCharCode(charCode);
+      } else {
+        // Fuera de rango, usar formato numérico directo
+        result = count.toString();
+      }
+      
+      // Agregar el resto si existe (1-19)
+      if (remainder > 0) {
+        const remainderChar = String.fromCharCode('G'.charCodeAt(0) + remainder - 1);
+        result += remainderChar;
+      }
+      
+      return result + hexByte;
     }
   }
 }
