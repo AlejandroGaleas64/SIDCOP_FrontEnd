@@ -32,6 +32,8 @@ export class EditComponent implements OnChanges {
     vend_DNI: '',
     vend_Sexo: '',
     vend_Tipo: '',
+    tiVe_Id: 0,
+    tiVe_TipoVendedor: '',
     vend_DireccionExacta: '',
     vend_Supervisor: 0,
     vend_Ayudante: 0,
@@ -57,6 +59,7 @@ export class EditComponent implements OnChanges {
   supervisores: any[] = [];
   ayudantes: any[] = [];
   modelos: any[] = [];
+  tiposVendedor: any[] = [];
 
 
   searchSucursal = (term: string, item: any) => {
@@ -98,6 +101,15 @@ export class EditComponent implements OnChanges {
       this.recomputarOpciones();
     });
   }
+
+    listarTiposdeVendedor(): void {
+      this.http.get<any>(`${environment.apiBaseUrl}/TiposDeVendedor/Listar`, {
+          headers: { 'x-api-key': environment.apiKey }
+        }).subscribe((data) => {
+          this.tiposVendedor = data;
+          console.log(this.tiposVendedor);
+        });
+      }
 
   listarRutasDisponibles(): void {
     this.http.get<any>(`${environment.apiBaseUrl}/Rutas/Listar`, {
@@ -181,6 +193,8 @@ export class EditComponent implements OnChanges {
     vend_DNI: '',
     vend_Sexo: '',
     vend_Tipo: '',
+    tiVe_Id: 0,
+    tiVe_TipoVendedor: '',
     vend_DireccionExacta: '',
     vend_Supervisor: 0,
     vend_Ayudante: 0,
@@ -216,6 +230,7 @@ export class EditComponent implements OnChanges {
     this.listarColonias();
     this.listarRutas();
     this.listarRutasDisponibles();
+    this.listarTiposdeVendedor();
   }
 
 
@@ -227,6 +242,11 @@ export class EditComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['vendedorData'] && changes['vendedorData'].currentValue) {
       this.vendedor = { ...changes['vendedorData'].currentValue };
+      console.log(this.vendedor);
+      // Asegurar que tive_Id sea un número
+      if (this.vendedor) {
+        this.vendedor.tiVe_Id = Number(this.vendedor.tiVe_Id);
+      }
       // Create a deep copy of the vendedor object for comparison
       this.vendedorOriginal = JSON.parse(JSON.stringify(this.vendedor));
 
@@ -257,14 +277,15 @@ export class EditComponent implements OnChanges {
             .map((n: string) => Number(n));
 
           return {
-            ruta_Id: (r.ruta_Id ?? r.id) != null ? Number(r.ruta_Id ?? r.id) : null,                  // aceptar ambos nombres de campo y normalizar a número
-            diasSeleccionados: diasSel,     // para el ng-select de días
-            veRu_Dias: diasSel.join(',')    // para enviar al backend
+            veru_Id: r.veru_Id ?? r.veRu_Id ?? 0,  // Agrega el ID de la ruta-vendedor
+            ruta_Id: (r.ruta_Id ?? r.id) != null ? Number(r.ruta_Id ?? r.id) : null,
+            diasSeleccionados: diasSel,
+            veRu_Dias: diasSel.join(',')
           };
         });
       } else {
         // si no trae rutas, deja al menos una fila vacía
-        this.rutasVendedor = [{ ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' }];
+        this.rutasVendedor = [{ veru_Id: 0, ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' }];
       }
 
       // Recalcula listas filtradas para que no aparezcan duplicadas
@@ -316,7 +337,7 @@ export class EditComponent implements OnChanges {
       !this.vendedor.vend_DireccionExacta.trim() ||
       !this.vendedor.sucu_Id ||
       !this.vendedor.colo_Id ||
-      !this.vendedor.vend_Tipo.trim() ||
+      !this.vendedor.tiVe_Id ||
       !this.vendedor.vend_Supervisor ||
       (this.tieneAyudante && !this.vendedor.vend_Ayudante)
       || !rutasValidas
@@ -337,7 +358,7 @@ export class EditComponent implements OnChanges {
       this.vendedor.vend_Telefono.trim() !== (this.vendedorOriginal?.vend_Telefono?.trim() ?? '') ||
       this.vendedor.vend_Correo.trim() !== (this.vendedorOriginal?.vend_Correo?.trim() ?? '') ||
       this.vendedor.vend_Sexo !== (this.vendedorOriginal?.vend_Sexo ?? '') ||
-      this.vendedor.vend_Tipo.trim() !== (this.vendedorOriginal?.vend_Tipo?.trim() ?? '') ||
+      this.vendedor.tiVe_Id !== (this.vendedorOriginal?.tiVe_Id ?? 0) ||
       this.vendedor.vend_DireccionExacta.trim() !== (this.vendedorOriginal?.vend_DireccionExacta?.trim() ?? '') ||
       this.vendedor.sucu_Id !== (this.vendedorOriginal?.sucu_Id ?? 0) ||
       this.vendedor.colo_Id !== (this.vendedorOriginal?.colo_Id ?? 0) ||
@@ -371,8 +392,12 @@ export class EditComponent implements OnChanges {
     if (this.vendedor.vend_Nombres.trim()) {
 
       const rutasParaEnviar = this.rutasVendedor
-        .filter(rv => rv.ruta_Id != null && rv.veRu_Dias !== '')
-        .map(rv => ({ ruta_Id: rv.ruta_Id as number, veRu_Dias: rv.veRu_Dias }));
+      .filter(rv => rv.ruta_Id != null && rv.veRu_Dias !== '')
+      .map(rv => ({
+        veRu_Id: rv.veru_Id ?? 0,  // Incluye el ID (0 para nuevas)
+        ruta_Id: rv.ruta_Id as number,
+        veRu_Dias: rv.veRu_Dias
+      }));
       const VendedorActualizar: any = {
         vend_Id: this.vendedor.vend_Id,
         vend_Codigo: this.vendedor.vend_Codigo.trim(),
@@ -382,7 +407,7 @@ export class EditComponent implements OnChanges {
         vend_Telefono: this.vendedor.vend_Telefono.trim(),
         vend_Correo: this.vendedor.vend_Correo.trim(),
         vend_Sexo: this.vendedor.vend_Sexo,
-        vend_Tipo: this.vendedor.vend_Tipo.trim(),
+        tive_Id: this.vendedor.tiVe_Id,
         vend_DireccionExacta: this.vendedor.vend_DireccionExacta.trim(),
         sucu_Id: this.vendedor.sucu_Id,
         colo_Id: this.vendedor.colo_Id,
@@ -392,7 +417,8 @@ export class EditComponent implements OnChanges {
         usua_Modificacion: getUserId(),
         vend_FechaModificacion: new Date().toISOString(),
         usuarioModificacion: '',
-        rutas_Json: rutasParaEnviar
+        rutas_Json: rutasParaEnviar,
+        rutas_Json_Actualizar: rutasParaEnviar
       };
 
       // Solo agregar vend_Ayudante si tieneAyudante es true
@@ -434,9 +460,9 @@ export class EditComponent implements OnChanges {
 
   rutasDisponibles: any[] = [];
   rutasTodas: any[] = [];
-  rutasVendedor: { ruta_Id: number | null, diasSeleccionados: number[], veRu_Dias: string }[] = [
-    { ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' }
-  ];
+ rutasVendedor: { veru_Id: number, ruta_Id: number | null, diasSeleccionados: number[], veRu_Dias: string }[] = [
+  { veru_Id: 0, ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' }
+];
   // Snapshot serializado de rutas para detectar cambios
   private rutasVendedorSnapshot: string = '';
   // Listas precalculadas por índice para evitar funciones en el template
@@ -454,7 +480,7 @@ export class EditComponent implements OnChanges {
   ];
 
   agregarRuta() {
-    this.rutasVendedor.push({ ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' });
+    this.rutasVendedor.push({ veru_Id: 0, ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' });
     // Expandir arreglos filtrados para el nuevo índice
     this.rutasDisponiblesFiltradas.push([]);
     this.diasDisponiblesFiltradas.push([]);
@@ -614,7 +640,6 @@ export class EditComponent implements OnChanges {
       { key: 'vend_Telefono', label: 'Teléfono' },
       { key: 'vend_Correo', label: 'Correo' },
       { key: 'vend_DireccionExacta', label: 'Dirección Exacta' },
-      { key: 'vend_Tipo', label: 'Tipo de Vendedor' },
       { key: 'vend_EsExterno', label: 'Es Contratista' }
     ];
 
@@ -640,12 +665,11 @@ export class EditComponent implements OnChanges {
 
 
     // Verificar tipo de vendedor (mapeado legible)
-    if (nuevo.vend_Tipo !== original.vend_Tipo) {
-      const tipos = { 'P': 'Preventista', 'V': 'Venta Directa', 'F': 'Entregador' } as const;
-      const tipoOriginal = (tipos as any)[original.vend_Tipo] || original.vend_Tipo || '—';
-      const tipoNuevo = (tipos as any)[nuevo.vend_Tipo] || nuevo.vend_Tipo || '—';
+    if (nuevo.tive_Id !== original.tive_Id) {
+      const tipoOriginal = this.tiposVendedor.find(t => t.tiVe_Id === original.tive_Id)?.tiVe_TipoVendedor || `ID: ${original.tive_Id}` || '—';
+      const tipoNuevo = this.tiposVendedor.find(t => t.tiVe_Id === nuevo.tive_Id)?.tiVe_TipoVendedor || `ID: ${nuevo.tive_Id}` || '—';
       const item = { anterior: tipoOriginal, nuevo: tipoNuevo, label: 'Tipo de Vendedor' };
-      this.cambiosDetectados.tipo = item as any;
+      this.cambiosDetectados.tipoVendedor = item as any;
       cambios.push(item);
     }
 
