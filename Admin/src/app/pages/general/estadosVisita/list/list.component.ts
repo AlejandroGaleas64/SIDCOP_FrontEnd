@@ -239,7 +239,9 @@ export class ListComponent implements OnInit {
           } else if (response.data.code_Status === 0) {
             // Error general
             this.mostrarAlertaError = true;
-            this.mensajeError = response.data.message_Status || 'Error al eliminar el estado de visita.';
+            
+            // this.mensajeError = response.data.message_Status || 'Error al eliminar el estado de visita.';
+            this.mensajeError = 'El Estado de Visita está siendo utilizado.';
             
             setTimeout(() => {
               this.mostrarAlertaError = false;
