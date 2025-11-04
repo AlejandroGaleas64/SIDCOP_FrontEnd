@@ -93,7 +93,14 @@ String: any;
   if (changes['clienteData']?.currentValue) {
     this.cliente = { ...changes['clienteData'].currentValue };
 
-    // NUEVO: Convertir el string CSV a array de números
+    // Guardar el cliente original
+    this.clienteOriginal = {
+      ...changes['clienteData'].currentValue,
+      clie_DiaVisita: String((changes['clienteData'].currentValue?.clie_DiaVisita ?? ''))
+    };
+    this.idDelCliente = this.cliente.clie_Id;
+
+    // Parsear días seleccionados del cliente
     if (this.cliente.clie_DiaVisita) {
       const diasString = String(this.cliente.clie_DiaVisita).trim();
       if (diasString) {
@@ -108,74 +115,102 @@ String: any;
       this.diasSeleccionados = [];
     }
 
-    // Cargar días disponibles
-    if (this.cliente.ruta_Id) {
-      this.fetchDiasDisponiblesCliente(this.cliente.ruta_Id);
+    // Si está vacío, intentar fallback
+    if (!this.cliente.clie_DiaVisita) {
+      const rawFromCliente = this.getDiaFromClienteRaw(this.cliente);
+      if (rawFromCliente) {
+        this.cliente.clie_DiaVisita = String(rawFromCliente).trim();
+      }
     }
 
-      // Si está vacío, intentar fallback
-      if (!this.cliente.clie_DiaVisita) {
-        const rawFromCliente = this.getDiaFromClienteRaw(this.cliente);
-        if (rawFromCliente) {
-          this.cliente.clie_DiaVisita = String(rawFromCliente).trim();
-        }
+    // Procesar ruta y días
+    const procesarRutaYDias = () => {
+      console.log('[Clientes] Procesando ruta y días para cliente ID:', this.cliente.clie_Id);
+      
+      // Generar código si no tiene formato válido
+      const formatoCodigo = /^CLIE-RT-\d{3}-\d{6}$/;
+      if (!formatoCodigo.test(String(this.cliente.clie_Codigo ?? ''))) {
+        this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
       }
 
-      // Normalizar la copia original
-      this.clienteOriginal = {
-        ...changes['clienteData'].currentValue,
-        clie_DiaVisita: String((changes['clienteData'].currentValue?.clie_DiaVisita ?? ''))
-      };
-      this.idDelCliente = this.cliente.clie_Id;
-
-      // Cargar rutas y luego poblar días disponibles
-      const procesarDiaVisita = () => {
-        this.asignarRutaDescripcionYCodigo();
-        // IMPORTANTE: Poblar diasDisponibles ANTES de validar
+      // IMPORTANTE: Cargar días disponibles si tiene ruta_Id
+      if (this.cliente.ruta_Id) {
+        console.log('[Clientes] Cliente tiene ruta_Id:', this.cliente.ruta_Id);
         
+        // Llamar a fetchDiasDisponiblesCliente para poblar diasDisponibles
+        this.fetchDiasDisponiblesCliente(this.cliente.ruta_Id);
         
-        // Esperar un tick para que diasDisponibles se pueble
+        // Esperar a que se carguen los días disponibles
         setTimeout(() => {
-          if (this.cliente.clie_DiaVisita && this.diasDisponibles?.length > 0) {
-            // Buscar coincidencia por id o nombre
-            const found = this.diasDisponibles.find(d => {
-              const diaStr = String(this.cliente.clie_DiaVisita).trim();
-              return String(d.id) === diaStr || 
-                     String(d.nombre).toLowerCase() === diaStr.toLowerCase();
-            });
-            
-            if (found) {
-              this.cliente.clie_DiaVisita = String(found.id);
-            } else {
-              console.warn(`[Clientes] Día "${this.cliente.clie_DiaVisita}" no encontrado en días disponibles:`, this.diasDisponibles);
-            }
+          console.log('[Clientes] Días disponibles cargados:', this.diasDisponibles);
+          console.log('[Clientes] Días seleccionados:', this.diasSeleccionados);
+          
+          // Validar que los días seleccionados estén en días disponibles
+          if (this.diasSeleccionados.length > 0 && this.diasDisponibles.length > 0) {
+            // Filtrar solo días que estén disponibles
+            this.diasSeleccionados = this.diasSeleccionados.filter(diaId =>
+              this.diasDisponibles.some(d => d.id === diaId)
+            );
+            console.log('[Clientes] Días seleccionados validados:', this.diasSeleccionados);
           }
+          
           this.cdr.detectChanges();
-        }, 100);
-      };
-
-      if (this.rutas.length === 0) {
-        this.cargarRutas().then(() => {
-          procesarDiaVisita();
-        });
+        }, 400); // Aumentar el tiempo para asegurar que el endpoint responda
       } else {
-        procesarDiaVisita();
+        console.warn('[Clientes] Cliente NO tiene ruta_Id asignado');
+        this.diasDisponibles = [];
+        this.diasSeleccionados = [];
       }
+      
+      this.cdr.detectChanges();
+    };
 
-      this.cargarDireccionesExistentes();
-      this.cargarAvalesExistentes();
-     
+    // Cargar rutas si es necesario, luego procesar
+    if (this.rutas.length === 0) {
+      console.log('[Clientes] Cargando rutas primero...');
+      this.cargarRutas().then(() => {
+        console.log('[Clientes] Rutas cargadas, procesando cliente...');
+        procesarRutaYDias();
+      });
+    } else {
+      console.log('[Clientes] Rutas ya cargadas, procesando cliente...');
+      procesarRutaYDias();
     }
-  }
 
-  asignarRutaDescripcionYCodigo() {
-    const rutaActual = this.rutas.find(ruta => ruta.ruta_Id === this.cliente.ruta_Id);
-    this.cliente.ruta_Descripcion = rutaActual ? rutaActual.ruta_Descripcion : '';
-    const formatoCodigo = /^CLIE-RT-\d{3}-\d{6}$/;
-    if (!formatoCodigo.test(this.cliente.clie_Codigo)) {
-      this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
-    }
+    // Cargar direcciones y avales
+    this.cargarDireccionesExistentes();
+    this.cargarAvalesExistentes();
   }
+}
+
+  
+  // asignarRutaDescripcionYCodigo() {
+  //   // const rutaActual = this.rutas.find(ruta => ruta.ruta_Id === this.cliente.ruta_Id);
+  //   // this.cliente.ruta_Descripcion = rutaActual ? rutaActual.ruta_Descripcion : '';
+  //   // const formatoCodigo = /^CLIE-RT-\d{3}-\d{6}$/;
+  //   // if (!formatoCodigo.test(this.cliente.clie_Codigo)) {
+  //   //   this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
+  //   // }
+  //   // búsqueda flexible por id (number/string) y por campos alternativos
+  //   const targetId = String(this.cliente?.ruta_Id ?? '').trim();
+  //   const rutaActual = (this.rutas || []).find(r => {
+  //     return String(r?.ruta_Id ?? r?.id ?? r?.rutaId ?? '').trim() === targetId
+  //       || String(r?.ruta_Codigo ?? '').includes(targetId)
+  //       || String(r?.ruta_Descripcion ?? '').includes(targetId);
+  //   });
+  //   console.log('[Clientes] asignarRutaDescripcionYCodigo -> rutaActual:', rutaActual, 'targetId:', targetId);
+  //   this.cliente.ruta_Descripcion = rutaActual ? (rutaActual.ruta_Descripcion ?? '') : '';
+
+  //   const formatoCodigo = /^CLIE-RT-\d{3}-\d{6}$/;
+  //   if (!formatoCodigo.test(String(this.cliente.clie_Codigo ?? ''))) {
+  //     // asegurar que rutas están cargadas antes de generar
+  //     if (!Array.isArray(this.rutas) || this.rutas.length === 0) {
+  //       this.cargarRutas().then(() => this.generarCodigoClientePorRuta(this.cliente.ruta_Id)).catch(() => this.generarCodigoClientePorRuta(this.cliente.ruta_Id));
+  //     } else {
+  //       this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
+  //     }
+  //   }
+  // }
 
   private getDiaFromClienteRaw(obj: any): string {
     if (!obj || typeof obj !== 'object') return '';
@@ -224,19 +259,45 @@ String: any;
     }
   }
 
-  onRutaChange(event: any) {
-    const selectedId = +event.target.value;
-    const rutaSeleccionada = this.rutas.find(r => r.ruta_Id === selectedId);
-    if (rutaSeleccionada) {
-      this.cliente.ruta_Descripcion = rutaSeleccionada.ruta_Descripcion;
-      
-      // AGREGAR ESTO:
-      this.fetchDiasDisponiblesCliente(selectedId);
-    } else {
-      this.cliente.ruta_Descripcion = '';
-    }
-    this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
+  onRutaChange(rutaId: number) {
+  console.log('[Clientes] onRutaChange - rutaId recibido:', rutaId);
+  
+  // Generar código de cliente
+  this.generarCodigoClientePorRuta(rutaId);
+
+  // Limpiar si no hay ruta seleccionada
+  if (!rutaId) {
+    this.cliente.ruta_Descripcion = '';
+    this.diasDisponibles = [];
+    this.diasSeleccionados = [];
+    return;
   }
+
+  // Buscar la ruta seleccionada
+  const rutaSeleccionada = this.rutas.find(r => r.ruta_Id === rutaId);
+  
+  if (rutaSeleccionada) {
+    // Actualizar descripción
+    this.cliente.ruta_Descripcion = rutaSeleccionada.ruta_Descripcion;
+    
+    // Buscar el veru_Id para obtener los días disponibles
+    const veruId = rutaSeleccionada.veru_Id || rutaSeleccionada.veruId;
+    
+    if (veruId) {
+      console.log('[Clientes] Llamando fetchDiasDisponiblesCliente con veruId:', veruId);
+      this.fetchDiasDisponiblesCliente(veruId);
+    } else {
+      console.warn('[Clientes] La ruta no tiene veru_Id, intentando con ruta_Id:', rutaId);
+      // Fallback: intentar con ruta_Id directamente si el endpoint lo soporta
+      this.fetchDiasDisponiblesCliente(rutaId);
+    }
+  } else {
+    console.warn('[Clientes] No se encontró la ruta seleccionada:', rutaId);
+    this.cliente.ruta_Descripcion = '';
+    this.diasDisponibles = [];
+  }
+  
+}
 
   esCorreoValido(correo: string): boolean {
     if (!correo || !correo.trim()) return true;
@@ -909,27 +970,54 @@ String: any;
     }
   }
 
-  generarCodigoClientePorRuta(ruta_Id: number): void {
-    const ruta = this.rutas.find(r => r.ruta_Id === +ruta_Id);
-    const codigoRuta = ruta?.ruta_Codigo
-      ? ruta.ruta_Codigo.replace(/^RT-/, '')
-      : ruta_Id.toString().padStart(3, '0');
-    this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/Listar`, {
-      headers: { 'x-api-key': environment.apiKey }
-    }).subscribe(clientes => {
-      const clientesRuta = clientes.filter(c => c.ruta_Id === +ruta_Id);
-      let maxCorrelativo = 0;
+   generarCodigoClientePorRuta(ruta_Id: number): void {
+    if (!ruta_Id) return;
+    const key = String(ruta_Id).trim();
+    // búsqueda flexible
+    const ruta = (this.rutas || []).find(r =>
+      String(r?.ruta_Id ?? r?.id ?? r?.rutaId ?? '').trim() === key
+      || String(r?.ruta_Codigo ?? '').includes(key)
+      || String(r?.ruta_Descripcion ?? '').includes(key)
+    );
+    console.log('[Clientes] generarCodigoClientePorRuta -> encontrada ruta:', ruta, 'para key:', key);
 
-      clientesRuta.forEach(c => {
-        const match = c.clie_Codigo?.match(/CLIE-RT-\d{3}-(\d{6})/);
-        if (match) {
-          const num = parseInt(match[1], 10);
-          if (num > maxCorrelativo) maxCorrelativo = num;
+    // extraer número de ruta desde ruta_Codigo o ruta_Descripcion
+    let codigoRuta = '';
+    if (ruta) {
+      const raw = String(ruta.ruta_Codigo ?? '');
+      const m = raw.match(/(\d{1,})/);
+      if (m) codigoRuta = m[1].padStart(3, '0');
+      else {
+        const m2 = String(ruta.ruta_Descripcion ?? '').match(/(\d{1,3})/);
+        if (m2) codigoRuta = m2[1].padStart(3, '0');
+      }
+    }
+    if (!codigoRuta) codigoRuta = String(ruta_Id).padStart(3, '0');
+
+    // obtener siguiente correlativo (igual lógica anterior)
+    this.http.get<any[]>(`${environment.apiBaseUrl}/Cliente/Listar`, { headers: { 'x-api-key': environment.apiKey } })
+      .subscribe({
+        next: clientes => {
+          const clientesRuta = (clientes || []).filter(c => String(c.ruta_Id) === String(ruta_Id));
+          let maxCorrelativo = 0;
+          clientesRuta.forEach(c => {
+            const match = String(c.clie_Codigo ?? '').match(/CLIE-RT-\d{3}-(\d{6})/);
+            if (match) {
+              const num = parseInt(match[1], 10);
+              if (num > maxCorrelativo) maxCorrelativo = num;
+            }
+          });
+          const siguiente = (maxCorrelativo + 1).toString().padStart(6, '0');
+          this.cliente.clie_Codigo = `CLIE-RT-${codigoRuta}-${siguiente}`;
+          console.log('[Clientes] Código generado:', this.cliente.clie_Codigo);
+        },
+        error: err => {
+          console.warn('[Clientes] error al listar clientes para correlativo, fallback:', err);
+          const fallback = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+          this.cliente.clie_Codigo = `CLIE-RT-${codigoRuta}-${fallback}`;
         }
       });
-      const siguiente = (maxCorrelativo + 1).toString().padStart(6, '0');
-      this.cliente.clie_Codigo = `CLIE-RT-${codigoRuta}-${siguiente}`;
-    });
+      console.log("Codigo generado de la ruta: ", codigoRuta);
   }
 
   guardarCliente(): void {
