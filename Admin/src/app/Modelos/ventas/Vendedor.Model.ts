@@ -14,7 +14,7 @@ export class Vendedor{
   vend_Ayudante?: number = 0;
   vend_Tipo: string = '';
   tiVe_Id: number = 0;
-  tiVe_TipoVendedor?: string = '';
+  tiVe_Descripcion?: string = '';
   vend_EsExterno?: boolean = false;
   vend_Estado: string = '';
   usua_Creacion: number = 0;
