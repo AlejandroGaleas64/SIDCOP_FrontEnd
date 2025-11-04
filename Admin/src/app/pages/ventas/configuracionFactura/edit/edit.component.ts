@@ -39,6 +39,7 @@ export class EditConfigFacturaComponent implements OnChanges {
     coFa_Telefono1: '',
     coFa_Telefono2: '',
     coFa_Logo: '',
+    coFa_LogoZPL: '',
     coFa_DiasDevolucion: 0,
     coFa_RutaMigracion: '',
     colo_Id: 0,
@@ -140,68 +141,88 @@ export class EditConfigFacturaComponent implements OnChanges {
   onFileChange(event: any) {
     const file = event.target.files[0];
     if (file) {
-      this.selectedFile = file;
+      // Validar el tamaño de la imagen antes de continuar
+      const img = new Image();
+      const reader = new FileReader();
       
-      // Check if it's an SVG file
-      this.isSvgFile = file.type === 'image/svg+xml';
+      reader.onload = (e: any) => {
+        img.onload = () => {
+          // Validar que la imagen sea cuadrada (aspect ratio 1:1)
+          const aspectRatio = img.width / img.height;
+          const isCuadrada = Math.abs(aspectRatio - 1) < 0.01; // Tolerancia del 1%
+          
+          if (!isCuadrada) {
+            this.mostrarAlertaError = true;
+            this.mensajeError = `La imagen debe ser cuadrada (misma anchura y altura). La imagen seleccionada es de ${img.width}x${img.height} píxeles.`;
+            setTimeout(() => {
+              this.mostrarAlertaError = false;
+              this.mensajeError = '';
+            }, 5000);
+            // Limpiar el input
+            event.target.value = '';
+            return;
+          }
+          
+          // Si la validación pasa, continuar con el proceso normal
+          this.selectedFile = file;
+          
+          // Check if it's an SVG file
+          this.isSvgFile = file.type === 'image/svg+xml';
+          
+          // Create a preview for SVG files
+          if (this.isSvgFile) {
+            this.svgPreviewUrl = e.target.result;
+            // For SVG files, we'll still show the cropper but also keep the original SVG for preview
+            this.imageCropper.nativeElement.src = e.target.result;
+            this.showCropper = true;
+            
+            setTimeout(() => {
+              if (this.cropper) {
+                this.cropper.destroy();
+              }
+              this.cropper = new Cropper(this.imageCropper.nativeElement, {
+                aspectRatio: 1,
+                viewMode: 1,
+                autoCropArea: 1,
+                responsive: true,
+                background: false,
+                guides: true,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+              });
+            }, 100);
+          } else {
+            // For non-SVG files, use the original behavior
+            this.imageCropper.nativeElement.src = e.target.result;
+            this.showCropper = true;
+            
+            setTimeout(() => {
+              if (this.cropper) {
+                this.cropper.destroy();
+              }
+              this.cropper = new Cropper(this.imageCropper.nativeElement, {
+                aspectRatio: 1,
+                viewMode: 1,
+                autoCropArea: 1,
+                responsive: true,
+                background: false,
+                guides: true,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+              });
+            }, 100);
+          }
+        };
+        img.src = e.target.result as string;
+      };
       
-      // Create a preview for SVG files
-      if (this.isSvgFile) {
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-          this.svgPreviewUrl = e.target.result;
-          // For SVG files, we'll still show the cropper but also keep the original SVG for preview
-          this.imageCropper.nativeElement.src = e.target.result;
-          this.showCropper = true;
-          
-          setTimeout(() => {
-            if (this.cropper) {
-              this.cropper.destroy();
-            }
-            this.cropper = new Cropper(this.imageCropper.nativeElement, {
-              aspectRatio: 1,
-              viewMode: 1,
-              autoCropArea: 0.8,
-              responsive: true,
-              background: false,
-              guides: true,
-              center: true,
-              highlight: false,
-              cropBoxMovable: true,
-              cropBoxResizable: true,
-              toggleDragModeOnDblclick: false,
-            });
-          }, 100);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        // For non-SVG files, use the original behavior
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-          this.imageCropper.nativeElement.src = e.target.result;
-          this.showCropper = true;
-          
-          setTimeout(() => {
-            if (this.cropper) {
-              this.cropper.destroy();
-            }
-            this.cropper = new Cropper(this.imageCropper.nativeElement, {
-              aspectRatio: 1,
-              viewMode: 1,
-              autoCropArea: 0.8,
-              responsive: true,
-              background: false,
-              guides: true,
-              center: true,
-              highlight: false,
-              cropBoxMovable: true,
-              cropBoxResizable: true,
-              toggleDragModeOnDblclick: false,
-            });
-          }, 100);
-        };
-        reader.readAsDataURL(file);
-      }
+      reader.readAsDataURL(file);
     }
   }
 
@@ -218,10 +239,10 @@ export class EditConfigFacturaComponent implements OnChanges {
   async cropAndUpload() {
     if (this.cropper && this.selectedFile) {
       try {
-        // Obtener la imagen recortada como blob
+        // Obtener la imagen recortada como blob con el tamaño exacto requerido
         const canvas = this.cropper.getCroppedCanvas({
-          width: 300,
-          height: 300,
+          width: 140,
+          height: 100,
           imageSmoothingEnabled: true,
           imageSmoothingQuality: 'high'
         });
@@ -235,13 +256,20 @@ export class EditConfigFacturaComponent implements OnChanges {
             });
 
             try {
-              //console.log('Iniciando subida de imagen...');
+              console.log('Iniciando subida de imagen...');
               // Subir imagen al backend usando ImageUploadService
               const imagePath = await this.imageUploadService.uploadImageAsync(croppedFile);
-              //console.log('Imagen subida exitosamente. Ruta:', imagePath);
+              console.log('Imagen subida exitosamente. Ruta:', imagePath);
               this.configFactura.coFa_Logo = imagePath;
+              
+              // Convertir la imagen a formato ZPL
+              const zplCode = await this.convertImageToZPL(canvas);
+              this.configFactura.coFa_LogoZPL = zplCode;
+              
               this.logoSeleccionado = true;
-              //console.log('Logo asignado a configFactura.coFa_Logo:', this.configFactura.coFa_Logo);
+              console.log('Logo asignado a configFactura.coFa_Logo:', this.configFactura.coFa_Logo);
+              console.log('Logo ZPL generado (primeros 100 caracteres):', this.configFactura.coFa_LogoZPL.substring(0, 100));
+              console.log('Longitud del ZPL:', this.configFactura.coFa_LogoZPL.length);
               this.cerrarModalCropper();
             } catch (error) {
               console.error('Error al subir la imagen:', error);
@@ -506,6 +534,9 @@ export class EditConfigFacturaComponent implements OnChanges {
       coFa_FechaModificacion: new Date().toISOString()
     };
 
+    console.log('Body a enviar:', body);
+    console.log('coFa_LogoZPL en body:', body.coFa_LogoZPL ? 'Presente (' + body.coFa_LogoZPL.length + ' caracteres)' : 'NO PRESENTE');
+
     this.http.put<any>(`${environment.apiBaseUrl}/ConfiguracionFactura/Actualizar`, body, {
       headers: {
         'X-Api-Key': environment.apiKey,
@@ -543,5 +574,159 @@ export class EditConfigFacturaComponent implements OnChanges {
     this.mensajeExito = '';
     this.mensajeError = '';
     this.mensajeWarning = '';
+  }
+
+  /**
+   * Convierte una imagen de canvas a formato ZPL
+   * @param canvas Canvas con la imagen a convertir
+   * @returns Código ZPL como string
+   */
+  private async convertImageToZPL(canvas: HTMLCanvasElement): Promise<string> {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('No se pudo obtener el contexto del canvas');
+    }
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const imageData = ctx.getImageData(0, 0, width, height);
+    const pixels = imageData.data;
+
+    // Aplicar dithering Floyd-Steinberg para mejor calidad
+    const grayscale: number[] = [];
+    
+    // Convertir a escala de grises
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = (y * width + x) * 4;
+        const r = pixels[i];
+        const g = pixels[i + 1];
+        const b = pixels[i + 2];
+        const a = pixels[i + 3];
+        
+        // Si es transparente, considerar como blanco
+        if (a < 128) {
+          grayscale.push(255);
+        } else {
+          // Convertir a escala de grises con ponderación estándar
+          const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+          grayscale.push(gray);
+        }
+      }
+    }
+
+    // Aplicar Floyd-Steinberg dithering para mejor calidad
+    const binaryData: number[] = new Array(width * height).fill(0);
+    
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const idx = y * width + x;
+        const oldPixel = grayscale[idx];
+        const newPixel = oldPixel < 128 ? 0 : 255;
+        binaryData[idx] = newPixel === 0 ? 1 : 0; // 1 = negro, 0 = blanco
+        
+        const error = oldPixel - newPixel;
+        
+        // Distribuir el error a píxeles vecinos
+        if (x + 1 < width) {
+          grayscale[idx + 1] += error * 7 / 16;
+        }
+        if (y + 1 < height) {
+          if (x > 0) {
+            grayscale[idx + width - 1] += error * 3 / 16;
+          }
+          grayscale[idx + width] += error * 5 / 16;
+          if (x + 1 < width) {
+            grayscale[idx + width + 1] += error * 1 / 16;
+          }
+        }
+      }
+    }
+
+    // Convertir datos binarios a formato hexadecimal para ZPL
+    const bytesPerRow = Math.ceil(width / 8);
+    const totalBytes = bytesPerRow * height;
+    const hexData: string[] = [];
+
+    for (let y = 0; y < height; y++) {
+      for (let byteIndex = 0; byteIndex < bytesPerRow; byteIndex++) {
+        let byte = 0;
+        for (let bit = 0; bit < 8; bit++) {
+          const x = byteIndex * 8 + bit;
+          if (x < width) {
+            const pixelIndex = y * width + x;
+            if (binaryData[pixelIndex] === 1) {
+              byte |= (1 << (7 - bit));
+            }
+          }
+        }
+        hexData.push(byte.toString(16).toUpperCase().padStart(2, '00'));
+      }
+    }
+
+    // Comprimir datos usando run-length encoding (RLE) para ZPL
+    const compressedHex = this.compressZPLData(hexData);
+
+    // Generar comando ZPL completo
+    const zplCode = `^GFA,${totalBytes},${totalBytes},${bytesPerRow},${compressedHex}`;
+    
+    return zplCode;
+  }
+
+  /**
+   * Comprime los datos hexadecimales usando run-length encoding para ZPL
+   * @param hexData Array de strings hexadecimales
+   * @returns String comprimido
+   */
+  private compressZPLData(hexData: string[]): string {
+    let compressed = '';
+    let count = 1;
+    let current = hexData[0];
+
+    for (let i = 1; i < hexData.length; i++) {
+      if (hexData[i] === current && count < 400) {
+        count++;
+      } else {
+        // Agregar el dato comprimido
+        if (count > 1) {
+          compressed += this.encodeZPLCount(count);
+        }
+        compressed += current;
+        current = hexData[i];
+        count = 1;
+      }
+    }
+
+    // Agregar el último grupo
+    if (count > 1) {
+      compressed += this.encodeZPLCount(count);
+    }
+    compressed += current;
+
+    return compressed;
+  }
+
+  /**
+   * Codifica el conteo para el formato ZPL
+   * @param count Número de repeticiones
+   * @returns String codificado
+   */
+  private encodeZPLCount(count: number): string {
+    if (count <= 0) return '';
+    
+    // ZPL usa un sistema especial para codificar repeticiones
+    if (count <= 19) {
+      return String.fromCharCode(0x47 + count); // G-Z representa 1-19
+    } else if (count <= 399) {
+      const hundreds = Math.floor(count / 20);
+      const remainder = count % 20;
+      let result = String.fromCharCode(0x66 + hundreds); // g-z representa múltiplos de 20
+      if (remainder > 0) {
+        result += String.fromCharCode(0x47 + remainder);
+      }
+      return result;
+    } else {
+      return count.toString();
+    }
   }
 }
