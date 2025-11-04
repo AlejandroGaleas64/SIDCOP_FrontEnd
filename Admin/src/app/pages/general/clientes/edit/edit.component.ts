@@ -93,7 +93,26 @@ String: any;
   if (changes['clienteData']?.currentValue) {
     this.cliente = { ...changes['clienteData'].currentValue };
 
-    // NUEVO: Convertir el string CSV a array de números
+    // Guardar el cliente original (normalizando clie_DiaVisita a CSV string)
+    this.clienteOriginal = {
+      ...changes['clienteData'].currentValue,
+      clie_DiaVisita: String((changes['clienteData'].currentValue?.clie_DiaVisita ?? '')).trim()
+    };
+    // Si ya tenemos rutas / canales cargadas, completar descripciones en el original
+    try {
+      const orig = this.clienteOriginal;
+      if (orig && orig.ruta_Id) {
+        const r = (this.rutas || []).find(x => String(x.ruta_Id) === String(orig.ruta_Id));
+        if (r) orig.ruta_Descripcion = orig.ruta_Descripcion || (r.ruta_Descripcion ?? '');
+      }
+      if (orig && orig.cana_Id) {
+        const c = (this.canales || []).find(x => String(x.cana_Id) === String(orig.cana_Id));
+        if (c) orig.cana_Descripcion = orig.cana_Descripcion || (c.cana_Descripcion ?? '');
+      }
+    } catch (e) { /* no bloquear */ }
+    this.idDelCliente = this.cliente.clie_Id;
+
+    // Parsear días seleccionados del cliente
     if (this.cliente.clie_DiaVisita) {
       const diasString = String(this.cliente.clie_DiaVisita).trim();
       if (diasString) {
@@ -112,6 +131,7 @@ String: any;
     if (this.cliente.ruta_Id) {
       this.fetchDiasDisponiblesCliente(this.cliente.ruta_Id);
     }
+    
 
       // Si está vacío, intentar fallback
       if (!this.cliente.clie_DiaVisita) {
@@ -1440,6 +1460,60 @@ String: any;
     return map[s] ?? s;
   }
 
+
+  // normaliza CSV/array/number a CSV ordenado (ej. "4,3" -> "3,4")
+  private normalizeDiaCsv(v: any): string {
+    if (v == null) return '';
+    if (Array.isArray(v)) {
+      const nums = v.map(x => Number(x)).filter(n => !isNaN(n));
+      return Array.from(new Set(nums)).sort((a, b) => a - b).join(',');
+    }
+    const s = String(v).trim();
+    if (!s) return '';
+    const parts = s.split(/[,;|\s]+/).map(p => Number(p.trim())).filter(n => !isNaN(n));
+    return Array.from(new Set(parts)).sort((a, b) => a - b).join(',');
+  }
+
+  // convierte CSV ordenado de días ("3,4") a nombres ("Miércoles, Jueves")
+  private diasCsvToNames(csv: string): string {
+    if (!csv) return 'N/A';
+    const map: Record<string, string> = {
+      '1': 'Lunes',
+      '2': 'Martes',
+      '3': 'Miércoles',
+      '4': 'Jueves',
+      '5': 'Viernes',
+      '6': 'Sábado',
+      '7': 'Domingo'
+    };
+    const parts = String(csv).split(',').map(p => p.trim()).filter(p => p !== '');
+    const names = parts.map(p => map[p] ?? p);
+    // eliminar duplicados manteniendo orden
+    return Array.from(new Set(names)).join(', ');
+  }
+
+  // Handler que actualiza el modelo cuando el ng-select de días cambia
+  onDiasSeleccionadosChange(selected: any[]) {
+    this.diasSeleccionados = (selected || []).map(s => Number(s)).filter(n => !isNaN(n) && n >= 1 && n <= 7);
+    this.cliente.clie_DiaVisita = this.diasSeleccionados.length ? this.diasSeleccionados.sort((a,b)=>a-b).join(',') : '';
+    this.cdr.detectChanges();
+  }
+
+   private findRutaDescripcionById(id: any): string {
+    if (id == null || id === '') return '';
+    const key = String(id).trim();
+    const found = (this.rutas || []).find(r => String(r.ruta_Id ?? r.id ?? '').trim() === key);
+    return found ? (found.ruta_Descripcion ?? String(id)) : (this.clienteOriginal?.ruta_Descripcion ?? String(id));
+  }
+
+  // helper para obtener descripción de canal por id a partir de this.canales
+  private findCanalDescripcionById(id: any): string {
+    if (id == null || id === '') return '';
+    const key = String(id).trim();
+    const found = (this.canales || []).find(c => String(c.cana_Id ?? c.id ?? '').trim() === key);
+    return found ? (found.cana_Descripcion ?? String(id)) : (this.clienteOriginal?.cana_Descripcion ?? String(id));
+  }
+
   // Todo lo de mensaje de confirmación de edición
 
   obtenerListaCambios(): any[] {
@@ -1456,6 +1530,16 @@ String: any;
     const e = this.nuevoAval();
     const f = this.avalOriginal;
     this.cambiosDetectados = {};
+
+    const num = (v: any) => (v == null || v === '') ? null : Number(v);
+    const str = (v: any) => (v == null ? '' : String(v).trim());
+
+    const idChanged = (aId: any, bId: any) => {
+      const A = num(aId);
+      const B = num(bId);
+      return (A === null && B === null) ? false : (A !== B);
+    };
+
 
     // Verificar cada campo y almacenar los cambios
     if (a.clie_Nacionalidad !== b.clie_Nacionalidad) {
@@ -1506,10 +1590,10 @@ String: any;
       };
     }
 
-    if (a.esCv_Id !== b.esCv_Id) {
+    if (num(a.esCv_Id) !== num(b.esCv_Id)) {
       this.cambiosDetectados.marca = {
-        anterior: b.esCv_Descripcion,
-        nuevo: a.esCv_Descripcion,
+        anterior: str(b.esCv_Descripcion),
+        nuevo: str(a.esCv_Descripcion),
         label: 'Estado Civil'
       };
     }
@@ -1574,30 +1658,33 @@ String: any;
       };
     }
 
-    if (a.ruta_Id !== b.ruta_Id) {
+    // Canal: comparar por id numérico y mostrar descripciones (buscar en listas si el original no tiene)
+    if (idChanged(a.cana_Id, b.cana_Id)) {
+      this.cambiosDetectados.canal = {
+        anterior: this.findCanalDescripcionById(b.cana_Id) || str(b.cana_Descripcion) || `${str(b.cana_Id)}`,
+        nuevo: this.findCanalDescripcionById(a.cana_Id) || str(a.cana_Descripcion) || `${str(a.cana_Id)}`,
+        label: 'Canal'
+      };
+    }
+
+    // Ruta: comparar por id numérico y mostrar descripciones (buscar en listas si el original no tiene)
+    if (idChanged(a.ruta_Id, b.ruta_Id)) {
       this.cambiosDetectados.ruta = {
-        anterior: b.ruta_Descripcion,
-        nuevo: a.ruta_Descripcion,
+        anterior: this.findRutaDescripcionById(b.ruta_Id) || str(b.ruta_Descripcion) || `${str(b.ruta_Id)}`,
+        nuevo: this.findRutaDescripcionById(a.ruta_Id) || str(a.ruta_Descripcion) || `${str(a.ruta_Id)}`,
         label: 'Ruta'
       };
     }
 
-    // Normalizar ambos a string para evitar falsos positivos por tipo (number vs string)
-    const diaA = String(a.clie_DiaVisita ?? '').trim();
-    const diaB = String(b.clie_DiaVisita ?? '').trim();
+    // Normalizar días (soporta CSV, number, array) y comparar como CSV ordenado
+    const diaA = this.normalizeDiaCsv(a.clie_DiaVisita ?? this.diasSeleccionados);
+    const diaB = this.normalizeDiaCsv(b.clie_DiaVisita ?? '');
+    console.log('[Clientes] hayDiferencias - dias normalizados A/B:', diaA, diaB);
     if (diaA !== diaB) {
       this.cambiosDetectados.diaVisita = {
-        anterior: this.diasSemanaString(diaB),
-        nuevo: this.diasSemanaString(diaA),
+        anterior: this.diasCsvToNames(diaB),
+        nuevo: this.diasCsvToNames(diaA),
         label: 'Día de Visita'
-      };
-    }
-
-    if (a.cana_Id !== b.cana_Id) {
-      this.cambiosDetectados.canal = {
-        anterior: b.cana_Descripcion,
-        nuevo: a.cana_Descripcion,
-        label: 'Canal'
       };
     }
 

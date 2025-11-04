@@ -456,6 +456,7 @@
           bindLabel="nombre"
           bindValue="id"
           [(ngModel)]="diasSeleccionados"
+          (ngModelChange)="onDiasSeleccionadosChange($event)"
           [multiple]="true"
           placeholder="Seleccione días de visita"
           [clearable]="false">
