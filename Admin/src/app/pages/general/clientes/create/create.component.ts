@@ -31,7 +31,7 @@ export class CreateComponent {
   mapaSelectorComponent!: MapaSelectorComponent;
 
   entrando = true;
-  activeTab = 2;
+  activeTab = 1;
 
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -477,10 +477,10 @@ String: any;
 
   private loadRutasVendedoresCache(): void {
     const url = `${environment.apiBaseUrl}/Vendedores/ListarPorRutas`;
-    console.log('[Clientes] solicitando cache Vendedores/ListarPorRutas ->', url);
+    // // console.log('[Clientes] solicitando cache Vendedores/ListarPorRutas ->', url);
     this.http.get<any[]>(url, { headers: { 'x-api-key': environment.apiKey } }).subscribe({
       next: (res) => {
-        console.log('[Clientes] respuesta ListarPorRutas:', res);
+        // // console.log('[Clientes] respuesta ListarPorRutas:', res);
         // adaptarse al formato real: si viene envuelto en { data: [...] } o directamente array
         if (Array.isArray(res)) {
           this.rutasVendedorCache = res;
@@ -793,6 +793,8 @@ String: any;
       const siguiente = (maxCorrelativo + 1).toString().padStart(6, '0');
       this.cliente.clie_Codigo = `CLIE-RT-${codigoRuta}-${siguiente}`;
     });
+
+    // // console.log('Código generado para el cliente:', codigoRuta);
   }
 
 
@@ -919,8 +921,8 @@ String: any;
         diCl_FechaModificacion: new Date(),
         secuencia: 0
       }));
-      console.log('Datos a enviar:', clienteGuardar, direccionGuardar);
-      console.log('JSON:', JSON.stringify(clienteGuardar,  null, 2));
+      // console.log('Datos a enviar:', clienteGuardar, direccionGuardar);
+      // console.log('JSON:', JSON.stringify(clienteGuardar,  null, 2));
       this.http.post<any>(`${environment.apiBaseUrl}/Cliente/Insertar`, clienteGuardar, {
         headers: {
           'X-Api-Key': environment.apiKey,
@@ -1206,11 +1208,20 @@ String: any;
 
   // Opciones que alimentan el ng-select de "Día de Visita"
   diasDisponibles: Array<{ id: number; nombre: string }> = [];
+  diasSeleccionados: number[] = [];
+
+  // sincronizar selección con cliente.clie_DiaVisita (CSV)
+  onDiasSeleccionadosChange(selected: any[]) {
+    this.diasSeleccionados = (selected || []).map(s => Number(s)).filter(n => !isNaN(n));
+    this.cliente.clie_DiaVisita = this.diasSeleccionados.length ? this.diasSeleccionados.join(',') : '';
+  }
 
   onRutaSeleccionadaCliente(rutaId: number) {
     // mantener generación de código por ruta
     this.generarCodigoClientePorRuta?.(rutaId);
-    console.log('[Clientes] onRutaSeleccionadaCliente ->', rutaId);
+    // console.log('[Clientes] onRutaSeleccionadaCliente ->', rutaId);
+
+    this.fetchDiasDisponiblesCliente?.(rutaId);
 
     if (!rutaId) {
       this.diasDisponibles = [];
@@ -1225,7 +1236,7 @@ String: any;
       if (typeof posibles === 'string' && posibles.trim()) {
         const ids = posibles.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
         this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
-        console.log('[Clientes] diasDisponibles (rutaLocal string)=', this.diasDisponibles);
+        // console.log('[Clientes] diasDisponibles (rutaLocal string)=', this.diasDisponibles);
         if (!this.diasDisponibles.some(d => d.id === Number(this.cliente?.clie_DiaVisita))) {
           if (this.cliente) this.cliente.clie_DiaVisita = '';
         }
@@ -1233,7 +1244,7 @@ String: any;
       }
       if (Array.isArray(posibles) && posibles.length > 0 && typeof posibles[0] === 'number') {
         this.diasDisponibles = this.diasSemana.filter(d => (posibles as number[]).includes(d.id));
-        console.log('[Clientes] diasDisponibles (rutaLocal array ids)=', this.diasDisponibles);
+        // console.log('[Clientes] diasDisponibles (rutaLocal array ids)=', this.diasDisponibles);
         if (!this.diasDisponibles.some(d => d.id === Number(this.cliente?.clie_DiaVisita))) {
           if (this.cliente) this.cliente.clie_DiaVisita = '';
         }
@@ -1244,7 +1255,7 @@ String: any;
           id: d.id ?? d.dia_Id ?? d.value,
           nombre: d.nombre ?? d.dia_Descripcion ?? d.label ?? `${d}`
         }));
-        console.log('[Clientes] diasDisponibles (rutaLocal array obj)=', this.diasDisponibles);
+        // console.log('[Clientes] diasDisponibles (rutaLocal array obj)=', this.diasDisponibles);
         if (!this.diasDisponibles.some(d => d.id === Number(this.cliente?.clie_DiaVisita))) {
           if (this.cliente) this.cliente.clie_DiaVisita = '';
         }
@@ -1259,7 +1270,7 @@ String: any;
       return;
     }
 
-    console.log('[Clientes] claves primer registro cache:', Object.keys(this.rutasVendedorCache[0] || {}));
+    // console.log('[Clientes] claves primer registro cache:', Object.keys(this.rutasVendedorCache[0] || {}));
 
     const registro = this.rutasVendedorCache.find(item => {
       try {
@@ -1276,7 +1287,7 @@ String: any;
       return false;
     });
 
-    console.log('[Clientes] registro encontrado (flexible):', registro);
+    // console.log('[Clientes] registro encontrado (flexible):', registro);
     if (!registro) {
       console.warn('[Clientes] no se encontró registro en cache para rutaId:', rutaId);
       return;
@@ -1294,7 +1305,7 @@ String: any;
       diasRaw = registro.veRu_Dias ?? registro.rutas ?? null;
     }
 
-    console.log('[Clientes] diasRaw detectado (puede ser string/array/xml):', diasRaw);
+    // console.log('[Clientes] diasRaw detectado (puede ser string/array/xml):', diasRaw);
 
     // Si diasRaw es XML (string con "<"), parsear y extraer <dias> para la rutaId
     if (typeof diasRaw === 'string' && diasRaw.includes('<')) {
@@ -1311,7 +1322,7 @@ String: any;
             const diasTxt = diasNode.textContent?.trim() ?? '';
             const ids = diasTxt.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
             this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
-            console.log('[Clientes] diasDisponibles (xml parsed)=', this.diasDisponibles);
+            // console.log('[Clientes] diasDisponibles (xml parsed)=', this.diasDisponibles);
             return;
           }
         }
@@ -1324,14 +1335,14 @@ String: any;
     if (typeof diasRaw === 'string' && diasRaw.trim()) {
       const ids = diasRaw.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
       this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
-      console.log('[Clientes] diasDisponibles (string split)=', this.diasDisponibles);
+      // console.log('[Clientes] diasDisponibles (string split)=', this.diasDisponibles);
       return;
     }
 
     // Si diasRaw es array de números
     if (Array.isArray(diasRaw) && typeof diasRaw[0] === 'number') {
       this.diasDisponibles = this.diasSemana.filter(d => (diasRaw as number[]).includes(d.id));
-      console.log('[Clientes] diasDisponibles (array numbers)=', this.diasDisponibles);
+      // console.log('[Clientes] diasDisponibles (array numbers)=', this.diasDisponibles);
       return;
     }
 
@@ -1341,12 +1352,167 @@ String: any;
         id: d.id ?? d.dia_Id ?? d.value,
         nombre: d.nombre ?? d.dia_Descripcion ?? d.label ?? `${d}`
       }));
-      console.log('[Clientes] diasDisponibles (array obj)=', this.diasDisponibles);
+      // console.log('[Clientes] diasDisponibles (array obj)=', this.diasDisponibles);
       return;
     }
 
     console.warn('[Clientes] no se pudo extraer días del registro encontrado. registro:', registro);
   }
   
+
+  // Opciones que alimentan el ng-select de "Día de Visita"
+
+  rutasDisponibles: any[] = [];
+  rutasTodas: any[] = [];
+  rutasVendedor: { ruta_Id: number | null, diasSeleccionados: number[], veRu_Dias: string }[] = [
+    { ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' }
+  ];
+   // Verificar rutas y días
+    // (Nota: estas transformaciones deben ejecutarse dentro de un método en tiempo de ejecución;
+    // mover la lógica aquí para evitar declarar 'const' a nivel de clase)
+    private mapRutasDesdeOriginal(original: any, rutasVendedor: any[] = []): Array<{ ruta_Id: number; ruta_Descripcion?: string; diasSeleccionados: any[] }> {
+      const rutasOriginales = Array.isArray(original?.rutas) ? original.rutas : [];
+      const rutasNuevas = (rutasVendedor || []).map(rv => ({
+        ruta_Id: rv.ruta_Id as number,
+        ruta_Descripcion: (this.rutasTodas || this.rutasDisponibles || []).find((r: any) => Number(r.ruta_Id ?? r.id) === Number(rv.ruta_Id))?.ruta_Descripcion,
+        diasSeleccionados: Array.isArray(rv.diasSeleccionados) ? rv.diasSeleccionados : (rv.veRu_Dias ? String(rv.veRu_Dias).split(',').map((x: string) => Number(x)).filter(n => !isNaN(n)) : [])
+      }));
+      // devuelve las rutas nuevas calculadas (las originales se conservan si es necesario)
+      return rutasNuevas;
+    }
+    
+  private formatearDias = (dias: any[]): string => {
+      if (!dias || !dias.length) return 'Sin días';
+      const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      return dias.map(d => {
+        if (typeof d === 'object' && d !== null && 'nombre' in d) {
+          return (d as any).nombre;
+        }
+        return diasSemana[Number(d)] || d;
+      }).join(', ');
+    };
+    
+
+    // ...existing code...
+  /**
+   * Llama al endpoint Cliente/DiasDisponibles/{rutaId} y normaliza la respuesta
+   * Soporta: CSV string ("1,2"), array de números, array de objetos {id,nombre}, o { data: [...] }
+   */
+
+   private mergeVeruDiasFromPayload(payload: any): number[] {
+    const addNumsFrom = (src: any, set: Set<number>) => {
+      if (src == null) return;
+      if (typeof src === 'number') {
+        if (!isNaN(src)) set.add(Number(src));
+        return;
+      }
+      if (typeof src === 'string') {
+        // soporta CSV y multilinea
+        const lines = src.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+        for (const line of lines) {
+          line.split(',').map(s => s.trim()).forEach(part => {
+            const n = Number(part);
+            if (!isNaN(n)) set.add(n);
+          });
+        }
+        return;
+      }
+      if (Array.isArray(src)) {
+        for (const it of src) addNumsFrom(it, set);
+        return;
+      }
+      if (typeof src === 'object') {
+        // prioridades de campos que suelen traer días
+        const candidate = src.veru_Dias ?? src.veRu_Dias ?? src.dias ?? src.diasDisponibles ?? src.value ?? '';
+        addNumsFrom(candidate, set);
+      }
+    };
+
+    const resultSet = new Set<number>();
+    if (payload == null) return [];
+    // payload puede ser un objeto que contiene varias filas (ej. { data: [...] }) o un array de filas
+    if (Array.isArray(payload)) {
+      for (const row of payload) addNumsFrom(row, resultSet);
+    } else if (typeof payload === 'object') {
+      // si trae .data con array, usarlo
+      if (Array.isArray((payload as any).data)) {
+        for (const row of (payload as any).data) addNumsFrom(row, resultSet);
+      } else {
+        addNumsFrom(payload, resultSet);
+      }
+    } else {
+      addNumsFrom(payload, resultSet);
+    }
+
+    const arr = Array.from(resultSet.values()).filter(n => !isNaN(n));
+    return arr.sort((a, b) => a - b);
+  }
+
+  public fetchDiasDisponiblesCliente(veruId: number): void {
+    // console.log('[Clientes] fetchDiasDisponiblesCliente veruId:', veruId);
+    if (!veruId) { this.diasDisponibles = []; this.diasSeleccionados = []; return; }
+    const url = `${environment.apiBaseUrl}/Cliente/DiasDisponibles/${veruId}`;
+    this.http.get<any>(url, { headers: { 'x-api-key': environment.apiKey } }).subscribe({
+      next: (res) => {
+        let payload = res && res.data ? res.data : res;
+        try {
+          // console.log('dias: ', payload);
+          const ids = this.mergeVeruDiasFromPayload(payload); // number[]
+          // console.log('dias con merge', ids);
+          // poblar opciones (array de objetos)
+          this.diasDisponibles = this.diasSemana
+            .filter(d => ids.includes(d.id))
+            .map(d => ({ id: d.id, nombre: d.nombre }));
+
+          // Solo inicializar la selección si el cliente ya trae clie_DiaVisita (ej. al editar).
+          if (this.cliente?.clie_DiaVisita && String(this.cliente.clie_DiaVisita).trim()) {
+            const fromCliente = String(this.cliente.clie_DiaVisita).split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
+            this.diasSeleccionados = fromCliente.filter(n => this.diasDisponibles.some(dd => dd.id === n));
+          } else {
+            // NO seleccionar automáticamente todos los días permitidos: dejar la selección vacía
+            this.diasSeleccionados = [];
+          }
+
+          this.cdr.detectChanges();
+          return;
+        } catch (err) {
+          console.warn('[Clientes] error normalizando diasDisponibles desde API', err);
+        }
+        // fallback: vacío
+        this.diasDisponibles = [];
+        this.diasSeleccionados = [];
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.warn('[Clientes] fetchDiasDisponiblesCliente error:', err);
+        this.diasDisponibles = [];
+        this.diasSeleccionados = [];
+      }
+    });
+  }
+
+
+  onRutaChange(selectedValue: any) {
+    const selectedId = Number(selectedValue) || 0;
+
+    // limpiar selección previa inmediatamente (evita ver días de la ruta anterior)
+    this.diasSeleccionados = [];
+    this.cliente.clie_DiaVisita = '';
+    this.diasDisponibles = [];
+    this.cdr.detectChanges();
+
+    const rutaSeleccionada = this.rutas.find(r => Number(r.ruta_Id) === selectedId);
+    this.cliente.ruta_Descripcion = rutaSeleccionada ? rutaSeleccionada.ruta_Descripcion : '';
+
+    if (selectedId) {
+      // carga los días de la ruta seleccionada
+      this.fetchDiasDisponiblesCliente(selectedId);
+      // genera código basado en la ruta seleccionada (si aplica)
+      this.generarCodigoClientePorRuta(selectedId);
+    } else {
+      // fallback si deseleccionan
+      this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
+    }
+  }
 }
 

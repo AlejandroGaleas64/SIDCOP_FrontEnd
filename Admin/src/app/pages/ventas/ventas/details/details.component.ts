@@ -471,6 +471,10 @@ export class DetailsComponent implements OnChanges, OnDestroy {
   }
 
   private prepararDatosParaZPL(): any {
+
+    const rangoInicial = this.formatearRangoAutorizado(this.facturaDetalle?.fact_RangoInicialAutorizado || '', this.facturaDetalle?.fact_Numero || '');
+    const rangoFinal = this.formatearRangoAutorizado(this.facturaDetalle?.fact_RangoFinalAutorizado || '' , this.facturaDetalle?.fact_Numero || '');
+
     if (!this.facturaDetalle) return {};
 
     return {
@@ -492,9 +496,8 @@ export class DetailsComponent implements OnChanges, OnDestroy {
         this.facturaDetalle.regC_Descripcion || 'ABC123-XYZ456-789DEF',
       regC_FechaFinalEmision:
         this.facturaDetalle.regC_FechaFinalEmision || '31/12/2024',
-      regC_RangoInicial:
-        this.facturaDetalle.regC_RangoInicial || 'F001-00000001',
-      regC_RangoFinal: this.facturaDetalle.regC_RangoFinal || 'F001-99999999',
+      regC_RangoInicial: rangoInicial,
+      regC_RangoFinal: rangoFinal,
       clie_Id: this.facturaDetalle.clie_Id,
       cliente: this.facturaDetalle.cliente,
       clie_RTN: this.facturaDetalle.clie_RTN,
@@ -521,6 +524,20 @@ export class DetailsComponent implements OnChanges, OnDestroy {
       })),
     };
   }
+
+  private formatearRangoAutorizado(rangoNumerico: string, numeroFactura: string): string {
+    if (!rangoNumerico || !numeroFactura) return rangoNumerico || '';
+    
+    // Extraer el prefijo del número de factura (ej: "111-004-01-")
+    const prefijo = numeroFactura.match(/^(\d{3}-\d{3}-\d{2}-)/)?.[0];
+    if (!prefijo) return rangoNumerico;
+    
+    // Asegurar que el número tenga 8 dígitos
+    const numeroFormateado = rangoNumerico.padStart(8, '0');
+    
+    return `${prefijo}${numeroFormateado}`;
+  }
+
 
   abrirConfiguracionImpresion(): void {
     this.mostrarConfiguracionImpresion = true;
