@@ -38,6 +38,7 @@ export class CreateComponent  {
     this.listarModelos();
     this.listarRutasDisponibles();
     this.cargarVendedores();
+    this.listarTiposdeVendedor();
   }
 
   vendedor: Vendedor = {
@@ -50,6 +51,8 @@ export class CreateComponent  {
     vend_DNI: '',
     vend_Sexo: 'M',
     vend_Tipo: '',
+    tiVe_Id: 0,
+    tiVe_Descripcion: '',
     vend_DireccionExacta: '',
     vend_Supervisor: 0,
     vend_Ayudante: 0,
@@ -75,6 +78,7 @@ export class CreateComponent  {
     ayudantes: any[] = [];
     modelos: any[] = [];
     vendedores: any[] = [];
+    tiposVendedor: any[] = [];
 
 
     searchSucursal = (term: string, item: any) => {
@@ -116,6 +120,17 @@ listarRutasDisponibles(): void {
         this.recomputarOpciones();
       });
     }
+
+  listarTiposdeVendedor(): void {
+    this.http.get<any>(`${environment.apiBaseUrl}/TiposDeVendedor/Listar`, {
+        headers: { 'x-api-key': environment.apiKey }
+      }).subscribe((data) => {
+        this.tiposVendedor = data;
+        console.log(this.tiposVendedor);
+      });
+    }
+
+
 
    cargarVendedores() {
     this.http.get<any[]>(`${environment.apiBaseUrl}/Vendedores/Listar`, {
@@ -212,6 +227,8 @@ tieneAyudante: boolean = false;
     vend_DNI: '',
     vend_Sexo: '',
     vend_Tipo: '',
+    tiVe_Id: 0,
+    tiVe_Descripcion: '',
     vend_DireccionExacta: '',
     vend_Supervisor: 0,
     vend_Ayudante: 0,
@@ -253,7 +270,7 @@ tieneAyudante: boolean = false;
     this.vendedor.vend_Telefono.trim() && this.vendedor.vend_Correo.trim() &&
     this.esCorreoValido(this.vendedor.vend_Correo) &&
     this.vendedor.vend_DNI.trim() && this.vendedor.vend_Sexo.trim() &&
-    this.vendedor.vend_Tipo.trim() && this.vendedor.vend_DireccionExacta.trim() &&
+    this.vendedor.tiVe_Id > 0 && this.vendedor.vend_DireccionExacta.trim() &&
     this.vendedor.sucu_Id > 0 && this.vendedor.colo_Id > 0 && rutasValidas
   ) {
     this.mostrarAlertaWarning = false;
@@ -275,7 +292,7 @@ tieneAyudante: boolean = false;
       vend_Telefono: this.vendedor.vend_Telefono.trim(),
       vend_Correo: this.vendedor.vend_Correo.trim(),
       vend_Sexo: this.vendedor.vend_Sexo.trim(),
-      vend_Tipo: this.vendedor.vend_Tipo.trim(),
+      tiVe_Id: this.vendedor.tiVe_Id,
       vend_DireccionExacta: this.vendedor.vend_DireccionExacta.trim(),
       colo_Id: this.vendedor.colo_Id,
       sucu_Id: this.vendedor.sucu_Id,
@@ -289,7 +306,8 @@ tieneAyudante: boolean = false;
       vend_FechaModificacion: new Date().toISOString(),
       usuarioCreacion: "",
       usuarioModificacion: "",
-      rutas_Json: rutasParaEnviar
+      rutas_Json: rutasParaEnviar,
+      rutas_Json_Actualizar: rutasParaEnviar
     };
 
     // Solo agregar vend_Ayudante si tieneAyudante es true

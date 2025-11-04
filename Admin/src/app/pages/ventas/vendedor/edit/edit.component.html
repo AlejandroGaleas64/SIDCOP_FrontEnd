@@ -452,24 +452,24 @@
           <span class="text-danger ms-2" *ngIf="mostrarErrores">*</span>
           <div class="d-flex align-items-center">
             <i class="ri-group-line" [ngStyle]="{
-              border: (!vendedor.vend_Tipo && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-              backgroundColor: (!vendedor.vend_Tipo && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+              border: (!vendedor.tiVe_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+              backgroundColor: (!vendedor.tiVe_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
               padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
             </i>
             <select 
               id="tipoVendedor" 
               name="tipoVendedor" 
               class="form-select"
-              [class.is-invalid]="!vendedor.vend_Tipo && mostrarErrores"
-              [(ngModel)]="vendedor.vend_Tipo"
+              [class.is-invalid]="!vendedor.tiVe_Id && mostrarErrores"
+              [(ngModel)]="vendedor.tiVe_Id"
               required>
-              <option value="" disabled selected>Seleccione una opción</option>
-              <option value="P"  selected>Preventista</option>
-              <option value="V"  selected>Venta Directa</option>
-              <option value="F"  selected>Entregador</option>
+              <option [value]="null" disabled>Seleccione una opción</option>
+               <option *ngFor="let tipo of tiposVendedor" [ngValue]="tipo.tiVe_Id">
+                {{ tipo.tiVe_TipoVendedor }}
+              </option>
             </select>
           </div>
-          <div class="text-danger mt-1" *ngIf="!vendedor.vend_Tipo && mostrarErrores">
+          <div class="text-danger mt-1" *ngIf="!vendedor.tiVe_Id && mostrarErrores">
             <small>El campo tipo de vendedor es requerido</small>
           </div>
         </div>

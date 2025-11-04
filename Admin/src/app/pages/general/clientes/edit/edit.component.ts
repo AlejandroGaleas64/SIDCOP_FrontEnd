@@ -49,6 +49,7 @@ export class EditComponent implements OnChanges {
   mostrarConfirmacionEditar = false;
   mensajeWarning = '';
   mostrarMapa = false;
+  diasDisponiblesFiltradas: any[][] = [[]];
 
   //Arreglos de las listas
   nacionalidades: any[] = [];
@@ -60,6 +61,8 @@ export class EditComponent implements OnChanges {
   parentescos: any[] = [];
   TodasColonias: any[] = [];
   TodasColoniasAval: any[] = [];
+
+  diasSeleccionados: number[] = [];
 
   //Variables para el mapa
   latitudSeleccionada: number | null = null;
@@ -84,42 +87,104 @@ export class EditComponent implements OnChanges {
   avalesEliminados: number[] = [];
 
   @Input() coordenadasIniciales?: { lat: number, lng: number };
+String: any;
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['clienteData']?.currentValue) {
-      this.cliente = { ...changes['clienteData'].currentValue };
-      //Hacer lo mismo con canales, estados civiles y demas
-      const rutaActual = this.rutas.find(ruta => ruta.ruta_Id === this.cliente.ruta_Id);
-      this.cliente.ruta_Descripcion = rutaActual ? rutaActual.ruta_Descripcion : '';
-      this.clienteOriginal = { ...changes['clienteData'].currentValue };
+ ngOnChanges(changes: SimpleChanges): void {
+  if (changes['clienteData']?.currentValue) {
+    this.cliente = { ...changes['clienteData'].currentValue };
+
+    // Guardar el cliente original (normalizando clie_DiaVisita a CSV string)
+    this.clienteOriginal = {
+      ...changes['clienteData'].currentValue,
+      clie_DiaVisita: String((changes['clienteData'].currentValue?.clie_DiaVisita ?? '')).trim()
+    };
+    // Si ya tenemos rutas / canales cargadas, completar descripciones en el original
+    try {
+      const orig = this.clienteOriginal;
+      if (orig && orig.ruta_Id) {
+        const r = (this.rutas || []).find(x => String(x.ruta_Id) === String(orig.ruta_Id));
+        if (r) orig.ruta_Descripcion = orig.ruta_Descripcion || (r.ruta_Descripcion ?? '');
+      }
+      if (orig && orig.cana_Id) {
+        const c = (this.canales || []).find(x => String(x.cana_Id) === String(orig.cana_Id));
+        if (c) orig.cana_Descripcion = orig.cana_Descripcion || (c.cana_Descripcion ?? '');
+      }
+    } catch (e) { /* no bloquear */ }
+    this.idDelCliente = this.cliente.clie_Id;
+
+    // Parsear días seleccionados del cliente
+    if (this.cliente.clie_DiaVisita) {
+      const diasString = String(this.cliente.clie_DiaVisita).trim();
+      if (diasString) {
+        this.diasSeleccionados = diasString
+          .split(',')
+          .map(d => Number(d.trim()))
+          .filter(n => !isNaN(n) && n >= 1 && n <= 7);
+      } else {
+        this.diasSeleccionados = [];
+      }
+    } else {
+      this.diasSeleccionados = [];
+    }
+
+    // Cargar días disponibles
+    if (this.cliente.ruta_Id) {
+      this.fetchDiasDisponiblesCliente(this.cliente.ruta_Id);
+    }
+    
+
+      // Si está vacío, intentar fallback
+      if (!this.cliente.clie_DiaVisita) {
+        const rawFromCliente = this.getDiaFromClienteRaw(this.cliente);
+        if (rawFromCliente) {
+          this.cliente.clie_DiaVisita = String(rawFromCliente).trim();
+        }
+      }
+
+      // Normalizar la copia original
+      this.clienteOriginal = {
+        ...changes['clienteData'].currentValue,
+        clie_DiaVisita: String((changes['clienteData'].currentValue?.clie_DiaVisita ?? ''))
+      };
       this.idDelCliente = this.cliente.clie_Id;
 
-      // *** CONVIERTE LA FECHA SI VIENE COMO STRING ***
-      if (this.cliente.clie_FechaNacimiento) {
-        this.cliente.clie_FechaNacimiento = new Date(
-          this.cliente.clie_FechaNacimiento
-        );
-      } else {
-        this.cliente.clie_FechaNacimiento = null;
-      }
-
-      // Inicializar uploadedFiles con la imagen existente si la hay
-      if (this.cliente.clie_ImagenDelNegocio) {
-        this.uploadedFiles = [this.cliente.clie_ImagenDelNegocio];
-      } else {
-        this.uploadedFiles = [];
-      }
+      // Cargar rutas y luego poblar días disponibles
+      const procesarDiaVisita = () => {
+        this.asignarRutaDescripcionYCodigo();
+        // IMPORTANTE: Poblar diasDisponibles ANTES de validar
+        
+        
+        // Esperar un tick para que diasDisponibles se pueble
+        setTimeout(() => {
+          if (this.cliente.clie_DiaVisita && this.diasDisponibles?.length > 0) {
+            // Buscar coincidencia por id o nombre
+            const found = this.diasDisponibles.find(d => {
+              const diaStr = String(this.cliente.clie_DiaVisita).trim();
+              return String(d.id) === diaStr || 
+                     String(d.nombre).toLowerCase() === diaStr.toLowerCase();
+            });
+            
+            if (found) {
+              this.cliente.clie_DiaVisita = String(found.id);
+            } else {
+              console.warn(`[Clientes] Día "${this.cliente.clie_DiaVisita}" no encontrado en días disponibles:`, this.diasDisponibles);
+            }
+          }
+          this.cdr.detectChanges();
+        }, 100);
+      };
 
       if (this.rutas.length === 0) {
         this.cargarRutas().then(() => {
-          this.asignarRutaDescripcionYCodigo();
+          procesarDiaVisita();
         });
       } else {
-        this.asignarRutaDescripcionYCodigo();
+        procesarDiaVisita();
       }
 
       this.cargarDireccionesExistentes();
       this.cargarAvalesExistentes();
+     
     }
   }
 
@@ -130,6 +195,22 @@ export class EditComponent implements OnChanges {
     if (!formatoCodigo.test(this.cliente.clie_Codigo)) {
       this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
     }
+  }
+
+  private getDiaFromClienteRaw(obj: any): string {
+    if (!obj || typeof obj !== 'object') return '';
+    // keys comunes a buscar
+    const keys = Object.keys(obj);
+    for (const k of keys) {
+      if (/dia/i.test(k)) {
+        const v = obj[k];
+        if (v === null || v === undefined || v === '') continue;
+        // si es número válido 1..7 lo devolvemos; si es string no vacío también
+        if (typeof v === 'number' && !isNaN(v)) return String(v);
+        if (typeof v === 'string' && v.trim() !== '') return v.trim();
+      }
+    }
+    return '';
   }
 
   // onChanges para validar cambios en el formulario de editar
@@ -163,15 +244,27 @@ export class EditComponent implements OnChanges {
     }
   }
 
-  onRutaChange(event: any) {
-    const selectedId = +event.target.value;
-    const rutaSeleccionada = this.rutas.find(r => r.ruta_Id === selectedId);
-    if (rutaSeleccionada) {
-      this.cliente.ruta_Descripcion = rutaSeleccionada.ruta_Descripcion;
+  onRutaChange(selectedValue: any) {
+    const selectedId = Number(selectedValue) || 0;
+
+    // limpiar selección previa inmediatamente (evita ver días de la ruta anterior)
+    this.diasSeleccionados = [];
+    this.cliente.clie_DiaVisita = '';
+    this.diasDisponibles = [];
+    this.cdr.detectChanges();
+
+    const rutaSeleccionada = this.rutas.find(r => Number(r.ruta_Id) === selectedId);
+    this.cliente.ruta_Descripcion = rutaSeleccionada ? rutaSeleccionada.ruta_Descripcion : '';
+
+    if (selectedId) {
+      // carga los días de la ruta seleccionada
+      this.fetchDiasDisponiblesCliente(selectedId);
+      // genera código basado en la ruta seleccionada (si aplica)
+      this.generarCodigoClientePorRuta(selectedId);
     } else {
-      this.cliente.ruta_Descripcion = '';
+      // fallback si deseleccionan
+      this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
     }
-    this.generarCodigoClientePorRuta(this.cliente.ruta_Id);
   }
 
   esCorreoValido(correo: string): boolean {
@@ -450,9 +543,9 @@ export class EditComponent implements OnChanges {
     }
 
     if (no == 4) {
-      //console.log(4);
+      //// // console.log(4);
       if (this.tieneDatosCredito()) {
-        //console.log('tieneDatosCredito');
+        //// // console.log('tieneDatosCredito');
         this.mostrarErrores = true;
         if (
           this.avales.length > 0 &&
@@ -534,6 +627,7 @@ export class EditComponent implements OnChanges {
     this.cargarParentescos();
     this.cargarColoniasCliente();
     this.cargarColoniasAval();
+    // this.loadRutasVendedoresCache();
   }
 
   //Metodos para cargar los datos de la listas
@@ -698,6 +792,7 @@ export class EditComponent implements OnChanges {
     esCv_Descripcion: '',
     ruta_Id: 0,
     ruta_Descripcion: '',
+    clie_DiaVisita: '',
     clie_LimiteCredito: 0,
     clie_DiasCredito: 0,
     clie_Saldo: 0,
@@ -868,6 +963,12 @@ export class EditComponent implements OnChanges {
 
   guardarCliente(): void {
     this.mostrarErrores = true;
+
+    if (this.diasSeleccionados && this.diasSeleccionados.length > 0) {
+      this.cliente.clie_DiaVisita = this.diasSeleccionados.sort((a, b) => a - b).join(',');
+    } else {
+      this.cliente.clie_DiaVisita = '';
+    }
     if (this.entrando) {
       this.mostrarAlertaWarning = false;
       this.mostrarAlertaError = false;
@@ -895,6 +996,7 @@ export class EditComponent implements OnChanges {
         esCv_Descripcion: this.cliente.esCv_Descripcion,
         ruta_Id: this.cliente.ruta_Id,
         ruta_Descripcion: this.cliente.ruta_Descripcion,
+        clie_DiaVisita: String(this.cliente.clie_DiaVisita ?? ''),
         clie_LimiteCredito: this.cliente.clie_LimiteCredito ? this.cliente.clie_LimiteCredito : 0,
         clie_DiasCredito: this.cliente.clie_DiasCredito,
         clie_Saldo: this.cliente.clie_Saldo,
@@ -913,6 +1015,7 @@ export class EditComponent implements OnChanges {
         usuaC_Nombre: this.cliente.usuaC_Nombre,
         usuaM_Nombre: this.cliente.usuaM_Nombre,
       };
+      // // console.log('Los datos que se envían:', clienteActualizar);
       this.http
         .put<any>(
           `${environment.apiBaseUrl}/Cliente/Actualizar`,
@@ -1032,7 +1135,7 @@ export class EditComponent implements OnChanges {
       )
       .subscribe({
         next: (response) => {
-          //console.log('Dirección insertada correctamente:', response);
+          //// // console.log('Dirección insertada correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al insertar dirección:', error);
@@ -1062,7 +1165,7 @@ export class EditComponent implements OnChanges {
       )
       .subscribe({
         next: (response) => {
-          //console.log('Dirección actualizada correctamente:', response);
+          //// console.log('Dirección actualizada correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al actualizar dirección:', error);
@@ -1085,7 +1188,7 @@ export class EditComponent implements OnChanges {
       )
       .subscribe({
         next: (response) => {
-          //console.log('Dirección eliminada correctamente:', response);
+          //// console.log('Dirección eliminada correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al eliminar dirección:', error);
@@ -1131,7 +1234,7 @@ export class EditComponent implements OnChanges {
       })
       .subscribe({
         next: (response) => {
-          //console.log('Aval insertado correctamente:', response);
+          //// console.log('Aval insertado correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al insertar aval:', error);
@@ -1166,7 +1269,7 @@ export class EditComponent implements OnChanges {
       Aval_FechaModificacion: new Date(),
       Aval_Estado: true,
     };
-    //console.log(avalActualizar);
+    //// console.log(avalActualizar);
     this.http
       .put<any>(`${environment.apiBaseUrl}/Aval/Actualizar`, avalActualizar, {
         headers: {
@@ -1177,7 +1280,7 @@ export class EditComponent implements OnChanges {
       })
       .subscribe({
         next: (response) => {
-          //console.log('Aval actualizado correctamente:', response);
+          //// console.log('Aval actualizado correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al actualizar aval:', error);
@@ -1200,7 +1303,7 @@ export class EditComponent implements OnChanges {
       )
       .subscribe({
         next: (response) => {
-          //console.log('Aval eliminado correctamente:', response);
+          //// console.log('Aval eliminado correctamente:', response);
         },
         error: (error) => {
           //console.error('Error al eliminar aval:', error);
@@ -1347,6 +1450,70 @@ export class EditComponent implements OnChanges {
     }
   }
 
+  // Convierte id/string del día a nombre legible
+  diasSemanaString(d: any): string {
+    if (d === null || d === undefined || String(d).trim() === '') return 'N/A';
+    const s = String(d).trim();
+    const map: Record<string,string> = {
+      '1': 'Lunes','2':'Martes','3':'Miércoles','4':'Jueves','5':'Viernes','6':'Sábado','7':'Domingo'
+    };
+    return map[s] ?? s;
+  }
+
+
+  // normaliza CSV/array/number a CSV ordenado (ej. "4,3" -> "3,4")
+  private normalizeDiaCsv(v: any): string {
+    if (v == null) return '';
+    if (Array.isArray(v)) {
+      const nums = v.map(x => Number(x)).filter(n => !isNaN(n));
+      return Array.from(new Set(nums)).sort((a, b) => a - b).join(',');
+    }
+    const s = String(v).trim();
+    if (!s) return '';
+    const parts = s.split(/[,;|\s]+/).map(p => Number(p.trim())).filter(n => !isNaN(n));
+    return Array.from(new Set(parts)).sort((a, b) => a - b).join(',');
+  }
+
+  // convierte CSV ordenado de días ("3,4") a nombres ("Miércoles, Jueves")
+  private diasCsvToNames(csv: string): string {
+    if (!csv) return 'N/A';
+    const map: Record<string, string> = {
+      '1': 'Lunes',
+      '2': 'Martes',
+      '3': 'Miércoles',
+      '4': 'Jueves',
+      '5': 'Viernes',
+      '6': 'Sábado',
+      '7': 'Domingo'
+    };
+    const parts = String(csv).split(',').map(p => p.trim()).filter(p => p !== '');
+    const names = parts.map(p => map[p] ?? p);
+    // eliminar duplicados manteniendo orden
+    return Array.from(new Set(names)).join(', ');
+  }
+
+  // Handler que actualiza el modelo cuando el ng-select de días cambia
+  onDiasSeleccionadosChange(selected: any[]) {
+    this.diasSeleccionados = (selected || []).map(s => Number(s)).filter(n => !isNaN(n) && n >= 1 && n <= 7);
+    this.cliente.clie_DiaVisita = this.diasSeleccionados.length ? this.diasSeleccionados.sort((a,b)=>a-b).join(',') : '';
+    this.cdr.detectChanges();
+  }
+
+   private findRutaDescripcionById(id: any): string {
+    if (id == null || id === '') return '';
+    const key = String(id).trim();
+    const found = (this.rutas || []).find(r => String(r.ruta_Id ?? r.id ?? '').trim() === key);
+    return found ? (found.ruta_Descripcion ?? String(id)) : (this.clienteOriginal?.ruta_Descripcion ?? String(id));
+  }
+
+  // helper para obtener descripción de canal por id a partir de this.canales
+  private findCanalDescripcionById(id: any): string {
+    if (id == null || id === '') return '';
+    const key = String(id).trim();
+    const found = (this.canales || []).find(c => String(c.cana_Id ?? c.id ?? '').trim() === key);
+    return found ? (found.cana_Descripcion ?? String(id)) : (this.clienteOriginal?.cana_Descripcion ?? String(id));
+  }
+
   // Todo lo de mensaje de confirmación de edición
 
   obtenerListaCambios(): any[] {
@@ -1363,6 +1530,16 @@ export class EditComponent implements OnChanges {
     const e = this.nuevoAval();
     const f = this.avalOriginal;
     this.cambiosDetectados = {};
+
+    const num = (v: any) => (v == null || v === '') ? null : Number(v);
+    const str = (v: any) => (v == null ? '' : String(v).trim());
+
+    const idChanged = (aId: any, bId: any) => {
+      const A = num(aId);
+      const B = num(bId);
+      return (A === null && B === null) ? false : (A !== B);
+    };
+
 
     // Verificar cada campo y almacenar los cambios
     if (a.clie_Nacionalidad !== b.clie_Nacionalidad) {
@@ -1413,10 +1590,10 @@ export class EditComponent implements OnChanges {
       };
     }
 
-    if (a.esCv_Id !== b.esCv_Id) {
+    if (num(a.esCv_Id) !== num(b.esCv_Id)) {
       this.cambiosDetectados.marca = {
-        anterior: b.esCv_Descripcion,
-        nuevo: a.esCv_Descripcion,
+        anterior: str(b.esCv_Descripcion),
+        nuevo: str(a.esCv_Descripcion),
         label: 'Estado Civil'
       };
     }
@@ -1481,19 +1658,33 @@ export class EditComponent implements OnChanges {
       };
     }
 
-    if (a.ruta_Id !== b.ruta_Id) {
+    // Canal: comparar por id numérico y mostrar descripciones (buscar en listas si el original no tiene)
+    if (idChanged(a.cana_Id, b.cana_Id)) {
+      this.cambiosDetectados.canal = {
+        anterior: this.findCanalDescripcionById(b.cana_Id) || str(b.cana_Descripcion) || `${str(b.cana_Id)}`,
+        nuevo: this.findCanalDescripcionById(a.cana_Id) || str(a.cana_Descripcion) || `${str(a.cana_Id)}`,
+        label: 'Canal'
+      };
+    }
+
+    // Ruta: comparar por id numérico y mostrar descripciones (buscar en listas si el original no tiene)
+    if (idChanged(a.ruta_Id, b.ruta_Id)) {
       this.cambiosDetectados.ruta = {
-        anterior: b.ruta_Descripcion,
-        nuevo: a.ruta_Descripcion,
+        anterior: this.findRutaDescripcionById(b.ruta_Id) || str(b.ruta_Descripcion) || `${str(b.ruta_Id)}`,
+        nuevo: this.findRutaDescripcionById(a.ruta_Id) || str(a.ruta_Descripcion) || `${str(a.ruta_Id)}`,
         label: 'Ruta'
       };
     }
 
-    if (a.cana_Id !== b.cana_Id) {
-      this.cambiosDetectados.canal = {
-        anterior: b.cana_Descripcion,
-        nuevo: a.cana_Descripcion,
-        label: 'Canal'
+    // Normalizar días (soporta CSV, number, array) y comparar como CSV ordenado
+    const diaA = this.normalizeDiaCsv(a.clie_DiaVisita ?? this.diasSeleccionados);
+    const diaB = this.normalizeDiaCsv(b.clie_DiaVisita ?? '');
+    // console.log('[Clientes] hayDiferencias - dias normalizados A/B:', diaA, diaB);
+    if (diaA !== diaB) {
+      this.cambiosDetectados.diaVisita = {
+        anterior: this.diasCsvToNames(diaB),
+        nuevo: this.diasCsvToNames(diaA),
+        label: 'Día de Visita'
       };
     }
 
@@ -1674,5 +1865,146 @@ export class EditComponent implements OnChanges {
         this.mapaSelectorComponent.setMarker(this.coordenadasMapa.lat, this.coordenadasMapa.lng);
       }
     }
+  }
+
+  //Lógica para clientes visita
+
+   diasSemana = [
+    { id: 1, nombre: 'Lunes' },
+    { id: 2, nombre: 'Martes' },
+    { id: 3, nombre: 'Miércoles' },
+    { id: 4, nombre: 'Jueves' },
+    { id: 5, nombre: 'Viernes' },
+    { id: 6, nombre: 'Sábado' },
+    { id: 7, nombre: 'Domingo' }
+  ];
+
+  // Opciones que alimentan el ng-select de "Día de Visita"
+  diasDisponibles: Array<{ id: number; nombre: string }> = [];
+ 
+  rutasDisponibles: any[] = [];
+  rutasTodas: any[] = [];
+  rutasVendedor: { ruta_Id: number | null, diasSeleccionados: number[], veRu_Dias: string }[] = [
+    { ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' }
+  ];
+   // Verificar rutas y días
+    // (Nota: estas transformaciones deben ejecutarse dentro de un método en tiempo de ejecución;
+    // mover la lógica aquí para evitar declarar 'const' a nivel de clase)
+    private mapRutasDesdeOriginal(original: any, rutasVendedor: any[] = []): Array<{ ruta_Id: number; ruta_Descripcion?: string; diasSeleccionados: any[] }> {
+      const rutasOriginales = Array.isArray(original?.rutas) ? original.rutas : [];
+      const rutasNuevas = (rutasVendedor || []).map(rv => ({
+        ruta_Id: rv.ruta_Id as number,
+        ruta_Descripcion: (this.rutasTodas || this.rutasDisponibles || []).find((r: any) => Number(r.ruta_Id ?? r.id) === Number(rv.ruta_Id))?.ruta_Descripcion,
+        diasSeleccionados: Array.isArray(rv.diasSeleccionados) ? rv.diasSeleccionados : (rv.veRu_Dias ? String(rv.veRu_Dias).split(',').map((x: string) => Number(x)).filter(n => !isNaN(n)) : [])
+      }));
+      // devuelve las rutas nuevas calculadas (las originales se conservan si es necesario)
+      return rutasNuevas;
+    }
+    
+  private formatearDias = (dias: any[]): string => {
+      if (!dias || !dias.length) return 'Sin días';
+      const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      return dias.map(d => {
+        if (typeof d === 'object' && d !== null && 'nombre' in d) {
+          return (d as any).nombre;
+        }
+        return diasSemana[Number(d)] || d;
+      }).join(', ');
+    };
+    
+
+    // ...existing code...
+  /**
+   * Llama al endpoint Cliente/DiasDisponibles/{rutaId} y normaliza la respuesta
+   * Soporta: CSV string ("1,2"), array de números, array de objetos {id,nombre}, o { data: [...] }
+   */
+
+   private mergeVeruDiasFromPayload(payload: any): number[] {
+    const addNumsFrom = (src: any, set: Set<number>) => {
+      if (src == null) return;
+      if (typeof src === 'number') {
+        if (!isNaN(src)) set.add(Number(src));
+        return;
+      }
+      if (typeof src === 'string') {
+        // soporta CSV y multilinea
+        const lines = src.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+        for (const line of lines) {
+          line.split(',').map(s => s.trim()).forEach(part => {
+            const n = Number(part);
+            if (!isNaN(n)) set.add(n);
+          });
+        }
+        return;
+      }
+      if (Array.isArray(src)) {
+        for (const it of src) addNumsFrom(it, set);
+        return;
+      }
+      if (typeof src === 'object') {
+        // prioridades de campos que suelen traer días
+        const candidate = src.veru_Dias ?? src.veRu_Dias ?? src.dias ?? src.diasDisponibles ?? src.value ?? '';
+        addNumsFrom(candidate, set);
+      }
+    };
+
+    const resultSet = new Set<number>();
+    if (payload == null) return [];
+    // payload puede ser un objeto que contiene varias filas (ej. { data: [...] }) o un array de filas
+    if (Array.isArray(payload)) {
+      for (const row of payload) addNumsFrom(row, resultSet);
+    } else if (typeof payload === 'object') {
+      // si trae .data con array, usarlo
+      if (Array.isArray((payload as any).data)) {
+        for (const row of (payload as any).data) addNumsFrom(row, resultSet);
+      } else {
+        addNumsFrom(payload, resultSet);
+      }
+    } else {
+      addNumsFrom(payload, resultSet);
+    }
+
+    const arr = Array.from(resultSet.values()).filter(n => !isNaN(n));
+    return arr.sort((a, b) => a - b);
+  }
+  public fetchDiasDisponiblesCliente(veruId: number): void {
+    // console.log('[Clientes] fetchDiasDisponiblesCliente veruId:', veruId);
+    if (!veruId) { this.diasDisponibles = []; return; }
+    const url = `${environment.apiBaseUrl}/Cliente/DiasDisponibles/${veruId}`;
+    this.http.get<any>(url, { headers: { 'x-api-key': environment.apiKey } }).subscribe({
+      next: (res) => {
+        let payload = res && res.data ? res.data : res;
+        try {
+          // console.log('dias: ', payload);
+          // string CSV -> ids
+ 
+
+            const ids = this.mergeVeruDiasFromPayload(payload);
+            // console.log('dias con merge', ids);
+             this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
+   
+            this.cdr.detectChanges();
+            return;
+   
+         
+          
+        } catch (err) {
+          console.warn('[Clientes] error normalizando diasDisponibles desde API', err);
+        }
+        // fallback: vacío
+        this.diasDisponibles = [];
+ 
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.warn('[Clientes] fetchDiasDisponiblesCliente error:', err);
+        // no interrumpir flujo; dejar que la lógica local intente extraer días
+        this.diasDisponibles = [];
+      }
+    });
+  }
+// ...existing code...
+  cerrarFormularioMapa(): void {
+    this.mostrarMapa = false;
   }
 }
