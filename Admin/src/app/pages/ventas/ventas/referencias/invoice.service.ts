@@ -6,6 +6,7 @@ import autoTable from 'jspdf-autotable';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import * as XLSX from 'xlsx';
 import { Factura, VentaDetalle, DetalleItem, FacturaCompleta } from 'src/app/Modelos/ventas/Facturas.model';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 export interface ExportConfig {
   title: string;
@@ -59,8 +60,9 @@ export class InvoiceService {
   /**
    * Constructor del servicio. Carga la configuración de la empresa.
    * @param http Cliente HTTP para llamadas a la API
+   * @param imageUploadService Servicio para manejo de imágenes
    */
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {
     this.cargarConfiguracionEmpresa();
   }
 
@@ -77,7 +79,6 @@ export class InvoiceService {
         }
       },
       error: (error) => {
-        console.error('Error al cargar configuración de empresa:', error);
       }
     });
   }
@@ -104,7 +105,6 @@ export class InvoiceService {
       return { success: true, message: `Archivo PDF exportado: ${filename}` };
 
     } catch (error) {
-      console.error('Error exportando PDF:', error);
       return { success: false, message: 'Error al exportar archivo PDF' };
     }
   }
@@ -115,7 +115,6 @@ export class InvoiceService {
    */
   private async cargarLogo(): Promise<string | null> {
     if (!this.configuracionEmpresa?.coFa_Logo) {
-      //console.log('No hay logo configurado');
       return null;
     }
 
@@ -129,7 +128,6 @@ export class InvoiceService {
           const ctx = canvas.getContext('2d');
 
           if (!ctx) {
-            console.error('No se pudo obtener el contexto del canvas');
             resolve(null);
             return;
           }
@@ -156,32 +154,24 @@ export class InvoiceService {
           ctx.drawImage(img, 0, 0, width, height);
 
           const dataUrl = canvas.toDataURL('image/png', 0.8);
-          //console.log('Logo procesado correctamente desde URL');
           resolve(dataUrl);
         } catch (e) {
-          console.error('Error al procesar el logo:', e);
           resolve(null);
         }
       };
 
       img.onerror = (error) => {
-        console.error('Error al cargar el logo desde URL:', error);
         resolve(null);
       };
 
       try {
-        const logoUrl = this.configuracionEmpresa.coFa_Logo;
-        //console.log('Intentando cargar logo desde:', logoUrl);
-
-        if (logoUrl.startsWith('http')) {
-          img.src = logoUrl;
-        } else if (logoUrl.startsWith('data:')) {
-          img.src = logoUrl;
-        } else {
-          img.src = `data:image/png;base64,${logoUrl}`;
-        }
+        const logoPath = this.configuracionEmpresa.coFa_Logo;
+        
+        // Usar el servicio ImageUploadService para construir la URL correcta
+        const logoUrl = this.imageUploadService.getImageUrl(logoPath);
+        
+        img.src = logoUrl;
       } catch (e) {
-        console.error('Error al configurar src del logo:', e);
         resolve(null);
       }
     });
@@ -204,9 +194,7 @@ export class InvoiceService {
     if (this.facturaDetalle?.coFa_Logo) {
       try {
         doc.addImage(this.facturaDetalle?.coFa_Logo, 'PNG', 20, 5, 30, 25);
-        //console.log('Logo agregado al PDF correctamente');
       } catch (e) {
-        console.error('Error al agregar imagen al PDF:', e);
       }
     }
 
@@ -354,7 +342,6 @@ export class InvoiceService {
         return userData.usuarioCreacion || userData.usuarioCreacion || 'Usuario';
       }
     } catch (e) {
-      console.error('Error obteniendo usuario:', e);
     }
     return 'Sistema';
   }
@@ -452,7 +439,6 @@ export class InvoiceService {
       return { success: true, message: `Factura PDF generada: ${filename}` };
 
     } catch (error) {
-      console.error('Error generando factura PDF:', error);
       return { success: false, message: 'Error al generar la factura PDF' };
     }
   }
@@ -499,7 +485,6 @@ export class InvoiceService {
       try {
         doc.addImage(this.facturaDetalle.coFa_Logo, 'PNG', centerX - 20, 2, 40, 25); // Ajustado Y de 5 a 2
       } catch (e) {
-        console.error('Error al agregar logo:', e);
       }
     }
 

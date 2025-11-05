@@ -454,20 +454,7 @@
                         </span>
                         <span class="info-value"
                           >L.{{
-                            detalle.faDe_PrecioUnitario?.toFixed(2) || "0.00"
-                          }}</span
-                        >
-                      </div>
-
-                      <!-- Subtotal -->
-                      <div class="info-row">
-                        <span class="info-label">
-                          <i class="ri-calculator-line me-1"></i>
-                          Subtotal:
-                        </span>
-                        <span class="info-value"
-                          >L.{{
-                            detalle.faDe_Subtotal?.toFixed(2) || "0.00"
+                            detalle.faDe_Subtotal.toFixed(2) || "0.00"
                           }}</span
                         >
                       </div>
@@ -480,7 +467,20 @@
                         </span>
                         <span class="info-value"
                           >L.{{
-                            detalle.faDe_Descuento?.toFixed(2) || "0.00"
+                            detalle.faDe_Descuento.toFixed(2) || "0.00"
+                          }}</span
+                        >
+                      </div>
+                      
+                      <!-- Subtotal -->
+                      <div class="info-row">
+                        <span class="info-label">
+                          <i class="ri-calculator-line me-1"></i>
+                          Subtotal:
+                        </span>
+                        <span class="info-value"
+                        >L.{{
+                            detalle.faDe_PrecioUnitario.toFixed(2) || "0.00"
                           }}</span
                         >
                       </div>
@@ -493,7 +493,7 @@
                         </span>
                         <span class="info-value"
                           >L.{{
-                            detalle.faDe_Impuesto?.toFixed(2) || "0.00"
+                            detalle.faDe_Impuesto.toFixed(2) || "0.00"
                           }}</span
                         >
                       </div>
@@ -506,7 +506,7 @@
                         </span>
                         <span class="info-value fw-bold text-success"
                           >L.{{
-                            detalle.faDe_Total?.toFixed(2) || "0.00"
+                            detalle.faDe_Total.toFixed(2) || "0.00"
                           }}</span
                         >
                       </div>

@@ -251,6 +251,7 @@ export class CreateComponent {
     this.mensajeError = '';
     this.mostrarAlertaWarning = false;
     this.mensajeWarning = '';
+    this.productos.forEach(p => p.cantidad = 0);
     this.producto = {
       prod_Id: 0,
       prod_Codigo: '',

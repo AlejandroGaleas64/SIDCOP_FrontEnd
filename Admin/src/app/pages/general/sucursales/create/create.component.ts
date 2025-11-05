@@ -51,6 +51,27 @@ export class CreateComponent implements OnInit {
     }
   }
 
+  // Evita que se escriban letras (solo permite dígitos y teclas de navegación)
+  onlyDigitsKeypress(event: KeyboardEvent) {
+    const allowed = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'];
+    if (allowed.includes(event.key)) return;
+    if (!/^\d$/.test(event.key)) {
+      event.preventDefault();
+    }
+  }
+
+  // Maneja pegado en campos de teléfono: limpia todo lo que no sea dígito y aplica máscara
+  onTelefonoPaste(event: ClipboardEvent, campo: 'sucu_Telefono1' | 'sucu_Telefono2') {
+    event.preventDefault();
+    const paste = event.clipboardData?.getData('text') || '';
+    const digits = paste.replace(/\D/g, '').slice(0, 8);
+    const input = event.target as HTMLInputElement;
+    if (input) {
+      input.value = this.aplicarMascaraTelefono(digits);
+      this.sucursal[campo] = this.aplicarMascaraTelefono(digits);
+    }
+  }
+
   // Limita el código de sucursal a 3 dígitos numéricos
   aplicarmascaracodigo(valor: string): string {
     return valor.replace(/[^\d]/g, '').slice(0, 3);
