@@ -109,8 +109,11 @@
                 name="sucu_Telefono1"
                 placeholder="Ingrese el teléfono 1"
                 maxlength="9"
+                mask="000000000"
                 required
-                (input)="onTelefonoInput($event, 'sucu_Telefono1')" />
+                (input)="onTelefonoInput($event, 'sucu_Telefono1')"
+                (keypress)="onlyDigitsKeypress($event)"
+                (paste)="onTelefonoPaste($event, 'sucu_Telefono1')" />
             </div>
             <div class="text-danger mt-1" *ngIf="!sucursal.sucu_Telefono1.trim() && mostrarErrores">
               <small>El campo Teléfono 1 es requerido</small>
@@ -129,7 +132,10 @@
                 name="sucu_Telefono2"
                 placeholder="Ingrese el teléfono 2"
                 maxlength="9"
-                (input)="onTelefonoInput($event, 'sucu_Telefono2')" >
+                mask="000000000"
+                (input)="onTelefonoInput($event, 'sucu_Telefono2')"
+                (keypress)="onlyDigitsKeypress($event)"
+                (paste)="onTelefonoPaste($event, 'sucu_Telefono2')" >
             </div>
           </div>
         </div>

@@ -50,10 +50,23 @@
             </div>
             
             <!-- Campo de búsqueda -->
-            <div class="search-box mb-2 position-relative">
+            <!-- <div class="search-box mb-2 position-relative">
               <input type="text" class="form-control search pe-5" placeholder="Buscar..." [(ngModel)]="table.searchTerm" (ngModelChange)="table.setSearchTerm($event)">
               <i class="ri-search-line search-icon position-absolute end-0 top-50 translate-middle-y me-2"></i>
+            </div> -->
+
+            <div class="search-box mb-2">
+              <input 
+                type="text" 
+                class="form-control search" 
+                placeholder="Buscar..." 
+                [(ngModel)]="table.searchTerm"
+                (ngModelChange)="table.setSearchTerm($event)"
+              >
+              <i class="ri-search-line search-icon"></i>
             </div>
+
+
           </div>
         </div>
 
