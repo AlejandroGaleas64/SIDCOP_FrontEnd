@@ -211,11 +211,9 @@ String: any;
   //     !!this.cliente.clie_DiasCredito
   //   );
   // }
-  tieneDatosCredito(): boolean {
-    const limite = Number(this.cliente?.clie_LimiteCredito ?? 0);
-    const dias = Number(this.cliente?.clie_DiasCredito ?? 0);
-    return limite > 0 && dias > 0;
-  }
+ tieneDatosCredito(): boolean {
+  return !!this.cliente.clie_LimiteCredito && !!this.cliente.clie_DiasCredito;
+}
 
   //Verifica si el aval es valido- Si nungo campo este vacio
   esAvalValido(aval: Aval): boolean {
@@ -328,22 +326,28 @@ String: any;
     }
 
     if (no == 4) {
-      this.mostrarErrores = true;
+      //// // console.log(4);
       if (this.tieneDatosCredito()) {
-        if (this.avales.length > 0 && this.avales.every(aval => this.esAvalValido(aval))) {
+        //// // console.log('tieneDatosCredito');
+        this.mostrarErrores = true;
+        if (
+          this.avales.length > 0 &&
+          this.avales.every((aval) => this.esAvalValido(aval))
+        ) {
           this.mostrarErrores = false;
           this.activeTab = 5;
         } else {
           this.mostrarErrores = true;
           this.mostrarAlertaWarning = true;
-          this.mensajeWarning = 'Por favor complete correctamente todos los registros de Aval.';
+          this.mensajeWarning =
+            'Por favor complete correctamente todos los registros de Aval.';
           setTimeout(() => {
             this.mostrarAlertaWarning = false;
             this.mensajeWarning = '';
           }, 3000);
         }
-      }
-      else {
+      } else {
+        // Si no hay datos de crédito, saltar el tab de avales
         this.mostrarErrores = false;
         this.activeTab = 5;
       }
@@ -603,7 +607,8 @@ String: any;
   };
   direccionEditandoIndex: number | null = null;
 
-  avales: Aval[] = [this.nuevoAval()];
+   avales: Aval[] = [this.nuevoAval()];
+  // avales: Aval[] = [];
   avalActivoIndex: number = 0;
   nuevoAval(): Aval {
     return {
@@ -1082,10 +1087,50 @@ String: any;
   }
 
   agregarAval() {
-    this.avales.push(this.nuevoAval());
-    this.avalActivoIndex = this.avales.length - 1;
+  if (!this.tieneDatosCredito()) {
+    this.mostrarAlertaWarning = true;
+    this.mensajeWarning = 'No se puede agregar un aval si el cliente no ha solicitado crédito.';
+    
+    setTimeout(()=> { this.mostrarAlertaWarning = false; this.mensajeWarning = ''; }, 3500);
+    return;
   }
+  this.avales.push(this.nuevoAval());
+  this.avalActivoIndex = this.avales.length - 1;
+  this.scrollToAval(this.avalActivoIndex);
+}
 
+  // llamado desde plantilla al pulsar "Agregar" en la pestaña Aval
+  onAgregarAvalClicked(): void {
+    // si no tiene crédito, advertir y llevar a la pestaña de crédito
+    if (!this.tieneDatosCredito()) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'No se puede insertar un aval si el cliente no ha solicitado crédito.';
+      // llevar al usuario a la pestaña de crédito para que active crédito
+      this.activeTab = 3;
+      setTimeout(() => {
+        this.mostrarAlertaWarning = false;
+        this.mensajeWarning = '';
+      }, 3500);
+      return;
+    }
+
+    // si hay crédito, abrir formulario (si no abierto) y crear registro
+    if (!Array.isArray(this.avales)) this.avales = [];
+    // abrir el formulario
+    this.activeTab = 4;
+    // si no hay avales, crear uno inicial
+    if (this.avales.length === 0) {
+      this.avales.push(this.nuevoAval());
+    } else {
+      // si ya hay avales, añadir una nueva entrada y posicionar
+      this.avales.push(this.nuevoAval());
+    }
+    this.avalActivoIndex = this.avales.length - 1;
+    // desplazamiento si existe el método
+    if (typeof this.scrollToAval === 'function') {
+      this.scrollToAval(this.avalActivoIndex);
+    }
+  }
   eliminarAval(index: number) {
     this.avales.splice(index, 1);
     if (this.avalActivoIndex >= this.avales.length) {

@@ -33,16 +33,9 @@
                         </div>
                     </div>
                     <div class="col-md-3">
-  <select 
-      id="filtro-dia" 
-      [(ngModel)]="diaSeleccionado" 
-      (change)="filtrarPorDia()"
-      class="form-select"
-  >
-      <option *ngFor="let dia of diasDisponibles" [value]="dia.id">
-        {{ dia.nombre }}
-      </option>
-  </select>
+  <select class="form-select" [(ngModel)]="diaSeleccionado" (ngModelChange)="filtrarPorDia()">
+  <option *ngFor="let d of diasDisponibles" [value]="d.id">{{ d.nombre }}</option>
+</select>
   <div *ngIf="!cargando && mostrarMensajeNoVisitas" class="mensaje-no-visitas">
   {{ mensajeNoVisitas }}
 </div>

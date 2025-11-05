@@ -210,58 +210,79 @@ export class DetailsComponent implements OnChanges {
     console.log('[Details] visitas cargadas:', this.visitasDetalleAll.length);
   }
 
-  // NUEVO: Método para filtrar por día
+  // Normaliza clie_DiaVisita en un array de ids de strings
+  private normalizeDiaIds(raw: any): string[] {
+    if (raw == null) return [];
+    if (Array.isArray(raw)) return raw.map(x => String(x).trim()).filter(Boolean);
+    if (typeof raw === 'number') return [String(raw)];
+    const s = String(raw).trim();
+    if (!s) return [];
+    return s.split(/[,;|\s]+/).map(p => p.trim()).filter(Boolean);
+  }
+
+  // cargar visitas del vendedor usando tu endpoint
+  loadVisitasPorVendedor(vendedorId: number): void {
+    if (!vendedorId) {
+      this.visitasDetalleAll = [];
+      this.visitasDetalle = [];
+      this.buildDiasDisponiblesFromData();
+      return;
+    }
+    this.cargando = true;
+    this.http.get<any[]>(`${environment.apiBaseUrl}/ClientesVisitaHistorial/ListarVisitasPorVendedor/${vendedorId}`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (res: any) => {
+        // asume que el endpoint devuelve array o { data: [...] }
+        const data = Array.isArray(res) ? res : (res?.data ?? []);
+        this.visitasDetalleAll = data || [];
+        // mantener copia original si la necesitas
+        this.visitasDetalleOriginal = JSON.parse(JSON.stringify(this.visitasDetalleAll));
+        // reconstruir opciones de días y filtrar
+        this.buildDiasDisponiblesFromData();
+        this.filtrarPorDia();
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error('[Details] loadVisitasPorVendedor error', err);
+        this.visitasDetalleAll = [];
+        this.visitasDetalle = [];
+        this.buildDiasDisponiblesFromData();
+        this.cargando = false;
+      }
+    });
+  }
+
+   // ya tienes buildDiasDisponiblesFromData y filtrarPorDia; mejora filtrarPorDia para usar normalizeDiaIds
   filtrarPorDia(): void {
-    console.log('[Details] filtrarPorDia seleccionado:', this.diaSeleccionado);
     if (!this.visitasDetalleAll || this.visitasDetalleAll.length === 0) {
       this.visitasDetalle = [];
       this.mostrarMensajeNoVisitas = true;
-      this.mensajeNoVisitas = this.diaSeleccionado === 'todos'
-        ? 'No hay visitas registradas aún'
-        : `No hay visitas registradas los días ${this.getSelectedDayNombre()} aún`;
+      this.mensajeNoVisitas = 'No hay visitas registradas aún';
       return;
     }
-    if (this.diaSeleccionado === 'todos') {
+
+    if (!this.diaSeleccionado || this.diaSeleccionado === 'todos') {
       this.visitasDetalle = [...this.visitasDetalleAll];
       this.mostrarMensajeNoVisitas = this.visitasDetalle.length === 0;
       this.mensajeNoVisitas = this.mostrarMensajeNoVisitas ? 'No hay visitas registradas aún' : '';
       return;
     }
 
-    // si usuario seleccionó por nombre accidentalmente, convertir a id
-    let seleccionadoId = String(this.diaSeleccionado);
-    if (isNaN(Number(seleccionadoId))) {
-      const lookup = this.DIAS_MAP_REVERSE[seleccionadoId.toLowerCase()];
-      if (lookup) seleccionadoId = lookup;
-    }
+    const seleccionadoId = String(this.diaSeleccionado).trim();
 
-    // Filtrar exclusivamente por clie_DiaVisita (string CSV | número | array)
     this.visitasDetalle = this.visitasDetalleAll.filter(v => {
-      const raw = v.clie_DiaVisita;
-      if (raw === null || raw === undefined || raw === '') return false;
-      if (typeof raw === 'number') return String(raw) === seleccionadoId;
-      if (typeof raw === 'string') {
-        const txt = raw.trim();
-        if (txt === seleccionadoId) return true;
-        if (txt.includes(',')) {
-          return txt.split(',').map(s => s.trim()).includes(seleccionadoId);
-        }
-        return false;
-      }
-      if (Array.isArray(raw)) return raw.map(String).includes(seleccionadoId);
-      return false;
+      const ids = this.normalizeDiaIds(v.clie_DiaVisita ?? v.clie_Dia ?? v.veRu_Dias ?? v.veRuDias);
+      return ids.includes(seleccionadoId);
     });
+
     this.mostrarMensajeNoVisitas = this.visitasDetalle.length === 0;
     if (this.mostrarMensajeNoVisitas) {
       const dayName = this.getSelectedDayNombre();
-      this.mensajeNoVisitas = dayName
-        ? `No hay visitas registradas los días ${dayName} aún`
-        : 'No hay visitas registradas aún';
+      this.mensajeNoVisitas = dayName ? `No hay visitas registradas los días ${dayName} aún` : 'No hay visitas registradas aún';
     } else {
       this.mensajeNoVisitas = '';
     }
-
-    console.log('[Details] visitas tras filtrar:', this.visitasDetalle.length);
   }
 
 private getSelectedDayNombre(): string {
