@@ -50,7 +50,7 @@ export class DetailsComponent implements OnChanges {
 
   diasSemana(d: any): string {
     if (d === null || d === undefined || d === '') return 'N/A';
-    const s = String(d).trim();
+
     const map: Record<string, string> = {
       '1': 'Lunes',
       '2': 'Martes',
@@ -60,7 +60,23 @@ export class DetailsComponent implements OnChanges {
       '6': 'Sábado',
       '7': 'Domingo'
     };
-    return map[s] ?? map[String(Number(s))] ?? String(d);
+
+    const normalizeToNumbers = (val: any): number[] => {
+      if (Array.isArray(val)) return val.map(v => Number(v)).filter(n => !isNaN(n));
+      if (typeof val === 'number') return [val];
+      const s = String(val).trim();
+      if (!s) return [];
+      return s.split(/[,;|\s]+/).map(p => Number(p.trim())).filter(n => !isNaN(n));
+    };
+
+    const nums = normalizeToNumbers(d);
+    if (!nums.length) return 'N/A';
+
+    // ordenar numéricamente y eliminar duplicados (orden ascendente)
+    const numsOrdered = Array.from(new Set(nums.map(n => Number(n)).sort((a, b) => a - b)));
+
+    const names = numsOrdered.map(n => map[String(n)] ?? String(n));
+    return names.join(', ');
   }
 
   // Simulación de carga
