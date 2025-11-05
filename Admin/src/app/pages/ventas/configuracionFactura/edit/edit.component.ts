@@ -39,6 +39,7 @@ export class EditConfigFacturaComponent implements OnChanges {
     coFa_Telefono1: '',
     coFa_Telefono2: '',
     coFa_Logo: '',
+    coFa_LogoZPL: '',
     coFa_DiasDevolucion: 0,
     coFa_RutaMigracion: '',
     colo_Id: 0,
@@ -64,6 +65,9 @@ export class EditConfigFacturaComponent implements OnChanges {
   // SVG preview properties
   isSvgFile = false;
   svgPreviewUrl: string | null = null;
+
+  // Controla si usar el ZPL personalizado (true) o generar automáticamente (false)
+  useCustomZPL = false;
 
   mostrarErrores = false;
   mostrarAlertaExito = false;
@@ -140,68 +144,88 @@ export class EditConfigFacturaComponent implements OnChanges {
   onFileChange(event: any) {
     const file = event.target.files[0];
     if (file) {
-      this.selectedFile = file;
+      // Validar el tamaño de la imagen antes de continuar
+      const img = new Image();
+      const reader = new FileReader();
       
-      // Check if it's an SVG file
-      this.isSvgFile = file.type === 'image/svg+xml';
+      reader.onload = (e: any) => {
+        img.onload = () => {
+          // Validar que la imagen sea cuadrada (aspect ratio 1:1)
+          const aspectRatio = img.width / img.height;
+          const isCuadrada = Math.abs(aspectRatio - 1) < 0.01; // Tolerancia del 1%
+          
+          if (!isCuadrada) {
+            this.mostrarAlertaError = true;
+            this.mensajeError = `La imagen debe ser cuadrada (misma anchura y altura). La imagen seleccionada es de ${img.width}x${img.height} píxeles.`;
+            setTimeout(() => {
+              this.mostrarAlertaError = false;
+              this.mensajeError = '';
+            }, 5000);
+            // Limpiar el input
+            event.target.value = '';
+            return;
+          }
+          
+          // Si la validación pasa, continuar con el proceso normal
+          this.selectedFile = file;
+          
+          // Check if it's an SVG file
+          this.isSvgFile = file.type === 'image/svg+xml';
+          
+          // Create a preview for SVG files
+          if (this.isSvgFile) {
+            this.svgPreviewUrl = e.target.result;
+            // For SVG files, we'll still show the cropper but also keep the original SVG for preview
+            this.imageCropper.nativeElement.src = e.target.result;
+            this.showCropper = true;
+            
+            setTimeout(() => {
+              if (this.cropper) {
+                this.cropper.destroy();
+              }
+              this.cropper = new Cropper(this.imageCropper.nativeElement, {
+                aspectRatio: 1,
+                viewMode: 1,
+                autoCropArea: 1,
+                responsive: true,
+                background: false,
+                guides: true,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+              });
+            }, 100);
+          } else {
+            // For non-SVG files, use the original behavior
+            this.imageCropper.nativeElement.src = e.target.result;
+            this.showCropper = true;
+            
+            setTimeout(() => {
+              if (this.cropper) {
+                this.cropper.destroy();
+              }
+              this.cropper = new Cropper(this.imageCropper.nativeElement, {
+                aspectRatio: 1,
+                viewMode: 1,
+                autoCropArea: 1,
+                responsive: true,
+                background: false,
+                guides: true,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+              });
+            }, 100);
+          }
+        };
+        img.src = e.target.result as string;
+      };
       
-      // Create a preview for SVG files
-      if (this.isSvgFile) {
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-          this.svgPreviewUrl = e.target.result;
-          // For SVG files, we'll still show the cropper but also keep the original SVG for preview
-          this.imageCropper.nativeElement.src = e.target.result;
-          this.showCropper = true;
-          
-          setTimeout(() => {
-            if (this.cropper) {
-              this.cropper.destroy();
-            }
-            this.cropper = new Cropper(this.imageCropper.nativeElement, {
-              aspectRatio: 1,
-              viewMode: 1,
-              autoCropArea: 0.8,
-              responsive: true,
-              background: false,
-              guides: true,
-              center: true,
-              highlight: false,
-              cropBoxMovable: true,
-              cropBoxResizable: true,
-              toggleDragModeOnDblclick: false,
-            });
-          }, 100);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        // For non-SVG files, use the original behavior
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-          this.imageCropper.nativeElement.src = e.target.result;
-          this.showCropper = true;
-          
-          setTimeout(() => {
-            if (this.cropper) {
-              this.cropper.destroy();
-            }
-            this.cropper = new Cropper(this.imageCropper.nativeElement, {
-              aspectRatio: 1,
-              viewMode: 1,
-              autoCropArea: 0.8,
-              responsive: true,
-              background: false,
-              guides: true,
-              center: true,
-              highlight: false,
-              cropBoxMovable: true,
-              cropBoxResizable: true,
-              toggleDragModeOnDblclick: false,
-            });
-          }, 100);
-        };
-        reader.readAsDataURL(file);
-      }
+      reader.readAsDataURL(file);
     }
   }
 
@@ -218,10 +242,10 @@ export class EditConfigFacturaComponent implements OnChanges {
   async cropAndUpload() {
     if (this.cropper && this.selectedFile) {
       try {
-        // Obtener la imagen recortada como blob
+        // Obtener la imagen recortada como blob con el tamaño exacto requerido (225x225 para Labelary)
         const canvas = this.cropper.getCroppedCanvas({
-          width: 300,
-          height: 300,
+          width: 190,
+          height: 190,
           imageSmoothingEnabled: true,
           imageSmoothingQuality: 'high'
         });
@@ -235,13 +259,21 @@ export class EditConfigFacturaComponent implements OnChanges {
             });
 
             try {
-              //console.log('Iniciando subida de imagen...');
+              console.log('Iniciando subida de imagen...');
               // Subir imagen al backend usando ImageUploadService
               const imagePath = await this.imageUploadService.uploadImageAsync(croppedFile);
-              //console.log('Imagen subida exitosamente. Ruta:', imagePath);
+              console.log('Imagen subida exitosamente. Ruta:', imagePath);
               this.configFactura.coFa_Logo = imagePath;
+              
+              // Convertir la imagen a formato ZPL usando Labelary API
+              console.log('Convirtiendo imagen a ZPL usando Labelary API...');
+              const zplCode = await this.convertImageToZPLWithLabelary(croppedFile);
+              this.configFactura.coFa_LogoZPL = zplCode;
+              
               this.logoSeleccionado = true;
-              //console.log('Logo asignado a configFactura.coFa_Logo:', this.configFactura.coFa_Logo);
+              console.log('Logo asignado a configFactura.coFa_Logo:', this.configFactura.coFa_Logo);
+              console.log('Logo ZPL generado (primeros 100 caracteres):', this.configFactura.coFa_LogoZPL.substring(0, 100));
+              console.log('Longitud del ZPL:', this.configFactura.coFa_LogoZPL.length);
               this.cerrarModalCropper();
             } catch (error) {
               console.error('Error al subir la imagen:', error);
@@ -267,8 +299,40 @@ export class EditConfigFacturaComponent implements OnChanges {
   }
 
   /**
-   * Obtiene la URL completa para mostrar la imagen
+   * Convierte una imagen a formato ZPL usando la API de Labelary
+   * @param imageFile Archivo de imagen a convertir
+   * @returns Código ZPL como string
    */
+  private async convertImageToZPLWithLabelary(imageFile: File): Promise<string> {
+    try {
+      // Crear FormData para enviar la imagen
+      const formData = new FormData();
+      formData.append('file', imageFile);
+
+      // Llamar a la API de Labelary
+      const response = await fetch('http://api.labelary.com/v1/graphics', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/zpl'
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error en la API de Labelary: ${response.status} ${response.statusText}`);
+      }
+
+      // Obtener el código ZPL de la respuesta
+      const zplCode = await response.text();
+      console.log('ZPL generado por Labelary (primeros 200 caracteres):', zplCode.substring(0, 200));
+      
+      return zplCode;
+    } catch (error) {
+      console.error('Error al convertir imagen a ZPL con Labelary:', error);
+      throw new Error('No se pudo convertir la imagen a formato ZPL. Por favor, inténtelo de nuevo.');
+    }
+  }
+
   getImageDisplayUrl(imagePath: string): string {
     return this.imageUploadService.getImageUrl(imagePath);
   }
@@ -505,6 +569,9 @@ export class EditConfigFacturaComponent implements OnChanges {
       usua_Modificacion: getUserId(),
       coFa_FechaModificacion: new Date().toISOString()
     };
+
+    console.log('Body a enviar:', body);
+    console.log('coFa_LogoZPL en body:', body.coFa_LogoZPL ? 'Presente (' + body.coFa_LogoZPL.length + ' caracteres)' : 'NO PRESENTE');
 
     this.http.put<any>(`${environment.apiBaseUrl}/ConfiguracionFactura/Actualizar`, body, {
       headers: {
