@@ -18,6 +18,9 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Pedido } from 'src/app/Modelos/ventas/Pedido.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
+import { esVendedor } from 'src/app/core/utils/user-utils';
+import { esAdministrador } from 'src/app/core/utils/user-utils';
+import { obtenerPersonaId } from 'src/app/core/utils/user-utils';
 
 // ===== IMPORTACIONES DE BIBLIOTECAS EXTERNAS =====
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -422,7 +425,7 @@ export class EditComponent implements OnInit, OnChanges {
        
         },
         error: (error) => {
-          console.error('Error al obtener productos:', error);
+          //('Error al obtener productos:', error);
           this.mostrarAlertaWarning = true;
           this.mensajeWarning =
             'No se pudieron obtener los productos para el cliente seleccionado.';
@@ -605,7 +608,7 @@ export class EditComponent implements OnInit, OnChanges {
           this.pedidoEditada.detallesJson || '[]'
         );
       } catch (e) {
-        console.error('Error al parsear detallesJson:', e);
+        //('Error al parsear detallesJson:', e);
         this.pedidoEditada.detalles = [];
       }
 
@@ -732,7 +735,7 @@ export class EditComponent implements OnInit, OnChanges {
     try {
       productosOriginal = JSON.parse(this.PedidoData?.detallesJson ?? '[]');
     } catch (e) {
-      console.error('Error al parsear detallesJson:', e);
+      //('Error al parsear detallesJson:', e);
     }
 
     // Normalizamos ambos arreglos para compararlos por ID y cantidad
@@ -784,6 +787,13 @@ export class EditComponent implements OnInit, OnChanges {
     this.mostrarErrores = true;
     const productosSeleccionados = this.obtenerProductosSeleccionados();
 
+    if (!esVendedor() && !esAdministrador()) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning =
+        'Usuario incapaz de realizar pedidos.';
+      return;
+    }
+
     if (
       this.pedidoEditada.diCl_Id &&
       this.pedidoEditada.pedi_FechaEntrega &&
@@ -793,7 +803,7 @@ export class EditComponent implements OnInit, OnChanges {
         pedi_Id: this.pedidoEditada.pedi_Id,
          pedi_Codigo: this.pedidoEditada.pedi_Codigo, // El código se actualiza aquí
         diCl_Id: this.pedidoEditada.diCl_Id,
-        vend_Id: getUserId(), // Asumiendo que el usuario actual es el vendedor
+        vend_Id: obtenerPersonaId(), // Asumiendo que el usuario actual es el vendedor
         pedi_FechaPedido: new Date().toISOString(),
         pedi_FechaEntrega: this.pedidoEditada.pedi_FechaEntrega,
         clie_Codigo: '',
@@ -833,7 +843,7 @@ export class EditComponent implements OnInit, OnChanges {
             this.cancelar();
           },
           error: (error) => {
-            console.error('Error al actualizar Punto de Emision:', error);
+            //('Error al actualizar Punto de Emision:', error);
             this.mostrarAlertaError = true;
             this.mensajeError =
               'Error al actualizar el Pedido. Por favor, intente nuevamente.';
@@ -874,13 +884,13 @@ export class EditComponent implements OnInit, OnChanges {
                 this.mostrarOverlayCarga = false; // Desactivar el overlay cuando todo esté cargado
               },
               error: (error) => {
-                console.error('Error al cargar direcciones:', error);
+                //('Error al cargar direcciones:', error);
                 this.mostrarOverlayCarga = false; // Desactivar el overlay en caso de error
               }
             });
         },
         error: (error) => {
-          console.error('Error al cargar clientes:', error);
+          //('Error al cargar clientes:', error);
           this.mostrarOverlayCarga = false; // Desactivar el overlay en caso de error
         }
       });
