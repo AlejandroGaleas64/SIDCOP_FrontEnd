@@ -422,7 +422,7 @@ export class EditComponent implements OnInit, OnChanges {
        
         },
         error: (error) => {
-          console.error('Error al obtener productos:', error);
+          //('Error al obtener productos:', error);
           this.mostrarAlertaWarning = true;
           this.mensajeWarning =
             'No se pudieron obtener los productos para el cliente seleccionado.';
@@ -605,7 +605,7 @@ export class EditComponent implements OnInit, OnChanges {
           this.pedidoEditada.detallesJson || '[]'
         );
       } catch (e) {
-        console.error('Error al parsear detallesJson:', e);
+        //('Error al parsear detallesJson:', e);
         this.pedidoEditada.detalles = [];
       }
 
@@ -732,7 +732,7 @@ export class EditComponent implements OnInit, OnChanges {
     try {
       productosOriginal = JSON.parse(this.PedidoData?.detallesJson ?? '[]');
     } catch (e) {
-      console.error('Error al parsear detallesJson:', e);
+      //('Error al parsear detallesJson:', e);
     }
 
     // Normalizamos ambos arreglos para compararlos por ID y cantidad
@@ -833,7 +833,7 @@ export class EditComponent implements OnInit, OnChanges {
             this.cancelar();
           },
           error: (error) => {
-            console.error('Error al actualizar Punto de Emision:', error);
+            //('Error al actualizar Punto de Emision:', error);
             this.mostrarAlertaError = true;
             this.mensajeError =
               'Error al actualizar el Pedido. Por favor, intente nuevamente.';
@@ -874,13 +874,13 @@ export class EditComponent implements OnInit, OnChanges {
                 this.mostrarOverlayCarga = false; // Desactivar el overlay cuando todo esté cargado
               },
               error: (error) => {
-                console.error('Error al cargar direcciones:', error);
+                //('Error al cargar direcciones:', error);
                 this.mostrarOverlayCarga = false; // Desactivar el overlay en caso de error
               }
             });
         },
         error: (error) => {
-          console.error('Error al cargar clientes:', error);
+          //('Error al cargar clientes:', error);
           this.mostrarOverlayCarga = false; // Desactivar el overlay en caso de error
         }
       });
