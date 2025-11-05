@@ -421,7 +421,7 @@
           bindLabel="ruta_Descripcion"
           bindValue="ruta_Id"
           [(ngModel)]="cliente.ruta_Id"
-          (ngModelChange)="onRutaSeleccionadaCliente($event)"
+          (ngModelChange)="onRutaChange($event)"
           placeholder="Seleccione una ruta"
           [clearable]="false"
           [class.is-invalid]="mostrarErrores && !cliente.ruta_Id">
@@ -445,15 +445,16 @@
             padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
             borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}"></i>
         <ng-select
-          [items]="diasDisponibles"
-          bindLabel="nombre"
-          bindValue="id"
-          placeholder="Seleccione"
-          [(ngModel)]="cliente.clie_DiaVisita"
-          [clearable]="true"
-          name="clie_DiaVisita"
-          class="w-100">
-        </ng-select>
+        class="w-100"
+        [items]="diasDisponibles"
+        bindLabel="nombre"
+        bindValue="id"
+        [(ngModel)]="diasSeleccionados"
+        [multiple]="true"
+        (ngModelChange)="onDiasSeleccionadosChange($event)"
+        placeholder="Seleccione día(s) de visita"
+        [clearable]="true">
+      </ng-select>
       </div>
       <div class="text-danger mt-1" *ngIf="mostrarErrores && !cliente.clie_DiaVisita">
         <small>Seleccione el día de visita</small>

@@ -52,7 +52,7 @@ export class CreateComponent  {
     vend_Sexo: 'M',
     vend_Tipo: '',
     tiVe_Id: 0,
-    tiVe_TipoVendedor: '',
+    tiVe_Descripcion: '',
     vend_DireccionExacta: '',
     vend_Supervisor: 0,
     vend_Ayudante: 0,
@@ -228,7 +228,7 @@ tieneAyudante: boolean = false;
     vend_Sexo: '',
     vend_Tipo: '',
     tiVe_Id: 0,
-    tiVe_TipoVendedor: '',
+    tiVe_Descripcion: '',
     vend_DireccionExacta: '',
     vend_Supervisor: 0,
     vend_Ayudante: 0,
@@ -306,7 +306,8 @@ tieneAyudante: boolean = false;
       vend_FechaModificacion: new Date().toISOString(),
       usuarioCreacion: "",
       usuarioModificacion: "",
-      rutas_Json: rutasParaEnviar
+      rutas_Json: rutasParaEnviar,
+      rutas_Json_Actualizar: rutasParaEnviar
     };
 
     // Solo agregar vend_Ayudante si tieneAyudante es true

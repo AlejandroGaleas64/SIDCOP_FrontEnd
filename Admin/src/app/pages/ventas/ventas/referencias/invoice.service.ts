@@ -6,6 +6,7 @@ import autoTable from 'jspdf-autotable';
 import { getUserId } from 'src/app/core/utils/user-utils';
 import * as XLSX from 'xlsx';
 import { Factura, VentaDetalle, DetalleItem, FacturaCompleta } from 'src/app/Modelos/ventas/Facturas.model';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 export interface ExportConfig {
   title: string;
@@ -59,8 +60,9 @@ export class InvoiceService {
   /**
    * Constructor del servicio. Carga la configuración de la empresa.
    * @param http Cliente HTTP para llamadas a la API
+   * @param imageUploadService Servicio para manejo de imágenes
    */
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private imageUploadService: ImageUploadService) {
     this.cargarConfiguracionEmpresa();
   }
 
@@ -163,15 +165,12 @@ export class InvoiceService {
       };
 
       try {
-        const logoUrl = this.configuracionEmpresa.coFa_Logo;
-
-        if (logoUrl.startsWith('http')) {
-          img.src = logoUrl;
-        } else if (logoUrl.startsWith('data:')) {
-          img.src = logoUrl;
-        } else {
-          img.src = `data:image/png;base64,${logoUrl}`;
-        }
+        const logoPath = this.configuracionEmpresa.coFa_Logo;
+        
+        // Usar el servicio ImageUploadService para construir la URL correcta
+        const logoUrl = this.imageUploadService.getImageUrl(logoPath);
+        
+        img.src = logoUrl;
       } catch (e) {
         resolve(null);
       }
