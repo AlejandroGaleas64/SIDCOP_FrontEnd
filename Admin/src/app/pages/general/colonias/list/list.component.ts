@@ -91,7 +91,6 @@ export class ListComponent implements OnInit {
     title: 'Listado de Colonias',
     filename: 'Colonias',
     department: 'General',
-    additionalInfo: '',
     columns: [
       { key: 'No', header: 'No.', width: 8, align: 'center' as const },
       { key: 'Descripción', header: 'Descripción', width: 50, align: 'left' as const }
@@ -286,7 +285,6 @@ export class ListComponent implements OnInit {
       columns: this.exportConfig.columns,
       metadata: {
         department: this.exportConfig.department,
-        additionalInfo: this.exportConfig.additionalInfo
       }
     };
   }
@@ -339,8 +337,6 @@ export class ListComponent implements OnInit {
     if (!texto) return '';
     
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }
