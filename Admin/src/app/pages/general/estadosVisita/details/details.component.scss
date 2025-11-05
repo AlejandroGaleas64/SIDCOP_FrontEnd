@@ -5,55 +5,57 @@
 }
 
 /* Botón de regresar - Estados Civiles style */
-.details-header-button {
-  margin-bottom: 1.5rem;
+// .details-header-button {
+//   margin-bottom: 1.5rem;
 
-  .btn-primary {
-    display: flex;
-    padding: 0;
-    border-radius: 4px;
-    background-color: transparent;
-    border: none;
-    color: #212529;
-    font-weight: 500;
-    box-shadow: none;
-    overflow: hidden;
+//   .btn-primary {
+//     display: flex;
+//     padding: 0;
+//     border-radius: 4px;
+//     background-color: transparent;
+//     border: none;
+//     color: #212529;
+//     font-weight: 500;
+//     box-shadow: none;
+//     overflow: hidden;
 
-    &:hover {
-      background-color: transparent;
-    }
+//     &:hover {
+//       background-color: transparent;
+//     }
 
-    .btn-text {
-      padding: 0.5rem 1rem;
-      background-color: #bbbeca;
-      color: #212529;
-      border: 1px solid #bbbeca;
-      border-right: none;
-      border-radius: 4px 0 0 4px;
-      transition: all 0.2s ease;
-    }
+//     .btn-text {
+//       padding: 0.5rem 1rem;
+//       background-color: #bbbeca;
+//       color: #212529;
+//       border: 1px solid #bbbeca;
+//       border-right: none;
+//       border-radius: 4px 0 0 4px;
+//       transition: all 0.2s ease;
+//     }
 
-    .btn-icon {
-      padding: 0.5rem 0.75rem;
-      background-color: #343a40;
-      color: white;
-      border: 1px solid #343a40;
-      border-radius: 0 4px 4px 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-    }
+//     .btn-icon {
+//       padding: 0.5rem 0.75rem;
+//       background-color: #343a40;
+//       color: white;
+//       border: 1px solid #343a40;
+//       border-radius: 0 4px 4px 0;
+//       display: flex;
+//       align-items: center;
+//       justify-content: center;
+//       transition: all 0.2s ease;
+//     }
 
-    &:hover .btn-text {
-      background-color: #e9ecef;
-    }
+//     &:hover .btn-text {
+//       background-color: #e9ecef;
+//     }
 
-    &:hover .btn-icon {
-      background-color: #23272b;
-    }
-  }
-}
+//     &:hover .btn-icon {
+//       background-color: #23272b;
+//     }
+//   }
+// }
+
+
 
 /* Tarjeta principal de detalles */
 .details-card {

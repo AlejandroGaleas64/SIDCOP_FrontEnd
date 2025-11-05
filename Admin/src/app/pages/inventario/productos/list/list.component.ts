@@ -93,7 +93,7 @@ export class ListComponent implements OnInit {
           'Marca': this.limpiarTexto(producto?.marc_Descripcion),
           'Categoria': this.limpiarTexto(producto?.cate_Descripcion),
           'Subcategoria': this.limpiarTexto(producto?.subc_Descripcion),
-          'Precio': this.limpiarTexto('L.' + producto?.prod_PrecioUnitario.toFixed(2))
+          'Precio': this.limpiarTexto('L.' + (producto?.prod_PrecioUnitario ?? 0).toFixed(2)),
         })
       };
   // bread crumb items
