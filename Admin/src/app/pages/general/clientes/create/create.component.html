@@ -634,7 +634,7 @@
           *ngIf="avales.length > 1">
           <i class="ri-arrow-right-s-line"></i>
         </button>
-        <button class="btn btn-primary" (click)="agregarAval()" [disabled]="!tieneDatosCredito()" title="{{ tieneDatosCredito() ? 'Agregar aval' : 'Necesita solicitar crédito para agregar aval' }}">
+        <button class="btn btn-primary" (click)="agregarAval()" title="{{ tieneDatosCredito() ? 'Agregar aval' : 'Necesita solicitar crédito para agregar aval' }}">
           <span class="btn-text">Agregar</span>
           <span class="btn-icon"><i class="ri-add-line"></i></span>
         </button>
