@@ -194,7 +194,7 @@ export class ListComponent implements OnInit {
 
       this.manejarResultadoExport(resultado);
     } catch (error) {
-      console.error(`Error en exportación ${tipo}:`, error);
+      ////(`Error en exportación ${tipo}:`, error);
       this.mostrarMensaje(
         'error',
         `Error al exportar archivo ${tipo.toUpperCase()}`
@@ -266,7 +266,7 @@ export class ListComponent implements OnInit {
         this.exportConfig.dataMapping.call(this, modelo, index)
       );
     } catch (error) {
-      console.error('Error obteniendo datos:', error);
+      //('Error obteniendo datos:', error);
       throw error;
     }
   }
@@ -650,7 +650,7 @@ export class ListComponent implements OnInit {
         } else if (typeof permisos === 'object' && permisos !== null) {
           // Si es objeto, buscar por clave
           modulo =
-            permisos['Estados Civiles'] || permisos['estados civiles'] || null;
+            permisos['Pedidos'] || permisos['pedidos'] || null;
         }
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
           // Extraer solo el nombre de la acción
@@ -659,7 +659,7 @@ export class ListComponent implements OnInit {
           );
         }
       } catch (e) {
-        console.error('Error al parsear permisosJson:', e);
+        //('Error al parsear permisosJson:', e);
       }
     }
     this.accionesDisponibles = accionesArray

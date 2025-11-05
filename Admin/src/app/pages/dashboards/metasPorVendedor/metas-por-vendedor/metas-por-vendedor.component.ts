@@ -69,7 +69,7 @@ export class MetasPorVendedorComponent implements OnInit {
       
     }).subscribe({
       next: data => {
-        console.log('metas vendedor',data);
+        // console.log('metas vendedor',data);
         
         this.metas = data;
         this.metas.forEach((meta, idx) => {

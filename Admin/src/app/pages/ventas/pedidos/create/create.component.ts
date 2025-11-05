@@ -10,6 +10,9 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Pedido } from 'src/app/Modelos/ventas/Pedido.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
+import { esVendedor } from 'src/app/core/utils/user-utils';
+import { esAdministrador } from 'src/app/core/utils/user-utils';
+import { obtenerPersonaId } from 'src/app/core/utils/user-utils';
 
 // ===== IMPORTACIONES DE BIBLIOTECAS EXTERNAS =====
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -806,6 +809,14 @@ onCantidadChange(prodId: number, valor: any): void {
     this.mostrarErrores = true;
     const productosSeleccionados = this.obtenerProductosSeleccionados();
 
+    if(!esVendedor() && !esAdministrador())
+    {
+       this.mostrarAlertaWarning = true;
+      this.mensajeWarning =
+        'Usuario incapaz de realizar pedidos.';
+      return;
+    }
+
     if (
       !this.pedido.diCl_Id ||
       !this.pedido.pedi_FechaEntrega ||
@@ -827,7 +838,7 @@ onCantidadChange(prodId: number, valor: any): void {
         pedi_Id: 0,
         diCl_Id: this.pedido.diCl_Id,
         pedi_Codigo: this.pedido.pedi_Codigo, //meter el codigo
-        vend_Id: getUserId(), // Asumiendo que el usuario actual es el vendedor
+        vend_Id: obtenerPersonaId(), // Asumiendo que el usuario actual es el vendedor
         pedi_FechaPedido: new Date().toISOString(),
         pedi_FechaEntrega: this.pedido.pedi_FechaEntrega,
         clie_Codigo: '',
@@ -850,7 +861,7 @@ onCantidadChange(prodId: number, valor: any): void {
         secuencia: 0,
       };
 
-      //.log('Guardando pedido:', pedidoGuardar);
+      console.log('Guardando pedido:', pedidoGuardar);
 
       this.http
         .post<any>(`${environment.apiBaseUrl}/Pedido/Insertar`, pedidoGuardar, {
@@ -867,8 +878,8 @@ onCantidadChange(prodId: number, valor: any): void {
             this.cancelar();
           },
           error: (error) => {
-            //.log('Entro esto', this.pedido);
-            //.error('Error al guardar punto de emision:', error);
+            console.log('Entro esto', this.pedido);
+            console.error('Error al guardar punto de emision:', error);
             this.mostrarAlertaError = true;
             this.mensajeError =
               'Error al guardar el pedido. Por favor, intente nuevamente.';

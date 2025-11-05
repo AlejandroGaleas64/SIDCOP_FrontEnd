@@ -148,7 +148,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
         
         this.cargando = false;
       } catch (error) {
-        console.error('Error al cargar detalles del pedido:', error);
+        //('Error al cargar detalles del pedido:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cargar los detalles del pedido.';
         this.cargando = false;
@@ -218,7 +218,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
             const ctx = canvas.getContext('2d');
             
             if (!ctx) {
-              console.error('No se pudo obtener el contexto del canvas');
+              //('No se pudo obtener el contexto del canvas');
               resolve(null);
               return;
             }
@@ -248,13 +248,13 @@ export class DetailsComponent implements OnChanges, OnDestroy {
             //console.log('Logo procesado correctamente desde URL');
             resolve(dataUrl);
           } catch (e) {
-            console.error('Error al procesar el logo:', e);
+            //('Error al procesar el logo:', e);
             resolve(null);
           }
         };
         
         img.onerror = (error) => {
-          console.error('Error al cargar el logo desde URL:', error);
+          //('Error al cargar el logo desde URL:', error);
           resolve(null);
         };
         
@@ -270,7 +270,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
             img.src = `data:image/png;base64,${logoUrl}`;
           }
         } catch (e) {
-          console.error('Error al configurar src del logo:', e);
+          //('Error al configurar src del logo:', e);
           resolve(null);
         }
       });
@@ -298,7 +298,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('Error al cargar configuración de empresa:', error);
+        //('Error al cargar configuración de empresa:', error);
       }
     });
   }
@@ -469,7 +469,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
         // this.actualizarEstadoPedido(this.PedidoDetalle.pedi_Id);
       },
       error: (error: any) => {
-        console.error('Error al insertar la factura:', error);
+        //('Error al insertar la factura:', error);
         let mensajeError = 'Error al insertar la factura: inventario insuficiente';
         
         // Intentar obtener más detalles del error
@@ -657,7 +657,7 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
   private async inicializarZebraBrowserPrint(): Promise<void> {
     try {
       if (typeof ZebraBrowserPrintWrapper === 'undefined') {
-        console.error('ZebraBrowserPrintWrapper no está disponible');
+        //('ZebraBrowserPrintWrapper no está disponible');
         this.mostrarMensajeError('La librería Zebra Browser Print Wrapper no está cargada');
         return;
       }
@@ -666,7 +666,7 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
       await this.cargarImpresorasDisponibles();
       
     } catch (error) {
-      console.error('Error al inicializar Zebra Browser Print:', error);
+      //('Error al inicializar Zebra Browser Print:', error);
       this.mostrarMensajeError('Error al inicializar la impresora Zebra');
     }
   }
@@ -714,7 +714,7 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
       }
       
     } catch (error) {
-      console.error('Error al cargar impresoras:', error);
+      //('Error al cargar impresoras:', error);
       this.mostrarMensajeError('Error al buscar impresoras: ' + (error as Error).message);
       this.dispositivosDisponibles = [];
     } finally {
@@ -747,7 +747,7 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
     try {
       this.estadoImpresora = await this.zebraBrowserPrint.checkPrinterStatus();
     } catch (error) {
-      console.error('Error al verificar estado de impresora:', error);
+      //('Error al verificar estado de impresora:', error);
       this.estadoImpresora = { 
         isReadyToPrint: false, 
         errors: 'Error al verificar estado: ' + (error as Error).message 
@@ -795,7 +795,7 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
       this.mostrarMensajeExito('Página de prueba enviada correctamente');
       
     } catch (error: any) {
-      console.error('Error al probar impresora:', error);
+      //('Error al probar impresora:', error);
       this.mostrarMensajeError('Error al probar impresora: ' + error.message);
     } finally {
       this.verificandoConexion = false;
@@ -819,7 +819,7 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
         this.mostrarMensajeError(result.message);
       }
     } catch (error) {
-      console.error('Error al generar vista previa:', error);
+      //('Error al generar vista previa:', error);
       this.mostrarMensajeError('Error al generar la vista previa del pedido');
     }
   }
@@ -871,7 +871,7 @@ private agregarProductos(doc: jsPDF, yPos: number): void {
         }
 
       } catch (error: any) {
-        console.error('Error al imprimir pedido:', error);
+        //('Error al imprimir pedido:', error);
         this.mostrarMensajeError('Error al imprimir pedido: ' + error.message);
       } finally {
         this.imprimiendo = false;
