@@ -18,6 +18,9 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Pedido } from 'src/app/Modelos/ventas/Pedido.Model';
 import { environment } from 'src/environments/environment.prod';
 import { getUserId } from 'src/app/core/utils/user-utils';
+import { esVendedor } from 'src/app/core/utils/user-utils';
+import { esAdministrador } from 'src/app/core/utils/user-utils';
+import { obtenerPersonaId } from 'src/app/core/utils/user-utils';
 
 // ===== IMPORTACIONES DE BIBLIOTECAS EXTERNAS =====
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -784,6 +787,13 @@ export class EditComponent implements OnInit, OnChanges {
     this.mostrarErrores = true;
     const productosSeleccionados = this.obtenerProductosSeleccionados();
 
+    if (!esVendedor() && !esAdministrador()) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning =
+        'Usuario incapaz de realizar pedidos.';
+      return;
+    }
+
     if (
       this.pedidoEditada.diCl_Id &&
       this.pedidoEditada.pedi_FechaEntrega &&
@@ -793,7 +803,7 @@ export class EditComponent implements OnInit, OnChanges {
         pedi_Id: this.pedidoEditada.pedi_Id,
          pedi_Codigo: this.pedidoEditada.pedi_Codigo, // El código se actualiza aquí
         diCl_Id: this.pedidoEditada.diCl_Id,
-        vend_Id: getUserId(), // Asumiendo que el usuario actual es el vendedor
+        vend_Id: obtenerPersonaId(), // Asumiendo que el usuario actual es el vendedor
         pedi_FechaPedido: new Date().toISOString(),
         pedi_FechaEntrega: this.pedidoEditada.pedi_FechaEntrega,
         clie_Codigo: '',

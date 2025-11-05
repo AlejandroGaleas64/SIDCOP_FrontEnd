@@ -650,7 +650,7 @@ export class ListComponent implements OnInit {
         } else if (typeof permisos === 'object' && permisos !== null) {
           // Si es objeto, buscar por clave
           modulo =
-            permisos['Estados Civiles'] || permisos['estados civiles'] || null;
+            permisos['Pedidos'] || permisos['pedidos'] || null;
         }
         if (modulo && modulo.Acciones && Array.isArray(modulo.Acciones)) {
           // Extraer solo el nombre de la acción
