@@ -456,6 +456,11 @@ private readonly exportConfig = {
    * @param traslado - Objeto traslado a eliminar
    */
   confirmarEliminar(traslado: Traslado): void {
+    // Prevenir abrir el modal si ya está abierto o si hay una operación en curso
+    if (this.mostrarConfirmacionEliminar || this.mostrarOverlayCarga) {
+      return;
+    }
+    
     this.trasladoAEliminar = traslado;
     this.mostrarConfirmacionEliminar = true;
     this.activeActionRow = null;
@@ -481,7 +486,6 @@ private readonly exportConfig = {
     this.mostrarOverlayCarga = true;
     
     const trasladoTemp = { ...this.trasladoAEliminar };
-    this.mostrarConfirmacionEliminar = false;
     
     this.http.post(`${environment.apiBaseUrl}/Traslado/Eliminar/${trasladoTemp.tras_Id}`, {}, {
       headers: { 
@@ -491,10 +495,14 @@ private readonly exportConfig = {
     }).subscribe({
       next: (response: any) => {
         this.mostrarOverlayCarga = false;
-        this.trasladoAEliminar = null;
         
         if (response.success && response.data) {
-          if (response.data.code_Status === 1) {
+          // code_Status === 3 indica eliminación exitosa en el backend
+          if (response.data.code_Status === 3 || response.data.code_Status === 1) {
+            // Eliminación exitosa: cerrar modal y mostrar mensaje de éxito
+            this.mostrarConfirmacionEliminar = false;
+            this.trasladoAEliminar = null;
+            
             this.mensajeExito = `Traslado del "${trasladoTemp.origen}" al "${trasladoTemp.destino}" eliminado exitosamente`;
             this.mostrarAlertaExito = true;
             
@@ -504,17 +512,20 @@ private readonly exportConfig = {
             }, 3000);
             
             this.cargardatos();
-          } else if (response.data.code_Status === -1) {
-            this.mostrarAlertaError = true;
-            this.mensajeError = response.data.message_Status || 'No se puede eliminar: el traslado está siendo utilizado.';
+          } else {
+            // Error en la eliminación: cerrar modal y mostrar mensaje de error
+            this.mostrarConfirmacionEliminar = false;
+            this.trasladoAEliminar = null;
             
-            setTimeout(() => {
-              this.mostrarAlertaError = false;
-              this.mensajeError = '';
-            }, 5000);
-          } else if (response.data.code_Status === 0) {
+            let mensajeError = 'Error al eliminar el traslado.';
+            if (response.data.code_Status === -1) {
+              mensajeError = response.data.message_Status || 'No se puede eliminar: el traslado está siendo utilizado.';
+            } else if (response.data.code_Status === 0) {
+              mensajeError = response.data.message_Status || 'Error al eliminar el traslado.';
+            }
+            
             this.mostrarAlertaError = true;
-            this.mensajeError = response.data.message_Status || 'Error al eliminar el traslado.';
+            this.mensajeError = mensajeError;
             
             setTimeout(() => {
               this.mostrarAlertaError = false;
@@ -522,6 +533,10 @@ private readonly exportConfig = {
             }, 5000);
           }
         } else {
+          // Error inesperado: cerrar modal y mostrar mensaje de error
+          this.mostrarConfirmacionEliminar = false;
+          this.trasladoAEliminar = null;
+          
           this.mostrarAlertaError = true;
           this.mensajeError = response.message || 'Error inesperado al eliminar el traslado.';
           
@@ -532,8 +547,11 @@ private readonly exportConfig = {
         }
       },
       error: (error) => {
+        // Error de conexión: cerrar modal y mostrar mensaje de error
         this.mostrarOverlayCarga = false;
+        this.mostrarConfirmacionEliminar = false;
         this.trasladoAEliminar = null;
+        
         console.error('Error en la petición:', error);
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error de conexión al eliminar el traslado.';
