@@ -192,3 +192,11 @@
   50% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
+
+// Estilo para indicar error en el campo de sexo
+.error-border {
+  padding: 0.25rem;
+  border: 1px solid #f9bcc4 !important;
+  border-radius: 0.375rem;
+  background-color: #fff5f6;
+}
