@@ -135,7 +135,6 @@ export class DetailsComponent implements OnChanges, OnDestroy {
     try {
       // Verificar si la librería está disponible
       if (typeof ZebraBrowserPrintWrapper === 'undefined') {
-        console.error('ZebraBrowserPrintWrapper no está disponible');
         this.mostrarMensajeError(
           'La librería Zebra Browser Print Wrapper no está cargada'
         );
@@ -148,7 +147,6 @@ export class DetailsComponent implements OnChanges, OnDestroy {
       // Cargar impresoras disponibles
       await this.cargarImpresorasDisponibles();
     } catch (error) {
-      console.error('Error al inicializar Zebra Browser Print:', error);
       this.mostrarMensajeError('Error al inicializar la impresora Zebra');
     }
   }
@@ -204,7 +202,6 @@ export class DetailsComponent implements OnChanges, OnDestroy {
         this.mostrarMensajeError('No se encontraron impresoras Zebra');
       }
     } catch (error) {
-      console.error('Error al cargar impresoras:', error);
       this.mostrarMensajeError(
         'Error al buscar impresoras: ' + (error as Error).message
       );
@@ -243,7 +240,6 @@ export class DetailsComponent implements OnChanges, OnDestroy {
     try {
       this.estadoImpresora = await this.zebraBrowserPrint.checkPrinterStatus();
     } catch (error) {
-      console.error('Error al verificar estado de impresora:', error);
       this.estadoImpresora = {
         isReadyToPrint: false,
         errors: 'Error al verificar estado: ' + (error as Error).message,
@@ -295,7 +291,6 @@ export class DetailsComponent implements OnChanges, OnDestroy {
       await this.zebraBrowserPrint.print(zplPrueba);
       this.mostrarMensajeExito('Página de prueba enviada correctamente');
     } catch (error: any) {
-      console.error('Error al probar impresora:', error);
       this.mostrarMensajeError('Error al probar impresora: ' + error.message);
     } finally {
       this.verificandoConexion = false;
@@ -334,7 +329,6 @@ export class DetailsComponent implements OnChanges, OnDestroy {
         `Factura enviada a: ${this.dispositivoSeleccionado.name}`
       );
     } catch (error: any) {
-      console.error('Error en impresión Zebra Wrapper:', error);
       throw error;
     }
   }
@@ -440,13 +434,11 @@ export class DetailsComponent implements OnChanges, OnDestroy {
           } enviada a impresión correctamente`
         );
       } else {
-        //console.log("Error/s", printerStatus.errors);
         this.mostrarMensajeError(
           `Error en la impresora: ${printerStatus.errors}`
         );
       }
     } catch (error: any) {
-      console.error('Error al imprimir factura:', error);
       this.mostrarMensajeError('Error al imprimir factura: ' + error.message);
     } finally {
       this.imprimiendo = false;
@@ -729,9 +721,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
                         ^XZ`;
 
         browserPrint.print(zpl);
-      } else {
-        //console.log("Error/s", printerStatus.errors);
-      }
+      } 
     } catch (error: any) {
       throw new Error(error);
     }

@@ -1015,7 +1015,7 @@ String: any;
         usuaC_Nombre: this.cliente.usuaC_Nombre,
         usuaM_Nombre: this.cliente.usuaM_Nombre,
       };
-      // // console.log('Los datos que se envían:', clienteActualizar);
+      console.log('Los datos que se envían:', clienteActualizar);
       this.http
         .put<any>(
           `${environment.apiBaseUrl}/Cliente/Actualizar`,
@@ -1413,6 +1413,20 @@ String: any;
   }
 
   agregarAval() {
+    // evitar agregar si no solicita crédito y mostrar warning claro
+    if (!this.tieneDatosCredito()) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'No se puede agregar un aval si el cliente no ha solicitado crédito.';
+      // opcional: enfocar/abrir la pestaña de crédito para que el usuario lo vea
+      // this.activeTab = 3;
+      setTimeout(() => {
+        this.mostrarAlertaWarning = false;
+        this.mensajeWarning = '';
+      }, 3500);
+      return;
+    }
+
+    // comportamiento normal: añadir nuevo aval y posicionar el scroll
     this.avales.push(this.nuevoAval());
     this.avalActivoIndex = this.avales.length - 1;
     this.scrollToAval(this.avalActivoIndex);
@@ -1815,6 +1829,7 @@ String: any;
   confirmarEdicion(): void {
     this.mostrarConfirmacionEditar = false;
     this.guardarCliente();
+    console.log('Edición mejoradaaa.', this.clienteOriginal);
   }
 
   //Buscador de direcciones en el mapa

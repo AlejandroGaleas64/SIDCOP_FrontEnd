@@ -490,62 +490,58 @@ private readonly exportConfig = {
       }
     }).subscribe({
       next: (response: any) => {
-        setTimeout(() => {
-          this.mostrarOverlayCarga = false;
-          this.trasladoAEliminar = null;
-          
-          if (response.success && response.data) {
-            if (response.data.code_Status === 1) {
-              this.mensajeExito = `Traslado del "${trasladoTemp.origen}" al "${trasladoTemp.destino}" eliminado exitosamente`;
-              this.mostrarAlertaExito = true;
-              
-              setTimeout(() => {
-                this.mostrarAlertaExito = false;
-                this.mensajeExito = '';
-              }, 3000);
-              
-              this.cargardatos();
-            } else if (response.data.code_Status === -1) {
-              this.mostrarAlertaError = true;
-              this.mensajeError = response.data.message_Status || 'No se puede eliminar: el traslado está siendo utilizado.';
-              
-              setTimeout(() => {
-                this.mostrarAlertaError = false;
-                this.mensajeError = '';
-              }, 5000);
-            } else if (response.data.code_Status === 0) {
-              this.mostrarAlertaError = true;
-              this.mensajeError = response.data.message_Status || 'Error al eliminar el traslado.';
-              
-              setTimeout(() => {
-                this.mostrarAlertaError = false;
-                this.mensajeError = '';
-              }, 5000);
-            }
-          } else {
+        this.mostrarOverlayCarga = false;
+        this.trasladoAEliminar = null;
+        
+        if (response.success && response.data) {
+          if (response.data.code_Status === 1) {
+            this.mensajeExito = `Traslado del "${trasladoTemp.origen}" al "${trasladoTemp.destino}" eliminado exitosamente`;
+            this.mostrarAlertaExito = true;
+            
+            setTimeout(() => {
+              this.mostrarAlertaExito = false;
+              this.mensajeExito = '';
+            }, 3000);
+            
+            this.cargardatos();
+          } else if (response.data.code_Status === -1) {
             this.mostrarAlertaError = true;
-            this.mensajeError = response.message || 'Error inesperado al eliminar el traslado.';
+            this.mensajeError = response.data.message_Status || 'No se puede eliminar: el traslado está siendo utilizado.';
+            
+            setTimeout(() => {
+              this.mostrarAlertaError = false;
+              this.mensajeError = '';
+            }, 5000);
+          } else if (response.data.code_Status === 0) {
+            this.mostrarAlertaError = true;
+            this.mensajeError = response.data.message_Status || 'Error al eliminar el traslado.';
             
             setTimeout(() => {
               this.mostrarAlertaError = false;
               this.mensajeError = '';
             }, 5000);
           }
-        }, 1000);
-      },
-      error: (error) => {
-        setTimeout(() => {
-          this.mostrarOverlayCarga = false;
-          this.trasladoAEliminar = null;
-          console.error('Error en la petición:', error);
+        } else {
           this.mostrarAlertaError = true;
-          this.mensajeError = 'Error de conexión al eliminar el traslado.';
+          this.mensajeError = response.message || 'Error inesperado al eliminar el traslado.';
           
           setTimeout(() => {
             this.mostrarAlertaError = false;
             this.mensajeError = '';
           }, 5000);
-        }, 1000);
+        }
+      },
+      error: (error) => {
+        this.mostrarOverlayCarga = false;
+        this.trasladoAEliminar = null;
+        console.error('Error en la petición:', error);
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'Error de conexión al eliminar el traslado.';
+        
+        setTimeout(() => {
+          this.mostrarAlertaError = false;
+          this.mensajeError = '';
+        }, 5000);
       }
     });
   }
