@@ -861,7 +861,7 @@ onCantidadChange(prodId: number, valor: any): void {
         secuencia: 0,
       };
 
-      console.log('Guardando pedido:', pedidoGuardar);
+      //le.log('Guardando pedido:', pedidoGuardar);
 
       this.http
         .post<any>(`${environment.apiBaseUrl}/Pedido/Insertar`, pedidoGuardar, {
@@ -878,8 +878,8 @@ onCantidadChange(prodId: number, valor: any): void {
             this.cancelar();
           },
           error: (error) => {
-            console.log('Entro esto', this.pedido);
-            console.error('Error al guardar punto de emision:', error);
+            //le.log('Entro esto', this.pedido);
+            //le.error('Error al guardar punto de emision:', error);
             this.mostrarAlertaError = true;
             this.mensajeError =
               'Error al guardar el pedido. Por favor, intente nuevamente.';
