@@ -23,7 +23,7 @@ import {
 } from '@angular/animations';
 import { set } from 'lodash';
 //Importaciones de Animaciones
-import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/export.service';
+import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/exportHori.service';
 @Component({
   selector: 'app-list',
   standalone: true,
