@@ -87,9 +87,9 @@ export class ListComponent implements OnInit {
     dataMapping: (recargas: Recargas, index: number) => ({
       'No': recargas?.secuencia || (index + 1),
       'Bodega': this.limpiarTexto(recargas?.bode_Descripcion),
-      'Recarga Confirmación': this.limpiarTexto(recargas?.reca_Confirmacion),
-      'Fecha Recarga': this.limpiarTexto(recargas?.reca_Fecha),
-      'Detalles': this.limpiarTexto(recargas?.detalles),
+      'Recarga Confirmación': this.limpiarTexto(recargas?.reca_Confirmacion) === 'P' ? 'Pendiente' : 'Confirmado',
+      'Fecha Recarga': recargas?.reca_Fecha ? this.formatearFecha(recargas.reca_Fecha) : '',
+      'Detalles': this.limpiarTexto(recargas?.reca_Observaciones || 'N/A'),
     })
   };
 
@@ -257,6 +257,19 @@ export class ListComponent implements OnInit {
     return this.accionesDisponibles.some(a => a === accion.trim().toLowerCase());
   }
 
+  private formatearFecha(fecha: Date | string | null | undefined): string {
+    if (!fecha) return '';
+
+    const date = new Date(fecha);
+    if (isNaN(date.getTime())) return '';
+
+    const dia = date.getDate().toString().padStart(2, '0');
+    const mes = (date.getMonth() + 1).toString().padStart(2, '0');
+    const anio = date.getFullYear();
+
+    return `${dia}/${mes}/${anio}`;
+  }
+
   // MÉTODOS DE EXPORTACIÓN - Todo lo de exportar datos
   
    // Método principal para todas las exportaciones 
@@ -390,8 +403,6 @@ export class ListComponent implements OnInit {
     if (!texto) return '';
     
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }
