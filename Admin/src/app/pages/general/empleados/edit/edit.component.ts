@@ -244,9 +244,6 @@ export class EditComponent implements OnInit, OnChanges {
       return;
     }
 
-    // Verificar explícitamente si hay cambios en la imagen
-    const hayNuevaImagen = this.selectedFile || (this.uploadedFiles.length > 0 && this.uploadedFiles[0].file);
-
     // Validar formato del DNI
     if (!this.validarFormatoDNI(this.empleado?.empl_DNI || '')) {
       this.mostrarAlertaWarning = true;
@@ -263,69 +260,39 @@ export class EditComponent implements OnInit, OnChanges {
       return;
     }
 
+    // Validar que todos los campos requeridos estén completos
+    const camposRequeridos = [
+      this.empleado.empl_DNI,
+      this.empleado.empl_Codigo,
+      this.empleado.empl_Nombres,
+      this.empleado.empl_Apellidos,
+      this.empleado.empl_Sexo,
+      this.empleado.empl_FechaNacimiento,
+      this.empleado.empl_Correo,
+      this.empleado.empl_Telefono,
+      this.empleado.sucu_Id,
+      this.empleado.esCv_Id,
+      this.empleado.carg_Id,
+      this.empleado.colo_Id,
+      this.empleado.empl_DireccionExacta
+    ];
+
+    // Verifica si todos los campos están llenos
+    const todosLlenos = camposRequeridos.every(c => c && c.toString().trim() !== '');
+
+    if (!todosLlenos) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
+      setTimeout(() => this.cerrarAlerta(), 4000);
+      return;
+    }
+
+    // Solo después de validar que todo está completo, verificar si hay cambios
     if (this.hayDiferencias()) {
       this.mostrarConfirmacionEditar = true;
     } else {
       this.mostrarAlertaWarning = true;
       this.mensajeWarning = 'No se han detectado cambios.';
-      setTimeout(() => this.cerrarAlerta(), 4000);
-    }
-
-    // Compara todos los campos relevantes
-    const original = this.empleadoData;
-    const actual = this.empleado;
-
-    // Verificar si hay cambios en la imagen
-    const imagenHaCambiado = this.uploadedFiles.length > 0 && this.uploadedFiles[0].file !== undefined;
-
-    const haCambiado =
-      imagenHaCambiado || // Incluir cambios en la imagen
-      (original?.empl_DNI?.trim() || '') !== (actual.empl_DNI?.trim() || '') ||
-      (original?.empl_Codigo?.trim() || '') !== (actual.empl_Codigo?.trim() || '') ||
-      (original?.empl_Nombres?.trim() || '') !== (actual.empl_Nombres?.trim() || '') ||
-      (original?.empl_Apellidos?.trim() || '') !== (actual.empl_Apellidos?.trim() || '') ||
-      (original?.empl_Sexo?.trim() || '') !== (actual.empl_Sexo?.trim() || '') ||
-      (original?.empl_FechaNacimiento || '') !== (actual.empl_FechaNacimiento || '') ||
-      (original?.empl_Correo?.trim() || '') !== (actual.empl_Correo?.trim() || '') ||
-      (original?.empl_Telefono?.trim() || '') !== (actual.empl_Telefono?.trim() || '') ||
-      (original?.sucu_Id || 0) !== (actual.sucu_Id || 0) ||
-      (original?.esCv_Id || 0) !== (actual.esCv_Id || 0) ||
-      (original?.carg_Id || 0) !== (actual.carg_Id || 0) ||
-      (original?.colo_Id || 0) !== (actual.colo_Id || 0) ||
-      (original?.empl_DireccionExacta?.trim() || '') !== (actual.empl_DireccionExacta?.trim() || '') ||
-      (original?.empl_Imagen || '') !== (actual.empl_Imagen || '');
-
-    const camposRequeridos = [
-      actual.empl_DNI,
-      actual.empl_Codigo,
-      actual.empl_Nombres,
-      actual.empl_Apellidos,
-      actual.empl_Sexo,
-      actual.empl_FechaNacimiento,
-      actual.empl_Correo,
-      actual.empl_Telefono,
-      actual.sucu_Id,
-      actual.esCv_Id,
-      actual.carg_Id,
-      actual.colo_Id,
-      actual.empl_DireccionExacta
-    ];
-
-    // Verifica si todos los campos están llenos y si hay una imagen
-    const todosLlenos = camposRequeridos.every(c => c && c.toString().trim() !== '') && tieneImagen;
-
-
-    if (todosLlenos) {
-      if (haCambiado) {
-        this.mostrarConfirmacionEditar = true;
-      } else {
-        this.mostrarAlertaWarning = true;
-        this.mensajeWarning = 'No se han detectado cambios.';
-        setTimeout(() => this.cerrarAlerta(), 4000);
-      }
-    } else {
-      this.mostrarAlertaWarning = true;
-      this.mensajeWarning = 'Por favor complete todos los campos requeridos antes de guardar.';
       setTimeout(() => this.cerrarAlerta(), 4000);
     }
   }
@@ -692,7 +659,10 @@ export class EditComponent implements OnInit, OnChanges {
       this.cambiosDetectados.imagen = {
         anterior: this.empleadoData.empl_Imagen ? 'Imagen actual' : 'Sin imagen',
         nuevo: 'Nueva imagen seleccionada',
-        label: 'Imagen del empleado'
+        label: 'Imagen del empleado',
+        isImage: true,
+        anteriorUrl: this.empleadoData.empl_Imagen ? this.getImageDisplayUrl(this.empleadoData.empl_Imagen) : null,
+        nuevoUrl: this.imagePreview
       };
     }
 
