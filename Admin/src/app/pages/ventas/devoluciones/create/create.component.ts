@@ -130,7 +130,7 @@ export class CreateComponent implements OnInit {
     }).subscribe({
       next: (data) => {
         // Filtrar clientes por ruta_Id
-        this.clientesFiltrados = (data || []).filter(cliente => cliente.ruta_Id === rutaId);
+        this.clientesFiltrados = (data || []).filter(cliente => cliente.ruta_Id === rutaId || cliente.clie_Id === 1226);
         this.cargando = false;
         // if (this.clientesFiltrados.length === 1) { 
         //   this.visita.cliente = this.clientesFiltrados[0]; 
