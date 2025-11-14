@@ -161,17 +161,6 @@ export class CreateComponent {
           const aspectRatio = img.width / img.height;
           const isCuadrada = Math.abs(aspectRatio - 1) < 0.01; // Tolerancia del 1%
           
-          if (!isCuadrada) {
-            this.mostrarAlertaError = true;
-            this.mensajeError = `La imagen debe ser cuadrada (misma anchura y altura). La imagen seleccionada es de ${img.width}x${img.height} píxeles.`;
-            setTimeout(() => {
-              this.mostrarAlertaError = false;
-              this.mensajeError = '';
-            }, 5000);
-            // Limpiar el input
-            event.target.value = '';
-            return;
-          }
           
           // Si la validación pasa, continuar con el proceso normal
           this.selectedFile = file;
