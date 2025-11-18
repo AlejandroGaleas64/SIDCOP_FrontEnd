@@ -545,6 +545,15 @@ export class CreateComponent implements OnInit {
     this.mostrarErrores = false;
   }
 
+  searchVendedor = (term: string, item: any) => {
+    if (!term) return true;
+    const t = term.toLowerCase();
+    const nombre = (item?.vendedorNombre || '').toString().toLowerCase();
+    const apellido = (item?.vendedorApellido || '').toString().toLowerCase();
+    const ruta = (item?.rutaDescripcion || '').toString().toLowerCase();
+    return nombre.indexOf(t) > -1 || apellido.indexOf(t) > -1 || ruta.indexOf(t) > -1;
+  }
+
   searchCliente = (term: string, item: any) => {
     if (!term) return true;
     term = term.toLowerCase();
