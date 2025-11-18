@@ -401,7 +401,11 @@
                   <!-- Imagen del producto -->
                   <div class="product-image-container">
                     <img
-                      [src]="getImageUrl(detalle.prod_Imagen)"
+                      [src]="
+                        detalle.prod_Imagen
+                          ? getImageDisplayUrl(detalle.prod_Imagen)
+                          : 'assets/images/no-image-placeholder.png'
+                      "
                       [alt]="detalle.prod_Descripcion || 'Producto'"
                       class="product-image"
                       (error)="onImageError($event)"
@@ -434,73 +438,75 @@
                     </h6>
 
                     <!-- Información adicional -->
-<div class="product-info mt-auto">
-  <!-- Precio Unitario -->
-  <div class="info-row">
-    <span class="info-label">
-      <i class="ri-price-tag-3-line me-1"></i>
-      Precio unitario:
-    </span>
-    <span class="info-value">
-      L.{{ detalle.faDe_PrecioUnitario?.toFixed(2) || "0.00" }}
-    </span>
-  </div>
+                    <div class="product-info mt-auto">
+                      <!-- Precio Unitario -->
+                      <div class="info-row">
+                        <span class="info-label">
+                          <i class="ri-price-tag-3-line me-1"></i>
+                          Precio unitario:
+                        </span>
+                        <span class="info-value">
+                          L.{{
+                            detalle.faDe_PrecioUnitario?.toFixed(2) || "0.00"
+                          }}
+                        </span>
+                      </div>
 
-  <!-- Cantidad -->
-  <div class="info-row">
-    <span class="info-label">
-      <i class="ri-stack-line me-1"></i>
-      Cantidad:
-    </span>
-    <span class="info-value">
-      {{ detalle.faDe_Cantidad || 0 }}
-    </span>
-  </div>
+                      <!-- Cantidad -->
+                      <div class="info-row">
+                        <span class="info-label">
+                          <i class="ri-stack-line me-1"></i>
+                          Cantidad:
+                        </span>
+                        <span class="info-value">
+                          {{ detalle.faDe_Cantidad || 0 }}
+                        </span>
+                      </div>
 
-  <!-- Subtotal (Precio × Cantidad) -->
-  <div class="info-row">
-    <span class="info-label">
-      <i class="ri-calculator-line me-1"></i>
-      Subtotal:
-    </span>
-    <span class="info-value">
-      L.{{ detalle.faDe_Subtotal?.toFixed(2) || "0.00" }}
-    </span>
-  </div>
+                      <!-- Subtotal (Precio × Cantidad) -->
+                      <div class="info-row">
+                        <span class="info-label">
+                          <i class="ri-calculator-line me-1"></i>
+                          Subtotal:
+                        </span>
+                        <span class="info-value">
+                          L.{{ detalle.faDe_Subtotal?.toFixed(2) || "0.00" }}
+                        </span>
+                      </div>
 
-  <!-- Descuento -->
-  <div class="info-row">
-    <span class="info-label">
-      <i class="bx bxs-discount me-1"></i>
-      Descuento:
-    </span>
-    <span class="info-value">
-      L.{{ detalle.faDe_Descuento?.toFixed(2) || "0.00" }}
-    </span>
-  </div>
+                      <!-- Descuento -->
+                      <div class="info-row">
+                        <span class="info-label">
+                          <i class="bx bxs-discount me-1"></i>
+                          Descuento:
+                        </span>
+                        <span class="info-value">
+                          L.{{ detalle.faDe_Descuento?.toFixed(2) || "0.00" }}
+                        </span>
+                      </div>
 
-  <!-- Impuesto -->
-  <div class="info-row">
-    <span class="info-label">
-      <i class="ri-percent-line me-1"></i>
-      Impuesto:
-    </span>
-    <span class="info-value">
-      L.{{ detalle.faDe_Impuesto?.toFixed(2) || "0.00" }}
-    </span>
-  </div>
+                      <!-- Impuesto -->
+                      <div class="info-row">
+                        <span class="info-label">
+                          <i class="ri-percent-line me-1"></i>
+                          Impuesto:
+                        </span>
+                        <span class="info-value">
+                          L.{{ detalle.faDe_Impuesto?.toFixed(2) || "0.00" }}
+                        </span>
+                      </div>
 
-  <!-- Total -->
-  <div class="info-row">
-    <span class="info-label">
-      <i class="ri-money-dollar-box-line me-1"></i>
-      Total:
-    </span>
-    <span class="info-value fw-bold text-success">
-      L.{{ detalle.faDe_Total?.toFixed(2) || "0.00" }}
-    </span>
-  </div>
-</div>
+                      <!-- Total -->
+                      <div class="info-row">
+                        <span class="info-label">
+                          <i class="ri-money-dollar-box-line me-1"></i>
+                          Total:
+                        </span>
+                        <span class="info-value fw-bold text-success">
+                          L.{{ detalle.faDe_Total?.toFixed(2) || "0.00" }}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

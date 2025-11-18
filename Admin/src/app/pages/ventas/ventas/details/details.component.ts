@@ -23,6 +23,7 @@ import { InvoiceService } from '../referencias/invoice.service';
 import { ZplPrintingService } from 'src/app/core/services/zplprinting.service';
 import { FormsModule } from '@angular/forms';
 import ZebraBrowserPrintWrapper from 'zebra-browser-print-wrapper';
+import { ImageUploadService } from 'src/app/core/services/image-upload.service';
 
 interface ApiResponse<T> {
   code: number;
@@ -78,6 +79,8 @@ export class DetailsComponent implements OnChanges, OnDestroy {
   private invoiceService = inject(InvoiceService);
   /** Servicio para generación e impresión ZPL */
   private zplPrintingService = inject(ZplPrintingService);
+  /** Servicio para construir URLs de imágenes */
+  private imageUploadService = inject(ImageUploadService);
 
   /** Detalle completo de la factura */
   facturaDetalle: FacturaCompleta | null = null;
@@ -463,9 +466,14 @@ export class DetailsComponent implements OnChanges, OnDestroy {
   }
 
   private prepararDatosParaZPL(): any {
-
-    const rangoInicial = this.formatearRangoAutorizado(this.facturaDetalle?.fact_RangoInicialAutorizado || '', this.facturaDetalle?.fact_Numero || '');
-    const rangoFinal = this.formatearRangoAutorizado(this.facturaDetalle?.fact_RangoFinalAutorizado || '' , this.facturaDetalle?.fact_Numero || '');
+    const rangoInicial = this.formatearRangoAutorizado(
+      this.facturaDetalle?.fact_RangoInicialAutorizado || '',
+      this.facturaDetalle?.fact_Numero || ''
+    );
+    const rangoFinal = this.formatearRangoAutorizado(
+      this.facturaDetalle?.fact_RangoFinalAutorizado || '',
+      this.facturaDetalle?.fact_Numero || ''
+    );
 
     if (!this.facturaDetalle) return {};
 
@@ -517,19 +525,21 @@ export class DetailsComponent implements OnChanges, OnDestroy {
     };
   }
 
-  private formatearRangoAutorizado(rangoNumerico: string, numeroFactura: string): string {
+  private formatearRangoAutorizado(
+    rangoNumerico: string,
+    numeroFactura: string
+  ): string {
     if (!rangoNumerico || !numeroFactura) return rangoNumerico || '';
-    
+
     // Extraer el prefijo del número de factura (ej: "111-004-01-")
     const prefijo = numeroFactura.match(/^(\d{3}-\d{3}-\d{2}-)/)?.[0];
     if (!prefijo) return rangoNumerico;
-    
+
     // Asegurar que el número tenga 8 dígitos
     const numeroFormateado = rangoNumerico.padStart(8, '0');
-    
+
     return `${prefijo}${numeroFormateado}`;
   }
-
 
   abrirConfiguracionImpresion(): void {
     this.mostrarConfiguracionImpresion = true;
@@ -657,11 +667,15 @@ export class DetailsComponent implements OnChanges, OnDestroy {
   getImageUrl(imageUrl: string | undefined): string {
     if (!imageUrl) return 'assets/images/no-image-placeholder.png';
 
-    if (imageUrl.startsWith('http')) {
-      return imageUrl;
-    }
+    // Delegar la construcción de URL completa al servicio centralizado
+    return this.imageUploadService.getImageUrl(imageUrl);
+  }
 
-    return `${environment.apiBaseUrl}/${imageUrl}`;
+  /**
+   * Construye la URL completa para mostrar la imagen (wrapper explícito)
+   */
+  getImageDisplayUrl(imagePath: string): string {
+    return this.imageUploadService.getImageUrl(imagePath);
   }
 
   trackByDetalleId(index: number, detalle: DetalleItem): any {
@@ -721,7 +735,7 @@ export class DetailsComponent implements OnChanges, OnDestroy {
                         ^XZ`;
 
         browserPrint.print(zpl);
-      } 
+      }
     } catch (error: any) {
       throw new Error(error);
     }
