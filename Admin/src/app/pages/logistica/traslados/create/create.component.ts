@@ -201,7 +201,8 @@ export class CreateComponent implements OnInit {
           cantidad: 0,
           observaciones: '',
           stockDisponible: 0, // Stock disponible en la sucursal seleccionada
-          tieneStock: false   // Si tiene stock en la sucursal
+          tieneStock: false,   // Si tiene stock en la sucursal
+          excedioStock: false  // Nueva propiedad
         }));
         this.aplicarFiltros();
       },
@@ -374,45 +375,79 @@ export class CreateComponent implements OnInit {
     }
   }
   
-  /**
-   * Valida y ajusta la cantidad ingresada manualmente para un producto
-   * @param index - Índice del producto en el array
-   */
-  validarCantidad(index: number): void {
-    if (index >= 0 && index < this.productos.length) {
-      const producto = this.productos[index];
-      let cantidad = producto.cantidad || 0;
+ /**
+ * Valida y ajusta la cantidad ingresada manualmente para un producto
+ * @param index - Índice del producto en el array
+ */
+validarCantidad(index: number): void {
+  if (index >= 0 && index < this.productos.length) {
+    const producto = this.productos[index];
+    let cantidad = producto.cantidad || 0;
 
-      // Validar rango básico
-      cantidad = Math.max(0, Math.min(999, cantidad));
+    // Validar rango básico
+    cantidad = Math.max(0, Math.min(999, cantidad));
 
-      // Validar contra stock disponible
-      if (cantidad > 0) {
-        // Validar que hay sucursal seleccionada
-        if (!this.traslado.tras_Origen || this.traslado.tras_Origen === 0) {
-          this.mostrarWarning('Debe seleccionar una sucursal de origen primero');
-          producto.cantidad = 0;
-          return;
-        }
-
-        // Validar que el producto tiene stock
-        if (!producto.tieneStock) {
-          this.mostrarWarning(`El producto "${producto.prod_Descripcion}" no tiene stock disponible en esta sucursal`);
-          producto.cantidad = 0;
-          return;
-        }
-
-        // Validar que no exceda el stock disponible
-        if (cantidad > producto.stockDisponible) {
-          this.mostrarWarning(`Stock insuficiente. Solo hay ${producto.stockDisponible} unidades disponibles de "${producto.prod_Descripcion}"`);
-          cantidad = producto.stockDisponible;
-        }
+    // Validar contra stock disponible
+    if (cantidad > 0) {
+      // Validar que hay sucursal seleccionada
+      if (!this.traslado.tras_Origen || this.traslado.tras_Origen === 0) {
+        this.mostrarWarning('Debe seleccionar una sucursal de origen primero');
+        producto.cantidad = 0;
+        producto.excedioStock = false;
+        return;
       }
 
-      producto.cantidad = cantidad;
-      this.actualizarEstadoNavegacion();
+      // Validar que el producto tiene stock
+      if (!producto.tieneStock) {
+        this.mostrarWarning(`El producto "${producto.prod_Descripcion}" no tiene stock disponible en esta sucursal`);
+        producto.cantidad = 0;
+        producto.excedioStock = false;
+        return;
+      }
+
+      // Validar que no exceda el stock disponible
+      if (cantidad > producto.stockDisponible) {
+        this.mostrarWarning(`Stock insuficiente. Solo hay ${producto.stockDisponible} unidades disponibles de "${producto.prod_Descripcion}"`);
+        cantidad = producto.stockDisponible;
+      }
     }
+
+    producto.cantidad = cantidad;
+    producto.excedioStock = false; // Limpiar el flag después de ajustar
+    this.actualizarEstadoNavegacion();
   }
+}
+
+  /**
+ * Valida la cantidad mientras el usuario escribe en el input
+ * @param index - Índice del producto en el array
+ * @param event - Evento del input
+ */
+validarCantidadInput(index: number, event: any): void {
+  if (index >= 0 && index < this.productos.length) {
+    const producto = this.productos[index];
+    let valor = parseInt(event.target.value) || 0;
+    
+    // Validar que no sea negativo
+    if (valor < 0) {
+      valor = 0;
+    }
+    
+    // Limitar a 999 como máximo general
+    if (valor > 999) {
+      valor = 999;
+    }
+    
+    // Marcar si excede el stock (sin limitar aún, solo marcar)
+    producto.excedioStock = producto.tieneStock && valor > producto.stockDisponible;
+    
+    // Actualizar el valor temporalmente (la validación final se hará en blur)
+    producto.cantidad = valor;
+    
+    // Actualizar estado de navegación
+    this.actualizarEstadoNavegacion();
+  }
+}
 
   // ========== MÉTODOS PARA BÚSQUEDA Y PAGINACIÓN ==========
 
@@ -706,6 +741,7 @@ export class CreateComponent implements OnInit {
       p.observaciones = '';
       p.stockDisponible = 0;
       p.tieneStock = false;
+      p.excedioStock = false;
     });
     this.inicializarFechaActual();
     
