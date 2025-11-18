@@ -38,6 +38,7 @@ export class EditComponent implements OnInit, OnChanges {
   cargos: any[] = [];
   colonias: any[] = [];
   colonia: any[] = [];
+  empleados: any[] = [];
 
 
 
@@ -47,6 +48,7 @@ export class EditComponent implements OnInit, OnChanges {
     this.obtenerEstadosCiviles();
     this.obtenerCargos();
     this.listarColonias();
+    this.cargarEmpleados();
     
     if (this.empleadoData) {
       this.empleado = { ...this.empleadoData };
@@ -118,6 +120,7 @@ export class EditComponent implements OnInit, OnChanges {
   mensajeError = '';
   mostrarAlertaWarning = false;
   mensajeWarning = '';
+  dniDuplicado = false;
   mostrarConfirmacionEditar = false;
 
   //Constructor
@@ -309,6 +312,7 @@ export class EditComponent implements OnInit, OnChanges {
   //Funcion que guarda los datos del empleado
   async guardar(): Promise<void> {
     this.mostrarErrores = true;
+    this.dniDuplicado = false;
     const fechaInicial = new Date(this.empleado.empl_FechaNacimiento).toISOString().split('T')[0];
 
     // Si hay un archivo local seleccionado en uploadedFiles, subirlo al backend
@@ -340,6 +344,26 @@ export class EditComponent implements OnInit, OnChanges {
       this.empleado.empl_DireccionExacta?.trim() !== '';
 
     if (camposValidos) {
+      const dniActual = (this.empleado.empl_DNI || '').replace(/[^0-9]/g, '');
+      const dniExiste = this.empleados.some(e =>
+        e.empl_Id !== this.empleado.empl_Id &&
+        ((e.empl_DNI || '').replace(/[^0-9]/g, '')) === dniActual
+      );
+
+      if (dniExiste) {
+        this.dniDuplicado = true;
+        this.mostrarAlertaError = true;
+        this.mensajeError = 'El DNI ingresado ya existe para otro empleado.';
+        this.mostrarAlertaWarning = false;
+
+        setTimeout(() => {
+          this.mostrarAlertaError = false;
+          this.mensajeError = '';
+        }, 5000);
+
+        return;
+      }
+
       const empleadoActualizar = {
         empl_Id: this.empleado.empl_Id,
         empl_DNI: this.empleado.empl_DNI,
@@ -492,6 +516,19 @@ export class EditComponent implements OnInit, OnChanges {
       headers: { 'x-api-key': environment.apiKey }
     }).subscribe((data) => this.colonia = this.ordenarPorMunicipioYDepartamento(data));
   };
+
+  cargarEmpleados() {
+  this.http.get<any[]>(`${environment.apiBaseUrl}/Empleado/Listar`, {
+      headers: { 'x-api-key': environment.apiKey }
+    }).subscribe({
+      next: (data) => {
+        this.empleados = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar los empleados:', error);
+      }
+    });
+  }
 
 
   //Imagenes

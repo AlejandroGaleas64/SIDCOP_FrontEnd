@@ -41,6 +41,7 @@ export class CreateComponent {
   mostrarAlertaWarning: boolean = false;
   mensajeWarning: string = '';
   correoInvalido: boolean = false;
+  dniDuplicado: boolean = false;
 
   //Variables para subir imagen
   isDragOver: boolean = false;
@@ -116,6 +117,7 @@ export class CreateComponent {
     // Resetear errores de validación
     this.mostrarErrores = false;
     this.correoInvalido = false;
+    this.dniDuplicado = false;
   }
 
   //Funcion para cancelar
@@ -152,6 +154,7 @@ export class CreateComponent {
   async guardar(): Promise<void> {
     // Activar bandera de errores para validación visual
     this.mostrarErrores = true;
+    this.dniDuplicado = false;
 
     // Validar campos obligatorios
     const camposFaltantes: string[] = [];
@@ -187,6 +190,23 @@ export class CreateComponent {
         this.mostrarAlertaWarning = false;
         this.mensajeWarning = '';
       }, 4000);
+      
+      return;
+    }
+
+    // Validar que el DNI no esté repetido en la lista de empleados
+    const dniActual = (this.empleado.empl_DNI || '').replace(/[^0-9]/g, '');
+    const dniExiste = this.empleados.some(e => ((e.empl_DNI || '').replace(/[^0-9]/g, '')) === dniActual);
+    if (dniExiste) {
+      this.dniDuplicado = true;
+      this.mostrarAlertaError = true;
+      this.mensajeError = 'El DNI ingresado ya existe para otro empleado.';
+      this.mostrarAlertaWarning = false;
+      
+      setTimeout(() => {
+        this.mostrarAlertaError = false;
+        this.mensajeError = '';
+      }, 5000);
       
       return;
     }

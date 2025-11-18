@@ -93,8 +93,7 @@
           <!-- RTN - Con validaciones -->
           <div class="col-md-6">
             <div class="mb-3">
-              <label class="form-label">RTN</label>
-              <span class="text-danger" *ngIf="mostrarErrores">*</span>
+              <label class="form-label">RTN<span class="text-danger">*</span></label>
               <div class="d-flex align-items-center">
                 <i class="ri-newspaper-line" [ngStyle]="{
                     border: ((!configFactura.coFa_RTN.trim() || !isValidRTN(configFactura.coFa_RTN)) && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
@@ -118,6 +117,9 @@
               </div>
               <div class="text-danger mt-1" *ngIf="configFactura.coFa_RTN.trim() && !isValidRTN(configFactura.coFa_RTN) && mostrarErrores">
                 <small>El RTN debe tener exactamente 14 dígitos</small>
+              </div>
+              <div class="text-muted mt-1" *ngIf="configFactura.coFa_RTN.length > 0">
+                <small>{{ configFactura.coFa_RTN.length }}/14</small>
               </div>
 
             </div>
@@ -251,6 +253,9 @@
             </div>
             <div class="text-danger mt-1" *ngIf="!configFactura.coFa_DiasDevolucion && mostrarErrores">
               <small>El campo Días de Devolución es requerido</small>
+            </div>
+            <div class="text-danger mt-1" *ngIf="configFactura.coFa_DiasDevolucion < 1">
+              <small>Los Días de Devolución deben ser mayor a 0</small>
             </div>
           </div>
 

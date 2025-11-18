@@ -101,8 +101,8 @@
         <div class="d-flex align-items-center">
           <i class="ri-polaroid-2-line"
                 [ngStyle]="{
-                border: (!empleado.empl_DNI.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!empleado.empl_DNI.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: (((!empleado.empl_DNI.trim() && mostrarErrores) || dniDuplicado)) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+                backgroundColor: (((!empleado.empl_DNI.trim() && mostrarErrores) || dniDuplicado)) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
               <input 
@@ -112,14 +112,18 @@
               mask="0000-0000-00000"
               [dropSpecialCharacters]="false"
               maxlength="15"
-              [class.is-invalid]="!empleado.empl_DNI.trim() && mostrarErrores"
+              [class.is-invalid]="(!empleado.empl_DNI.trim() && mostrarErrores) || dniDuplicado"
               [(ngModel)]="empleado.empl_DNI"
+              (input)="dniDuplicado = false"
               placeholder="0000-0000-00000"
               required
               autocomplete="off">
         </div>
           <div class="text-danger" *ngIf="!empleado.empl_DNI.trim() && mostrarErrores">
             <small>El campo DNI es requerido</small>
+          </div>
+          <div class="text-danger" *ngIf="dniDuplicado">
+            <small>El DNI ingresado ya existe</small>
           </div>
         </div>
       </div>
@@ -157,7 +161,7 @@
                 backgroundColor: (!empleado.empl_Nombres.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
-                <input type="text"  id="nombres-input"  [(ngModel)]="empleado.empl_Nombres"  class="form-control" [class.is-invalid]="!empleado.empl_Nombres.trim() && mostrarErrores" placeholder="Ingrese los nombres del empleado" required>
+                <input type="text"  id="nombres-input"  [(ngModel)]="empleado.empl_Nombres"  class="form-control" [class.is-invalid]="!empleado.empl_Nombres.trim() && mostrarErrores" placeholder="Ingrese los nombres del empleado" required [maxLength]="50">
               </div>
               
                 <div class="text-danger" *ngIf="!empleado.empl_Nombres.trim() && mostrarErrores">
@@ -177,7 +181,7 @@
                   backgroundColor: (!empleado.empl_Apellidos.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
                   padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
-                <input type="text"  id="apellidos-input"  [(ngModel)]="empleado.empl_Apellidos"  class="form-control" [class.is-invalid]="!empleado.empl_Apellidos.trim() && mostrarErrores" placeholder="Ingrese los apellidos del empleado" required>
+                <input type="text"  id="apellidos-input"  [(ngModel)]="empleado.empl_Apellidos"  class="form-control" [class.is-invalid]="!empleado.empl_Apellidos.trim() && mostrarErrores" placeholder="Ingrese los apellidos del empleado" [maxLength]="50" required>
               </div>
               <div class="text-danger" *ngIf="!empleado.empl_Apellidos.trim() && mostrarErrores">
                   <small>Los apellidos son requeridos</small>
@@ -242,6 +246,7 @@
                 [ngClass]="{'is-invalid': ((!empleado.empl_Correo.trim() || correoInvalido) && mostrarErrores)}" 
                 placeholder="Ingrese el correo del empleado" 
                 (input)="correoInvalido = false"
+                [maxLength]="50"
                 required>
             </div>
             <div class="text-danger" *ngIf="!empleado.empl_Correo.trim() && mostrarErrores">
@@ -396,7 +401,7 @@
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px',
                 borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
                 </i>
-                <input type="text"  id="nombres-input"  [(ngModel)]="empleado.empl_DireccionExacta"  class="form-control" [class.is-invalid]="!empleado.empl_DireccionExacta.trim() && mostrarErrores" placeholder="Ingrese la dirección exacta del empleado" required>
+                <input type="text"  id="nombres-input"  [(ngModel)]="empleado.empl_DireccionExacta"  class="form-control" [class.is-invalid]="!empleado.empl_DireccionExacta.trim() && mostrarErrores" placeholder="Ingrese la dirección exacta del empleado" required [maxLength]="200">
 
                 </div>
                 
