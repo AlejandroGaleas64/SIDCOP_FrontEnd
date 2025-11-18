@@ -438,7 +438,7 @@ export class ListComponent {
   }
 
   editar(cliente: Cliente): void {
-    this.clienteEditando = { ...cliente };
+    this.clienteEditando = this.sanitizeClienteStrings({ ...cliente });
     this.showEditForm = true;
     this.showCreateForm = false;
     this.showDetailsForm = false;
@@ -509,7 +509,7 @@ export class ListComponent {
         this.currentPage = 1;
         this.itemsPerPage = 10;
         this.clientesFiltrados = [...this.clienteGrid];
-        debugger;
+        // debugger;
         this.cargandoDatos = false;
         this.actualizarClientesVisibles();
       }, 500);
@@ -662,6 +662,19 @@ export class ListComponent {
       //   this.mensajeExito = '';
       // }, 3000);
     // }, 1000);
+  }
+
+  private sanitizeClienteStrings(obj: any): any {
+    if (!obj || typeof obj !== 'object') return obj;
+    const copy: any = { ...obj };
+    for (const key of Object.keys(copy)) {
+      if (copy[key] === null || copy[key] === undefined) {
+        copy[key] = '';
+      } else if (typeof copy[key] === 'string') {
+        copy[key] = copy[key].trim();
+      }
+    }
+    return copy;
   }
 
   confirmarEliminar(cliente: Cliente): void {

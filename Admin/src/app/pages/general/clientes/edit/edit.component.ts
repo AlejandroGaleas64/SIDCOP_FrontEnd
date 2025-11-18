@@ -1376,6 +1376,8 @@ String: any;
   editarDireccion(index: number) {
     this.direccionEditandoIndex = index;
     this.direccionPorCliente = { ...this.direccionesPorCliente[index] };
+    // guardar snapshot para comparar cambios correctamente
+    this.direccionOriginal = { ...this.direccionesPorCliente[index] };
     this.mostrarMapa = true;
     setTimeout(() => {
       this.mapaSelectorComponent?.inicializarMapa();
@@ -1699,6 +1701,34 @@ String: any;
         anterior: this.diasCsvToNames(diaB),
         nuevo: this.diasCsvToNames(diaA),
         label: 'Día de Visita'
+      };
+    }
+
+    // Tab 2
+        const toNumOrNull = (v: any): number | null => {
+      if (v === null || v === undefined || v === '') return null;
+      const n = Number(v);
+      return isFinite(n) ? n : null;
+    };
+    const latA = toNumOrNull(c.diCl_Latitud);
+    const latB = toNumOrNull(d.diCl_Latitud);
+    const lngA = toNumOrNull(c.diCl_Longitud);
+    const lngB = toNumOrNull(d.diCl_Longitud);
+    const EPS = 1e-6; // tolerancia para números flotantes
+
+    if ((latA === null) !== (latB === null) || (latA !== null && Math.abs(latA - (latB as number)) > EPS)) {
+      this.cambiosDetectados.diCl_Latitud = {
+        anterior: d.diCl_Latitud,
+        nuevo: c.diCl_Latitud,
+        label: 'Latitud'
+      };
+    }
+
+    if ((lngA === null) !== (lngB === null) || (lngA !== null && Math.abs(lngA - (lngB as number)) > EPS)) {
+      this.cambiosDetectados.diCl_Longitud = {
+        anterior: d.diCl_Longitud,
+        nuevo: c.diCl_Longitud,
+        label: 'Longitud'
       };
     }
 
