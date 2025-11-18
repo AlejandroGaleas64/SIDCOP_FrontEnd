@@ -1,4 +1,5 @@
-/**
+
+/**
  * Componente para crear nuevas marcas de vehículos
  * Permite al usuario ingresar y guardar información de marcas de vehículos en el sistema
  */
@@ -148,17 +149,30 @@ export class CreateComponent {
       }).subscribe({
         // Maneja la respuesta exitosa del servidor
         next: (response) => {
-          //console.log('Marca guardada exitosamente:', response);
-          this.mensajeExito = `Marca de Vehiculo "${this.marca.maVe_Marca}" guardada exitosamente`;
-          this.mostrarAlertaExito = true;
-          this.mostrarErrores = false;
-          
-          // Ocultar la alerta después de 3 segundos
-          setTimeout(() => {
+          // Verificar si la respuesta indica un error de duplicado (code_Status: -1)
+          if (response && response.code_Status === -1) {
+            this.mostrarAlertaError = true;
+            this.mensajeError = response.message_Status || 'Ya existe una marca de vehículo con estos datos.';
             this.mostrarAlertaExito = false;
-            this.onSave.emit(this.marca);
-            this.cancelar();
-          }, 3000);
+            
+            // Ocultar la alerta de error después de 5 segundos
+            setTimeout(() => {
+              this.mostrarAlertaError = false;
+              this.mensajeError = '';
+            }, 5000);
+          } else {
+            //console.log('Marca guardada exitosamente:', response);
+            this.mensajeExito = `Marca de Vehiculo "${this.marca.maVe_Marca}" guardada exitosamente`;
+            this.mostrarAlertaExito = true;
+            this.mostrarErrores = false;
+            
+            // Ocultar la alerta después de 3 segundos
+            setTimeout(() => {
+              this.mostrarAlertaExito = false;
+              this.onSave.emit(this.marca);
+              this.cancelar();
+            }, 3000);
+          }
         },
         // Maneja los errores que ocurran durante la petición HTTP
         error: (error) => {
