@@ -803,8 +803,9 @@
                       >
                         <img
                           [src]="
-                            producto.prod_Imagen ||
-                            'assets/images/default-product.png'
+                            producto.prod_Imagen
+                              ? getImageDisplayUrl(producto.prod_Imagen)
+                              : 'assets/images/default-product.png'
                           "
                           [alt]="producto.prod_Descripcion"
                           class="producto-img"
@@ -1202,8 +1203,9 @@
                         <td class="text-center">
                           <img
                             [src]="
-                              producto.prod_Imagen ||
-                              'assets/images/default-product.png'
+                              producto.prod_Imagen
+                                ? getImageDisplayUrl(producto.prod_Imagen)
+                                : 'assets/images/default-product.png'
                             "
                             [alt]="producto.prod_Descripcion"
                             class="rounded producto-image-small"
