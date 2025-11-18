@@ -152,11 +152,13 @@ export class CreateComponent {
           console.log('Respuesta del servidor:', response); // Debug
           
           // Verificar si la respuesta es un error de duplicado (code_Status: -1)
-          if (response && (response.code_Status === -1 || response.code_Status === '-1' || response.message_Status?.includes('duplicad'))) {
+          if (response && (response.code_Status === -1 || response.code_Status === '-1' || 
+              response.message_Status?.toLowerCase().includes('duplicad') || 
+              response.message_status?.toLowerCase().includes('duplicad'))) {
             this.mostrarAlertaError = true;
             this.mostrarAlertaExito = false;
             this.mostrarAlertaWarning = false;
-            this.mensajeError = response.message_Status || 'Ya existe una marca de vehículo con estos datos.';
+            this.mensajeError = response.message_Status || response.message_status || 'Ya existe una marca de vehículo con estos datos.';
             
             // Ocultar la alerta de error después de 5 segundos
             setTimeout(() => {
