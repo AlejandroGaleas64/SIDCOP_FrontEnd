@@ -144,75 +144,43 @@ export class EditConfigFacturaComponent implements OnChanges {
   onFileChange(event: any) {
     const file = event.target.files[0];
     if (file) {
-      // Validar el tamaño de la imagen antes de continuar
-      const img = new Image();
-      const reader = new FileReader();
+      // Ya no validamos el aspecto ratio, permitimos cualquier tamaño
+      this.selectedFile = file;
       
+      const reader = new FileReader();
       reader.onload = (e: any) => {
-        img.onload = () => {
-          // Validar que la imagen sea cuadrada (aspect ratio 1:1)
-          const aspectRatio = img.width / img.height;
-          const isCuadrada = Math.abs(aspectRatio - 1) < 0.01; // Tolerancia del 1%
-          
-          
-          
-          // Si la validación pasa, continuar con el proceso normal
-          this.selectedFile = file;
-          
-          // Check if it's an SVG file
-          this.isSvgFile = file.type === 'image/svg+xml';
-          
-          // Create a preview for SVG files
-          if (this.isSvgFile) {
-            this.svgPreviewUrl = e.target.result;
-            // For SVG files, we'll still show the cropper but also keep the original SVG for preview
-            this.imageCropper.nativeElement.src = e.target.result;
-            this.showCropper = true;
-            
-            setTimeout(() => {
-              if (this.cropper) {
-                this.cropper.destroy();
-              }
-              this.cropper = new Cropper(this.imageCropper.nativeElement, {
-                aspectRatio: 1,
-                viewMode: 1,
-                autoCropArea: 1,
-                responsive: true,
-                background: false,
-                guides: true,
-                center: true,
-                highlight: false,
-                cropBoxMovable: true,
-                cropBoxResizable: true,
-                toggleDragModeOnDblclick: false,
-              });
-            }, 100);
-          } else {
-            // For non-SVG files, use the original behavior
-            this.imageCropper.nativeElement.src = e.target.result;
-            this.showCropper = true;
-            
-            setTimeout(() => {
-              if (this.cropper) {
-                this.cropper.destroy();
-              }
-              this.cropper = new Cropper(this.imageCropper.nativeElement, {
-                aspectRatio: 1,
-                viewMode: 1,
-                autoCropArea: 1,
-                responsive: true,
-                background: false,
-                guides: true,
-                center: true,
-                highlight: false,
-                cropBoxMovable: true,
-                cropBoxResizable: true,
-                toggleDragModeOnDblclick: false,
-              });
-            }, 100);
+        // Check if it's an SVG file
+        this.isSvgFile = file.type === 'image/svg+xml';
+        
+        // Create a preview for SVG files
+        if (this.isSvgFile) {
+          this.svgPreviewUrl = e.target.result;
+        }
+        
+        // Show cropper for all file types
+        this.imageCropper.nativeElement.src = e.target.result;
+        this.showCropper = true;
+        
+        setTimeout(() => {
+          if (this.cropper) {
+            this.cropper.destroy();
           }
-        };
-        img.src = e.target.result as string;
+          this.cropper = new Cropper(this.imageCropper.nativeElement, {
+            // aspectRatio libre - el usuario puede seleccionar cualquier tamaño
+            viewMode: 1,
+            autoCropArea: 0.8, // Área de recorte inicial al 80%
+            responsive: true,
+            background: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+            minCropBoxWidth: 50, // Tamaño mínimo del área de recorte
+            minCropBoxHeight: 50,
+          });
+        }, 100);
       };
       
       reader.readAsDataURL(file);
@@ -232,10 +200,13 @@ export class EditConfigFacturaComponent implements OnChanges {
   async cropAndUpload() {
     if (this.cropper && this.selectedFile) {
       try {
-        // Obtener la imagen recortada como blob con el tamaño exacto requerido (225x225 para Labelary)
+        // Obtener las dimensiones del área recortada
+        const croppedData = this.cropper.getData();
+        
+        // Obtener la imagen recortada como blob manteniendo las proporciones originales
+        // pero con un ancho máximo de 500px para optimización
         const canvas = this.cropper.getCroppedCanvas({
-          width: 190,
-          height: 190,
+          maxHeight: 190, // Ancho máximo para optimizar el tamaño del archivo
           imageSmoothingEnabled: true,
           imageSmoothingQuality: 'high'
         });
@@ -250,6 +221,11 @@ export class EditConfigFacturaComponent implements OnChanges {
 
             try {
               console.log('Iniciando subida de imagen...');
+              console.log('Dimensiones del recorte:', {
+                width: Math.round(croppedData.width),
+                height: Math.round(croppedData.height)
+              });
+              
               // Subir imagen al backend usando ImageUploadService
               const imagePath = await this.imageUploadService.uploadImageAsync(croppedFile);
               console.log('Imagen subida exitosamente. Ruta:', imagePath);
