@@ -76,7 +76,7 @@
           </select>
           <div *ngIf="cargando" class="form-text text-muted">Cargando Municipios...</div>
           </div>
-          <div class="text-danger mt-1" *ngIf="!(selectedMuni ?? '').trim() && mostrarErrores">
+          <div class="text-danger mt-1" *ngIf="!(nuevaColonia.muni_Codigo ?? '').trim() && mostrarErrores">
             <small>El campo Municipio es requerido</small>
           </div>
         </div>
