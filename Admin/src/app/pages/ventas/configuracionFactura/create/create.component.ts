@@ -88,14 +88,16 @@ export class CreateComponent {
     event.target.value = value;
   }
 
-  // Validación de correo electrónico
+  // Validación de correo electrónico (alineada con edit)
   isValidEmail(email: string): boolean {
+    if (!email || email.trim() === '') return false;
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return emailRegex.test(email);
+    return emailRegex.test(email.trim());
   }
 
-  // Verificar si RTN tiene exactamente 14 dígitos
+  // Verificar si RTN tiene exactamente 14 dígitos (alineada con edit)
   isValidRTN(rtn: string): boolean {
+    if (!rtn || rtn.trim() === '') return false;
     return rtn.length === 14 && /^\d{14}$/.test(rtn);
   }
 

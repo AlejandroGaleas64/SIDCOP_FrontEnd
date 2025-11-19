@@ -325,42 +325,49 @@
                         {{ producto.prod_Descripcion }}
                       </h6>
                       
-                      <!-- Controles de cantidad -->
-                      <div class="cantidad-controls-premium">
-                        <label class="form-label-premium">Cantidad</label>
-                        <div class="input-group-premium">
-                          <button 
-                            class="btn-cantidad-premium btn-minus" 
-                            type="button"
-                            (click)="disminuirCantidad(getProductoIndex(producto.prod_Id))"
-                            [disabled]="producto.cantidad <= 0 || !producto.tieneStock">
-                            <i class="ri-subtract-line"></i>
-                          </button>
-                          <input 
-                            type="number" 
-                            class="cantidad-input-premium" 
-                            [(ngModel)]="producto.cantidad"
-                            (change)="validarCantidad(getProductoIndex(producto.prod_Id))"
-                            min="0"
-                            [max]="producto.stockDisponible"
-                            [disabled]="!producto.tieneStock"
-                            readonly>
-                          <button 
-                            class="btn-cantidad-premium btn-plus" 
-                            type="button"
-                            (click)="aumentarCantidad(getProductoIndex(producto.prod_Id))"
-                            [disabled]="!producto.tieneStock || producto.cantidad >= producto.stockDisponible">
-                            <i class="ri-add-line"></i>
-                          </button>
-                        </div>
-                        <!-- Información de límite de stock -->
-                        <div class="stock-info mt-2" *ngIf="producto.tieneStock && producto.cantidad > 0">
-                          <small class="text-muted">
-                            <i class="ri-information-line me-1"></i>
-                            {{ producto.cantidad }} de {{ producto.stockDisponible }} disponibles
-                          </small>
-                        </div>
-                      </div>
+                     <!-- Controles de cantidad -->
+<div class="cantidad-controls-premium">
+  <label class="form-label-premium">Cantidad</label>
+  <div class="input-group-premium">
+    <button 
+      class="btn-cantidad-premium btn-minus" 
+      type="button"
+      (click)="disminuirCantidad(getProductoIndex(producto.prod_Id))"
+      [disabled]="producto.cantidad <= 0 || !producto.tieneStock">
+      <i class="ri-subtract-line"></i>
+    </button>
+    <input 
+      type="number" 
+      class="cantidad-input-premium" 
+      [(ngModel)]="producto.cantidad"
+      (input)="validarCantidadInput(getProductoIndex(producto.prod_Id), $event)"
+      (blur)="validarCantidad(getProductoIndex(producto.prod_Id))"
+      min="0"
+      [max]="producto.stockDisponible"
+      [disabled]="!producto.tieneStock">
+    <button 
+      class="btn-cantidad-premium btn-plus" 
+      type="button"
+      (click)="aumentarCantidad(getProductoIndex(producto.prod_Id))"
+      [disabled]="!producto.tieneStock || producto.cantidad >= producto.stockDisponible">
+      <i class="ri-add-line"></i>
+    </button>
+  </div>
+  <!-- Información de límite de stock -->
+  <div class="stock-info mt-2" *ngIf="producto.tieneStock && producto.cantidad > 0">
+    <small class="text-muted">
+      <i class="ri-information-line me-1"></i>
+      {{ producto.cantidad }} de {{ producto.stockDisponible }} disponibles
+    </small>
+  </div>
+  <!-- Mensaje de error si excede el stock -->
+  <div class="stock-info mt-2" *ngIf="producto.excedioStock">
+    <small class="text-danger">
+      <i class="ri-error-warning-line me-1"></i>
+      La cantidad no puede exceder el stock disponible
+    </small>
+  </div>
+</div>
                     </div>
                     
                     <!-- Footer con badge de cantidad -->
@@ -668,5 +675,41 @@
 .spinner-border-sm {
   width: 1rem;
   height: 1rem;
+}
+
+/* Mejorar la apariencia del input editable */
+.cantidad-input-premium {
+  text-align: center;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  background: transparent;
+  width: 60px;
+  cursor: text;
+  padding: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.cantidad-input-premium:focus {
+  outline: none;
+  background: rgba(13, 110, 253, 0.08);
+  border-radius: 4px;
+}
+
+.cantidad-input-premium:disabled {
+  background-color: #f8f9fa;
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+/* Ocultar las flechas del input number en algunos navegadores */
+.cantidad-input-premium::-webkit-outer-spin-button,
+.cantidad-input-premium::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.cantidad-input-premium[type=number] {
+  -moz-appearance: textfield;
 }
 </style>
