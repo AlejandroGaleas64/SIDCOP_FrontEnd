@@ -1,4 +1,5 @@
-/**
+
+/**
  * Componente para crear nuevas marcas de vehículos
  * Permite al usuario ingresar y guardar información de marcas de vehículos en el sistema
  */
@@ -148,17 +149,36 @@ export class CreateComponent {
       }).subscribe({
         // Maneja la respuesta exitosa del servidor
         next: (response) => {
-          //console.log('Marca guardada exitosamente:', response);
-          this.mensajeExito = `Marca de Vehiculo "${this.marca.maVe_Marca}" guardada exitosamente`;
-          this.mostrarAlertaExito = true;
-          this.mostrarErrores = false;
+          console.log('Respuesta del servidor:', response); // Debug
           
-          // Ocultar la alerta después de 3 segundos
-          setTimeout(() => {
+          // Verificar si la respuesta contiene un error de duplicado en response.data.code_Status
+          const dataResponse = response.data;
+          if (dataResponse && (dataResponse.code_Status === -1 || dataResponse.code_Status === '-1' || 
+              dataResponse.message_Status?.toLowerCase().includes('duplicad'))) {
+            this.mostrarAlertaError = true;
             this.mostrarAlertaExito = false;
-            this.onSave.emit(this.marca);
-            this.cancelar();
-          }, 3000);
+            this.mostrarAlertaWarning = false;
+            this.mensajeError = dataResponse.message_Status || 'Ya existe una marca de vehículo con estos datos.';
+            
+            // Ocultar la alerta de error después de 5 segundos
+            setTimeout(() => {
+              this.mostrarAlertaError = false;
+              this.mensajeError = '';
+            }, 5000);
+            return; // Importante: salir de la función para no mostrar mensaje de éxito
+          } else {
+            //console.log('Marca guardada exitosamente:', response);
+            this.mensajeExito = `Marca de Vehiculo "${this.marca.maVe_Marca}" guardada exitosamente`;
+            this.mostrarAlertaExito = true;
+            this.mostrarErrores = false;
+            
+            // Ocultar la alerta después de 3 segundos
+            setTimeout(() => {
+              this.mostrarAlertaExito = false;
+              this.onSave.emit(this.marca);
+              this.cancelar();
+            }, 3000);
+          }
         },
         // Maneja los errores que ocurran durante la petición HTTP
         error: (error) => {
