@@ -154,6 +154,17 @@ export class ListComponent {
   mostrarConfirmacionEliminar = false;
   clienteAEliminar: Cliente | null = null;
 
+  mostrarMensajeExito(cliente: Cliente) {
+  this.mensajeExito = `"${cliente.clie_NombreNegocio}" guardado exitosamente`;
+  this.mostrarAlertaExito = true;
+  this.cerrarFormulario(); // Si quieres cerrar el modal
+
+  setTimeout(() => {
+    this.mostrarAlertaExito = false;
+    this.mensajeExito = '';
+  }, 3000);
+}
+
   // Estado de exportación
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
@@ -509,7 +520,6 @@ export class ListComponent {
         this.currentPage = 1;
         this.itemsPerPage = 10;
         this.clientesFiltrados = [...this.clienteGrid];
-        // debugger;
         this.cargandoDatos = false;
         this.actualizarClientesVisibles();
       }, 500);

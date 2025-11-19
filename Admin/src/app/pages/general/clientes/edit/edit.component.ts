@@ -315,12 +315,12 @@ String: any;
       this.mostrarErrores = true;
       if (
         // this.cliente.clie_Codigo.trim() &&
-        this.cliente.clie_Nacionalidad.trim() &&
-        this.cliente.clie_Nombres.trim() &&
-        this.cliente.clie_Apellidos.trim() &&
-        this.cliente.esCv_Id &&
-        this.cliente.clie_FechaNacimiento &&
-        this.cliente.tiVi_Id &&
+        // this.cliente.clie_Nacionalidad.trim() &&
+        // this.cliente.clie_Nombres.trim() &&
+        // this.cliente.clie_Apellidos.trim() &&
+        // this.cliente.esCv_Id &&
+        // this.cliente.clie_FechaNacimiento &&
+        // this.cliente.tiVi_Id &&
         this.cliente.clie_Telefono.trim()
       ) {
         this.mostrarErrores = false;
@@ -1032,7 +1032,7 @@ String: any;
           next: (response) => {
             if (response.data.code_Status === 1) {
               this.actualizarDireccionesYAvales();
-              this.mensajeExito = `Cliente "${this.cliente.clie_Nombres + ' ' + this.cliente.clie_Apellidos}" actualizado exitosamente`;
+              this.mensajeExito = `"${this.cliente.clie_NombreNegocio}" actualizado exitosamente`;
               this.mostrarAlertaExito = true;
               this.mostrarErrores = false;
 
@@ -1812,25 +1812,25 @@ String: any;
 
     // Validar campos básicos requerido
 
-    if (!this.cliente.clie_Nombres.trim()) {
-      errores.push('Nombres');
-    }
+    // if (!this.cliente.clie_Nombres.trim()) {
+    //   errores.push('Nombres');
+    // }
 
-    if (!this.cliente.clie_Apellidos.trim()) {
-      errores.push('Apellidos');
-    }
+    // if (!this.cliente.clie_Apellidos.trim()) {
+    //   errores.push('Apellidos');
+    // }
 
     if (!this.cliente.clie_NombreNegocio.trim()) {
       errores.push('Nombre del Negocio');
     }
 
-    if (!this.cliente.tiVi_Id) {
-      errores.push('Tipo de Vivienda');
-    }
+    // if (!this.cliente.tiVi_Id) {
+    //   errores.push('Tipo de Vivienda');
+    // }
 
-    if (!this.cliente.esCv_Id) {
-      errores.push('Estado Civil');
-    }
+    // if (!this.cliente.esCv_Id) {
+    //   errores.push('Estado Civil');
+    // }
 
     if (!this.cliente.clie_ImagenDelNegocio) {
       errores.push('Imagen del Negocio');

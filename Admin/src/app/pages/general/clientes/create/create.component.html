@@ -69,27 +69,24 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="clie_Nacionalidad" class="form-label">Nacionalidad</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <!-- <span class="text-danger" *ngIf="mostrarErrores">*</span> -->
             <div class="d-flex align-items-center">
               <i class="ri-flag-line"
                 [ngStyle]="{
-                border: (!cliente.clie_Nacionalidad.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.clie_Nacionalidad.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
-              <select id="clie_Nacionalidad" class="form-select" [(ngModel)]="cliente.clie_Nacionalidad"
-                [class.is-invalid]="
-                  !cliente.clie_Nacionalidad && mostrarErrores
-                " required>
+              <select id="clie_Nacionalidad" class="form-select" [(ngModel)]="cliente.clie_Nacionalidad">
                 <option value="" disabled selected>Seleccione un país</option>
                 <option *ngFor="let nacionalidad of paises" [value]="nacionalidad.pais_Codigo">
                   {{ nacionalidad.pais_Descripcion }}
                 </option>
               </select>
             </div>
-            <div class="text-danger mt-1" *ngIf="!cliente.clie_Nacionalidad && mostrarErrores">
+            <!-- <div class="text-danger mt-1" *ngIf="!cliente.clie_Nacionalidad && mostrarErrores">
               <small>El campo País de Nacimiento es requerido</small>
-            </div>
+            </div> -->
           </div>
         </div>
 
@@ -131,22 +128,20 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="clienteNombres" class="form-label">Nombres</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <!-- <span class="text-danger" *ngIf="mostrarErrores">*</span> -->
             <div class="d-flex align-items-center">
               <i class="ri-user-4-line"
                 [ngStyle]="{
-                border: (!cliente.clie_Nombres.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.clie_Nombres.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
               <input type="text" class="form-control" id="clienteNombres" [(ngModel)]="cliente.clie_Nombres"
-                [class.is-invalid]="
-                  !cliente.clie_Nombres.trim() && mostrarErrores
-                " placeholder="Ingrese el nombre del cliente" required />
+                     placeholder="Ingrese el nombre del cliente" />
             </div>
-            <div class="text-danger mt-1" *ngIf="!cliente.clie_Nombres.trim() && mostrarErrores">
+            <!-- <div class="text-danger mt-1" *ngIf="!cliente.clie_Nombres.trim() && mostrarErrores">
               <small>El campo Nombres es requerido</small>
-            </div>
+            </div> -->
           </div>
         </div>
 
@@ -154,22 +149,20 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="clienteApellidos" class="form-label">Apellidos</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <!-- <span class="text-danger" *ngIf="mostrarErrores">*</span> -->
             <div class="d-flex align-items-center">
               <i class="ri-user-4-line"
                 [ngStyle]="{
-                border: (!cliente.clie_Apellidos.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.clie_Apellidos.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
               <input type="text" class="form-control" id="clienteApellidos" [(ngModel)]="cliente.clie_Apellidos"
-                [class.is-invalid]="
-                  !cliente.clie_Apellidos.trim() && mostrarErrores
-                " placeholder="Ingrese los apellidos del cliente" required />
+                placeholder="Ingrese los apellidos del cliente" />
             </div>
-            <div class="text-danger mt-1" *ngIf="!cliente.clie_Apellidos.trim() && mostrarErrores">
+            <!-- <div class="text-danger mt-1" *ngIf="!cliente.clie_Apellidos.trim() && mostrarErrores">
               <small>El campo Apellidos es requerido</small>
-            </div>
+            </div> -->
           </div>
         </div>
 
@@ -199,16 +192,15 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="esCv_Id" class="form-label">Localidad</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <!-- <span class="text-danger" *ngIf="mostrarErrores">*</span> -->
             <div class="d-flex align-items-center">
               <i class="ri-home-4-line"
                 [ngStyle]="{
-                border: (!cliente.tiVi_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.tiVi_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
-              <select id="esCv_Id" class="form-select" [(ngModel)]="cliente.tiVi_Id"
-                [class.is-invalid]="!cliente.tiVi_Id && mostrarErrores" required>
+              <select id="esCv_Id" class="form-select" [(ngModel)]="cliente.tiVi_Id">
                 <option value="0" disabled selected>
                   Seleccione una localidad
                 </option>
@@ -217,9 +209,9 @@
                 </option>
               </select>
             </div>
-            <div class="text-danger mt-1" *ngIf="!cliente.tiVi_Id && mostrarErrores">
+            <!-- <div class="text-danger mt-1" *ngIf="!cliente.tiVi_Id && mostrarErrores">
               <small>El campo Localidad es requerido</small>
-            </div>
+            </div> -->
           </div>
         </div>
 
@@ -227,16 +219,15 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="esCv_Id" class="form-label">Estado Civil</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <!-- <span class="text-danger" *ngIf="mostrarErrores">*</span> -->
             <div class="d-flex align-items-center">
               <i class="ri-hand-heart-line"
                 [ngStyle]="{
-                border: (!cliente.esCv_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.esCv_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
-              <select id="esCv_Id" class="form-select" [(ngModel)]="cliente.esCv_Id"
-                [class.is-invalid]="!cliente.esCv_Id && mostrarErrores" required>
+              <select id="esCv_Id" class="form-select" [(ngModel)]="cliente.esCv_Id">
                 <option value="0" disabled selected>
                   Seleccione un estado civil
                 </option>
@@ -245,9 +236,9 @@
                 </option>
               </select>
             </div>
-            <div class="text-danger mt-1" *ngIf="!cliente.esCv_Id && mostrarErrores">
+            <!-- <div class="text-danger mt-1" *ngIf="!cliente.esCv_Id && mostrarErrores">
               <small>El campo Estado Civil es requerido</small>
-            </div>
+            </div> -->
           </div>
         </div>
 

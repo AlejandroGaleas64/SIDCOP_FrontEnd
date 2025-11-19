@@ -43,17 +43,18 @@
         </div>
         <!-- Clientes sin confirmar arriba de la campanita -->
         <div class="col-1 d-flex flex-column align-items-center justify-content-start"
-  style="min-width: 70px; margin-top: -14px;">
-  <!-- Solo la campanita con tooltip CSS (data-tooltip) -->
-  <div class="bell-wrapper" data-tooltip="Clientes sin confirmar" (click)="abrirListado()" style="position:relative;">
-    <i id="campanita" class="ri-notification-2-fill bell-icon"
-      style="color: #d6b68a; font-size: 1.70em; cursor: pointer;"></i>
-    <span class="badge bg-dark rounded-pill notification-badge"
-      style="position: absolute; right: -6px; top: -6px; font-size: 0.65em; padding: 0.5px 7px; z-index: 3;">
-      {{ notificacionesSinConfirmar }}
-    </span>
-  </div>
-</div>
+          style="min-width: 70px; margin-top: -14px;">
+          <!-- Solo la campanita con tooltip CSS (data-tooltip) -->
+          <div class="bell-wrapper" data-tooltip="Clientes sin confirmar" (click)="abrirListado()"
+            style="position:relative;">
+            <i id="campanita" class="ri-notification-2-fill bell-icon"
+              style="color: #d6b68a; font-size: 1.70em; cursor: pointer;"></i>
+            <span class="badge bg-dark rounded-pill notification-badge"
+              style="position: absolute; right: -6px; top: -6px; font-size: 0.65em; padding: 0.5px 7px; z-index: 3;">
+              {{ notificacionesSinConfirmar }}
+            </span>
+          </div>
+        </div>
         <div class="col-2 ms-auto position-relative">
           <input type="text" class="form-control ps-5" placeholder="Buscar..." [(ngModel)]="busqueda"
             (ngModelChange)="filtradorClientes()" />
@@ -69,7 +70,7 @@
 
       <div class="row align-items-center g-2">
         <div class="col-9" style="display: flex; align-items: center; cursor:pointer">
-          <i class="ri-shield-user-fill text-muted" style="font-size: 1.9em; cursor: pointer;" >
+          <i class="ri-shield-user-fill text-muted" style="font-size: 1.9em; cursor: pointer;">
             <h4>Clientes sin confirmar</h4>
           </i>
 
@@ -93,7 +94,13 @@
     <div *ngIf="showCreateForm" [@fadeExpand]>
       <div class="mb-2 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
         <div class="container-fluid flex-grow-1">
-          <app-create (onCancel)="cerrarFormulario()" (onSave)="guardarCliente($event)"></app-create>
+          <app-create (onCancel)="cerrarFormulario()" (onSave)="guardarCliente($event)"
+          (onSave) = "mostrarMensajeExito($event)"></app-create>
+          
+        </div>
+
+        <div *ngIf="mostrarAlertaExito" class="alert alert-success">
+          <strong>¡Éxito!</strong> {{ mensajeExito }}
         </div>
       </div>
     </div>
@@ -176,8 +183,7 @@
                 {{ cliente.clie_NombreNegocio }}
               </h5>
 
-              <ul class="list-unstyled mt-3 ps-0"
-                style="display: flex; flex-direction: column; align-items: center;">
+              <ul class="list-unstyled mt-3 ps-0" style="display: flex; flex-direction: column; align-items: center;">
                 <li class="d-flex justify-content-center align-items-center gap-2 mb-1">
                   <i class="bx bx-user-pin" style="color: #141A2F;"></i>
                   <span class="text-muted text-break"> {{ cliente.clie_Nombres }} {{ cliente.clie_Apellidos }} </span>
@@ -281,8 +287,7 @@
                 {{ cliente.clie_NombreNegocio }}
               </h5>
 
-              <ul class="list-unstyled mt-3 ps-0"
-                style="display: flex; flex-direction: column; align-items: center;">
+              <ul class="list-unstyled mt-3 ps-0" style="display: flex; flex-direction: column; align-items: center;">
                 <li class="d-flex justify-content-center align-items-center gap-2 mb-1">
                   <i class="bx bx-user-pin" style="color: #141A2F;"></i>
                   <span class="text-muted text-break"> {{ cliente.clie_Nombres }} {{ cliente.clie_Apellidos }} </span>
