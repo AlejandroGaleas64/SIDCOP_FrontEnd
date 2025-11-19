@@ -206,7 +206,7 @@ export class EditConfigFacturaComponent implements OnChanges {
         // Obtener la imagen recortada como blob manteniendo las proporciones originales
         // pero con un ancho máximo de 500px para optimización
         const canvas = this.cropper.getCroppedCanvas({
-          maxHeight: 190, // Ancho máximo para optimizar el tamaño del archivo
+          maxHeight: 170, // Ancho máximo para optimizar el tamaño del archivo
           imageSmoothingEnabled: true,
           imageSmoothingQuality: 'high'
         });

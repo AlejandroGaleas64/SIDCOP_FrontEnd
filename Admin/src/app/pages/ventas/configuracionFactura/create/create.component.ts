@@ -216,7 +216,7 @@ export class CreateComponent {
         // Obtener la imagen recortada como blob manteniendo las proporciones originales
         // pero con un ancho máximo de 500px para optimización
         const canvas = this.cropper.getCroppedCanvas({
-          maxHeight: 190, // Alto máximo para optimizar el tamaño del archivo
+          maxHeight: 170, // Alto máximo para optimizar el tamaño del archivo
           imageSmoothingEnabled: true,
           imageSmoothingQuality: 'high'
         });
