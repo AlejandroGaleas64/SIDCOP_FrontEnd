@@ -141,6 +141,50 @@ export class EditConfigFacturaComponent implements OnChanges {
     }
   }
 
+  private centrarLogoZPL(zplCode: string): string {
+    try {
+      // Constantes para papel de 3 pulgadas
+      const PAPER_WIDTH_INCHES = 3;
+      const DPI = 203; // DPI estándar de impresoras Zebra
+      const PAPER_WIDTH_DOTS = PAPER_WIDTH_INCHES * DPI; // 609 dots
+
+      // Buscar el comando ^GFA que contiene la información del gráfico
+      // Formato: ^GFA,a,b,c,data
+      // donde b = bytes por fila, c = bytes por fila (generalmente igual a b)
+      const gfaMatch = zplCode.match(/\^GFA,(\d+),(\d+),(\d+),/);
+      
+      if (!gfaMatch) {
+        console.warn('No se encontró comando ^GFA en el código ZPL');
+        return zplCode;
+      }
+
+      const bytesPerRow = parseInt(gfaMatch[3]);
+      
+      // Calcular el ancho del logo en dots
+      // Cada byte representa 8 dots (pixels)
+      const logoWidthDots = bytesPerRow * 8;
+      
+      console.log('Ancho del papel:', PAPER_WIDTH_DOTS, 'dots');
+      console.log('Ancho del logo:', logoWidthDots, 'dots');
+      
+      // Calcular posición X para centrar
+      const posicionX = Math.max(0, Math.round((PAPER_WIDTH_DOTS - logoWidthDots) / 2));
+      
+      console.log('Posición X calculada para centrar:', posicionX);
+      
+      // Reemplazar ^FO0,0 con la posición centrada
+      // Mantener Y en 0 o un margen pequeño si lo deseas
+      const marginTop = 20; // Puedes ajustar este valor para margen superior
+      zplCode = zplCode.replace(/\^FO\d+,\d+/, `^FO${posicionX},${marginTop}`);
+      
+      return zplCode;
+    } catch (error) {
+      console.error('Error al centrar logo ZPL:', error);
+      // Si hay error, devolver el código original
+      return zplCode;
+    }
+  }
+
   onFileChange(event: any) {
     const file = event.target.files[0];
     if (file) {
@@ -207,6 +251,7 @@ export class EditConfigFacturaComponent implements OnChanges {
         // pero con un ancho máximo de 500px para optimización
         const canvas = this.cropper.getCroppedCanvas({
           maxHeight: 170, // Ancho máximo para optimizar el tamaño del archivo
+          maxWidth: 300,
           imageSmoothingEnabled: true,
           imageSmoothingQuality: 'high'
         });
@@ -289,8 +334,12 @@ export class EditConfigFacturaComponent implements OnChanges {
       }
 
       // Obtener el código ZPL de la respuesta
-      const zplCode = await response.text();
+      let zplCode = await response.text();
       console.log('ZPL generado por Labelary (primeros 200 caracteres):', zplCode.substring(0, 200));
+      
+      // Centrar el logo en papel de 3 pulgadas
+      zplCode = this.centrarLogoZPL(zplCode);
+      console.log('ZPL centrado (primeros 200 caracteres):', zplCode.substring(0, 200));
       
       return zplCode;
     } catch (error) {
