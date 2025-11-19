@@ -174,8 +174,9 @@ export class CreateComponent {
 
   esCorreoValido(correo: string): boolean {
     if (!correo) return true;
-    // Debe contener "@" y terminar en ".com" y aceptar cualquier dominio
-    return /^[\w\.-]+@[\w\.-]+\.[cC][oO][mM]$/.test(correo.trim());
+    // Valida formato de correo electrónico con cualquier dominio
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(correo.trim());
   }
 
    direccionExactaInicial: string = '';
