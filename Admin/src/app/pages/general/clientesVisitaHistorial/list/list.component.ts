@@ -21,6 +21,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/exportHori.service';
 import { VisitaClientePorVendedorDto } from 'src/app/Modelos/general/VisitaClientePorVendedorDto.Model';
 import { Vendedor } from 'src/app/Modelos/ventas/Vendedor.Model';
+import { Pipe, PipeTransform } from '@angular/core';
 import {
   trigger,
   state,
@@ -29,6 +30,28 @@ import {
   animate
 } from '@angular/animations';
 
+@Pipe({
+  name: 'diasSemana',
+  standalone: true
+})
+export class DiasSemanaPipe implements PipeTransform {
+  private dias: { [key: string]: string } = {
+    '1': 'Lunes',
+    '2': 'Martes',
+    '3': 'Miércoles',
+    '4': 'Jueves',
+    '5': 'Viernes',
+    '6': 'Sábado',
+    '7': 'Domingo'
+  };
+
+  transform(value: string | null | undefined): string {
+    if (!value) return '';
+    return value.split(',')
+      .map(v => this.dias[v.trim()] || v.trim())
+      .join(', ');
+  }
+}
 
 @Component({
   standalone: true,
@@ -53,6 +76,7 @@ import {
     CreateComponent,
     // EditComponent,
     DetailsComponent,
+    DiasSemanaPipe
   ],
   animations: [
     trigger('fadeExpand', [
@@ -89,7 +113,6 @@ import {
 })
 
 // Grid Component
-
 export class ListComponent {
   private readonly exportConfig = {
     // Configuración básica
@@ -101,9 +124,9 @@ export class ListComponent {
     // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
     columns: [
       { key: 'No', header: 'No.', width: 3, align: 'center' as const },
-      { key: 'Código', header: 'Código', width: 15, align: 'left' as const },
+      { key: 'Código Vendedor', header: 'Código', width: 15, align: 'left' as const },
       { key: 'Vendedor', header: 'Vendedor', width: 30, align: 'left' as const },
-      { key: 'Tipo', header: 'Tipo', width: 50, align: 'left' as const },
+      { key: 'tiVe_TipoVendedor', header: 'Tipo Vendedor', width: 50, align: 'left' as const },
       { key: 'Ruta', header: 'Ruta', width: 50, align: 'left' as const },
       { key: 'Días de la semana que visita', header: 'Días de la semana que visita', width: 50, align: 'left' as const },
     ] as ExportColumn[],
@@ -113,21 +136,20 @@ export class ListComponent {
       'No': visita?.No || (index + 1),
       'Código Vendedor': this.limpiarTexto(visita?.vend_Codigo),
       'Vendedor': this.limpiarTexto(visita?.vend_Nombres + ' ' + visita?.vend_Apellidos),
-      'Tipo': this.obtenerTipoVendedor(visita?.vend_Tipo),
-      'Ruta': this.limpiarTexto(visita.ruta_Descripcion),
-      'Días de la semana que visita': this.limpiarTexto(visita.veRu_Dias),
+      'tiVe_TipoVendedor': this.limpiarTexto(visita?.tiVe_TipoVendedor),
+      'Ruta': this.limpiarTexto(visita?.ruta_Descripcion),
+      'Días de la semana que visita': new DiasSemanaPipe().transform(visita?.veRu_Dias)
     })
   };
 
-  private obtenerTipoVendedor(tipo: string): string {
-    switch ((tipo || '').toUpperCase()) {
-      case 'V': return 'Venta Directa';
-      case 'P': return 'Preventista';
-      case 'F': return 'Entregador';
-      default: return this.limpiarTexto(tipo);
-    }
-  }
-
+  // private obtenerTipoVendedor(tipo: string): string {
+  //   switch ((tipo || '').toUpperCase()) {
+  //     case 'V': return 'Venta Directa';
+  //     case 'P': return 'Preventista';
+  //     case 'F': return 'Entregador';
+  //     default: return this.limpiarTexto(tipo);
+  //   }
+  // }
 
   busqueda: string = '';
   vendedoresFiltrados: any[] = [];
@@ -365,8 +387,6 @@ export class ListComponent {
     if (!texto) return '';
 
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }
