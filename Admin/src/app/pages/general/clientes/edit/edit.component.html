@@ -70,26 +70,19 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="clie_Nacionalidad" class="form-label">Nacionalidad</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
             <div class="d-flex align-items-center">
               <i class="ri-flag-line"
                 [ngStyle]="{
-                border: (!cliente.clie_Nacionalidad.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.clie_Nacionalidad.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
-              <select id="clie_Nacionalidad" class="form-select" [(ngModel)]="cliente.clie_Nacionalidad"
-                [class.is-invalid]="
-                  !cliente.clie_Nacionalidad && mostrarErrores
-                " required>
+              <select id="clie_Nacionalidad" class="form-select" [(ngModel)]="cliente.clie_Nacionalidad">
                 <option value="" disabled>Seleccione un país</option>
                 <option *ngFor="let nacionalidad of paises" [value]="nacionalidad.pais_Codigo">
                   {{ nacionalidad.pais_Descripcion }}
                 </option>
               </select>
-            </div>
-            <div class="text-danger mt-1" *ngIf="!cliente.clie_Nacionalidad && mostrarErrores">
-              <small>El campo País de Nacimiento es requerido</small>
             </div>
           </div>
         </div>
@@ -133,21 +126,15 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="clienteNombres" class="form-label">Nombres</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
             <div class="d-flex align-items-center">
               <i class="ri-user-4-line"
                 [ngStyle]="{
-                border: (!cliente.clie_Nombres.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.clie_Nombres.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
               <input type="text" class="form-control" id="clienteNombres" [(ngModel)]="cliente.clie_Nombres"
-                [class.is-invalid]="
-                  !cliente.clie_Nombres.trim() && mostrarErrores
-                " placeholder="Ingrese el nombre del cliente" required />
-            </div>
-            <div class="text-danger mt-1" *ngIf="!cliente.clie_Nombres.trim() && mostrarErrores">
-              <small>El campo Nombres es requerido</small>
+                placeholder="Ingrese el nombre del cliente"/>
             </div>
           </div>
         </div>
@@ -156,21 +143,15 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="clienteApellidos" class="form-label">Apellidos</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
             <div class="d-flex align-items-center">
               <i class="ri-user-4-line"
                 [ngStyle]="{
-                border: (!cliente.clie_Apellidos.trim() && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.clie_Apellidos.trim() && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
               <input type="text" class="form-control" id="clienteApellidos" [(ngModel)]="cliente.clie_Apellidos"
-                [class.is-invalid]="
-                  !cliente.clie_Apellidos.trim() && mostrarErrores
-                " placeholder="Ingrese los apellidos del cliente" required />
-            </div>
-            <div class="text-danger mt-1" *ngIf="!cliente.clie_Apellidos.trim() && mostrarErrores">
-              <small>El campo Apellidos es requerido</small>
+                placeholder="Ingrese los apellidos del cliente" />
             </div>
           </div>
         </div>
@@ -179,6 +160,7 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label class="form-label">Sexo</label>
+            <span class="text-danger">*</span>
             <div class="sexo-toggle d-flex">
               <label class="sexo-option me-2" [class.selected]="cliente.clie_Sexo === 'M'">
                 <input type="radio" name="sexo" value="M" [(ngModel)]="cliente.clie_Sexo" required />
@@ -201,24 +183,19 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="esCv_Id" class="form-label">Localidad</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
             <div class="d-flex align-items-center">
               <i class="ri-home-4-line"
                 [ngStyle]="{
-                border: (!cliente.tiVi_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.tiVi_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
-              <select id="esCv_Id" class="form-select" [(ngModel)]="cliente.tiVi_Id"
-                [class.is-invalid]="!cliente.tiVi_Id && mostrarErrores" required>
+              <select id="esCv_Id" class="form-select" [(ngModel)]="cliente.tiVi_Id">
                 <option value="0" disabled>Seleccione una localidad</option>
                 <option *ngFor="let tipoVivienda of tiposDeVivienda" [value]="tipoVivienda.tiVi_Id">
                   {{ tipoVivienda.tiVi_Descripcion }}
                 </option>
               </select>
-            </div>
-            <div class="text-danger mt-1" *ngIf="!cliente.tiVi_Id && mostrarErrores">
-              <small>El campo Localidad es requerido</small>
             </div>
           </div>
         </div>
@@ -227,24 +204,19 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="esCv_Id" class="form-label">Estado Civil</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
             <div class="d-flex align-items-center">
               <i class="ri-hand-heart-line"
                 [ngStyle]="{
-                border: (!cliente.esCv_Id && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.esCv_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
-              <select id="esCv_Id" class="form-select" [(ngModel)]="cliente.esCv_Id"
-                [class.is-invalid]="!cliente.esCv_Id && mostrarErrores" required>
+              <select id="esCv_Id" class="form-select" [(ngModel)]="cliente.esCv_Id">
                 <option value="0" disabled>Seleccione un estado civil</option>
                 <option *ngFor="let estadoCivil of estadosCiviles" [value]="estadoCivil.esCv_Id">
                   {{ estadoCivil.esCv_Descripcion }}
                 </option>
               </select>
-            </div>
-            <div class="text-danger mt-1" *ngIf="!cliente.esCv_Id && mostrarErrores">
-              <small>El campo Estado Civil es requerido</small>
             </div>
           </div>
         </div>
@@ -253,21 +225,16 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="clienteFechaNacimiento" class="form-label">Fecha de Nacimiento</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
             <div class="d-flex align-items-center">
               <i class="ri-calendar-todo-line"
                 [ngStyle]="{
-                border: (!cliente.clie_FechaNacimiento && mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
-                backgroundColor: (!cliente.clie_FechaNacimiento && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+                border: '1px solid #e9ecf5',
+                backgroundColor: '#f2f3f9',
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
               <input type="date" id="clienteFechaNacimiento" class="form-control"
-                [class.is-invalid]="!cliente.clie_FechaNacimiento && mostrarErrores"
                 [value]="cliente.clie_FechaNacimiento ? (cliente.clie_FechaNacimiento | date:'yyyy-MM-dd') : ''"
-                (change)="actualizarFechaNacimiento($event)" required />
-            </div>
-            <div class="text-danger mt-1" *ngIf="!cliente.clie_FechaNacimiento && mostrarErrores">
-              <small>El campo Fecha Nacimiento es requerido</small>
+                (change)="actualizarFechaNacimiento($event)"/>
             </div>
           </div>
         </div>
@@ -276,7 +243,7 @@
         <div class="col-md-6">
           <div class="mb-3">
             <label for="clienteTelefono" class="form-label">Teléfono</label>
-            <span class="text-danger" *ngIf="mostrarErrores">*</span>
+            <span class="text-danger">*</span>
             <div class="d-flex align-items-center">
               <i class="ri-phone-line"
                 [ngStyle]="{
@@ -394,7 +361,7 @@
                 padding: '0.525rem 0.525rem', position: 'relative', left: '7px', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px'}">
               </i>
               <select id="cana_Id" class="form-select" [(ngModel)]="cliente.cana_Id"
-                [class.is-invalid]="!cliente.cana_Id && mostrarErrores" required>
+                [class.is-invalid]="!cliente.cana_Id && mostrarErrores" (change)="onCanalChange($event)" required>
                 <option value="0" disabled>Seleccione un canal</option>
                 <option *ngFor="let canal of canales" [value]="canal.cana_Id">
                   {{ canal.cana_Descripcion }}
