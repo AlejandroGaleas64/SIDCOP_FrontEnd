@@ -87,51 +87,51 @@ export class EditComponent implements OnChanges {
   avalesEliminados: number[] = [];
 
   @Input() coordenadasIniciales?: { lat: number, lng: number };
-String: any;
+  String: any;
 
- ngOnChanges(changes: SimpleChanges): void {
-  if (changes['clienteData']?.currentValue) {
-    this.cliente = { ...changes['clienteData'].currentValue };
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['clienteData']?.currentValue) {
+      this.cliente = { ...changes['clienteData'].currentValue };
 
-    // Guardar el cliente original (normalizando clie_DiaVisita a CSV string)
-    this.clienteOriginal = {
-      ...changes['clienteData'].currentValue,
-      clie_DiaVisita: String((changes['clienteData'].currentValue?.clie_DiaVisita ?? '')).trim()
-    };
-    // Si ya tenemos rutas / canales cargadas, completar descripciones en el original
-    try {
-      const orig = this.clienteOriginal;
-      if (orig && orig.ruta_Id) {
-        const r = (this.rutas || []).find(x => String(x.ruta_Id) === String(orig.ruta_Id));
-        if (r) orig.ruta_Descripcion = orig.ruta_Descripcion || (r.ruta_Descripcion ?? '');
-      }
-      if (orig && orig.cana_Id) {
-        const c = (this.canales || []).find(x => String(x.cana_Id) === String(orig.cana_Id));
-        if (c) orig.cana_Descripcion = orig.cana_Descripcion || (c.cana_Descripcion ?? '');
-      }
-    } catch (e) { /* no bloquear */ }
-    this.idDelCliente = this.cliente.clie_Id;
+      // Guardar el cliente original (normalizando clie_DiaVisita a CSV string)
+      this.clienteOriginal = {
+        ...changes['clienteData'].currentValue,
+        clie_DiaVisita: String((changes['clienteData'].currentValue?.clie_DiaVisita ?? '')).trim()
+      };
+      // Si ya tenemos rutas / canales cargadas, completar descripciones en el original
+      try {
+        const orig = this.clienteOriginal;
+        if (orig && orig.ruta_Id) {
+          const r = (this.rutas || []).find(x => String(x.ruta_Id) === String(orig.ruta_Id));
+          if (r) orig.ruta_Descripcion = orig.ruta_Descripcion || (r.ruta_Descripcion ?? '');
+        }
+        if (orig && orig.cana_Id) {
+          const c = (this.canales || []).find(x => String(x.cana_Id) === String(orig.cana_Id));
+          if (c) orig.cana_Descripcion = orig.cana_Descripcion || (c.cana_Descripcion ?? '');
+        }
+      } catch (e) { /* no bloquear */ }
+      this.idDelCliente = this.cliente.clie_Id;
 
-    // Parsear días seleccionados del cliente
-    if (this.cliente.clie_DiaVisita) {
-      const diasString = String(this.cliente.clie_DiaVisita).trim();
-      if (diasString) {
-        this.diasSeleccionados = diasString
-          .split(',')
-          .map(d => Number(d.trim()))
-          .filter(n => !isNaN(n) && n >= 1 && n <= 7);
+      // Parsear días seleccionados del cliente
+      if (this.cliente.clie_DiaVisita) {
+        const diasString = String(this.cliente.clie_DiaVisita).trim();
+        if (diasString) {
+          this.diasSeleccionados = diasString
+            .split(',')
+            .map(d => Number(d.trim()))
+            .filter(n => !isNaN(n) && n >= 1 && n <= 7);
+        } else {
+          this.diasSeleccionados = [];
+        }
       } else {
         this.diasSeleccionados = [];
       }
-    } else {
-      this.diasSeleccionados = [];
-    }
 
-    // Cargar días disponibles
-    if (this.cliente.ruta_Id) {
-      this.fetchDiasDisponiblesCliente(this.cliente.ruta_Id);
-    }
-    
+      // Cargar días disponibles
+      if (this.cliente.ruta_Id) {
+        this.fetchDiasDisponiblesCliente(this.cliente.ruta_Id);
+      }
+
 
       // Si está vacío, intentar fallback
       if (!this.cliente.clie_DiaVisita) {
@@ -152,18 +152,18 @@ String: any;
       const procesarDiaVisita = () => {
         this.asignarRutaDescripcionYCodigo();
         // IMPORTANTE: Poblar diasDisponibles ANTES de validar
-        
-        
+
+
         // Esperar un tick para que diasDisponibles se pueble
         setTimeout(() => {
           if (this.cliente.clie_DiaVisita && this.diasDisponibles?.length > 0) {
             // Buscar coincidencia por id o nombre
             const found = this.diasDisponibles.find(d => {
               const diaStr = String(this.cliente.clie_DiaVisita).trim();
-              return String(d.id) === diaStr || 
-                     String(d.nombre).toLowerCase() === diaStr.toLowerCase();
+              return String(d.id) === diaStr ||
+                String(d.nombre).toLowerCase() === diaStr.toLowerCase();
             });
-            
+
             if (found) {
               this.cliente.clie_DiaVisita = String(found.id);
             } else {
@@ -184,7 +184,7 @@ String: any;
 
       this.cargarDireccionesExistentes();
       this.cargarAvalesExistentes();
-     
+
     }
   }
 
@@ -231,6 +231,17 @@ String: any;
       this.cliente.tiVi_Descripcion = tipoViviendaSeleccionado.tiVi_Descripcion;
     } else {
       this.cliente.tiVi_Descripcion = '';
+    }
+  }
+
+  onCanalChange(event: any) {
+    const selectedId = +event.target.value;
+    const canalSeleccionado = this.canales.find(c => c.cana_Id === selectedId);
+    if (canalSeleccionado) {
+      this.cliente.cana_Id = canalSeleccionado.cana_Id;
+      this.cliente.cana_Descripcion = canalSeleccionado.cana_Descripcion; // <-- Actualiza aquí
+    } else {
+      this.cliente.cana_Descripcion = '';
     }
   }
 
@@ -315,12 +326,12 @@ String: any;
       this.mostrarErrores = true;
       if (
         // this.cliente.clie_Codigo.trim() &&
-        this.cliente.clie_Nacionalidad.trim() &&
-        this.cliente.clie_Nombres.trim() &&
-        this.cliente.clie_Apellidos.trim() &&
-        this.cliente.esCv_Id &&
-        this.cliente.clie_FechaNacimiento &&
-        this.cliente.tiVi_Id &&
+        // this.cliente.clie_Nacionalidad.trim() &&
+        // this.cliente.clie_Nombres.trim() &&
+        // this.cliente.clie_Apellidos.trim() &&
+        // this.cliente.esCv_Id &&
+        // this.cliente.clie_FechaNacimiento &&
+        // this.cliente.tiVi_Id &&
         this.cliente.clie_Telefono.trim()
       ) {
         this.mostrarErrores = false;
@@ -344,6 +355,7 @@ String: any;
         this.cliente.clie_ImagenDelNegocio.trim() &&
         this.cliente.ruta_Id &&
         this.cliente.cana_Id &&
+        this.cliente.clie_DiaVisita.trim() &&
         this.direccionesPorCliente.length > 0
       ) {
         this.mostrarErrores = false;
@@ -380,8 +392,8 @@ String: any;
       return;
     }
 
-    if (no === 4) {   
-      if (this.tieneDatosCredito()) {   
+    if (no === 4) {
+      if (this.tieneDatosCredito()) {
         this.mostrarErrores = true;
         if (
           this.avales.length > 0 &&
@@ -460,11 +472,11 @@ String: any;
       this.mostrarErrores = true;
       if (
         // this.cliente.clie_Codigo.trim() &&
-        this.cliente.clie_Nacionalidad.trim() &&
-        this.cliente.clie_Nombres.trim() &&
-        this.cliente.clie_Apellidos.trim() &&
-        this.cliente.esCv_Id &&
-        this.cliente.tiVi_Id &&
+        // this.cliente.clie_Nacionalidad.trim() &&
+        // this.cliente.clie_Nombres.trim() &&
+        // this.cliente.clie_Apellidos.trim() &&
+        // this.cliente.esCv_Id &&
+        // this.cliente.tiVi_Id &&
         this.cliente.clie_Telefono.trim()
       ) {
         this.mostrarErrores = false;
@@ -487,6 +499,7 @@ String: any;
         this.cliente.clie_ImagenDelNegocio.trim() &&
         this.cliente.ruta_Id &&
         this.cliente.cana_Id &&
+        this.cliente.clie_DiaVisita.trim() &&
         this.direccionesPorCliente.length > 0
       ) {
         this.mostrarErrores = false;
@@ -783,7 +796,7 @@ String: any;
     clie_Telefono: '',
     clie_Correo: '',
     clie_Sexo: 'M',
-    clie_FechaNacimiento: null,
+    clie_FechaNacimiento: new Date(),
     tiVi_Id: 0,
     tiVi_Descripcion: '',
     cana_Id: 0,
@@ -987,7 +1000,11 @@ String: any;
         clie_Telefono: this.cliente.clie_Telefono.trim(),
         clie_Correo: this.cliente.clie_Correo.trim(),
         clie_Sexo: this.cliente.clie_Sexo,
-        clie_FechaNacimiento: this.cliente.clie_FechaNacimiento,
+        clie_FechaNacimiento: this.cliente.clie_FechaNacimiento
+  ? (typeof this.cliente.clie_FechaNacimiento === 'string'
+      ? new Date(this.cliente.clie_FechaNacimiento)
+      : this.cliente.clie_FechaNacimiento)
+  : null,
         tiVi_Id: this.cliente.tiVi_Id,
         tiVi_Descripcion: this.cliente.tiVi_Descripcion,
         cana_Id: this.cliente.cana_Id,
@@ -1032,7 +1049,7 @@ String: any;
           next: (response) => {
             if (response.data.code_Status === 1) {
               this.actualizarDireccionesYAvales();
-              this.mensajeExito = `Cliente "${this.cliente.clie_Nombres + ' ' + this.cliente.clie_Apellidos}" actualizado exitosamente`;
+              this.mensajeExito = `"${this.cliente.clie_NombreNegocio}" actualizado exitosamente`;
               this.mostrarAlertaExito = true;
               this.mostrarErrores = false;
 
@@ -1468,8 +1485,8 @@ String: any;
   diasSemanaString(d: any): string {
     if (d === null || d === undefined || String(d).trim() === '') return 'N/A';
     const s = String(d).trim();
-    const map: Record<string,string> = {
-      '1': 'Lunes','2':'Martes','3':'Miércoles','4':'Jueves','5':'Viernes','6':'Sábado','7':'Domingo'
+    const map: Record<string, string> = {
+      '1': 'Lunes', '2': 'Martes', '3': 'Miércoles', '4': 'Jueves', '5': 'Viernes', '6': 'Sábado', '7': 'Domingo'
     };
     return map[s] ?? s;
   }
@@ -1509,11 +1526,11 @@ String: any;
   // Handler que actualiza el modelo cuando el ng-select de días cambia
   onDiasSeleccionadosChange(selected: any[]) {
     this.diasSeleccionados = (selected || []).map(s => Number(s)).filter(n => !isNaN(n) && n >= 1 && n <= 7);
-    this.cliente.clie_DiaVisita = this.diasSeleccionados.length ? this.diasSeleccionados.sort((a,b)=>a-b).join(',') : '';
+    this.cliente.clie_DiaVisita = this.diasSeleccionados.length ? this.diasSeleccionados.sort((a, b) => a - b).join(',') : '';
     this.cdr.detectChanges();
   }
 
-   private findRutaDescripcionById(id: any): string {
+  private findRutaDescripcionById(id: any): string {
     if (id == null || id === '') return '';
     const key = String(id).trim();
     const found = (this.rutas || []).find(r => String(r.ruta_Id ?? r.id ?? '').trim() === key);
@@ -1728,34 +1745,34 @@ String: any;
     }
 
     for (const avalActual of this.avales) {
-  // Busca el aval original por ID
-  const avalOriginal = this.avalesOriginales.find(a => a.aval_Id === avalActual.aval_Id);
+      // Busca el aval original por ID
+      const avalOriginal = this.avalesOriginales.find(a => a.aval_Id === avalActual.aval_Id);
 
-  // Si no hay original, es nuevo (puedes mostrar todos los campos como nuevos si quieres)
-  if (!avalOriginal) continue;
+      // Si no hay original, es nuevo (puedes mostrar todos los campos como nuevos si quieres)
+      if (!avalOriginal) continue;
 
-  if (avalActual.aval_Nombres !== avalOriginal.aval_Nombres) {
-    this.cambiosDetectados[`nombreAval${avalActual.aval_Id}`] = {
-      anterior: avalOriginal.aval_Nombres,
-      nuevo: avalActual.aval_Nombres,
-      label: `Nombre del Aval`
-    };
-  }
-  if (avalActual.aval_Apellidos !== avalOriginal.aval_Apellidos) {
-    this.cambiosDetectados[`apellidoAval${avalActual.aval_Id}`] = {
-      anterior: avalOriginal.aval_Apellidos,
-      nuevo: avalActual.aval_Apellidos,
-      label: `Apellido del Aval`
-    };
-  }
-  if (avalActual.aval_DNI !== avalOriginal.aval_DNI) {
-    this.cambiosDetectados[`dniAval${avalActual.aval_Id}`] = {
-      anterior: avalOriginal.aval_DNI,
-      nuevo: avalActual.aval_DNI,
-      label: `DNI del Aval`
-    };
-  }
-}
+      if (avalActual.aval_Nombres !== avalOriginal.aval_Nombres) {
+        this.cambiosDetectados[`nombreAval${avalActual.aval_Id}`] = {
+          anterior: avalOriginal.aval_Nombres,
+          nuevo: avalActual.aval_Nombres,
+          label: `Nombre del Aval`
+        };
+      }
+      if (avalActual.aval_Apellidos !== avalOriginal.aval_Apellidos) {
+        this.cambiosDetectados[`apellidoAval${avalActual.aval_Id}`] = {
+          anterior: avalOriginal.aval_Apellidos,
+          nuevo: avalActual.aval_Apellidos,
+          label: `Apellido del Aval`
+        };
+      }
+      if (avalActual.aval_DNI !== avalOriginal.aval_DNI) {
+        this.cambiosDetectados[`dniAval${avalActual.aval_Id}`] = {
+          anterior: avalOriginal.aval_DNI,
+          nuevo: avalActual.aval_DNI,
+          label: `DNI del Aval`
+        };
+      }
+    }
     return Object.keys(this.cambiosDetectados).length > 0;
   }
 
@@ -1782,29 +1799,40 @@ String: any;
 
     // Validar campos básicos requerido
 
-    if (!this.cliente.clie_Nombres.trim()) {
-      errores.push('Nombres');
-    }
+    // if (!this.cliente.clie_Nombres.trim()) {
+    //   errores.push('Nombres');
+    // }
 
-    if (!this.cliente.clie_Apellidos.trim()) {
-      errores.push('Apellidos');
-    }
+    // if (!this.cliente.clie_Apellidos.trim()) {
+    //   errores.push('Apellidos');
+    // }
 
-    if (!this.cliente.clie_NombreNegocio.trim()) {
-      errores.push('Nombre del Negocio');
-    }
+    if (!this.cliente.clie_Telefono.trim()) {
+    errores.push('Teléfono');
+  }
+  if (!this.cliente.clie_NombreNegocio.trim()) {
+    errores.push('Nombre del Negocio');
+  }
+  if (!this.cliente.clie_ImagenDelNegocio) {
+    errores.push('Imagen del Negocio');
+  }
+  if (!this.cliente.ruta_Id) {
+    errores.push('Ruta');
+  }
+  if (!this.cliente.cana_Id) {
+    errores.push('Canal');
+  }
+  if (!this.cliente.clie_DiaVisita || !this.cliente.clie_DiaVisita.trim()) {
+    errores.push('Días de Visita');
+  }
 
-    if (!this.cliente.tiVi_Id) {
-      errores.push('Tipo de Vivienda');
-    }
+    // if (!this.cliente.tiVi_Id) {
+    //   errores.push('Tipo de Vivienda');
+    // }
 
-    if (!this.cliente.esCv_Id) {
-      errores.push('Estado Civil');
-    }
-
-    if (!this.cliente.clie_ImagenDelNegocio) {
-      errores.push('Imagen del Negocio');
-    }
+    // if (!this.cliente.esCv_Id) {
+    //   errores.push('Estado Civil');
+    // }
 
 
     if (this.tieneDatosCredito()) {
@@ -1843,7 +1871,7 @@ String: any;
     }
   }
 
-    //Para buscar colonias en DDL
+  //Para buscar colonias en DDL
   searchColonias = (term: string, item: any) => {
     term = term.toLowerCase();
     return (
@@ -1884,7 +1912,7 @@ String: any;
 
   //Lógica para clientes visita
 
-   diasSemana = [
+  diasSemana = [
     { id: 1, nombre: 'Lunes' },
     { id: 2, nombre: 'Martes' },
     { id: 3, nombre: 'Miércoles' },
@@ -1896,45 +1924,45 @@ String: any;
 
   // Opciones que alimentan el ng-select de "Día de Visita"
   diasDisponibles: Array<{ id: number; nombre: string }> = [];
- 
+
   rutasDisponibles: any[] = [];
   rutasTodas: any[] = [];
   rutasVendedor: { ruta_Id: number | null, diasSeleccionados: number[], veRu_Dias: string }[] = [
     { ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' }
   ];
-   // Verificar rutas y días
-    // (Nota: estas transformaciones deben ejecutarse dentro de un método en tiempo de ejecución;
-    // mover la lógica aquí para evitar declarar 'const' a nivel de clase)
-    private mapRutasDesdeOriginal(original: any, rutasVendedor: any[] = []): Array<{ ruta_Id: number; ruta_Descripcion?: string; diasSeleccionados: any[] }> {
-      const rutasOriginales = Array.isArray(original?.rutas) ? original.rutas : [];
-      const rutasNuevas = (rutasVendedor || []).map(rv => ({
-        ruta_Id: rv.ruta_Id as number,
-        ruta_Descripcion: (this.rutasTodas || this.rutasDisponibles || []).find((r: any) => Number(r.ruta_Id ?? r.id) === Number(rv.ruta_Id))?.ruta_Descripcion,
-        diasSeleccionados: Array.isArray(rv.diasSeleccionados) ? rv.diasSeleccionados : (rv.veRu_Dias ? String(rv.veRu_Dias).split(',').map((x: string) => Number(x)).filter(n => !isNaN(n)) : [])
-      }));
-      // devuelve las rutas nuevas calculadas (las originales se conservan si es necesario)
-      return rutasNuevas;
-    }
-    
-  private formatearDias = (dias: any[]): string => {
-      if (!dias || !dias.length) return 'Sin días';
-      const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-      return dias.map(d => {
-        if (typeof d === 'object' && d !== null && 'nombre' in d) {
-          return (d as any).nombre;
-        }
-        return diasSemana[Number(d)] || d;
-      }).join(', ');
-    };
-    
+  // Verificar rutas y días
+  // (Nota: estas transformaciones deben ejecutarse dentro de un método en tiempo de ejecución;
+  // mover la lógica aquí para evitar declarar 'const' a nivel de clase)
+  private mapRutasDesdeOriginal(original: any, rutasVendedor: any[] = []): Array<{ ruta_Id: number; ruta_Descripcion?: string; diasSeleccionados: any[] }> {
+    const rutasOriginales = Array.isArray(original?.rutas) ? original.rutas : [];
+    const rutasNuevas = (rutasVendedor || []).map(rv => ({
+      ruta_Id: rv.ruta_Id as number,
+      ruta_Descripcion: (this.rutasTodas || this.rutasDisponibles || []).find((r: any) => Number(r.ruta_Id ?? r.id) === Number(rv.ruta_Id))?.ruta_Descripcion,
+      diasSeleccionados: Array.isArray(rv.diasSeleccionados) ? rv.diasSeleccionados : (rv.veRu_Dias ? String(rv.veRu_Dias).split(',').map((x: string) => Number(x)).filter(n => !isNaN(n)) : [])
+    }));
+    // devuelve las rutas nuevas calculadas (las originales se conservan si es necesario)
+    return rutasNuevas;
+  }
 
-    // ...existing code...
+  private formatearDias = (dias: any[]): string => {
+    if (!dias || !dias.length) return 'Sin días';
+    const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    return dias.map(d => {
+      if (typeof d === 'object' && d !== null && 'nombre' in d) {
+        return (d as any).nombre;
+      }
+      return diasSemana[Number(d)] || d;
+    }).join(', ');
+  };
+
+
+  // ...existing code...
   /**
    * Llama al endpoint Cliente/DiasDisponibles/{rutaId} y normaliza la respuesta
    * Soporta: CSV string ("1,2"), array de números, array de objetos {id,nombre}, o { data: [...] }
    */
 
-   private mergeVeruDiasFromPayload(payload: any): number[] {
+  private mergeVeruDiasFromPayload(payload: any): number[] {
     const addNumsFrom = (src: any, set: Set<number>) => {
       if (src == null) return;
       if (typeof src === 'number') {
@@ -1992,23 +2020,23 @@ String: any;
         try {
           // console.log('dias: ', payload);
           // string CSV -> ids
- 
 
-            const ids = this.mergeVeruDiasFromPayload(payload);
-            // console.log('dias con merge', ids);
-             this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
-   
-            this.cdr.detectChanges();
-            return;
-   
-         
-          
+
+          const ids = this.mergeVeruDiasFromPayload(payload);
+          // console.log('dias con merge', ids);
+          this.diasDisponibles = this.diasSemana.filter(d => ids.includes(d.id));
+
+          this.cdr.detectChanges();
+          return;
+
+
+
         } catch (err) {
           console.warn('[Clientes] error normalizando diasDisponibles desde API', err);
         }
         // fallback: vacío
         this.diasDisponibles = [];
- 
+
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -2018,7 +2046,7 @@ String: any;
       }
     });
   }
-// ...existing code...
+  // ...existing code...
   cerrarFormularioMapa(): void {
     this.mostrarMapa = false;
   }
