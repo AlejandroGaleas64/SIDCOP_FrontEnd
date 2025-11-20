@@ -144,7 +144,7 @@ export class EditConfigFacturaComponent implements OnChanges {
   private centrarLogoZPL(zplCode: string): string {
     try {
       // Constantes para papel de 3 pulgadas
-      const PAPER_WIDTH_INCHES = 3;
+      const PAPER_WIDTH_INCHES = 2;
       const DPI = 203; // DPI estándar de impresoras Zebra
       const PAPER_WIDTH_DOTS = PAPER_WIDTH_INCHES * DPI; // 609 dots
 
