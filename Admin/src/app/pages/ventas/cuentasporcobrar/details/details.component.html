@@ -2,12 +2,19 @@
   Contenedor principal de la vista de detalles de cuenta por cobrar.
   Incluye alertas, modal de anulación, información principal, historial de facturas y pagos.
 -->
-<div class="details-container">
-  <!-- Contenedor de alertas flotantes -->
-  <!--
-    Contenedor de alertas flotantes.
-    Muestra mensajes de error y éxito.
-  -->
+<app-breadcrumbs
+  [title]="'Cuentas por Cobrar'"
+  [breadcrumbItems]="breadCrumbItems"
+>
+  <img
+    class="icon-breadcrumb"
+    style="width: 10vh; height: 10vh"
+    src="assets/images/svg/cxc.svg"
+    alt="cuentas por cobrar icon"
+  />
+</app-breadcrumbs>
+
+ <!-- Contenedor de alertas flotantes -->
   <div class="alert-container">
     <!-- Alerta de error -->
     <div
@@ -42,11 +49,10 @@
     </div>
   </div>
 
+<div class="details-container">
+ 
+
   <!-- Overlay para el modal -->
-  <!--
-    Overlay para el modal de anulación de pago.
-    Se muestra cuando el modal está activo.
-  -->
   <div
     *ngIf="mostrarModalAnulacion"
     class="modal-backdrop fade show"
@@ -54,10 +60,6 @@
   ></div>
 
   <!-- Modal de anulación de pago -->
-  <!--
-    Modal de anulación de pago.
-    Permite ingresar el motivo y confirmar la anulación.
-  -->
   <div
     *ngIf="mostrarModalAnulacion"
     class="modal fade show"
@@ -152,9 +154,6 @@
   </div>
 
   <!-- Botón de regresar -->
-  <!--
-    Botón para regresar a la lista de cuentas por cobrar.
-  -->
   <div class="details-header-button">
     <button type="button" class="btn btn-primary" (click)="cerrar()">
       <span class="btn-text">Regresar</span>
@@ -163,36 +162,17 @@
   </div>
 
   <!-- Contenido de detalles -->
-  <!--
-    Contenido principal de detalles.
-    Incluye información de la cuenta, historial de facturas y pagos.
-  -->
   <div *ngIf="!cargando && cuentaPorCobrarDetalle" class="details-content">
-    <!-- Header con información principal -->
-    <!--
-      Header con el título de la sección de detalles.
-    -->
-    <div class="details-header">
-      <div class="details-title">Detalles de Cuenta por Cobrar</div>
-    </div>
-
-    <!-- Tabla principal de datos de cuenta por cobrar -->
-    <!--
-      Tabla principal de historial de facturas asociadas a la cuenta por cobrar.
-      Incluye buscador, paginación y acciones.
-    -->
-    <div class="card mb-3">
-      <div
-        class="card-header d-flex justify-content-between align-items-center"
-      >
-        <h5 class="card-title mb-0">Historial facturas</h5>
+    
+    <!-- Tabla principal de historial de facturas -->
+    <div class="card mb-3 mt-3">
+      <div class="card-header d-flex align-items-center rounded-top details-header-custom">
+        <i class="ri-file-list-3-line me-2 fs-5"></i>
+        <h5 class="mb-0" style="color: #303d7d">Historial de Facturas</h5>
       </div>
       <div class="card-body">
         <div class="d-flex justify-content-between mb-3 flex-wrap">
           <!-- Buscador -->
-          <!--
-            Buscador para filtrar el historial de facturas.
-          -->
           <div class="search-box mb-2">
             <input
               type="text"
@@ -205,10 +185,6 @@
           </div>
         </div>
 
-        <!--
-          Tabla de historial de facturas.
-          Incluye columnas dinámicas, acciones y formato de estado.
-        -->
         <div class="table-radius-container">
           <div class="table-responsive">
             <table class="table table-gridjs table-style">
@@ -224,7 +200,6 @@
                   >
                     <span class="table-header-flex">
                       No.
-                      <!-- iconos para ordenar -->
                       <span style="display: flex; flex-direction: column">
                         <i
                           class="ri-arrow-up-s-line icon-sort"
@@ -252,23 +227,9 @@
                     (click)="tablaPrincipal.sortBy('fact_Id')"
                     style="cursor: pointer"
                   >
-                    <span
-                      style="
-                        display: flex;
-                        align-items: center;
-                        justify-content: flex-start;
-                        gap: 4px;
-                      "
-                    >
+                    <span class="table-header-flex">
                       Factura
-                      <!-- iconos para ordenar -->
-                      <span
-                        style="
-                          display: flex;
-                          flex-direction: column;
-                          margin-left: 6px;
-                        "
-                      >
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
                         <i
                           class="ri-arrow-up-s-line icon-sort"
                           [ngStyle]="
@@ -295,23 +256,9 @@
                     (click)="tablaPrincipal.sortBy('cpCo_FechaEmision')"
                     style="cursor: pointer"
                   >
-                    <span
-                      style="
-                        display: flex;
-                        align-items: center;
-                        justify-content: flex-start;
-                        gap: 4px;
-                      "
-                    >
+                    <span class="table-header-flex">
                       Fecha Emisión
-                      <!-- iconos para ordenar -->
-                      <span
-                        style="
-                          display: flex;
-                          flex-direction: column;
-                          margin-left: 6px;
-                        "
-                      >
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
                         <i
                           class="ri-arrow-up-s-line icon-sort"
                           [ngStyle]="
@@ -338,28 +285,13 @@
                     (click)="tablaPrincipal.sortBy('cpCo_FechaVencimiento')"
                     style="cursor: pointer"
                   >
-                    <span
-                      style="
-                        display: flex;
-                        align-items: center;
-                        justify-content: flex-start;
-                        gap: 4px;
-                      "
-                    >
+                    <span class="table-header-flex">
                       Fecha Vencimiento
-                      <!-- iconos para ordenar -->
-                      <span
-                        style="
-                          display: flex;
-                          flex-direction: column;
-                          margin-left: 6px;
-                        "
-                      >
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
                         <i
                           class="ri-arrow-up-s-line icon-sort"
                           [ngStyle]="
-                            tablaPrincipal.sortField ===
-                              'cpCo_FechaVencimiento' &&
+                            tablaPrincipal.sortField === 'cpCo_FechaVencimiento' &&
                             tablaPrincipal.sortDirection === 'asc'
                               ? { color: '#D6B68A' }
                               : { color: 'white' }
@@ -368,8 +300,7 @@
                         <i
                           class="ri-arrow-down-s-line icon-sort"
                           [ngStyle]="
-                            tablaPrincipal.sortField ===
-                              'cpCo_FechaVencimiento' &&
+                            tablaPrincipal.sortField === 'cpCo_FechaVencimiento' &&
                             tablaPrincipal.sortDirection === 'desc'
                               ? { color: '#D6B68A' }
                               : { color: 'white' }
@@ -383,23 +314,9 @@
                     (click)="tablaPrincipal.sortBy('monto')"
                     style="cursor: pointer"
                   >
-                    <span
-                      style="
-                        display: flex;
-                        align-items: center;
-                        justify-content: flex-start;
-                        gap: 4px;
-                      "
-                    >
+                    <span class="table-header-flex">
                       Monto
-                      <!-- iconos para ordenar -->
-                      <span
-                        style="
-                          display: flex;
-                          flex-direction: column;
-                          margin-left: 6px;
-                        "
-                      >
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
                         <i
                           class="ri-arrow-up-s-line icon-sort"
                           [ngStyle]="
@@ -426,23 +343,9 @@
                     (click)="tablaPrincipal.sortBy('totalPendiente')"
                     style="cursor: pointer"
                   >
-                    <span
-                      style="
-                        display: flex;
-                        align-items: center;
-                        justify-content: flex-start;
-                        gap: 4px;
-                      "
-                    >
+                    <span class="table-header-flex">
                       Total Pendiente
-                      <!-- iconos para ordenar -->
-                      <span
-                        style="
-                          display: flex;
-                          flex-direction: column;
-                          margin-left: 6px;
-                        "
-                      >
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
                         <i
                           class="ri-arrow-up-s-line icon-sort"
                           [ngStyle]="
@@ -469,23 +372,9 @@
                     (click)="tablaPrincipal.sortBy('estaVencida')"
                     style="cursor: pointer"
                   >
-                    <span
-                      style="
-                        display: flex;
-                        align-items: center;
-                        justify-content: flex-start;
-                        gap: 4px;
-                      "
-                    >
+                    <span class="table-header-flex">
                       Estado
-                      <!-- iconos para ordenar -->
-                      <span
-                        style="
-                          display: flex;
-                          flex-direction: column;
-                          margin-left: 6px;
-                        "
-                      >
+                      <span style="display: flex; flex-direction: column; margin-left: 6px;">
                         <i
                           class="ri-arrow-up-s-line icon-sort"
                           [ngStyle]="
@@ -558,10 +447,10 @@
                     >
                       {{
                         dato.estaVencida
-                          ? "Vencida"
+                          ? 'Vencida'
                           : dato.cpCo_Saldada
-                          ? "Saldada"
-                          : "Pendiente"
+                          ? 'Saldada'
+                          : 'Pendiente'
                       }}
                     </span>
                   </td>
@@ -580,10 +469,7 @@
           </div>
         </div>
 
-        <!--
-          Paginación para la tabla de historial de facturas.
-          Muestra rango de registros y controles de página.
-        -->
+        <!-- Paginación -->
         <div class="row justify-content-md-between align-items-md-center mt-3">
           <ng-container *ngIf="tablaPrincipal.paginated$ | async as paginados">
             <div class="col-sm-12 col-md-5">
@@ -617,15 +503,10 @@
     </div>
 
     <!-- Historial de pagos -->
-    <!--
-      Tabla de historial de pagos realizados sobre la cuenta por cobrar.
-      Incluye acciones de anulación y formato de estado.
-    -->
     <div class="card mb-3" *ngIf="pagos && pagos.length > 0">
-      <div
-        class="card-header d-flex justify-content-between align-items-center"
-      >
-        <h5 class="card-title mb-0">Historial de Pagos</h5>
+      <div class="card-header d-flex align-items-center rounded-top details-header-custom">
+        <i class="ri-money-dollar-circle-line me-2 fs-5"></i>
+        <h5 class="mb-0" style="color: #303d7d">Historial de Pagos</h5>
       </div>
       <div class="card-body">
         <div class="table-radius-container">
@@ -669,14 +550,14 @@
                   <td>{{ formatearFecha(pago.pago_Fecha) }}</td>
                   <td>{{ formatearMoneda(pago.pago_Monto) }}</td>
                   <td>{{ pago.foPa_Descripcion }}</td>
-                  <td>{{ pago.pago_NumeroReferencia || "N/A" }}</td>
-                  <td>{{ pago.pago_Observaciones || "N/A" }}</td>
+                  <td>{{ pago.pago_NumeroReferencia || 'N/A' }}</td>
+                  <td>{{ pago.pago_Observaciones || 'N/A' }}</td>
                   <td>
                     <span
                       class="badge"
                       [ngClass]="pago.pago_Anulado ? 'bg-danger' : 'bg-success'"
                     >
-                      {{ pago.pago_Anulado ? "Anulado" : "Activo" }}
+                      {{ pago.pago_Anulado ? 'Anulado' : 'Activo' }}
                     </span>
                   </td>
                 </tr>
@@ -696,9 +577,6 @@
     </div>
 
     <!-- Indicador de carga -->
-    <!--
-    Indicador de carga mientras se obtienen datos del servidor.
-  -->
     <div *ngIf="cargando" class="loading-indicator">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Cargando...</span>
@@ -707,10 +585,6 @@
     </div>
 
     <!-- Overlay de carga -->
-    <!--
-    Overlay de carga animado.
-    Se muestra mientras se obtienen datos del servidor.
-  -->
     <div *ngIf="mostrarOverlayCarga" class="overlay-carga">
       <div class="typing-indicator">
         <div class="typing-circle"></div>
