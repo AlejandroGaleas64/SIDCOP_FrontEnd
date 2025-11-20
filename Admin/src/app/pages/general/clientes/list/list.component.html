@@ -50,7 +50,7 @@
             <i id="campanita" class="ri-notification-2-fill bell-icon"
               style="color: #d6b68a; font-size: 1.70em; cursor: pointer;"></i>
             <span class="badge bg-dark rounded-pill notification-badge"
-              style="position: absolute; right: -6px; top: -6px; font-size: 0.65em; padding: 0.5px 7px; z-index: 3;">
+              style="position: absolute; right: -4px; top: -4px; font-size: 0.65em; padding: 0.5px 7px; z-index: 3;">
               {{ notificacionesSinConfirmar }}
             </span>
           </div>
@@ -95,8 +95,8 @@
       <div class="mb-2 d-flex flex-column" style="min-height: 300px; padding: 2rem;">
         <div class="container-fluid flex-grow-1">
           <app-create (onCancel)="cerrarFormulario()" (onSave)="guardarCliente($event)"
-          (onSave) = "mostrarMensajeExito($event)"></app-create>
-          
+            (onSave)="mostrarMensajeExito($event)"></app-create>
+
         </div>
 
         <div *ngIf="mostrarAlertaExito" class="alert alert-success">
@@ -190,11 +190,15 @@
                 </li>
                 <li class="d-flex justify-content-center align-items-center gap-2 mb-1">
                   <i class="bx bx-id-card" style="color: #141A2F;"></i>
-                  <span class="text-muted text-break"> {{ cliente.clie_DNI ? cliente.clie_DNI : 'N/A' }} </span>
+                  <span class="text-muted text-break">
+                    {{ cliente.clie_DNI ? (cliente.clie_DNI | maskDisplay:'0000-0000-00000') : 'N/A' }}
+                  </span>
                 </li>
                 <li class="d-flex justify-content-center align-items-center gap-2 mb-1">
                   <i class="bi bi-telephone" style="color: #141A2F;"></i>
-                  <span class="text-muted">{{ cliente.clie_Telefono }}</span>
+                  <span class="text-muted">
+                    {{ cliente.clie_Telefono ? (cliente.clie_Telefono | maskDisplay:'0000-0000') : '' }}
+                  </span>
                 </li>
               </ul>
             </div>
@@ -211,7 +215,7 @@
       </div>
       <div class="col-sm-auto mt-3 mt-sm-0 text-md-right float-md-end gridjs-pagination">
         <pagination [(ngModel)]="currentPage" [totalItems]="clientesFiltrados.length" [itemsPerPage]="itemsPerPage"
-          [maxSize]="5" (pageChanged)="pageChanged($event)">
+          [maxSize]="5" [rotate]="true" (pageChanged)="pageChanged($event)">
         </pagination>
       </div>
     </div>
@@ -254,7 +258,7 @@
                       <button class="dropdown-action-btn" (click)="confirmarEliminar(cliente)">
                         {{ esClienteActivo(cliente) ? 'Desactivar' : 'Activar' }}
                         <i
-                          [ngClass]="cliente.clie_Estado == 1 || cliente.clie_Estado === true || cliente.clie_Estado == '1' || cliente.clie_Estado == 'true' ? 'ri-close-circle-line' : 'ri-checkbox-circle-line'"></i>
+                          [ngClass]="cliente.clie_Estado == 1 || cliente.clie_Estado === true ? 'ri-forbid-2-line' : 'ri-checkbox-circle-line'"></i>
                       </button>
                     </li>
                     <li *ngIf="showDetails">
@@ -294,11 +298,15 @@
                 </li>
                 <li class="d-flex justify-content-center align-items-center gap-2 mb-1">
                   <i class="bx bx-id-card" style="color: #141A2F;"></i>
-                  <span class="text-muted text-break"> {{ cliente.clie_DNI ? cliente.clie_DNI : 'N/A' }} </span>
+                  <span class="text-muted text-break">
+                    {{ cliente.clie_DNI ? (limpiarGuiones(cliente.clie_DNI) | maskDisplay:'0000-0000-00000') : 'N/A' }}
+                  </span>
                 </li>
                 <li class="d-flex justify-content-center align-items-center gap-2 mb-1">
                   <i class="bi bi-telephone" style="color: #141A2F;"></i>
-                  <span class="text-muted">{{ cliente.clie_Telefono }}</span>
+                  <span class="text-muted">
+                    {{ cliente.clie_Telefono ? (limpiarGuiones(cliente.clie_Telefono) | maskDisplay:'0000-0000') : '' }}
+                  </span>
                 </li>
               </ul>
             </div>
@@ -329,6 +337,13 @@
         <strong>¡Éxito!</strong> {{ mensajeExito }}
         <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
       </div>
+
+      <div *ngIf="mostrarAlertaError"
+        class="alert alert-danger alert-border-left alert-dismissible fade show floating-alert" role="alert">
+        <i class="ri-error-warning-line me-3 align-middle fs-lg"></i>
+        <strong>¡Error!</strong> {{ mensajeError }}
+        <button type="button" class="btn-close" (click)="cerrarAlerta()" aria-label="Close"></button>
+      </div>
     </div>
     <!-- Modal de confirmación para eliminar -->
     <div class="modal fade custom-modal" [ngClass]="{ 'show': mostrarConfirmacionEliminar }"
@@ -345,17 +360,31 @@
               <p class="mt-2 custom-modal-text">
                 <i class="ri-alert-line me-2 custom-modal-alert-icon"
                   (click)="cambiarEstadoCliente(clienteAEliminar?.clie_Id ?? 0)"></i>
-                ¿Está seguro(a) que desea desactivar el cliente <strong>{{ clienteAEliminar?.clie_Nombres }}</strong>?
+                ¿Está seguro(a) que desea
+                {{ clienteAEliminar?.clie_Estado == true
+                ? 'desactivar'
+                : 'activar'
+                }}
+                el cliente <strong>{{ clienteAEliminar?.clie_Nombres }}</strong>?
               </p>
             </div>
           </div>
           <div class="modal-footer custom-modal-footer">
             <button type="button" class="btn btn-primary gray btn-sm btn-minw-5" (click)="cancelarEliminar()"><span
                 class="btn-text">No</span><span class="btn-icon"><i class="ri-close-circle-line"></i></span></button>
-            <button type="button" class="btn btn-primary red btn-sm btn-minw-5"
-              (click)="cambiarEstadoCliente(clienteAEliminar?.clie_Id ?? 0)">
-              <span class="btn-text">Sí</span>
-              <span class="btn-icon"><i class="ri-delete-bin-line"></i></span>
+            <button type="button" class="btn btn-primary btn-sm btn-minw-5" [ngClass]="clienteAEliminar?.clie_Estado === true
+          ? 'red'
+          : 'gold'" (click)="cambiarEstadoCliente(clienteAEliminar?.clie_Id ?? 0)">
+              <span class="btn-text">
+                Sí
+              </span>
+              <span class="btn-icon">
+                <i [ngClass]="
+       clienteAEliminar?.clie_Estado === true 
+        ? 'ri-forbid-line'
+        : 'ri-checkbox-circle-line'
+    "></i>
+              </span>
             </button>
           </div>
         </div>
