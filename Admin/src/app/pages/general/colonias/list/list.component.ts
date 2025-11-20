@@ -88,19 +88,27 @@ export class ListComponent implements OnInit {
   // - columns: columnas y formato para export
   // - dataMapping: función para transformar cada entidad en fila exportable
   private readonly exportConfig = {
-    title: 'Listado de Colonias',
-    filename: 'Colonias',
-    department: 'General',
-    columns: [
-      { key: 'No', header: 'No.', width: 8, align: 'center' as const },
-      { key: 'Descripción', header: 'Descripción', width: 50, align: 'left' as const }
-    ] as ExportColumn[],
-    dataMapping: (colonia: Colonias, index: number) => ({
+  title: 'Listado de Colonias',
+  filename: 'Colonias',
+  department: 'General',
+  columns: [
+    { key: 'No', header: 'No.', width: 8, align: 'center' as const },
+    { key: 'Descripción', header: 'Descripción', width: 30, align: 'left' as const },
+    { key: 'Municipio', header: 'Municipio', width: 20, align: 'left' as const },       // ← nuevo
+    { key: 'Departamento', header: 'Departamento', width: 20, align: 'left' as const } // ← nuevo
+  ] as ExportColumn[],
+  dataMapping: (colonia: Colonias, index: number) => {
+    // Buscar municipio por muni_Codigo
+    const municipio = this.municipios.find(m => m.muni_Codigo === colonia.muni_Codigo);
+    
+    return {
       'No': colonia?.secuencia || (index + 1),
-      'Descripción': this.limpiarTexto(colonia?.colo_Descripcion)
-      // Añadir más campos en caso de ser necesario
-    })
-  };
+      'Descripción': this.limpiarTexto(colonia?.colo_Descripcion),
+      'Municipio': this.limpiarTexto(municipio?.muni_Descripcion || '—'),
+      'Departamento': this.limpiarTexto(municipio?.depa_Descripcion || '—')
+    };
+  }
+};
 
   exportando = false;
   tipoExportacion: 'excel' | 'pdf' | 'csv' | null = null;
@@ -207,6 +215,19 @@ export class ListComponent implements OnInit {
       }
     });
   }
+  private cargarMunicipiosConCallback(resolve: () => void, reject: (err: any) => void): void {
+  this.http.get<Municipio[]>(`${environment.apiBaseUrl}/Municipios/Listar`, {
+    headers: { 'x-api-key': environment.apiKey }
+  }).subscribe({
+    next: (data) => {
+      this.municipios = data;
+      resolve();
+    },
+    error: (error) => {
+      reject(error);
+    }
+  });
+}
 
   constructor(public table: ReactiveTableService<Colonias>, 
     private http: HttpClient, 
@@ -223,6 +244,19 @@ export class ListComponent implements OnInit {
       return;
     }
 
+    if (this.municipios.length === 0) {
+    this.mostrarMensaje('info', 'Cargando datos complementarios...');
+    try {
+      await new Promise<void>((resolve, reject) => {
+        this.cargarMunicipiosConCallback(resolve, reject);
+      });
+      this.mostrarMensaje('info', 'Datos complementarios cargados.');
+    } catch (err) {
+      this.mostrarMensaje('error', 'No se pudieron cargar municipios/departamentos.');
+      return;
+    }
+  }
+  
     if (!this.validarDatosParaExport()) {
       return;
     }

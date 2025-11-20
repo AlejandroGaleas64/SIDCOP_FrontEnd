@@ -38,15 +38,22 @@
                 borderTopLeftRadius: '8px',
                 borderBottomLeftRadius: '8px'}">
           </i>
-          <ng-select id="vendedor" [items]="vendedores" bindLabel="vendedorNombre" [loading]="cargando"
-            [clearable]="false" [searchable]="true" (change)="onVendedorSeleccionado($event)"
-            [class.is-invalid]="mostrarErrores" placeholder="Seleccione un vendedor" required
+          <ng-select id="v vendedor" [items]="vendedores"  
+            bindLabel="vendedorNombre"
+            [loading]="cargando"
+            [clearable]="false"
+            [searchable]="true"
+            [searchFn]="searchVendedor"
+            (change)="onVendedorSeleccionado($event)"
+            [class.is-invalid]="mostrarErrores"
+            placeholder="Seleccione un vendedor"
+            required
             style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
             <ng-template ng-label-tmp let-item="item">
-              {{ item.vendedorNombre }} - {{ item.rutaDescripcion }}
+                {{ item.vendedorNombre }} {{ item.vendedorApellido }} - {{ item.rutaDescripcion }}
             </ng-template>
             <ng-template ng-option-tmp let-item="item">
-              {{ item.vendedorNombre }} {{ item.vendedorApellido }} - {{ item.rutaDescripcion }}
+                {{ item.vendedorNombre }} {{ item.vendedorApellido }} - {{ item.rutaDescripcion }}
             </ng-template>
           </ng-select>
         </div>
@@ -54,7 +61,6 @@
           <small>El campo Vendedor es requerido</small>
         </div>
       </div>
-
 
       <!-- Selector de Cliente -->
       <div class="col-12 col-md-6 mb-3">

@@ -103,7 +103,7 @@ export class CreateComponent implements OnInit {
     }).subscribe({
       next: (data) => {
         // Filtrar clientes por ruta_Id
-        this.clientesFiltrados = (data || []).filter(cliente => cliente.ruta_Id === rutaId);
+        this.clientesFiltrados = (data || []).filter(cliente => cliente.ruta_Id === rutaId || cliente.clie_Id === 1);
         this.cargando = false;
         if (this.clientesFiltrados.length === 1) { 
           this.visita.cliente = this.clientesFiltrados[0]; 
@@ -382,6 +382,15 @@ export class CreateComponent implements OnInit {
     this.direcciones = [];
     this.uploadedFiles = [];
     this.mostrarErrores = false;
+  }
+
+  searchVendedor = (term: string, item: any) => {
+    if (!term) return true;
+    const t = term.toLowerCase();
+    const nombre = (item?.vendedorNombre || '').toString().toLowerCase();
+    const apellido = (item?.vendedorApellido || '').toString().toLowerCase();
+    const ruta = (item?.rutaDescripcion || '').toString().toLowerCase();
+    return nombre.indexOf(t) > -1 || apellido.indexOf(t) > -1 || ruta.indexOf(t) > -1;
   }
 
   searchCliente = (term: string, item: any) => {

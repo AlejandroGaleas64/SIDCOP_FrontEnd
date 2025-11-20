@@ -195,26 +195,31 @@
             </tbody>
           </table>
         </div>
-        <div class="row justify-content-md-between align-items-md-center" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
-          <ng-container *ngIf="(table.paginated$ | async) as paginados">
-            <div class="col-sm-12 col-md-5">
-              <div class="dataTables_info mb-2" role="status" aria-live="polite">
-                Mostrando
-                {{ (table.page - 1) * table.pageSizeValue + paginados.length }} de {{ table.total$ | async }}
-                registros
-              </div>
-            </div>
-            <div class="col-sm-12 col-md-5">
-              <div class="text-md-right float-md-end gridjs-pagination">
-                <pagination [totalItems]="(table.total$ | async) || 0" [(ngModel)]="table.page" [itemsPerPage]="table.pageSizeValue" (pageChanged)="table.setPage($event.page)"></pagination>
-              </div>
-            </div>
-          </ng-container>
-        </div>
       </div>
     </div>
-  </div>
+  <!-- Paginación fuera de table-radius-container -->
+<div class="row justify-content-md-between align-items-md-center" *ngIf="!showCreateForm && !showEditForm && !showDetailsForm">
+  <ng-container *ngIf="(table.paginated$ | async) as paginados">
+    <div class="col-sm-12 col-md-5">
+      <div class="dataTables_info mb-2" role="status" aria-live="polite">
+        Mostrando
+        {{ (table.page - 1) * table.pageSizeValue + paginados.length }} de {{ table.total$ | async }}
+        registros
+      </div>
+    </div>
+    <div class="col-sm-12 col-md-5">
+      <div class="text-md-right float-md-end gridjs-pagination">
+        <pagination [totalItems]="(table.total$ | async) || 0" [(ngModel)]="table.page" [itemsPerPage]="table.pageSizeValue" (pageChanged)="table.setPage($event.page)"></pagination>
+      </div>
+    </div>
+  </ng-container>
 </div>
+<br>
+  
+  </div>
+
+</div>
+
 </div>
 
 <!-- Contenedor de alertas flotantes -->
