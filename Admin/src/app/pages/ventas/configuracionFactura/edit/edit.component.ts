@@ -146,11 +146,13 @@ export class EditConfigFacturaComponent implements OnChanges {
       // Constantes para papel de 3 pulgadas
       const PAPER_WIDTH_INCHES = 2;
       const DPI = 203; // DPI estándar de impresoras Zebra
-      const PAPER_WIDTH_DOTS = PAPER_WIDTH_INCHES * DPI; // 609 dots
+      const PAPER_WIDTH_DOTS = PAPER_WIDTH_INCHES * DPI; // 406 dots
+      const TEXT_START_Y = 190; // Posición Y donde comienza el texto
+      const MARGIN_BOTTOM = 10; // Margen inferior para separación del texto
 
       // Buscar el comando ^GFA que contiene la información del gráfico
       // Formato: ^GFA,a,b,c,data
-      // donde b = bytes por fila, c = bytes por fila (generalmente igual a b)
+      // donde a = total bytes, b = bytes por fila, c = bytes por fila
       const gfaMatch = zplCode.match(/\^GFA,(\d+),(\d+),(\d+),/);
       
       if (!gfaMatch) {
@@ -158,24 +160,35 @@ export class EditConfigFacturaComponent implements OnChanges {
         return zplCode;
       }
 
+      const totalBytes = parseInt(gfaMatch[1]);
       const bytesPerRow = parseInt(gfaMatch[3]);
       
       // Calcular el ancho del logo en dots
       // Cada byte representa 8 dots (pixels)
       const logoWidthDots = bytesPerRow * 8;
       
+      // Calcular la altura del logo en dots
+      // Altura = total bytes / bytes por fila
+      const logoHeightDots = Math.round(totalBytes / bytesPerRow);
+      
       console.log('Ancho del papel:', PAPER_WIDTH_DOTS, 'dots');
       console.log('Ancho del logo:', logoWidthDots, 'dots');
+      console.log('Altura del logo:', logoHeightDots, 'dots');
+      console.log('Espacio disponible para logo:', TEXT_START_Y - MARGIN_BOTTOM, 'dots');
       
-      // Calcular posición X para centrar
+      // Calcular posición X para centrar horizontalmente
       const posicionX = Math.max(0, Math.round((PAPER_WIDTH_DOTS - logoWidthDots) / 2));
       
+      // Calcular posición Y para centrar verticalmente en el espacio disponible
+      // Espacio disponible = desde arriba hasta donde empieza el texto menos el margen
+      const espacioDisponible = TEXT_START_Y - MARGIN_BOTTOM;
+      const posicionY = Math.max(0, Math.round((espacioDisponible - logoHeightDots) / 2));
+      
       console.log('Posición X calculada para centrar:', posicionX);
+      console.log('Posición Y calculada para centrar:', posicionY);
       
       // Reemplazar ^FO0,0 con la posición centrada
-      // Mantener Y en 0 o un margen pequeño si lo deseas
-      const marginTop = 20; // Puedes ajustar este valor para margen superior
-      zplCode = zplCode.replace(/\^FO\d+,\d+/, `^FO${posicionX},${marginTop}`);
+      zplCode = zplCode.replace(/\^FO\d+,\d+/, `^FO${posicionX},${posicionY}`);
       
       return zplCode;
     } catch (error) {

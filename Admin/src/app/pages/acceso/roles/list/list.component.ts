@@ -271,8 +271,6 @@ export class ListComponent implements OnInit {
     if (!texto) return '';
     
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }
