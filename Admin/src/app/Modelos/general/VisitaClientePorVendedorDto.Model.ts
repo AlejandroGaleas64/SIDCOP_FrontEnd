@@ -16,6 +16,7 @@ export class VisitaClientePorVendedorDto {
     ruta_Descripcion: string = '';
     veRu_Id: number = 0;
     veRu_Dias: string = '';
+    tiVe_TipoVendedor: string = '';
     clie_Id: number = 0;
     clie_Codigo: string = '';
     clie_Nombres: string = '';
@@ -23,6 +24,7 @@ export class VisitaClientePorVendedorDto {
     clie_NombreNegocio: string = '';
     imVi_Imagen: string = '';
     clie_Telefono: string = '';
+    clie_DiaVisita: string = '';
     esVi_Id: number = 0;
     esVi_Descripcion: string = '';
     clVi_Observaciones: string = '';

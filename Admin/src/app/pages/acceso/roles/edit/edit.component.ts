@@ -403,7 +403,7 @@ export class EditComponent implements OnChanges {
     const permisosOriginales = [...this.permisosDelRol];
 
     // Ordenar para evitar falsos negativos
-    const cambiosPermisos = JSON.stringify(permisosActuales.sort()) !== JSON.stringify(permisosOriginales.sort());
+    const cambiosPermisos = JSON.stringify(permisosActuales.sort()) != JSON.stringify(permisosOriginales.sort());
 
     if (cambiosPermisos) {
       this.cambiosDetectados.permisos = {

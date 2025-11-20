@@ -82,7 +82,7 @@ export class ListComponent implements OnInit {
         // Columnas a exportar - CONFIGURA SEGÚN TUS DATOS
         columns: [
           { key: 'No', header: 'No', width: 15, align: 'left' as const },
-          { key: 'clie_NombreNegocio ', header: 'Nombre Negocio', width: 40, align: 'left' as const },
+          { key: 'clie_NombreNegocio', header: 'Nombre Negocio', width: 0, align: 'left' as const },
           { key: 'fact_Numero', header: 'Número de Factura', width: 50, align: 'left' as const },
           { key: 'devo_Fecha', header: 'Fecha', width: 40, align: 'left' as const },
           { key: 'devo_Motivo', header: 'Motivo', width: 40, align: 'left' as const }
@@ -95,7 +95,7 @@ export class ListComponent implements OnInit {
           'clie_NombreNegocio': this.limpiarTexto(devoluciones?.clie_NombreNegocio),
           'fact_Numero': this.limpiarTexto(devoluciones?.fact_Numero),
           'devo_Fecha': this.limpiarTexto(devoluciones?.devo_Fecha),
-          'devo_Motivo': this.limpiarTexto(devoluciones?.devo_Motivo),
+          'devo_Motivo': this.limpiarTexto(devoluciones?.devo_Motivo)
         })
       };
 
@@ -548,8 +548,6 @@ export class ListComponent implements OnInit {
     if (!texto) return '';
     
     return String(texto)
-      .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-.,;:()\[\]]/g, '')
       .trim()
       .substring(0, 150);
   }
