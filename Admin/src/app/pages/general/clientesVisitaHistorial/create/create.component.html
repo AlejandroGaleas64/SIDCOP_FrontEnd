@@ -36,7 +36,7 @@
             borderTopLeftRadius: '8px',
             borderBottomLeftRadius: '8px'}">
           </i>
-          <ng-select id="v vendedor" [items]="vendedores"  
+          <ng-select id="vendedor" [items]="vendedores"  
           bindLabel="vendedorNombre"
           [loading]="cargando"
           [clearable]="false"
@@ -147,7 +147,7 @@
       </div>
 
       <!-- Estado de Visita -->
-      <div class="col-12 col-md-6 mb-3">
+      <!-- <div class="col-12 col-md-6 mb-3">
         <label for="esVi_Id" class="form-label">Estado de Visita <span class="text-danger">*</span></label>
         <div class="d-flex align-items-center">
           <i class="ri-checkbox-circle-line" [ngStyle]="{
@@ -177,6 +177,41 @@
         </div>
         <div class="text-danger mt-1" *ngIf="!visita.esVi_Id && mostrarErrores">
            <small>El campo Estado es requerido</small>
+        </div>
+      </div> -->
+      <div class="col-12 col-md-6 mb-3">
+        <label for="vendedor" class="form-label">Estado de Visita <span class="text-danger">*</span></label>
+        <div class="d-flex align-items-center">
+          <i class="ri-user-2-line" [ngStyle]="{
+            border: (!visita.esVi_Id&& mostrarErrores) ? '1px solid #f9bcc4' : '1px solid #e9ecf5',
+            backgroundColor: (!visita.esVi_Id && mostrarErrores) ? '#fff5f6' : '#f2f3f9',
+            padding: '0.425rem 0.425rem',
+            position: 'relative', left: '7px',
+            zIndex: 1,
+            borderTopLeftRadius: '8px',
+            borderBottomLeftRadius: '8px'}">
+          </i>
+          <ng-select id="esVi_Id" [items]="estadosVisita"  
+          bindLabel="esVi_Descripcion"
+          [loading]="cargando"
+          [clearable]="false"
+          [searchable]="true"
+          [searchFn]="searchEstadoVisita"
+          [(ngModel)]="visita.esVi_Id"
+          [class.is-invalid]="!visita.esVi_Id && mostrarErrores"
+          placeholder="Seleccione un estado de visita"
+          required
+          style="flex-grow: 1; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+            <ng-template ng-label-tmp let-item="item">
+                {{ item.esVi_Descripcion }}
+            </ng-template>
+            <ng-template ng-option-tmp let-item="item">
+                {{ item.esVi_Descripcion }}
+            </ng-template>
+          </ng-select>
+        </div>
+        <div class="text-danger mt-1" *ngIf="!visita.esVi_Id && mostrarErrores">
+           <small>El campo Estado de Visita es requerido</small>
         </div>
       </div>
 
@@ -281,5 +316,16 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<div *ngIf="mostrarOverlayCarga" class="overlay-carga">
+  <div class="typing-indicator">
+    <div class="typing-circle"></div>
+    <div class="typing-circle"></div>
+    <div class="typing-circle"></div>
+    <div class="typing-shadow"></div>
+    <div class="typing-shadow"></div>
+    <div class="typing-shadow"></div>
   </div>
 </div>

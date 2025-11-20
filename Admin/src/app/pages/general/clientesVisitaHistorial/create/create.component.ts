@@ -26,6 +26,7 @@ export class CreateComponent implements OnInit {
   clientesFiltrados: any[] = [];
   estadosVisita: any[] = [];
   direcciones: any[] = [];
+  mostrarOverlayCarga = false;
 
   visita: any = {
     vendedor: null,
@@ -391,6 +392,13 @@ export class CreateComponent implements OnInit {
     const apellido = (item?.vendedorApellido || '').toString().toLowerCase();
     const ruta = (item?.rutaDescripcion || '').toString().toLowerCase();
     return nombre.indexOf(t) > -1 || apellido.indexOf(t) > -1 || ruta.indexOf(t) > -1;
+  }
+
+  searchEstadoVisita = (term: string, item: any) => {
+    if (!term) return true;
+    const t = term.toLowerCase();
+    const nombre = (item?.esVi_Descripcion || '').toString().toLowerCase();
+    return nombre.indexOf(t) > -1;
   }
 
   searchCliente = (term: string, item: any) => {
