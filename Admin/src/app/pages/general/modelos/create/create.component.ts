@@ -230,7 +230,7 @@ export class CreateComponent implements OnInit {
         if (codeStatus === -1) {
           // Caso de duplicado
           this.mostrarAlertaWarning = true;
-          this.mensajeWarning = messageStatus || 'Ya existe un modelo con esos datos para esta marca.';
+          this.mensajeWarning = 'Ya existe un modelo con ese nombre. Por favor ingrese un nombre diferente.';
           this.mostrarAlertaError = false;
           this.mostrarAlertaExito = false;
           

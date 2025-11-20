@@ -70,7 +70,7 @@ export class CreateComponent {
   idDelCliente: number = 0;
 
   rutasVendedorCache: any[] = [];
-String: any;
+  String: any;
 
   scrollToAval(index: number) {
     const container = this.tabsScroll.nativeElement;
@@ -114,19 +114,20 @@ String: any;
     if (no === 1) {
       this.mostrarErrores = true;
       if (
-        this.cliente.clie_Nacionalidad.trim() &&
-        this.cliente.clie_RTN.trim() &&
-        this.cliente.clie_Nombres.trim() &&
-        this.cliente.clie_Apellidos.trim() &&
-        this.cliente.esCv_Id &&
-        this.cliente.clie_FechaNacimiento &&
-        this.cliente.tiVi_Id &&
+        // this.cliente.clie_Nacionalidad.trim() &&
+        // this.cliente.clie_RTN.trim() &&
+        // this.cliente.clie_Nombres.trim() &&
+        // this.cliente.clie_Apellidos.trim() &&
+        // // this.cliente.esCv_Id &&
+        // this.cliente.clie_FechaNacimiento &&
+        // this.cliente.tiVi_Id &&
         this.cliente.clie_Telefono.trim()
       ) {
         this.mostrarErrores = false;
         this.activeTab = 2;
       } else {
         this.mostrarAlertaWarning = true;
+        console.log('DATOOOS: ', this.cliente);
         this.mensajeWarning = 'Por favor, complete todos los campos obligatorios de los Datos Personales.';
         setTimeout(() => {
           this.mostrarAlertaWarning = false;
@@ -144,6 +145,7 @@ String: any;
         this.cliente.clie_ImagenDelNegocio.trim() &&
         this.cliente.ruta_Id &&
         this.cliente.cana_Id &&
+        this.cliente.clie_DiaVisita.trim() &&
         this.direccionesPorCliente.length > 0
       ) {
         this.mostrarErrores = false;
@@ -211,9 +213,9 @@ String: any;
   //     !!this.cliente.clie_DiasCredito
   //   );
   // }
- tieneDatosCredito(): boolean {
-  return !!this.cliente.clie_LimiteCredito && !!this.cliente.clie_DiasCredito;
-}
+  tieneDatosCredito(): boolean {
+    return !!this.cliente.clie_LimiteCredito && !!this.cliente.clie_DiasCredito;
+  }
 
   //Verifica si el aval es valido- Si nungo campo este vacio
   esAvalValido(aval: Aval): boolean {
@@ -247,9 +249,10 @@ String: any;
   tabuladores(no: number) {
     if (no == 1) {
       this.mostrarErrores = true
-      if (this.cliente.clie_Nacionalidad.trim() && this.cliente.clie_Nombres.trim() &&
-        this.cliente.clie_Apellidos.trim() && this.cliente.esCv_Id &&
-        this.cliente.tiVi_Id &&
+      if (
+        // this.cliente.clie_Nacionalidad.trim() && this.cliente.clie_Nombres.trim() &&
+        // this.cliente.clie_Apellidos.trim() && this.cliente.esCv_Id &&
+        // this.cliente.tiVi_Id &&
         this.cliente.clie_Telefono.trim()) {
         this.mostrarErrores = false;
         this.activeTab = 2;
@@ -271,6 +274,7 @@ String: any;
         this.cliente.clie_ImagenDelNegocio.trim() &&
         this.cliente.ruta_Id &&
         this.cliente.cana_Id &&
+        this.cliente.clie_DiaVisita.trim() &&
         this.direccionesPorCliente.length > 0
       ) {
         this.mostrarErrores = false;
@@ -302,7 +306,7 @@ String: any;
             this.activeTab = 4;
           } else {
             this.mostrarAlertaWarning = true;
-            this.mensajeWarning = 'Los Dias del Credito son obligatorios si asigno un crédito.';
+            this.mensajeWarning = 'Los Días del Crédito son obligatorios si asignó un crédito.';
             setTimeout(() => {
               this.mostrarAlertaWarning = false;
               this.mensajeWarning = '';
@@ -607,7 +611,7 @@ String: any;
   };
   direccionEditandoIndex: number | null = null;
 
-   avales: Aval[] = [this.nuevoAval()];
+  avales: Aval[] = [this.nuevoAval()];
   // avales: Aval[] = [];
   avalActivoIndex: number = 0;
   nuevoAval(): Aval {
@@ -804,7 +808,7 @@ String: any;
 
 
   //Aquí
-    ensureInicialAval(): void {
+  ensureInicialAval(): void {
     try {
       if (!Array.isArray(this.avales)) {
         this.avales = [];
@@ -813,30 +817,30 @@ String: any;
         // usar la misma estructura que usa agregarAval() — aquí un objeto vacío por defecto
         const avalNuevo = {
           aval_Id: 0,
-      clie_Id: 0,
-      aval_Nombres: '',
-      aval_Apellidos: '',
-      pare_Id: 0,
-      aval_DNI: '',
-      aval_Telefono: '',
-      tiVi_Id: 0,
-      aval_Observaciones: '',
-      aval_DireccionExacta: '',
-      colo_Id: 0,
-      aval_FechaNacimiento: null,
-      esCv_Id: 0,
-      aval_Sexo: 'M',
-      pare_Descripcion: '',
-      esCv_Descripcion: '',
-      tiVi_Descripcion: '',
-      muni_Descripcion: '',
-      depa_Descripcion: '',
-      usua_Creacion: getUserId(),
-      usuarioCreacion: '',
-      aval_FechaCreacion: new Date(),
-      usua_Modificacion: 0,
-      usuarioModificacion: '',
-      aval_FechaModificacion: new Date()
+          clie_Id: 0,
+          aval_Nombres: '',
+          aval_Apellidos: '',
+          pare_Id: 0,
+          aval_DNI: '',
+          aval_Telefono: '',
+          tiVi_Id: 0,
+          aval_Observaciones: '',
+          aval_DireccionExacta: '',
+          colo_Id: 0,
+          aval_FechaNacimiento: null,
+          esCv_Id: 0,
+          aval_Sexo: 'M',
+          pare_Descripcion: '',
+          esCv_Descripcion: '',
+          tiVi_Descripcion: '',
+          muni_Descripcion: '',
+          depa_Descripcion: '',
+          usua_Creacion: getUserId(),
+          usuarioCreacion: '',
+          aval_FechaCreacion: new Date(),
+          usua_Modificacion: 0,
+          usuarioModificacion: '',
+          aval_FechaModificacion: new Date()
         };
         this.avales.push(avalNuevo);
         this.avalActivoIndex = 0;
@@ -875,9 +879,9 @@ String: any;
         clie_Telefono: this.cliente.clie_Telefono.trim(),
         clie_Correo: this.cliente.clie_Correo.trim() || '',
         clie_Sexo: this.cliente.clie_Sexo,
-         clie_FechaNacimiento: this.cliente.clie_FechaNacimiento 
-      ? new Date(this.cliente.clie_FechaNacimiento).toISOString().split('T')[0]
-      : null,
+        clie_FechaNacimiento: this.cliente.clie_FechaNacimiento
+          ? new Date(this.cliente.clie_FechaNacimiento).toISOString().split('T')[0]
+          : null,
         tiVi_Id: this.cliente.tiVi_Id,
         tiVi_Descripcion: this.cliente.tiVi_Descripcion || '',
         cana_Id: this.cliente.cana_Id,
@@ -898,12 +902,12 @@ String: any;
         usua_Creacion: getUserId(),
         // usua_Modificacion: getUserId(),
         // secuencia: 0,
-        clie_FechaCreacion: this.cliente.clie_FechaCreacion 
-      ? new Date(this.cliente.clie_FechaCreacion).toISOString().split('T')[0]
-      : null,
+        clie_FechaCreacion: this.cliente.clie_FechaCreacion
+          ? new Date(this.cliente.clie_FechaCreacion).toISOString().split('T')[0]
+          : null,
         // clie_FechaModificacion: this.cliente.clie_FechaModificacion
-      // ? new Date(this.cliente.clie_FechaModificacion).toISOString().split('T')[0]
-      // : null,
+        // ? new Date(this.cliente.clie_FechaModificacion).toISOString().split('T')[0]
+        // : null,
         // code_Status: 0,
         // message_Status: '',
         // usuaC_Nombre: '',
@@ -952,10 +956,15 @@ String: any;
             this.idDelCliente = response.data.data;
             this.guardarDireccionesPorCliente(this.idDelCliente);
             this.guardarAvales(this.idDelCliente);
-            this.mensajeExito = `Cliente "${this.cliente.clie_Nombres + ' ' + this.cliente.clie_Apellidos}" guardado exitosamente`;
+            this.mensajeExito = `"${this.cliente.clie_NombreNegocio}" guardado exitosamente`;
             this.mostrarAlertaExito = true;
             this.mostrarErrores = false;
             this.onSave.emit(this.cliente);
+
+            setTimeout(() => {
+              this.mostrarAlertaExito = false;
+              this.mensajeExito = '';
+            }, 3000);
           }
         },
         error: (error) => {
@@ -1087,17 +1096,17 @@ String: any;
   }
 
   agregarAval() {
-  if (!this.tieneDatosCredito()) {
-    this.mostrarAlertaWarning = true;
-    this.mensajeWarning = 'No se puede agregar un aval si el cliente no ha solicitado crédito.';
-    
-    setTimeout(()=> { this.mostrarAlertaWarning = false; this.mensajeWarning = ''; }, 3500);
-    return;
+    if (!this.tieneDatosCredito()) {
+      this.mostrarAlertaWarning = true;
+      this.mensajeWarning = 'No se puede agregar un aval si el cliente no ha solicitado crédito.';
+
+      setTimeout(() => { this.mostrarAlertaWarning = false; this.mensajeWarning = ''; }, 3500);
+      return;
+    }
+    this.avales.push(this.nuevoAval());
+    this.avalActivoIndex = this.avales.length - 1;
+    this.scrollToAval(this.avalActivoIndex);
   }
-  this.avales.push(this.nuevoAval());
-  this.avalActivoIndex = this.avales.length - 1;
-  this.scrollToAval(this.avalActivoIndex);
-}
 
   // llamado desde plantilla al pulsar "Agregar" en la pestaña Aval
   onAgregarAvalClicked(): void {
@@ -1324,7 +1333,7 @@ String: any;
           if (val === null || val === undefined) continue;
           // detectar si algún campo contiene exactamente el id de ruta (número o string)
           if ((typeof val === 'number' && +val === +rutaId) ||
-              (typeof val === 'string' && val.trim() === String(rutaId))) {
+            (typeof val === 'string' && val.trim() === String(rutaId))) {
             return true;
           }
         }
@@ -1403,7 +1412,7 @@ String: any;
 
     console.warn('[Clientes] no se pudo extraer días del registro encontrado. registro:', registro);
   }
-  
+
 
   // Opciones que alimentan el ng-select de "Día de Visita"
 
@@ -1412,39 +1421,39 @@ String: any;
   rutasVendedor: { ruta_Id: number | null, diasSeleccionados: number[], veRu_Dias: string }[] = [
     { ruta_Id: null, diasSeleccionados: [], veRu_Dias: '' }
   ];
-   // Verificar rutas y días
-    // (Nota: estas transformaciones deben ejecutarse dentro de un método en tiempo de ejecución;
-    // mover la lógica aquí para evitar declarar 'const' a nivel de clase)
-    private mapRutasDesdeOriginal(original: any, rutasVendedor: any[] = []): Array<{ ruta_Id: number; ruta_Descripcion?: string; diasSeleccionados: any[] }> {
-      const rutasOriginales = Array.isArray(original?.rutas) ? original.rutas : [];
-      const rutasNuevas = (rutasVendedor || []).map(rv => ({
-        ruta_Id: rv.ruta_Id as number,
-        ruta_Descripcion: (this.rutasTodas || this.rutasDisponibles || []).find((r: any) => Number(r.ruta_Id ?? r.id) === Number(rv.ruta_Id))?.ruta_Descripcion,
-        diasSeleccionados: Array.isArray(rv.diasSeleccionados) ? rv.diasSeleccionados : (rv.veRu_Dias ? String(rv.veRu_Dias).split(',').map((x: string) => Number(x)).filter(n => !isNaN(n)) : [])
-      }));
-      // devuelve las rutas nuevas calculadas (las originales se conservan si es necesario)
-      return rutasNuevas;
-    }
-    
-  private formatearDias = (dias: any[]): string => {
-      if (!dias || !dias.length) return 'Sin días';
-      const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-      return dias.map(d => {
-        if (typeof d === 'object' && d !== null && 'nombre' in d) {
-          return (d as any).nombre;
-        }
-        return diasSemana[Number(d)] || d;
-      }).join(', ');
-    };
-    
+  // Verificar rutas y días
+  // (Nota: estas transformaciones deben ejecutarse dentro de un método en tiempo de ejecución;
+  // mover la lógica aquí para evitar declarar 'const' a nivel de clase)
+  private mapRutasDesdeOriginal(original: any, rutasVendedor: any[] = []): Array<{ ruta_Id: number; ruta_Descripcion?: string; diasSeleccionados: any[] }> {
+    const rutasOriginales = Array.isArray(original?.rutas) ? original.rutas : [];
+    const rutasNuevas = (rutasVendedor || []).map(rv => ({
+      ruta_Id: rv.ruta_Id as number,
+      ruta_Descripcion: (this.rutasTodas || this.rutasDisponibles || []).find((r: any) => Number(r.ruta_Id ?? r.id) === Number(rv.ruta_Id))?.ruta_Descripcion,
+      diasSeleccionados: Array.isArray(rv.diasSeleccionados) ? rv.diasSeleccionados : (rv.veRu_Dias ? String(rv.veRu_Dias).split(',').map((x: string) => Number(x)).filter(n => !isNaN(n)) : [])
+    }));
+    // devuelve las rutas nuevas calculadas (las originales se conservan si es necesario)
+    return rutasNuevas;
+  }
 
-    // ...existing code...
+  private formatearDias = (dias: any[]): string => {
+    if (!dias || !dias.length) return 'Sin días';
+    const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    return dias.map(d => {
+      if (typeof d === 'object' && d !== null && 'nombre' in d) {
+        return (d as any).nombre;
+      }
+      return diasSemana[Number(d)] || d;
+    }).join(', ');
+  };
+
+
+  // ...existing code...
   /**
    * Llama al endpoint Cliente/DiasDisponibles/{rutaId} y normaliza la respuesta
    * Soporta: CSV string ("1,2"), array de números, array de objetos {id,nombre}, o { data: [...] }
    */
 
-   private mergeVeruDiasFromPayload(payload: any): number[] {
+  private mergeVeruDiasFromPayload(payload: any): number[] {
     const addNumsFrom = (src: any, set: Set<number>) => {
       if (src == null) return;
       if (typeof src === 'number') {

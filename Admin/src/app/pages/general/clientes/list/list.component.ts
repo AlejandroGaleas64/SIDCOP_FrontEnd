@@ -18,7 +18,6 @@ import { Cliente } from 'src/app/Modelos/general/Cliente.Model';
 import { CreateComponent } from '../create/create.component';
 import { DetailsComponent } from '../details/details.component';
 import { EditComponent } from '../edit/edit.component';
-// import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 
 import {
   trigger,
@@ -29,6 +28,24 @@ import {
 import { Router, ActivatedRoute } from '@angular/router';
 import { ExportService, ExportConfig, ExportColumn } from 'src/app/shared/exportHori.service';
 import { ImageUploadService } from 'src/app/core/services/image-upload.service';
+import { Pipe, PipeTransform } from '@angular/core';
+
+@Pipe({ name: 'maskDisplay', standalone: true })
+export class MaskDisplayPipe implements PipeTransform {
+  transform(value: string, mask: string): string {
+    if (!value) return '';
+    let result = '';
+    let vi = 0;
+    for (let mi = 0; mi < mask.length && vi < value.length; mi++) {
+      if (mask[mi] === '0') {
+        result += value[vi++];
+      } else {
+        result += mask[mi];
+      }
+    }
+    return result;
+  }
+}
 
 @Component({
   standalone: true,
@@ -53,6 +70,7 @@ import { ImageUploadService } from 'src/app/core/services/image-upload.service';
     CreateComponent,
     EditComponent,
     DetailsComponent,
+    MaskDisplayPipe,
     // NgbTooltipModule,
   ],
   animations: [
@@ -153,6 +171,17 @@ export class ListComponent {
   // Propiedades para confirmación de eliminación
   mostrarConfirmacionEliminar = false;
   clienteAEliminar: Cliente | null = null;
+
+  mostrarMensajeExito(cliente: Cliente) {
+    this.mensajeExito = `"${cliente.clie_NombreNegocio}" guardado exitosamente`;
+    this.mostrarAlertaExito = true;
+    this.cerrarFormulario(); // Si quieres cerrar el modal
+
+    setTimeout(() => {
+      this.mostrarAlertaExito = false;
+      this.mensajeExito = '';
+    }, 3000);
+  }
 
   // Estado de exportación
   exportando = false;
@@ -438,7 +467,7 @@ export class ListComponent {
   }
 
   editar(cliente: Cliente): void {
-    this.clienteEditando = { ...cliente };
+    this.clienteEditando = this.sanitizeClienteStrings({ ...cliente });
     this.showEditForm = true;
     this.showCreateForm = false;
     this.showDetailsForm = false;
@@ -509,7 +538,6 @@ export class ListComponent {
         this.currentPage = 1;
         this.itemsPerPage = 10;
         this.clientesFiltrados = [...this.clienteGrid];
-        debugger;
         this.cargandoDatos = false;
         this.actualizarClientesVisibles();
       }, 500);
@@ -639,29 +667,42 @@ export class ListComponent {
   guardarCliente(cliente: Cliente): void {
     this.mostrarOverlayCarga = true;
     // setTimeout(() => {
-      this.cargarDatos(true);
-      // this.mostrarOverlayCarga = false;
-      // this.mensajeExito = 'Cliente guardado exitosamente.';
-      // this.mostrarAlertaExito = true;
-      // setTimeout(() => {
-      //   this.mostrarAlertaExito = false;
-      //   this.mensajeExito = '';
-      // }, 3000);
+    this.cargarDatos(true);
+    // this.mostrarOverlayCarga = false;
+    // this.mensajeExito = 'Cliente guardado exitosamente.';
+    // this.mostrarAlertaExito = true;
+    // setTimeout(() => {
+    //   this.mostrarAlertaExito = false;
+    //   this.mensajeExito = '';
+    // }, 3000);
     // }, 1000);
   }
 
   actualizarCliente(cliente: Cliente): void {
     this.mostrarOverlayCarga = true;
     // setTimeout(() => {
-      this.cargarDatos(true);
-      // this.mostrarOverlayCarga = false;
-      // this.mensajeExito = `Cliente "${cliente.clie_Nombres} ${cliente.clie_Apellidos}" actualizado exitosamente.`;
-      // this.mostrarAlertaExito = true;
-      // setTimeout(() => {
-      //   this.mostrarAlertaExito = false;
-      //   this.mensajeExito = '';
-      // }, 3000);
+    this.cargarDatos(true);
+    // this.mostrarOverlayCarga = false;
+    // this.mensajeExito = `Cliente "${cliente.clie_Nombres} ${cliente.clie_Apellidos}" actualizado exitosamente.`;
+    // this.mostrarAlertaExito = true;
+    // setTimeout(() => {
+    //   this.mostrarAlertaExito = false;
+    //   this.mensajeExito = '';
+    // }, 3000);
     // }, 1000);
+  }
+
+  private sanitizeClienteStrings(obj: any): any {
+    if (!obj || typeof obj !== 'object') return obj;
+    const copy: any = { ...obj };
+    for (const key of Object.keys(copy)) {
+      if (copy[key] === null || copy[key] === undefined) {
+        copy[key] = '';
+      } else if (typeof copy[key] === 'string') {
+        copy[key] = copy[key].trim();
+      }
+    }
+    return copy;
   }
 
   confirmarEliminar(cliente: Cliente): void {
@@ -688,34 +729,47 @@ export class ListComponent {
       next: (resp) => {
         if (resp.code_Status === 1) {
           // Éxito: muestra mensaje y refresca la lista
-          const nuevoEstado = !this.esClienteActivo(this.clienteAEliminar); // Cambia el estado actual
-        const accion = nuevoEstado ? 'activó' : 'desactivó';
-        this.mensajeExito = `Cliente "${this.clienteAEliminar?.clie_Nombres} ${this.clienteAEliminar?.clie_Apellidos}" se ${accion} exitosamente`;
-        this.mostrarAlertaExito = true;
-        this.mostrarErrores = false;
+          const nuevoEstado = !this.esClienteActivo(this.clienteAEliminar);
+          const accion = nuevoEstado ? 'activó' : 'desactivó';
+          this.mensajeExito = `Cliente "${this.clienteAEliminar?.clie_Nombres} ${this.clienteAEliminar?.clie_Apellidos}" se ${accion} exitosamente`;
+          this.mostrarAlertaExito = true;
+          this.mostrarErrores = false;
 
-            setTimeout(() => {
-              this.mostrarAlertaExito = false;
-              this.mensajeExito = '';
-            }, 4000);
+          setTimeout(() => {
+            this.mostrarAlertaExito = false;
+            this.mensajeExito = '';
+          }, 4000);
           this.cargarDatos(true);
           this.cancelarEliminar();
         } else {
-          // Error de negocio: muestra mensaje de error
+          // Error de negocio: muestra mensaje de error personalizado si el cliente está en uso
           this.mostrarAlertaError = true;
-          this.mensajeError = resp.message_Status || 'No se pudo cambiar el estado.';
+          if (resp.message_Status && resp.message_Status.toLowerCase().includes('utilizad')) {
+            this.mensajeError = 'No se puede desactivar/eliminar este cliente porque está siendo utilizado en otros registros.';
+          } else {
+            this.mensajeError = resp.message_Status || 'No se pudo cambiar el estado.';
+          }
         }
       },
       error: () => {
-        // Error de red o servidor
         this.mostrarAlertaError = true;
         this.mensajeError = 'Error al cambiar el estado del cliente.';
+        this.cancelarEliminar(); // <-- Esto cierra el modal de confirmación
+
+        setTimeout(() => {
+          this.mostrarAlertaError = false;
+          this.mensajeError = '';
+        }, 4000);
       }
     });
   }
 
   esClienteActivo(cliente: any): boolean {
     return cliente.clie_Estado === 1 || cliente.clie_Estado === true;
+  }
+
+  limpiarGuiones(valor: string): string {
+    return valor ? valor.replace(/-/g, '') : '';
   }
 
   /**

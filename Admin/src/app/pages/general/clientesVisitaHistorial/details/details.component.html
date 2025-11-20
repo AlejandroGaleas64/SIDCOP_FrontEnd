@@ -132,17 +132,7 @@
                     </div>
                     <div class="card-body">
                         <div class="row g-3 row-cols-1 row-cols-md-3">
-                            <div class="col" *ngIf="visitaDetalle.clVi_Id">
-                                <div class="detail-item">
-                                    <div class="detail-icon bg-dark-blue text-white"><i class="ri-hashtag"></i></div>
-                                    <div class="detail-content">
-                                        <div class="detail-label">Código Vendedor</div>
-                                        <div class="detail-value">{{ visitaDetalle.vend_Codigo }}</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col">
+                            <div class="col-12 col-md-6">
                                 <div class="detail-item">
                                     <div class="detail-icon bg-dark-blue text-white"><i class="ri-user-3-line"></i>
                                     </div>
@@ -154,7 +144,7 @@
                                 </div>
                             </div>
 
-                            <div class="col">
+                            <div class="col-12 col-md-6">
                                 <div class="detail-item">
                                     <div class="detail-icon bg-dark-blue text-white"><i class="ri-route-line"></i>
                                     </div>
@@ -165,29 +155,7 @@
                                 </div>
                             </div>
 
-                            <div class="col">
-                                <div class="detail-item">
-                                    <div class="detail-icon bg-dark-blue text-white"><i class="ri-attachment-line"></i></div>
-                                    <div class="detail-content">
-                                        <div class="detail-label">Código Cliente</div>
-                                        <div class="detail-value">{{ visitaDetalle.clie_Codigo }}</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col">
-                                <div class="detail-item">
-                                    <div class="detail-icon bg-dark-blue text-white"><i class="ri-map-pin-user-line"></i>
-                                    </div>
-                                    <div class="detail-content">
-                                        <div class="detail-label">Cliente</div>
-                                        <div class="detail-value">{{ visitaDetalle.clie_Nombres }} {{
-                                            visitaDetalle.clie_Apellidos }}</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col">
+                            <div class="col-12 col-md-6">
                                 <div class="detail-item">
                                     <div class="detail-icon bg-dark-blue text-white"><i class="ri-store-2-line"></i>
                                     </div>
@@ -198,7 +166,7 @@
                                 </div>
                             </div>
 
-                            <div class="col">
+                            <div class="col-12 col-md-6">
                                 <div class="detail-item">
                                     <div class="detail-icon bg-dark-blue text-white"><i class="ri-compass-discover-line"></i>
                                     </div>
@@ -209,7 +177,7 @@
                                 </div>
                             </div>
 
-                            <div class="col" *ngIf="visitaDetalle.clVi_Observaciones">
+                            <div class="col-12 col-md-6" *ngIf="visitaDetalle.clVi_Observaciones">
                                 <div class="detail-item">
                                     <div class="detail-icon bg-dark-blue text-white"><i class="ri-chat-3-line"></i>
                                     </div>
@@ -220,7 +188,7 @@
                                 </div>
                             </div>
 
-                            <div class="col">
+                            <div class="col-12 col-md-6">
                                 <div class="detail-item">
                                     <div class="detail-icon bg-dark-blue text-white"><i class="ri-calendar-check-line"></i>
                                     </div>
