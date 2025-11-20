@@ -20,6 +20,7 @@ import { TableModule } from 'src/app/pages/table/table.module';
 import { FloatingMenuService } from 'src/app/shared/floating-menu.service';
 import { trigger, style, transition, animate } from '@angular/animations';
 import { Subscription } from 'rxjs';
+import { BreadcrumbsComponent } from 'src/app/shared/breadcrumbs/breadcrumbs.component';
 
 /**
  * Componente para mostrar el detalle de una cuenta por cobrar.
@@ -29,7 +30,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-details',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationModule, TableModule],
+  imports: [CommonModule, FormsModule, PaginationModule, TableModule,  BreadcrumbsComponent],
   templateUrl: './details.component.html',
   styleUrls: ['./details.component.scss'],
   animations: [
@@ -72,6 +73,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
       this.cargarDatos();
     }
   }
+  breadCrumbItems: Array<{}> = [];
   /**
    * Evento emitido al cerrar el detalle.
    */
@@ -179,6 +181,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.cargarAccionesUsuario();
     this.configurarTablaPrincipal();
+    this.initializeBreadcrumbs();
 
     this.clienteSeleccionadoSub =
       this.cuentasPorCobrarDataService.clienteSeleccionado$.subscribe(
@@ -211,6 +214,14 @@ export class DetailsComponent implements OnInit, OnDestroy {
       this.clienteSeleccionadoSub = null;
     }
   }
+
+private initializeBreadcrumbs(): void {
+  this.breadCrumbItems = [
+    { label: 'Ventas' },
+    { label: 'Cuentas por Cobrar', active: false },
+    { label: 'Detalles', active: true }
+  ];
+}
 
   /** Configuración de tabla */
   /**
